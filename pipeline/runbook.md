@@ -2,7 +2,10 @@
 
 Reihenfolge für einen kompletten Neuaufbau der VPS von Grund auf (z. B. bei Totalausfall). Die VPS läuft bereits, aber ohne schützenswerte Daten — der Neuaufbau beginnt daher direkt bei Schritt 2 auf dem bestehenden Server; Schritt 1 erkennt den existierenden Server per `hcloud server describe` und überspringt die Neuanlage.
 
-**Voraussetzung, einmalig:** MFA ist auf dem Hetzner-Cloud-Konto, dem DNS-Provider-Konto der Schule und dem gemeinsamen Passwortmanager aktiv (`rules.md` Abschnitt 2), bevor der erste persönliche Hetzner-API-Token für Schritt 1 erzeugt wird.
+**Voraussetzungen, einmalig (nur beim allerersten Setup):**
+
+- MFA ist auf dem Hetzner-Cloud-Konto, dem DNS-Provider-Konto der Schule und dem gemeinsamen Passwortmanager aktiv (`rules.md` Abschnitt 2), bevor der erste persönliche Hetzner-API-Token für Schritt 1 erzeugt wird.
+- Ein age-Keypair ist erzeugt: der Private Key liegt im gemeinsamen Passwortmanager (`idea/01-boot-verschluesselung.md`), die zugehörige verschlüsselte Secrets-Datei `vps/setup/secrets.age` ist (anfangs mit den ersten Einträgen) in Git committet. Alle folgenden Schritte, die ein Secret ablegen (healthchecks-Ping-URL in Schritt 4, Deploy-/Identitätsanbieter-Secrets in Schritt 6/8), schreiben in genau diese Datei. Bei einem Neuaufbau existiert beides bereits (Key im Passwortmanager, Datei in Git) — dann entfällt dieser Punkt.
 
 1. **[Phase 1](vps-repo/01-provisioning.md)** (`vps/infra/`, beliebiger Admin-Rechner mit eigenem Hetzner-API-Token): hcloud-Skript ausführen → Server + Firewall stehen, Server-IP bekannt (neu angelegt oder bereits vorhanden).
 2. **DNS** (manuell, einmalig bzw. bei IP-Wechsel): A/AAAA-Record der Subdomain (`idea/02-netzwerk-firewall.md`) beim bestehenden DNS-Provider der Schule auf die Server-IP aus Schritt 1 setzen.
@@ -13,3 +16,15 @@ Reihenfolge für einen kompletten Neuaufbau der VPS von Grund auf (z. B. bei Tot
 7. **[Phase 4a](vps-repo/04a-docker-install.md)** (`vps/setup/`): Docker-Engine + Netzwerk-Segmentierung.
 8. **Identitätsanbieter-Registrierung-Bootstrap** (manuell, einmalig bzw. bei Wechsel; erst relevant, sobald App-Stack-Architektur und Identitätsanbieter feststehen, `idea/04-identitaet-zugriff.md`): App-/Rollen-Registrierung beim gewählten Anbieter anlegen (Kandidat: M365/Entra-ID-Tenant der Schule), Redirect-URI auf die Subdomain aus `idea/02-netzwerk-firewall.md` setzen, Tenant-Restriktion konfigurieren (kein Multi-Tenant-Fallstrick). Client-ID/Tenant-ID/Client-Secret werden vor dem ersten Lauf von Schritt 9 in die age-verschlüsselte Secrets-Datei übernommen — gleicher Provisionierungsweg wie die übrigen Secrets (`idea/03-container-anwendung.md`), da das Backend sie beim ersten Start braucht. Rotation wie bei Schritt 6: neues Secret beim Anbieter erzeugen, in der age-verschlüsselten Secrets-Datei ersetzen, Phase 3 erneut laufen lassen.
 9. **[Phase 4b](app-stack-repo/04b-app-stack-deploy.md)** (App-Stack-Repo, eigene CI/CD gegen `deploy`-User, sobald Architektur/Tools feststehen): App-Stack-Deploy, gehört zum App-Stack-Repo statt zum VPS-Repo.
+
+## Runbook — Break-Glass-Unlock
+
+Nur nötig, wenn der automatische Keyfile-Unlock (`idea/01-boot-verschluesselung.md`) einmal nicht durchläuft und der Server nach einem Reboot nicht wieder erreichbar ist (Dead-Man's-Switch schlägt Alarm). Braucht die Break-Glass-Passphrase (Keyslot 0) aus dem gemeinsamen Passwortmanager.
+
+1. **Hetzner Cloud Console → VNC** des Servers öffnen (Web-Konsole, MFA-geschützt, `rules.md` Abschnitt 2).
+2. **Fall A — Initramfs zeigt einen Passphrase-Prompt** (Keyfile defekt, Initramfs selbst intakt): Break-Glass-Passphrase aus dem Passwortmanager eingeben. Der Server bootet durch. Danach **die Ursache beheben**, damit der nächste Boot wieder automatisch läuft: im laufenden OS das Keyfile bzw. `/boot` prüfen und `update-initramfs -u` + `update-grub` erneut ausführen (sonst braucht jeder weitere Reboot wieder die manuelle Passphrase).
+3. **Fall B — kein Prompt / Initramfs lädt nicht** (defektes `/boot`/Initramfs): **nur** den Hetzner-Rescue-Modus aktivieren und rebooten (`hcloud server enable-rescue` + Reboot) — **nicht das Phase-2-Installationsskript ausführen**, das wiped die Disk und zerstört die zu rettenden Daten. Im Rescue-System dann den LUKS-Container mit der Break-Glass-Passphrase manuell öffnen (`cryptsetup luksOpen`), mounten, `chroot`, Initramfs/Bootloader reparieren (`update-initramfs -u` + `update-grub`), unmount, Rescue deaktivieren, Reboot.
+4. **Fall C — LUKS-Header beschädigt** (Passphrase korrekt, Volume trotzdem unlesbar): im Rescue-System das LUKS-Header-Backup aus dem Passwortmanager (`idea/01-boot-verschluesselung.md`) zurückspielen (`cryptsetup luksHeaderRestore`), dann weiter wie Fall B.
+5. Erreichbarkeit über den Dead-Man's-Switch (healthchecks.io) bestätigen.
+
+Schlägt alle drei Fälle fehl oder ist der Datenträger endgültig verloren: kompletter Neuaufbau nach dem Runbook oben (die VPS führt keine unersetzlichen Daten — DB/Logs kommen aus dem Backup, `idea/05-backup-recovery.md`).
