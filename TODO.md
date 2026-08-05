@@ -4,23 +4,30 @@ Organisatorische Vorbereitungen, die vor Phase 1 ([`pipeline/vps-repo/01-provisi
 
 ## Accounts & Zugänge
 
-- [ ] Hetzner-Cloud-Konto anlegen — organisationseigen, nicht privat (`rules.md` Abschnitt 6)
-- [ ] Zweiten Admin bestimmen — Bus-Faktor verlangt mindestens zwei Personen mit vollem Zugriff (`rules.md` Abschnitt 6)
-- [ ] Gemeinsame KeePass-Datenbank anlegen, Ablageort für alle Admins klären (z. B. bestehender M365-Tenant der Schule)
-- [ ] KeePass-Datenbank mit Master-Passwort **+** Schlüsseldatei oder YubiKey schützen — KeePass kennt offline kein klassisches MFA, das ist das Äquivalent zur MFA-Pflicht aus `rules.md` Abschnitt 2
-- [ ] MFA aktivieren: Hetzner-Cloud-Konto, DNS-Provider-Konto der Schule (`rules.md` Abschnitt 2)
-- [ ] healthchecks.io-Hobbyist-Account anlegen + Check einrichten, Zugangsdaten in KeePass ablegen
-- [ ] `secrets.env` in KeePass anlegen (erster Eintrag: healthchecks-Ping-URL) — Format/Schema siehe `pipeline/vps-repo/02-hardening.md`
-- [ ] Pro Admin: eigenen Hetzner-API-Token erzeugen, eigenen SSH-Key erzeugen (Grundlage für spätere `admins.yml`)
+- [x] Hetzner-Cloud-Konto anlegen — organisationseigen, nicht privat (`rules.md` Abschnitt 6)
+- [x] Zweiten Admin bestimmen — Bus-Faktor verlangt mindestens zwei Personen mit vollem Zugriff (`rules.md` Abschnitt 6)
+- [x] Gemeinsame KeePass-Datenbank anlegen, Ablageort für alle Admins klären (z. B. bestehender M365-Tenant der Schule)
+- [x] KeePass-Datenbank mit starkem, einzigartigem Master-Passwort schützen — kein Keyfile/YubiKey, siehe Begründung in `rules.md` Abschnitt 2
+- [x] MFA aktivieren: Hetzner-Cloud-Konto, DNS-Provider-Konto der Schule (`rules.md` Abschnitt 2)
+- [x] healthchecks.io-Hobbyist-Account anlegen + Check einrichten, Zugangsdaten in KeePass ablegen
+- [x] `secrets.env` in KeePass anlegen (erster Eintrag: healthchecks-Ping-URL) — Format/Schema siehe `pipeline/vps-repo/02-hardening.md`
+- [x] Pro Admin: eigenen Hetzner-API-Token erzeugen, eigenen SSH-Key erzeugen (Grundlage für spätere `admins.yml`)
 
 ## Konkrete Werte festlegen
 
-- [ ] Servername + Hetzner-Label wählen (Konstante für `vps/infra/`)
-- [ ] Region festlegen: `fsn1` oder `nbg1` (bisher beide genannt, siehe `pipeline/vps-repo/01-provisioning.md`)
+- [x] Servername + Hetzner-Label wählen (Konstante für `vps/infra/`)
+    Projektname: Weltenbaum
+    Servername: db-prod-fsn-01
+    IPv4: 167.233.211.96
+    IPv6: 2a01:4f8:c012:90d0::/64
+
+- [x] Region festlegen: `fsn1` oder `nbg1` (bisher beide genannt, siehe `pipeline/vps-repo/01-provisioning.md`)
 
 ## VPS-Repo
 
-- [ ] Repo anlegen (Name, privat, Zugriff für weitere Admins) — siehe „Repo-Struktur" in `project-parts.md`
+- [x] Repo anlegen (Name, privat, Zugriff für weitere Admins) — siehe „Repo-Struktur" in `project-parts.md`
+    Github wird genutzt als Hosting Plattform, da Gitlab Kreditkartendaten will für jeden User der sich anmeldet bei Gitlab.
+    Github Organisation erstellt, warüber alle Repos laufen. wb-vps ist erstes Repo!
 - [ ] `vps/CLAUDE.md` (Coding-Style-Regeln) neu schreiben + reviewen — vorheriger Entwurf wurde mit `vps/` gelöscht (Commit 798d19a), Review stand davor schon aus
 
 ## Optional, nicht blockierend

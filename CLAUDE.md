@@ -1,4 +1,4 @@
-# cyborg
+# yggdrasil
 
 Konzept- und Architektur-Doku für einen selbstverwalteten, DSGVO-konformen Datenbank-/API-VPS (Hetzner) für Schulprozesse — Docker-Netzwerk-Isolation, externer OIDC-Identitätsanbieter, verschlüsselte Backups. Das VPS/Host-Setup (Firewall, Docker-Engine) wird gerade konkret umgesetzt; die App-Stack-Ebene darüber (Datenbank, Backend, Reverse-Proxy, Backup-Tool, Identitätsanbieter, CI/CD) ist bewusst nur als Toolkategorie beschrieben, keine konkreten Produkte fixiert, bis die App-Stack-Entwicklung tatsächlich beginnt. Details in `idea/`, `pipeline/`, `project-parts.md`. Die Planungsprinzipien, denen alle drei folgen, stehen in `rules.md` — jede neue Entscheidung in diesem Repo hält sich daran, insbesondere die dort explizit benannte Vertrauensgrenze (Abschnitt 2): Root-Admins und Hetzner selbst gelten als vertrauenswürdig, das Bedrohungsmodell zielt auf externe Angreifer.
 
@@ -25,4 +25,4 @@ Alle `.md`-Dateien in diesem Repo bilden ausschließlich den **aktuellen Stand**
 
 ## Geltungsbereich dieser Datei
 
-Dieses Root-Repo (`cyborg`) ist reine Konzept-/Architektur-Doku, ausschließlich für mich als alleinigen Betreiber. Die Umsetzungs-Repos (VPS-Repo, App-Stack-Repo, Teams-Apps-Repo, Static-Web-App-Repos) sind für weitere Personen gedacht — Programmierstil-Regeln (Sprache, Skript-Aufbau, Naming, Fehlerbehandlung etc.) stehen deshalb nicht hier, sondern in der `CLAUDE.md` des jeweiligen Umsetzungs-Repos (aktuell `vps/CLAUDE.md`).
+Dieses Root-Repo (`yggdrasil`) ist reine Konzept-/Architektur-Doku, ausschließlich für mich als alleinigen Betreiber. Die Umsetzungs-Repos (VPS-Repo, App-Stack-Repo, Teams-Apps-Repo, Static-Web-App-Repos) sind für weitere Personen gedacht — Programmierstil-Regeln (Sprache, Skript-Aufbau, Naming, Fehlerbehandlung etc.) stehen deshalb nicht hier, sondern in der `CLAUDE.md` des jeweiligen Umsetzungs-Repos (aktuell `vps/CLAUDE.md`).
