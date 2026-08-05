@@ -5,7 +5,7 @@ Reihenfolge für einen kompletten Neuaufbau der VPS von Grund auf (z. B. bei Tot
 **Voraussetzungen, einmalig (nur beim allerersten Setup):**
 
 - MFA ist auf dem Hetzner-Cloud-Konto, dem DNS-Provider-Konto der Schule und dem gemeinsamen Passwortmanager aktiv (`rules.md` Abschnitt 2), bevor der erste persönliche Hetzner-API-Token für Schritt 1 erzeugt wird.
-- Eine Secrets-Datei (`secrets.yml`, anfangs mit den ersten Einträgen) liegt als Anhang im gemeinsamen Passwortmanager (`idea/01-boot-verschluesselung.md`) — nicht in Git. Alle folgenden Schritte, die ein Secret ablegen (healthchecks-Ping-URL in Schritt 3, Deploy-/Identitätsanbieter-Secrets in Schritt 5/7), aktualisieren genau diese Datei dort. Bei einem Neuaufbau existiert sie bereits — dann entfällt dieser Punkt.
+- Eine Secrets-Datei (`secrets.env`, anfangs mit den ersten Einträgen; Format/Schema siehe `pipeline/vps-repo/02-hardening.md`) liegt als Datei-Anhang in der gemeinsamen KeePass-Datenbank (`idea/01-boot-verschluesselung.md`) — nicht in Git. Alle folgenden Schritte, die ein Secret ablegen (healthchecks-Ping-URL in Schritt 3, Deploy-/Identitätsanbieter-Secrets in Schritt 5/7), aktualisieren genau diese Datei dort. Bei einem Neuaufbau existiert sie bereits — dann entfällt dieser Punkt.
 
 1. **[Phase 1](vps-repo/01-provisioning.md)** (`vps/infra/`, beliebiger Admin-Rechner mit eigenem Hetzner-API-Token): hcloud-Skript ausführen → Server + Firewall stehen, Hetzners Standard-Debian-Image läuft bereits per Cloud-Init mit den Admin-Keys erreichbar, Server-IP bekannt (neu angelegt oder bereits vorhanden).
 2. **DNS** (manuell, einmalig bzw. bei IP-Wechsel): A/AAAA-Record der Subdomain (`idea/02-netzwerk-firewall.md`) beim bestehenden DNS-Provider der Schule auf die Server-IP aus Schritt 1 setzen.
