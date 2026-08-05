@@ -15,20 +15,13 @@ Organisatorische Vorbereitungen, die vor Phase 1 ([`pipeline/vps-repo/01-provisi
 
 ## Konkrete Werte festlegen
 
-- [x] Servername + Hetzner-Label wählen (Konstante für `wb-vps/infra/`)
-    Projektname: Weltenbaum
-    Servername: db-prod-fsn-01
-    IPv4: 167.233.211.96
-    IPv6: 2a01:4f8:c012:90d0::/64
-
-- [x] Region festgelegt: `fsn1` (Falkenstein), siehe `pipeline/vps-repo/01-provisioning.md`
-- [x] Wöchentliches Wartungsfenster (automatischer Reboot nach Kernel-Patches) festgelegt: Samstag, 03:00 Uhr, siehe `idea/01-boot-verschluesselung.md`/`pipeline/vps-repo/02-hardening.md`
+- [x] Servername + Hetzner-Label festgelegt, siehe `pipeline/vps-repo/01-provisioning.md`
+- [x] Region festgelegt, siehe `pipeline/vps-repo/01-provisioning.md`
+- [x] Wöchentliches Wartungsfenster (automatischer Reboot nach Kernel-Patches) festgelegt, siehe `pipeline/vps-repo/02-hardening.md`
 
 ## VPS-Repo
 
-- [x] Repo anlegen (Name, privat, Zugriff für weitere Admins) — siehe „Repo-Struktur" in `project-parts.md`
-    Github wird genutzt als Hosting Plattform, da Gitlab Kreditkartendaten will für jeden User der sich anmeldet bei Gitlab.
-    Github Organisation erstellt, warüber alle Repos laufen. wb-vps ist erstes Repo!
+- [x] Repo angelegt (GitHub-Organisation, `wb-vps` als erstes Repo) — Begründung siehe „Repo-Struktur" in `project-parts.md`
 - [x] `wb-vps/CLAUDE.md` (Coding-Style-Regeln) neu schreiben + reviewen — jetzt eigenständig (kein Bezug auf dieses Repo), stale LUKS-/Break-Glass-Referenzen entfernt (Festplattenverschlüsselung ist raus, nur noch verschlüsseltes Swap mit Random-Key)
 
 ## Optional, nicht blockierend
