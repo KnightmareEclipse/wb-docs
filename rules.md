@@ -35,7 +35,7 @@ Keine Hochverfügbarkeits-Infrastruktur (Multi-Server, Load-Balancer, Multi-Regi
 - Jedes Skript ist **idempotent** — beliebig oft wiederholbar, ohne Schaden anzurichten (Referenzmuster: die Bootstrap-Checks in `pipeline/vps-repo/01-provisioning.md`/`02-hardening.md`).
 - Jeder automatisierte Job (Cronjob, Systemd-Timer, CI-Pipeline) **meldet Fehlschläge aktiv** (Push-Alert), statt dass jemand aktiv nachschauen muss — ein stiller Fehlschlag zählt als nicht vorhanden.
 - **Eine Konfigurationsquelle pro Sachverhalt**, von allen Skripten referenziert, die sie brauchen (`ports.yml`, `admins.yml`-Muster) — keine duplizierten Listen, die auseinanderlaufen können.
-- Abhängigkeits-Updates (npm/pip/Docker-Base-Images) laufen über automatisierte PRs (Tool offen, z. B. Renovate oder Dependabot, beide kostenlos) statt manuellem Nachschauen — konkretes Tool folgt mit der Wahl der Code-/CI-Plattform, reduziert die monatliche Handarbeit aus `project-parts.md` Abschnitt 1 auf einen Review-Klick pro PR.
+- Abhängigkeits-Updates (npm/pip/Docker-Base-Images) laufen über automatisierte PRs (Tool offen, z. B. Renovate oder Dependabot, beide kostenlos) statt manuellem Nachschauen — konkretes Tool folgt mit der Wahl der Code-/CI-Plattform, reduziert die monatliche Handarbeit aus `idea/03-container-anwendung.md` (Container-Image-Rebuilds) auf einen Review-Klick pro PR.
 
 ## 4. Kosten & Software-Auswahl
 

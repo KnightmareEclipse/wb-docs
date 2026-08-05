@@ -1,6 +1,6 @@
 # Phase 3 — Docker-Engine-Install
 
-`[AUTOMATISIERT — Shell-Skript, vps/setup/]`
+`[AUTOMATISIERT — Shell-Skript, wb-vps/setup/]`
 
 Rootless Docker, installiert und betrieben unter dem `deploy`-User (kein system-weiter Root-Daemon) — macht „kein Root-Zugriff" für den `deploy`-User technisch verbindlich: ein Container mit Host-Mount (`-v /:/host`), erstellt über einen kompromittierten CI-Deploy-Key, läuft im User-Namespace des `deploy`-Users, nicht als echter Root (`idea/03-container-anwendung.md`).
 

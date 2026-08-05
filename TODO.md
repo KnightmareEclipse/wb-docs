@@ -15,24 +15,25 @@ Organisatorische Vorbereitungen, die vor Phase 1 ([`pipeline/vps-repo/01-provisi
 
 ## Konkrete Werte festlegen
 
-- [x] Servername + Hetzner-Label wählen (Konstante für `vps/infra/`)
+- [x] Servername + Hetzner-Label wählen (Konstante für `wb-vps/infra/`)
     Projektname: Weltenbaum
     Servername: db-prod-fsn-01
     IPv4: 167.233.211.96
     IPv6: 2a01:4f8:c012:90d0::/64
 
-- [x] Region festlegen: `fsn1` oder `nbg1` (bisher beide genannt, siehe `pipeline/vps-repo/01-provisioning.md`)
+- [x] Region festgelegt: `fsn1` (Falkenstein), siehe `pipeline/vps-repo/01-provisioning.md`
 
 ## VPS-Repo
 
 - [x] Repo anlegen (Name, privat, Zugriff für weitere Admins) — siehe „Repo-Struktur" in `project-parts.md`
     Github wird genutzt als Hosting Plattform, da Gitlab Kreditkartendaten will für jeden User der sich anmeldet bei Gitlab.
     Github Organisation erstellt, warüber alle Repos laufen. wb-vps ist erstes Repo!
-- [ ] `vps/CLAUDE.md` (Coding-Style-Regeln) neu schreiben + reviewen — vorheriger Entwurf wurde mit `vps/` gelöscht (Commit 798d19a), Review stand davor schon aus
+- [x] `wb-vps/CLAUDE.md` (Coding-Style-Regeln) neu schreiben + reviewen — jetzt eigenständig (kein Bezug auf dieses Repo), stale LUKS-/Break-Glass-Referenzen entfernt (Festplattenverschlüsselung ist raus, nur noch verschlüsseltes Swap mit Random-Key)
 
 ## Optional, nicht blockierend
 
-- [ ] Subdomain wählen + DNS A/AAAA-Record setzen — DNS-Zugang ist vorhanden, kann jederzeit vor dem App-Stack passieren, kein Muss für Phase 1–3
+- [x] Subdomain wählen — `api.clemens.schule`, siehe `idea/02-netzwerk-firewall.md`
+- [ ] DNS A/AAAA-Record für `api.clemens.schule` setzen — bewusst zurückgestellt, bis der Server läuft (manuell im All-Inkl-KAS unter Tools → DNS-Verwaltung, nicht über die einfache Subdomain-Verwaltung), kein Muss für Phase 1–3
 
 ## Später relevant, jetzt nicht klären
 

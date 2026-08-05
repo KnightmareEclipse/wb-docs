@@ -2,7 +2,7 @@
 
 Ableitung aus `idea/` und `project-parts.md` — Phasen mit Automatisierungsgrad, sortiert nach Repo-Zuordnung (siehe „Repo-Struktur" in `project-parts.md`):
 
-*   **`vps-repo/`** — Phasen 1, 2, 3. Leben im VPS-Repo (lokal `vps/`, Unterordner `infra/`, `setup/`), laufen weiter lokal/manuell und werden jetzt konkret umgesetzt.
+*   **`vps-repo/`** — Phasen 1, 2, 3. Leben im VPS-Repo (`wb-vps`, Unterordner `infra/`, `setup/`), laufen weiter lokal/manuell und werden jetzt konkret umgesetzt.
 *   **`app-stack-repo/`** — Phase 4. Lebt im späteren App-Stack-Repo (lokal `app-stack/`) und läuft über eine eigene CI/CD gegen einen eingeschränkten `deploy`-User — keine dauerhaft lokal vorgehaltenen Secrets für Routine-Deploys. Konkrete Tools/Plattform noch offen (`project-parts.md`).
 
 ## Phasen
