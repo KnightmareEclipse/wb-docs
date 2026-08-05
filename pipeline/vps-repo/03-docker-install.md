@@ -11,3 +11,5 @@ Dazu Netzwerk-Segmentierung (extern/intern) als Host-Voraussetzung. Nach der Ins
 Bleibt im VPS-Repo, da es eine System-Paket-Installation ist, keine Anwendungslogik — ändert sich mit dem Host, nicht mit jedem App-Deploy.
 
 Idempotent wie Phase 1–2: APT-Installation eines bereits installierten Pakets ist ein No-Op, `dockerd-rootless-setuptool.sh install` ist laut Docker-Dokumentation gefahrlos mehrfach ausführbar.
+
+*   **Docker-GC:** wöchentlicher systemd-User-Timer unter dem `deploy`-User, `docker system prune -af --filter "until=336h"` (Images, gestoppte Container, Build-Cache älter als 14 Tage — **ohne** `--volumes`, DB-Daten bleiben unangetastet). Nötig, weil Builds direkt auf der VPS laufen (`idea/03-container-anwendung.md`, `pipeline/app-stack-repo/04-app-stack-deploy.md`) und dabei Image-Layer/Build-Cache auf der 80GB-SSD ansammeln, die sonst kein automatischer Mechanismus abräumt. Fehlschläge meldet der Timer über denselben healthchecks.io-Kanal wie der Monitoring-Heartbeat aus [Phase 2](02-hardening.md) (`rules.md` Abschnitt 3) — ergänzt dessen 85%-Schwelle um eine aktive Gegenmaßnahme statt nur einer Warnung.
