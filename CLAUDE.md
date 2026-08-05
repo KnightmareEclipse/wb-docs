@@ -1,6 +1,6 @@
 # yggdrasil
 
-Konzept- und Architektur-Doku für einen selbstverwalteten, DSGVO-konformen Datenbank-/API-VPS (Hetzner) für Schulprozesse — Docker-Netzwerk-Isolation, externer OIDC-Identitätsanbieter, verschlüsselte Backups. Das VPS/Host-Setup (Firewall, Docker-Engine) ist fertig umgesetzt. Die App-Stack-Ebene darüber ist architektonisch fixiert (Datenbank: PostgreSQL, Backend: FastAPI, Reverse-Proxy: Caddy, Backup: `pg_dump`+`age`, Identitätsanbieter: M365/Entra-ID, kein externes CI/CD — Git-Push-Auslöser direkt auf der VPS) — das App-Stack-Repo selbst ist aber noch nicht angelegt. Details in `idea/`, `pipeline/`, `project-parts.md`. Die Planungsprinzipien, denen alle drei folgen, stehen in `rules.md` — jede neue Entscheidung in diesem Repo hält sich daran, insbesondere die dort explizit benannte Vertrauensgrenze (Abschnitt 2): Root-Admins und Hetzner selbst gelten als vertrauenswürdig, das Bedrohungsmodell zielt auf externe Angreifer.
+Konzept- und Architektur-Doku für einen selbstverwalteten, DSGVO-konformen Datenbank-/API-VPS (Hetzner) für Schulprozesse — Docker-Netzwerk-Isolation, externer OIDC-Identitätsanbieter, verschlüsselte Backups. Das VPS/Host-Setup (Firewall, Docker-Engine) ist fertig umgesetzt. Die App-Stack-Ebene darüber ist architektonisch fixiert (Datenbank: PostgreSQL, Backend: FastAPI, Reverse-Proxy: Caddy, Backup: `pg_dump`+`age`, Identitätsanbieter: M365/Entra-ID, kein externes CI/CD — Git-Push-Auslöser direkt auf der VPS) und wird im App-Stack-Repo (`wb-backend`) umgesetzt: Compose-Skeleton und Backend-Grundgerüst stehen, VPS-seitiger Deploy-Auslöser und Entra-ID-Registrierung noch offen. Details in `idea/`, `pipeline/`, `project-parts.md`. Die Planungsprinzipien, denen alle drei folgen, stehen in `rules.md` — jede neue Entscheidung in diesem Repo hält sich daran, insbesondere die dort explizit benannte Vertrauensgrenze (Abschnitt 2): Root-Admins und Hetzner selbst gelten als vertrauenswürdig, das Bedrohungsmodell zielt auf externe Angreifer.
 
 Umsetzung erfolgt in getrennten Repos (VPS-Repo, App-Stack-Repo, Teams-Apps-Repo, Static-Web-App-Repos) — siehe „Repo-Struktur" in `project-parts.md`.
 
@@ -13,13 +13,13 @@ Ziel jeder Entscheidung in diesem Repo: so einfach wie möglich, dabei sicher ge
 - **Alles, was wiederkehrt, wird automatisiert** — Ausnahme nur, wo ein Mensch zwingend ein bewusst nur ihm bekanntes Geheimnis eingeben muss oder echtes Urteilsvermögen braucht. Ziel: Das System läuft weiter und bleibt wartbar, auch wenn der aktuelle Betreiber weg ist.
 - **Bei Zweifel gewinnt die einfachere Lösung**, solange sie das Sicherheits- und Automatisierungsniveau nicht senkt — nicht die technisch elegantere oder vollständigere.
 
-## Aktueller Fokus: VPS fertig, App-Stack-Architektur geplant
+## Aktueller Fokus: VPS fertig, App-Stack-Repo im Aufbau
 
 Das VPS-Repo (Phasen 1–3 in `pipeline/`: Provisioning, Firewall/SSH-Härtung, Docker-Engine) ist fertig entwickelt und automatisiert.
 
-Die App-Stack-Architektur (Backend-Stack, Reverse-Proxy, Deploy-Auslöser, Identitätsanbieter, Backup-Tool — siehe `project-parts.md`, `idea/03`–`05`, `pipeline/app-stack-repo/04-app-stack-deploy.md`) ist geplant und fixiert. Noch offen: Fallback-Zugriffsweg für externe Nutzer und CORS-Policy (warten auf die Domain-/Frontend-Struktur), sowie alles unter Teams-Apps-Repo/Static-Web-App-Repos (Abschnitt 9/10 in `project-parts.md`).
+Die App-Stack-Architektur (Backend-Stack, Reverse-Proxy, Deploy-Auslöser, Identitätsanbieter, Backup-Tool — siehe `project-parts.md`, `idea/03`–`05`, `pipeline/app-stack-repo/04-app-stack-deploy.md`) ist fixiert und wird im App-Stack-Repo (`wb-backend`) umgesetzt: Compose-Skeleton (DB/Backend/Caddy, Netz-Trennung, Datei-Secrets, Least-Privilege-DB-Rollen) und FastAPI-Grundgerüst (Health-Endpoint, JWT-Validierung, Alembic) stehen und laufen lokal Ende-zu-Ende. Noch offen: Fallback-Zugriffsweg für externe Nutzer und CORS-Policy (warten auf die Domain-/Frontend-Struktur), sowie alles unter Teams-Apps-Repo/Static-Web-App-Repos (Abschnitt 9/10 in `project-parts.md`).
 
-Nächster Schritt: das App-Stack-Repo tatsächlich anlegen und bauen.
+Nächster Schritt: Datenmodell für die erste Fachdomäne, dann Deploy-Auslöser auf der VPS bootstrappen (`pipeline/runbook.md` Schritt 5) — blockiert bis dahin nicht den weiteren Backend-Aufbau, da lokale Entwicklung ohnehin gegen Docker Compose läuft (`rules.md` Abschnitt 9).
 
 ## Dokumentationsstil
 
