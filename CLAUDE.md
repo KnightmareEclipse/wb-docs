@@ -1,6 +1,6 @@
 # yggdrasil
 
-Konzept- und Architektur-Doku für einen selbstverwalteten, DSGVO-konformen Datenbank-/API-VPS (Hetzner) für Schulprozesse — Docker-Netzwerk-Isolation, externer OIDC-Identitätsanbieter, verschlüsselte Backups. Das VPS/Host-Setup (Firewall, Docker-Engine) wird gerade konkret umgesetzt; die App-Stack-Ebene darüber (Datenbank, Backend, Reverse-Proxy, Backup-Tool, Identitätsanbieter, CI/CD) ist bewusst nur als Toolkategorie beschrieben, keine konkreten Produkte fixiert, bis die App-Stack-Entwicklung tatsächlich beginnt. Details in `idea/`, `pipeline/`, `project-parts.md`. Die Planungsprinzipien, denen alle drei folgen, stehen in `rules.md` — jede neue Entscheidung in diesem Repo hält sich daran, insbesondere die dort explizit benannte Vertrauensgrenze (Abschnitt 2): Root-Admins und Hetzner selbst gelten als vertrauenswürdig, das Bedrohungsmodell zielt auf externe Angreifer.
+Konzept- und Architektur-Doku für einen selbstverwalteten, DSGVO-konformen Datenbank-/API-VPS (Hetzner) für Schulprozesse — Docker-Netzwerk-Isolation, externer OIDC-Identitätsanbieter, verschlüsselte Backups. Das VPS/Host-Setup (Firewall, Docker-Engine) ist fertig umgesetzt. Die App-Stack-Ebene darüber ist architektonisch fixiert (Datenbank: PostgreSQL, Backend: FastAPI, Reverse-Proxy: Caddy, Backup: `pg_dump`+`age`, Identitätsanbieter: M365/Entra-ID, kein externes CI/CD — Git-Push-Auslöser direkt auf der VPS) — das App-Stack-Repo selbst ist aber noch nicht angelegt. Details in `idea/`, `pipeline/`, `project-parts.md`. Die Planungsprinzipien, denen alle drei folgen, stehen in `rules.md` — jede neue Entscheidung in diesem Repo hält sich daran, insbesondere die dort explizit benannte Vertrauensgrenze (Abschnitt 2): Root-Admins und Hetzner selbst gelten als vertrauenswürdig, das Bedrohungsmodell zielt auf externe Angreifer.
 
 Umsetzung erfolgt in getrennten Repos (VPS-Repo, App-Stack-Repo, Teams-Apps-Repo, Static-Web-App-Repos) — siehe „Repo-Struktur" in `project-parts.md`.
 
@@ -13,11 +13,13 @@ Ziel jeder Entscheidung in diesem Repo: so einfach wie möglich, dabei sicher ge
 - **Alles, was wiederkehrt, wird automatisiert** — Ausnahme nur, wo ein Mensch zwingend ein bewusst nur ihm bekanntes Geheimnis eingeben muss oder echtes Urteilsvermögen braucht. Ziel: Das System läuft weiter und bleibt wartbar, auch wenn der aktuelle Betreiber weg ist.
 - **Bei Zweifel gewinnt die einfachere Lösung**, solange sie das Sicherheits- und Automatisierungsniveau nicht senkt — nicht die technisch elegantere oder vollständigere.
 
-## Aktueller Fokus: nur der VPS
+## Aktueller Fokus: VPS fertig, App-Stack-Architektur geplant
 
-Aktuell wird ausschließlich das VPS-Repo (Phasen 1–3 in `pipeline/`: Provisioning, Firewall/SSH-Härtung, Docker-Engine) tatsächlich entwickelt und dafür konkret ausdetailliert — das ist der einzige Teil, an dem gerade gearbeitet wird.
+Das VPS-Repo (Phasen 1–3 in `pipeline/`: Provisioning, Firewall/SSH-Härtung, Docker-Engine) ist fertig entwickelt und automatisiert.
 
-Alles, was auf dem VPS laufen soll (App-Stack-Repo, Teams-Apps-Repo, Static-Web-App-Repos — Backend, Datenbank, Reverse-Proxy, Backup-Tool, Identitätsanbieter, CI/CD) ist für die aktuelle Arbeit **irrelevant** und bewusst nicht festgelegt. Es taucht in der Doku nur grob auf, um zu wissen, welche Fähigkeiten die Infrastruktur/der VPS später bereitstellen muss (offene Ports, Docker als Laufzeit, Platz für Secrets-Dateien etc.) — nicht um es jetzt schon zu bauen oder zu entscheiden. Vorschläge, Code oder Detailausarbeitung für diesen Teil sind erst gefragt, wenn das VPS-Setup steht und explizit dazu übergegangen wird.
+Die App-Stack-Architektur (Backend-Stack, Reverse-Proxy, Deploy-Auslöser, Identitätsanbieter, Backup-Tool — siehe `project-parts.md`, `idea/03`–`05`, `pipeline/app-stack-repo/04-app-stack-deploy.md`) ist geplant und fixiert. Noch offen: Fallback-Zugriffsweg für externe Nutzer und CORS-Policy (warten auf die Domain-/Frontend-Struktur), sowie alles unter Teams-Apps-Repo/Static-Web-App-Repos (Abschnitt 9/10 in `project-parts.md`).
+
+Nächster Schritt: das App-Stack-Repo tatsächlich anlegen und bauen.
 
 ## Dokumentationsstil
 

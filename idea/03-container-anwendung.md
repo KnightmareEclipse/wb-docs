@@ -1,23 +1,23 @@
 # 3. Container- & Anwendungs-Ebene (Isolierung durch Docker)
 
-Konzept/Muster steht, konkrete Images/Tools folgen mit der App-Stack-Architektur — die Docker-Engine selbst (Rootless, `pipeline/vps-repo/03-docker-install.md`) ist bereits Teil des VPS-Setups.
+Konzept/Muster steht, Kern-Images fixiert (PostgreSQL, Caddy, eigenes FastAPI-Backend-Image) — die Docker-Engine selbst (Rootless, `pipeline/vps-repo/03-docker-install.md`) ist bereits Teil des VPS-Setups.
 
 Getrennte Docker-Netze, damit ein Einbruch nicht das gesamte System offenlegt:
 
-*   **Externes Netz:** genau eine Komponente mit Internet-Zugang (Reverse-Proxy/TLS-Terminierung), kein direkter DB-Zugriff von dort.
+*   **Externes Netz:** genau eine Komponente mit Internet-Zugang (Reverse-Proxy/TLS-Terminierung: Caddy, automatisches HTTPS, kein Docker-Socket nötig), kein direkter DB-Zugriff von dort.
 *   **Internes Netz:**
-    *   **Backend:** verarbeitet Anfragen, validiert Auth-Tokens, spricht mit der Datenbank über ein ORM (SQL-Injection soll durch die Wahl des Datenzugriffswerkzeugs gar nicht erst als eigenes Thema entstehen). Sprache/Framework folgen mit der App-Stack-Architektur.
-    *   **Datenbank:** akzeptiert ausschließlich Verbindungen aus dem Backend über das interne Docker-Netz. Ein Backup-Prozess (`idea/05-backup-recovery.md`) braucht ebenfalls Zugriff, ohne dass dafür ein Port nach außen oder auf den Host veröffentlicht wird (z. B. über einen Exec-Zugriff auf den DB-Container statt eines gemappten Ports) — konkreter Mechanismus folgt mit dem gewählten Backup-Tool.
+    *   **Backend:** verarbeitet Anfragen, validiert Auth-Tokens, spricht mit der Datenbank über ein ORM (SQL-Injection soll durch die Wahl des Datenzugriffswerkzeugs gar nicht erst als eigenes Thema entstehen). Python, FastAPI + SQLAlchemy 2.0 (async) + Alembic-Migrationen.
+    *   **Datenbank:** akzeptiert ausschließlich Verbindungen aus dem Backend über das interne Docker-Netz. Ein Backup-Prozess (`idea/05-backup-recovery.md`) braucht ebenfalls Zugriff, ohne dass dafür ein Port nach außen oder auf den Host veröffentlicht wird — Exec-Zugriff auf den DB-Container über den Docker-Client des `deploy`-Users statt eines gemappten Ports, Details in `idea/05-backup-recovery.md`.
     *   **Transportverschlüsselung intern:** Reverse-Proxy→Backend und Backend→Datenbank laufen voraussichtlich unverschlüsselt (kein TLS) über das interne Docker-Netz. **Akzeptiertes Risiko:** Netzwerk-Isolation (kein extern erreichbarer Port) ist die kompensierende Kontrolle — Traffic verlässt nie den Host. Die Verschlüsselungspflicht aus `rules.md` Abschnitt 2 gilt für alles, was den Host verlässt.
-    *   **Least-Privilege DB-Rollen (Konzept, konkrete Umsetzung folgt mit der DB-Wahl):**
+    *   **Least-Privilege DB-Rollen (PostgreSQL):**
         *   Laufzeit-Rolle nur CRUD (kein `DROP`/`ALTER`).
         *   Migrationen über eine separate, privilegiertere Rolle — im laufenden Betrieb ungenutzt **und unzugänglich** (eigener Prozess/Service-Definition mit eigenem Secret, das der dauerhaft laufende Backend-Container nie zu sehen bekommt).
         *   Der Backup-Prozess (`idea/05-backup-recovery.md`) nutzt eine dritte Rolle mit reinem Lesezugriff.
-        *   **Rotation:** Neues Passwort in die Secrets-Datei im gemeinsamen Passwortmanager eintragen, auf DB-Seite ändern, danach Phase 2 erneut laufen lassen (liest die aktualisierte Secrets-Datei und schreibt sie auf den Host) und die betroffenen Container neu starten, damit sie die neue Datei einlesen — gleiches Grundmuster wie Deploy-Key-/Identitätsanbieter-Secret-Rotation (`pipeline/runbook.md`).
+        *   **Rotation:** Neues Passwort in die Secrets-Datei im gemeinsamen Passwortmanager eintragen, auf DB-Seite ändern, danach Phase 2 erneut laufen lassen (liest die aktualisierte Secrets-Datei und schreibt sie auf den Host) und die betroffenen Container neu starten, damit sie die neue Datei einlesen — gleiches Grundmuster wie Identitätsanbieter-Secret-Rotation (`pipeline/runbook.md` Schritt 7) — der Deploy-Auslöser braucht keine eigene Rotation, er nutzt den ohnehin per `admins.yml` gepflegten Admin-Key.
 *   **Secrets-Handling:**
     *   DB-Zugangsdaten und weitere App-Secrets liegen als vom `deploy`-User lesbare Dateien (0600/0640, Owner `deploy`) auf dem Host — root-lesbar allein würde nicht genügen, da der Rootless-Docker-Daemon selbst als `deploy`-User läuft.
     *   Werden als gemountete Secret-Dateien (`/run/secrets/…`) in Container gereicht — nicht als `.env`/Env-Vars, da diese über `docker inspect`, `/proc/<pid>/environ` oder Logging-Tools leicht abgreifbar sind.
-    *   Die Werte selbst kommen aus der Secrets-Datei im gemeinsamen Passwortmanager und werden vom Setup-Skript aus `pipeline/vps-repo/02-hardening.md` (Root-Rechte) auf den Host geschrieben — die CI/CD-Pipeline des App-Stacks bekommt diese Werte nie zu sehen, sie deployt ausschließlich Code/Images.
+    *   Die Werte selbst kommen aus der Secrets-Datei im gemeinsamen Passwortmanager und werden vom Setup-Skript aus `pipeline/vps-repo/02-hardening.md` (Root-Rechte) auf den Host geschrieben — der Git-Push-Deploy-Auslöser (`pipeline/app-stack-repo/04-app-stack-deploy.md`) bekommt diese Werte nie zu sehen, er deployt ausschließlich Code/Images.
 *   **Zentrales Logging:**
     *   Eine einzige Log-Senke für Host- und Container-Logs statt eigenem Log-Stack — journald ist der naheliegende Standardkandidat, da es (als Docker-Log-Treiber nutzbar) auf Hetzners Standard-Debian-Image bereits vorkonfiguriert läuft; endgültige Wahl folgt mit dem tatsächlichen Log-Volumen der App.
     *   Retention zeitlich begrenzt (30–90 Tage als Richtwert) begrenzt die Aufbewahrung (Art. 5 Abs. 1 lit. e) und liefert die Grundlage für die 72h-Meldefrist (Art. 33).
