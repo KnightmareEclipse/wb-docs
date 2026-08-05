@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Phase 4a — Docker-Engine-Install (pipeline/vps-repo/04a-docker-install.md)
+# Phase 3 — Docker-Engine-Install (pipeline/vps-repo/03-docker-install.md)
 # Rootless Docker unter dem deploy-User, ueber Docker's offizielles APT-Repo. Idempotent.
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"

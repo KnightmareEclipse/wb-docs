@@ -1,5 +1,5 @@
 # Einzige Quelle fuer Admin-SSH-Keys, gelesen von infra/provision.sh (Hetzner-SSH-Key-Ressource,
-# Rescue-Zugriff) und setup/hardening.sh (Host-authorized_keys). Ein Key pro Admin, nie geteilt
+# Cloud-Init-Injektion) und setup/hardening.sh (Host-authorized_keys). Ein Key pro Admin, nie geteilt
 # (rules.md Abschnitt 2/6).
 
 admins:

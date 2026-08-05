@@ -20,11 +20,11 @@ No `IFS=$'\n\t'` — vars/arrays are always quoted, adds no benefit, known footg
 
 ## 3. Idempotency + loud failure
 - Check state before acting (`describe` before `create`), never act blind.
-- Unexpected/ambiguous state → hard-fail, non-zero exit, clear message. Never guess, never just warn. (E.g. server-type mismatch: Phase 2 assumes `cx33`-specific disk layout — a silent mismatch breaks that assumption downstream.)
+- Unexpected/ambiguous state → hard-fail, non-zero exit, clear message. Never guess, never just warn.
 - Errors → stderr. Success/info → stdout.
 - Non-zero exit on any failure, zero only on success.
 - Never suppress a real action's failure. `>/dev/null 2>&1` only on pure existence-check probes.
-- Manual scripts (Phase 1–2): above is sufficient. Recurring automated jobs (Phase 3 heartbeat): also need active push-alert on failure (`rules.md` §3).
+- Manual scripts (Phase 1–2): above is sufficient. Recurring automated jobs (Phase 2 heartbeat): also need active push-alert on failure (`rules.md` §3).
 
 ## 4. Config vs. code
 - Values that can change without logic changing (names, ports, admins, timeouts, retries) → `vars.sh` (scalars) or `.yml` (lists). Never a literal inside a logic script.
@@ -32,7 +32,7 @@ No `IFS=$'\n\t'` — vars/arrays are always quoted, adds no benefit, known footg
 - `vars.sh`: assignments only, no conditionals/loops/functions.
 
 ## 5. Naming
-- Shell script files: kebab-case (`rescue-install.sh`).
+- Shell script files: kebab-case (`docker-install.sh`).
 - Python files: snake_case (`admins_to_ssh_keys.py`).
 - Bash config constants: `SCREAMING_SNAKE_CASE`.
 - Bash local vars: `snake_case`.
@@ -48,7 +48,7 @@ No `IFS=$'\n\t'` — vars/arrays are always quoted, adds no benefit, known footg
 - No commented-out code — delete it, git history has it.
 
 ## 7. Secrets never in output/logs
-- No secret printed to stdout/stderr, except the explicit one-time runbook outputs (Break-Glass passphrase, LUKS header backup in Phase 2), clearly marked as intentional and one-time.
+- No secret printed to stdout/stderr, except an explicit, clearly-marked one-time handoff (e.g. a freshly generated credential shown once for the admin to store in the password manager).
 - No secret as a CLI argument (visible in `ps`/shell history) — stdin or file instead.
 - No secret logged, even at debug/verbose level — mask before logging.
 - Secret material covered by `.gitignore`, never committed.

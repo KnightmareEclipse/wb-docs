@@ -52,7 +52,7 @@ else
     echo "Server '$SERVER_NAME' nicht gefunden, lege neu an..."
     SSH_KEY_ARGS=()
     for k in "${SSH_KEY_NAMES[@]}"; do SSH_KEY_ARGS+=(--ssh-key "$k"); done
-    # --image debian-12 ist nur ein Platzhalter, Disk wird in Phase 2 komplett neu installiert.
+    # --image debian-12 ist das tatsaechlich laufende Image (idea/01-boot-verschluesselung.md).
     hcloud server create --name "$SERVER_NAME" --type "$SERVER_TYPE" --location "$REGION" \
         --image debian-12 --label "$HETZNER_LABEL" --firewall "$FIREWALL_NAME" \
         "${SSH_KEY_ARGS[@]}" >/dev/null

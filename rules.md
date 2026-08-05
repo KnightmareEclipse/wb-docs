@@ -25,13 +25,13 @@ Keine Hochverfügbarkeits-Infrastruktur (Multi-Server, Load-Balancer, Multi-Regi
 - **Ein Credential pro Person/Zweck**, nie geteilt — Admin-SSH-Keys, API-Tokens, Deploy-Keys. Ermöglicht Offboarding durch einfaches Widerrufen statt Rotation für alle.
 - **MFA-Pflicht für kritische Admin-Konten:** Hetzner-Cloud-Konto, DNS-Provider der Schule, der gemeinsame Passwortmanager selbst sowie — sobald gewählt — die Admin-Portale der App-Stack-Dienstleister (Code-/CI-Plattform, Identitätsanbieter) — überall dort, wo die Web-Konsole eines kritischen Kontos das Login ist, nicht Key-only-SSH (das bereits passwortlos ist). Diese Web-Konsolen sind sonst der weiche Punkt in einem ansonsten Key-only gehärteten System (Phishing/Credential-Stuffing statt Bruteforce).
 - **Secrets nie im Git, nie in CI-Logs, nie als Klartext-Env-Var in Containern.** Immer verschlüsselt at rest (age-Secrets-Datei) und als gemountete Datei (`/run/secrets/…`) in Container gereicht.
-- **Verschlüsselung Pflicht** für alles, was Schülerdaten führt: at rest (LUKS, Backup-Repo) und in transit (TLS).
-- **Patch-Kadenz:** monatlich für Host und Container-Images. Host-Kernel-Updates laufen inklusive automatischem Reboot in einem festen wöchentlichen Wartungsfenster (`unattended-upgrades`-Muster) — der anschließende Boot braucht dank automatischem LUKS-Unlock (`idea/01-boot-verschluesselung.md`) keine menschliche Aktion mehr, überwacht durch den bestehenden Dead-Man's-Switch. Container-Image-Rebuilds bleiben monatlich manuell angestoßen (`idea/03-container-anwendung.md`).
+- **Verschlüsselung Pflicht** für alles, was Schülerdaten führt und den Host verlässt: at rest im Backup-Repo, in transit (TLS). Volle Festplattenverschlüsselung auf dem Host selbst ist bewusst keine Pflicht — Begründung in `idea/01-boot-verschluesselung.md`.
+- **Patch-Kadenz:** monatlich für Host und Container-Images. Host-Kernel-Updates laufen inklusive automatischem Reboot in einem festen wöchentlichen Wartungsfenster (`unattended-upgrades`-Muster) — der anschließende Boot braucht keine menschliche Aktion (`idea/01-boot-verschluesselung.md`), überwacht durch den bestehenden Dead-Man's-Switch. Container-Image-Rebuilds bleiben monatlich manuell angestoßen (`idea/03-container-anwendung.md`).
 
 ## 3. Automatisierung
 
-- Jeder wiederkehrende Vorgang wird skriptbar gebaut — Ausnahme nur, wenn er zwingend menschliches Urteilsvermögen erfordert oder ein Geheimnis voraussetzt, das bewusst nur ein Mensch halten darf (LUKS-Passphrase-Eingabe).
-- Jedes Skript ist **idempotent** — beliebig oft wiederholbar, ohne Schaden anzurichten (Referenzmuster: die Wipe-/Bootstrap-Checks in `pipeline/vps-repo/01-provisioning.md`/`02-rescue-install.md`).
+- Jeder wiederkehrende Vorgang wird skriptbar gebaut — Ausnahme nur, wenn er zwingend menschliches Urteilsvermögen erfordert oder ein Geheimnis voraussetzt, das bewusst nur ein Mensch halten darf (z. B. das Master-Passwort des gemeinsamen Passwortmanagers).
+- Jedes Skript ist **idempotent** — beliebig oft wiederholbar, ohne Schaden anzurichten (Referenzmuster: die Bootstrap-Checks in `pipeline/vps-repo/01-provisioning.md`/`02-hardening.md`).
 - Jeder automatisierte Job (Cronjob, Systemd-Timer, CI-Pipeline) **meldet Fehlschläge aktiv** (Push-Alert), statt dass jemand aktiv nachschauen muss — ein stiller Fehlschlag zählt als nicht vorhanden.
 - **Eine Konfigurationsquelle pro Sachverhalt**, von allen Skripten referenziert, die sie brauchen (`ports.yml`, `admins.yml`-Muster) — keine duplizierten Listen, die auseinanderlaufen können.
 - Abhängigkeits-Updates (npm/pip/Docker-Base-Images) laufen über automatisierte PRs (Tool offen, z. B. Renovate oder Dependabot, beide kostenlos) statt manuellem Nachschauen — konkretes Tool folgt mit der Wahl der Code-/CI-Plattform, reduziert die monatliche Handarbeit aus `project-parts.md` Abschnitt 1 auf einen Review-Klick pro PR.
@@ -56,7 +56,7 @@ Keine Hochverfügbarkeits-Infrastruktur (Multi-Server, Load-Balancer, Multi-Regi
 - Kritische Konten (Passwortmanager, healthchecks.io, Hetzner-Cloud-Konto, DNS-Provider sowie — sobald gewählt — Code-/CI-Plattform und Identitätsanbieter) laufen auf organisationseigenen, nicht auf persönlichen Zugängen.
 - Jeder personengebundene Zugang (Hetzner-API-Token, SSH-Key, Deploy-Key) hat einen dokumentierten, gleich einfachen Widerruf — Offboarding darf nie mehr sein als das Entfernen eines einzelnen Eintrags.
 - Das gesamte System ist aus Git + verschlüsselter Secrets-Datei vollständig neu aufsetzbar, ohne Wissen, das nur im Kopf des aktuellen Betreibers existiert — keine Konfiguration, die nur manuell in einer Cloud-Konsole entsteht und nirgends als Skript/Doku existiert.
-- **Umzugsfähig:** ein Wechsel des Hosters oder ein Neuaufbau auf einer neuen VPS ist mit vertretbarem Aufwand möglich, ohne Datenverlust — Hetzner-Spezifisches (hcloud-Skript, Firewall-API) bleibt sauber getrennt vom generischen Setup-Teil (LUKS, Docker, App-Stack), der 1:1 auf einen anderen Anbieter übertragbar ist.
+- **Umzugsfähig:** ein Wechsel des Hosters oder ein Neuaufbau auf einer neuen VPS ist mit vertretbarem Aufwand möglich, ohne Datenverlust — Hetzner-Spezifisches (hcloud-Skript, Firewall-API) bleibt sauber getrennt vom generischen Setup-Teil (Docker, App-Stack), der 1:1 auf einen anderen Anbieter übertragbar ist.
 
 ## 7. Datenschutz (DSGVO by Design)
 
@@ -74,4 +74,4 @@ Keine Hochverfügbarkeits-Infrastruktur (Multi-Server, Load-Balancer, Multi-Regi
 
 - Es gibt keinen dedizierten Dev-/Staging-Server — jede App-Stack-Komponente (Abschnitt 3/4 in `project-parts.md`) muss per Docker Compose lokal auf der Entwickler-Maschine lauffähig sein, unabhängig von der Produktions-VPS.
 - Externe Abhängigkeiten (Identitätsanbieter/OIDC, ggf. Microsoft Graph/SharePoint) werden lokal durch Dummy-Werte/Mocks ersetzt — Entwicklung hängt nie an Produktiv-Credentials.
-- Neue Änderungen laufen erst gegen eine lokale Instanz der gewählten Datenbank, bevor sie über die Pipeline (Phase 4b) deployt werden — die Produktiv-VPS ist kein Testfeld.
+- Neue Änderungen laufen erst gegen eine lokale Instanz der gewählten Datenbank, bevor sie über die Pipeline (Phase 4) deployt werden — die Produktiv-VPS ist kein Testfeld.
