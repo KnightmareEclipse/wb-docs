@@ -18,14 +18,15 @@ Keine Hochverfügbarkeits-Infrastruktur (Multi-Server, Load-Balancer, Multi-Regi
 
 ## 2. Secure by Design
 
+- **Vertrauensgrenze:** Root-Zugriff auf die Maschine (die eigenen Admins) und der Hoster Hetzner selbst gelten als vertrauenswürdig — abgesichert über die Bus-Faktor-/Offboarding-Regeln unten bzw. über die AVV mit Hetzner (Art. 28), nicht durch zusätzliche technische Maßnahmen gegen die eigene Root-Ebene (jemand mit Root sieht ohnehin alles, was der Server sieht — das lässt sich auf einer einzelnen VPS ohne unverhältnismäßigen Aufwand nicht technisch verhindern). Jede Maßnahme in diesem Dokument zielt auf die Außengrenze: Angreifer aus dem Internet und kompromittierte Drittanbieter-Credentials (z. B. ein geleakter CI-Deploy-Key) — nicht auf die eigenen Admins oder Hetzner selbst.
 - **Standardmäßig zu, explizit öffnen:** jede neue Netzwerkverbindung, jeder neue Port ist per Default geschlossen und wird nur für einen benannten Zweck freigegeben (Zero-Trust-Muster aus `idea/02-netzwerk-firewall.md` gilt für jede künftige Komponente).
 - **Least Privilege:** jede neue Rolle, jeder neue Zugang bekommt nur die minimal nötige Berechtigung — nie „damit es bequemer ist" mehr.
 - **Schreiben ≠ Löschen:** destruktive/unwiderrufliche Aktionen (Prune, Delete, Force-Push) laufen über ein eigenes, stärker geschütztes Credential, das nicht dauerhaft auf einem internetexponierten System liegt (Push-/Prune-Split aus `idea/05-backup-recovery.md` ist das Referenzmuster für jede künftige destruktive Aktion).
 - **Ein Credential pro Person/Zweck**, nie geteilt — Admin-SSH-Keys, API-Tokens, Deploy-Keys. Ermöglicht Offboarding durch einfaches Widerrufen statt Rotation für alle.
-- **MFA-Pflicht für kritische Admin-Konten:** Hetzner-Cloud-Konto, DNS-Provider der Schule, der gemeinsame Passwortmanager selbst sowie — sobald gewählt — die Admin-Portale der App-Stack-Dienstleister (Code-/CI-Plattform, Identitätsanbieter) — überall dort, wo die Web-Konsole eines kritischen Kontos das Login ist, nicht Key-only-SSH/Dropbear (die bereits passwortlos sind). Diese Web-Konsolen sind sonst der weiche Punkt in einem ansonsten Key-only gehärteten System (Phishing/Credential-Stuffing statt Bruteforce).
+- **MFA-Pflicht für kritische Admin-Konten:** Hetzner-Cloud-Konto, DNS-Provider der Schule, der gemeinsame Passwortmanager selbst sowie — sobald gewählt — die Admin-Portale der App-Stack-Dienstleister (Code-/CI-Plattform, Identitätsanbieter) — überall dort, wo die Web-Konsole eines kritischen Kontos das Login ist, nicht Key-only-SSH (das bereits passwortlos ist). Diese Web-Konsolen sind sonst der weiche Punkt in einem ansonsten Key-only gehärteten System (Phishing/Credential-Stuffing statt Bruteforce).
 - **Secrets nie im Git, nie in CI-Logs, nie als Klartext-Env-Var in Containern.** Immer verschlüsselt at rest (age-Secrets-Datei) und als gemountete Datei (`/run/secrets/…`) in Container gereicht.
 - **Verschlüsselung Pflicht** für alles, was Schülerdaten führt: at rest (LUKS, Backup-Repo) und in transit (TLS).
-- **Patch-Kadenz:** monatlich für Host und Container-Images. Automatisiert, wo kein Reboot-/Downtime-Risiko besteht (`unattended-upgrades`-Muster); wo doch, gebündelt und manuell angestoßen statt einzeln.
+- **Patch-Kadenz:** monatlich für Host und Container-Images. Host-Kernel-Updates laufen inklusive automatischem Reboot in einem festen wöchentlichen Wartungsfenster (`unattended-upgrades`-Muster) — der anschließende Boot braucht dank automatischem LUKS-Unlock (`idea/01-boot-verschluesselung.md`) keine menschliche Aktion mehr, überwacht durch den bestehenden Dead-Man's-Switch. Container-Image-Rebuilds bleiben monatlich manuell angestoßen (`idea/03-container-anwendung.md`).
 
 ## 3. Automatisierung
 
@@ -73,4 +74,4 @@ Keine Hochverfügbarkeits-Infrastruktur (Multi-Server, Load-Balancer, Multi-Regi
 
 - Es gibt keinen dedizierten Dev-/Staging-Server — jede App-Stack-Komponente (Abschnitt 3/4 in `project-parts.md`) muss per Docker Compose lokal auf der Entwickler-Maschine lauffähig sein, unabhängig von der Produktions-VPS.
 - Externe Abhängigkeiten (Identitätsanbieter/OIDC, ggf. Microsoft Graph/SharePoint) werden lokal durch Dummy-Werte/Mocks ersetzt — Entwicklung hängt nie an Produktiv-Credentials.
-- Neue Änderungen laufen erst gegen eine lokale Instanz der gewählten Datenbank, bevor sie über die Pipeline (Phase 5b) deployt werden — die Produktiv-VPS ist kein Testfeld.
+- Neue Änderungen laufen erst gegen eine lokale Instanz der gewählten Datenbank, bevor sie über die Pipeline (Phase 4b) deployt werden — die Produktiv-VPS ist kein Testfeld.
