@@ -1,0 +1,10 @@
+# Einzige Quelle fuer Admin-SSH-Keys, gelesen von infra/provision.sh (Hetzner-SSH-Key-Ressource,
+# Rescue-Zugriff) und setup/hardening.sh (Host-authorized_keys). Ein Key pro Admin, nie geteilt
+# (rules.md Abschnitt 2/6).
+
+admins:
+  - name: "ClemensBildung (Johannes Nonnast)"
+    ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIwYINC3iCx0pAmOUaC9YythH9xvkGa2XLxwUj+MyElN"
+# weitere Admins hier ergaenzen:
+#   - name: vorname-nachname
+#     ssh_key: "ssh-ed25519 AAAA... admin@rechner"
