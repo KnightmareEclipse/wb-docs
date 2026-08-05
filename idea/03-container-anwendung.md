@@ -1,0 +1,28 @@
+# 3. Container- & Anwendungs-Ebene (Isolierung durch Docker)
+
+Getrennte Docker-Netze, damit ein Einbruch nicht das gesamte System offenlegt:
+
+*   **Externes Netz:** Caddy — einziger Container mit Internet-Zugang, verwaltet TLS-Zertifikate, kein DB-Zugriff.
+*   **Internes Netz:**
+    *   **API (Python):** verarbeitet Anfragen, validiert OIDC-Tokens, spricht mit der DB (ORM, damit SQL-Injection gar nicht erst als eigenes Thema entsteht).
+    *   **PostgreSQL:** akzeptiert ausschließlich Verbindungen aus API-Container und Backup-Service (`idea/05-backup-recovery.md`).
+    *   **Least-Privilege DB-Rollen:**
+        *   Runtime-Rolle nur `SELECT`/`INSERT`/`UPDATE`/`DELETE` (kein `DROP`/`ALTER`).
+        *   Migrationen über separate, privilegiertere Rolle — Credential nur in der age-verschlüsselten Secrets-Datei, genutzt ausschließlich vom GitLab-CI-Migrations-Job (`pipeline/app-stack-repo/05b-app-stack-deploy.md`), im laufenden API-Betrieb ungenutzt.
+        *   Der nächtliche `pg_dump` (`idea/05-backup-recovery.md`) nutzt eine dritte Rolle mit reinem `SELECT`.
+        *   **Bootstrap:** Alle drei Rollen werden per `docker-entrypoint-initdb.d`-SQL-Skript angelegt, das beim allerersten Start auf leerem Postgres-Datenverzeichnis automatisch läuft (nutzt den Postgres-Default-Superuser nur für diesen einen Moment) — kein separater manueller Schritt vor dem ersten Alembic-Lauf nötig.
+*   **Secrets-Handling:**
+    *   DB-Zugangsdaten, OIDC-Client-Secret, Restic-Repo-Passwort liegen als vom `deploy`-User lesbare Dateien (0600/0640, Owner `deploy`) auf dem Host — root-lesbar allein würde nicht genügen, da der Rootless-Docker-Daemon selbst als `deploy`-User läuft.
+    *   Werden als gemountete Secret-Dateien (`/run/secrets/…`) in Container gereicht — nicht als `.env`/Env-Vars, da diese über `docker inspect`, `/proc/<pid>/environ` oder Logging-Tools leicht abgreifbar sind.
+    *   Die Werte selbst kommen aus der bestehenden age-verschlüsselten Secrets-Datei (`idea/01-boot-verschluesselung.md`) und werden vom Setup-Skript aus `pipeline/vps-repo/04-hardening.md` (Root-Rechte) auf den Host geschrieben — GitLab CI bekommt diese Werte nie zu sehen, die Pipeline deployt ausschließlich Code/Images.
+*   **Zentrales Logging:**
+    *   Alle Container (Caddy/API/Postgres) loggen über den Docker-Log-Treiber `journald` in dasselbe persistente journald-Log wie der Host — kein eigener Loki/Promtail-Stack nötig, journald läuft ohnehin schon (`pipeline/vps-repo/02-rescue-install.md`, `systemd-machine-id-setup`).
+    *   Eine einzige Quelle für Host- und Container-Logs, `journalctl`-Filter (`-t <container>`, `--since`) statt eigener Abfrage-Sprache.
+    *   Retention 30–90 Tage über journald (`SystemMaxUse=`/`MaxRetentionSec=` in `journald.conf`) begrenzt IP-Aufbewahrung (Art. 5 Abs. 1 lit. e) und liefert die Grundlage für die 72h-Meldefrist (Art. 33) — im Vorfall über alle drei Quellen hinweg schnell nachvollziehen zu können, was passiert ist, bleibt so genauso möglich, nur ohne zweite Infrastruktur.
+    *   **Offsite-Kopie:** journald ist ausschließlich lokal auf der VPS — bei Totalausfall oder Kompromittierung des Hosts wären damit auch die für Art. 33 nötigen Logs weg. Derselbe Restic-Job, der die DB sichert (`idea/05-backup-recovery.md`), exportiert deshalb zusätzlich einen `journalctl`-Auszug der letzten 24h offsite — kein eigenes Log-Shipping-Tool nötig.
+*   **Audit-Trail für Datenänderungen:** Beantwortet eine andere Frage als die Infra-Logs oben — Zugriffs-/Fehler-Logs zeigen Requests, nicht wer welchen Datensatz geändert hat. Für Stammdaten (Adresse, Telefon, E-Mail, Geburtsdatum) genügt bei kleiner Schule eine `updated_by`/`updated_at`-Spalte oder ein einfacher DB-Trigger in eine Audit-Tabelle in Postgres selbst, kein separates Audit-System nötig — bleibt bewusst getrennt von journald, da Datensatz-Historie strukturiert abfragbar sein muss (SQL), nicht nur als Log-Zeile.
+*   **Container-Hardening:** Non-Root-User, Root-Filesystem read-only + gezielte `tmpfs`-Mounts, CPU-/Memory-Limits. Image-Patches im selben monatlichen Rhythmus wie Host-Patches — anders als bei `unattended-upgrades` auf dem Host kein automatischer Mechanismus: ein Admin stößt monatlich manuell einen GitLab-CI-Pipeline-Lauf (Rebuild + Redeploy mit aktuellen Base-Images) an.
+*   **Deploy-Pipeline-Isolation:**
+    *   Der Docker-Daemon läuft als Rootless Docker unter dem eingeschränkten `deploy`-User (`project-parts.md`, Repo-Struktur), nicht als root-eigener System-Daemon.
+    *   Ein über den CI-Deploy-Key kompromittierter Zugriff auf den Docker-Socket erlaubt dadurch keinen echten Root-Zugriff auf den Host (User-Namespace-Isolation) — schließt den klassischen „Docker-Socket-Zugriff = Root"-Eskalationsweg, der sonst trotz „kein Root-Zugriff"-Anspruch bestünde (relevant bei Supply-Chain-Angriffen auf die CI-Pipeline).
+    *   Einziger Root-Bedarf: einmalig `setcap cap_net_bind_service=ep` auf das `rootlesskit`-Binary (`pipeline/vps-repo/04-hardening.md`, Setup-Skript), damit der unprivilegierte Daemon Port 80/443 für Caddy binden kann.

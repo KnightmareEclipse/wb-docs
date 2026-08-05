@@ -1,0 +1,9 @@
+# 4. Identitäts- & Zugriffs-Ebene (Rechteverwaltung)
+
+*   **OIDC / Entra ID:** Signiertes, nicht verschlüsseltes JWT — Claims sind für jeden mit dem Token lesbar. Nicht als vertraulich behandeln (nicht mitloggen).
+*   **API-Validierung:** Signatur (JWKS), `exp`/`nbf` (Standard aus der JWT-Library) **und** zwingend `iss`/`aud` prüfen — sonst würde bei Multi-Tenant-App-Registrierung (`/common/`) ein Token aus *jedem* Entra-Tenant gültig durchgehen, nicht nur dem Schul-Tenant.
+*   **Token-Lebensdauer:** Bleibt beim großzügigen Entra-Standard (~60–90 Min.); kein serverseitiger Widerruf (JWTs stateless) — akzeptiertes Restrisiko statt eigener Session-Blacklist.
+*   **Autorisierung:** Rollen (Lehrer/Schüler/Admin) als Entra App Roles/Gruppen im `roles`-Claim; Microsoft weist zu, API entscheidet pro Endpoint — kein eigenes Rollensystem in der DB nötig. Der Claim wirkt aber nur pro Endpoint, nicht pro Datensatz: API braucht zusätzlich einen Ownership-Check in der Query (z. B. Schüler/Erziehungsberechtigte sehen nur die eigenen Stammdaten), sonst IDOR-Risiko trotz korrekter Rolle.
+*   **Bulk-Zugriff:** Der Ownership-Check schützt Einzeldatensätze, nicht eine Listen-/Export-Route (z. B. alle Adressen als CSV) — solche Endpunkte nur für Admin-Rolle freigeben. Ein Export ist ein Lesezugriff, kein Datensatz-Update — erfasst wird er daher im Zentralen Logging (`idea/03-container-anwendung.md`, journald), nicht im schreibbezogenen Audit-Trail.
+*   **Azure Functions (Fallback):** Externe Nutzer authentifizieren sich per Function-Key (out-of-band ausgegeben); die Function nutzt ein separates Secret gegenüber der API — zwei getrennte Vertrauensgrenzen, analog zum Push-/Prune-Split (`idea/05-backup-recovery.md`).
+    *   **Akzeptiertes Risiko:** Ein gemeinsamer Function-Key ohne Per-Nutzer-Widerruf — bei Leak-Verdacht Rotation für alle. Angesichts geringer Nutzerzahl akzeptiert.
