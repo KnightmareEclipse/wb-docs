@@ -33,7 +33,7 @@ Keine Hochverfügbarkeits-Infrastruktur (Multi-Server, Load-Balancer, Multi-Regi
 - Jedes Skript ist **idempotent** — beliebig oft wiederholbar, ohne Schaden anzurichten (Referenzmuster: die Wipe-/Bootstrap-Checks in `pipeline/vps-repo/01-provisioning.md`/`02-rescue-install.md`).
 - Jeder automatisierte Job (Cronjob, Systemd-Timer, CI-Pipeline) **meldet Fehlschläge aktiv** (Push-Alert), statt dass jemand aktiv nachschauen muss — ein stiller Fehlschlag zählt als nicht vorhanden.
 - **Eine Konfigurationsquelle pro Sachverhalt**, von allen Skripten referenziert, die sie brauchen (`ports.yml`, `admins.yml`-Muster) — keine duplizierten Listen, die auseinanderlaufen können.
-- Abhängigkeits-Updates (npm/pip/Docker-Base-Images) laufen über automatisierte PRs (Renovate oder Dependabot, beide kostenlos) statt manuellem Nachschauen — reduziert die monatliche Handarbeit aus `project-parts.md` Abschnitt 1 auf einen Review-Klick pro PR.
+- Abhängigkeits-Updates (npm/pip/Docker-Base-Images) laufen über automatisierte PRs mit Renovate (kostenlos, native GitLab-Integration auf gitlab.com — Dependabot ist GitHub-first und bräuchte dort Zusatz-Setup) statt manuellem Nachschauen — eine `renovate.json` pro Repo (App-Stack-, Teams-Apps-, Static-Web-App-Repos), reduziert die monatliche Handarbeit aus `project-parts.md` Abschnitt 1 auf einen Review-Klick pro PR.
 
 ## 4. Kosten & Software-Auswahl
 
