@@ -22,6 +22,7 @@ Organisatorische Vorbereitungen, die vor Phase 1 ([`pipeline/vps-repo/01-provisi
     IPv6: 2a01:4f8:c012:90d0::/64
 
 - [x] Region festgelegt: `fsn1` (Falkenstein), siehe `pipeline/vps-repo/01-provisioning.md`
+- [x] Wöchentliches Wartungsfenster (automatischer Reboot nach Kernel-Patches) festgelegt: Samstag, 03:00 Uhr, siehe `idea/01-boot-verschluesselung.md`/`pipeline/vps-repo/02-hardening.md`
 
 ## VPS-Repo
 
