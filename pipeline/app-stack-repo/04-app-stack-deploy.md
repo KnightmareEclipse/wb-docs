@@ -12,7 +12,7 @@ Eine CI/CD-Pipeline baut das Backend-Image im isolierten Runner, testet es und p
 
 *   Verbindet sich per SSH mit einem eingeschränkten Deploy-Key (CI/CD-Secret) gegen den `deploy`-User aus Phase 2.
 *   Zieht das Image aus der Registry.
-*   Führt darüber (nicht vom CI-Runner selbst — die Datenbank ist nach außen komplett geschlossen, `idea/02-netzwerk-firewall.md`) die Schema-Migration gegen eine separate, privilegiertere DB-Rolle aus (`idea/03-container-anwendung.md`) — mit eigenem Secret, das der dauerhaft laufende Backend-Container nie zu sehen bekommt. Erreicht die DB über das interne Docker-Netz, deckt auch das initiale Schema beim allerersten Deploy ab.
+*   Führt darüber (nicht vom CI-Runner selbst — die Datenbank ist nach außen komplett geschlossen, `pipeline/vps-repo/01-provisioning.md`) die Schema-Migration gegen eine separate, privilegiertere DB-Rolle aus (`idea/03-container-anwendung.md`) — mit eigenem Secret, das der dauerhaft laufende Backend-Container nie zu sehen bekommt. Erreicht die DB über das interne Docker-Netz, deckt auch das initiale Schema beim allerersten Deploy ab.
 *   Bricht bei einer fehlgeschlagenen Migration vor dem eigentlichen Neustart der Container ab — die zuvor laufenden Container bleiben unverändert aktiv, kein Teil-Deploy auf altem oder halb migriertem Schema.
 *   Startet erst danach die Container neu (neues Image).
 

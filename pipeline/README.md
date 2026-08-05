@@ -19,3 +19,7 @@ Kompletter Ablauf für einen Neuaufbau von Grund auf: [Runbook](runbook.md).
 Server-Provisioning, Ersteinrichtung und jeder Reboot danach laufen komplett automatisch. Manuell bleiben nur die einmaligen Konto-Bootstrap-Schritte, die zwingend ein von einem Menschen gehaltenes Geheimnis voraussetzen — Schritte 3 (healthchecks.io), 5 (Deploy-Key) und 7 (Identitätsanbieter-Registrierung, sobald App-Stack-Architektur/-Anbieter feststehen) im [Runbook](runbook.md), die nur bei Neuanlage bzw. Rotation des jeweiligen Kontos/der Registrierung anfallen.
 
 Phase 4 braucht zusätzlich keine dauerhaft lokal vorgehaltenen Secrets, da die Deploy-Pipeline eigene, zentral rotierbare CI-Credentials nutzt statt der Admin-Maschine.
+
+## Testbarkeit vor Prod-Lauf
+
+Jeder Skriptlauf der Phasen 1–3 gegen die echte VPS wird vorher gegen eine temporäre Wegwerf-VPS (gleicher Typ/gleiches Image, danach gelöscht) durchgespielt, inklusive zweitem Lauf zum Idempotenz-Check (`rules.md` Abschnitt 8).

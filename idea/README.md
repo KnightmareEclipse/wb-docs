@@ -1,9 +1,7 @@
 # Gesamtsystem-Konzept: Sicherer Datenbank- & API-VPS für Schulprozesse
 
-Ein Abschnitt pro Datei, in derselben Reihenfolge wie das ursprüngliche Konzept:
+Fundament (Server-Image, physische Sicherheit, verschlüsseltes Swap, Bus-Faktor) und Netzwerk-/Firewall-Ebene (Zero-Trust nach außen, SSH-Härtung) sind VPS-Setup und stehen konkret in `pipeline/vps-repo/01-provisioning.md` und `02-hardening.md` — kein eigenes Konzept-Kapitel mehr hier. Die restlichen Ebenen (App-Stack, noch nicht konkretisiert) bleiben Konzept:
 
-1. [Fundament](01-boot-verschluesselung.md) — Standard-Server-Image, physische Sicherheit über Hetzners AVV, verschlüsseltes Swap, Bus-Faktor
-2. [Netzwerk- & Firewall-Ebene](02-netzwerk-firewall.md) — Zero-Trust nach außen, SSH-Härtung
 3. [Container- & Anwendungs-Ebene](03-container-anwendung.md) — Docker-Netz-Isolation, DB-Rollen, Secrets, Logging
 4. [Identitäts- & Zugriffs-Ebene](04-identitaet-zugriff.md) — externer OIDC-Identitätsanbieter, Autorisierung
 5. [Backup- & Recovery-Ebene](05-backup-recovery.md) — Push-/Prune-Split, Restore-Test
