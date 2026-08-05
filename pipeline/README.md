@@ -23,6 +23,6 @@ Alles ist skriptbar/CI-fähig außer:
 
 *   (a) dem einmaligen Konsolen-Bootstrap in Phase 3,
 *   (b) der wiederkehrenden Passphrase-Eingabe in Phase 6 — dauerhaft und beabsichtigt,
-*   (c) den einmaligen manuellen Bootstrap-Schritten 3b (healthchecks.io), 4b (Deploy-Key) und 5c (Entra-ID-App-Registrierung) im [Runbook](runbook.md), die nur bei Neuanlage bzw. Rotation des jeweiligen Kontos/der App-Registrierung anfallen.
+*   (c) den einmaligen manuellen Bootstrap-Schritten 5 (healthchecks.io), 7 (Deploy-Key) und 9 (Entra-ID-App-Registrierung) im [Runbook](runbook.md), die nur bei Neuanlage bzw. Rotation des jeweiligen Kontos/der App-Registrierung anfallen.
 
 Phase 5b braucht zusätzlich keine dauerhaft lokal vorgehaltenen Secrets mehr, da die Deploy-Pipeline eigene, zentral rotierbare CI-Credentials nutzt statt der Admin-Maschine.

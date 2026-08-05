@@ -46,7 +46,7 @@ Keine Hochverfügbarkeits-Infrastruktur (Multi-Server, Load-Balancer, Multi-Regi
 
 - Dokumentationsstil wie in `CLAUDE.md` festgelegt: ausschließlich aktueller Stand, keine Historie.
 - Jeder manuelle Schritt bekommt ein Runbook, ausführbar von jemandem ohne Vorwissen (Referenz: „Runbook — Kompletter Neuaufbau" in `pipeline/runbook.md`).
-- Wiederkehrende Wartungsaufgaben (Patch-Rebuild, Restore-Test, Secret-Rotation, Löschjob) hängen an einer **Rolle** bzw. einem gemeinsamen Kalender — nie an einer Einzelperson, die sich zufällig daran erinnert.
+- Wiederkehrende Wartungsaufgaben (monatlicher Host-Reboot, monatlicher Image-Rebuild, quartalsweiser Restore-Test, Secret-Rotation, jährlicher Löschjob) haben je einen wiederkehrenden Termin im gemeinsamen M365-Gruppenkalender der Schule — nie an einer Einzelperson, die sich zufällig daran erinnert.
 - Jede bewusste Vereinfachung wird als **akzeptiertes Risiko** explizit benannt (wie durchgängig in `idea/` praktiziert), nicht stillschweigend übernommen.
 
 ## 6. Bus-Faktor, Übergabefähigkeit & Reproduzierbarkeit
