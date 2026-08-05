@@ -9,3 +9,5 @@ Installation über Docker's offizielles APT-Repo (nicht das Convenience-Script/s
 Dazu Netzwerk-Segmentierung (extern/intern) als Host-Voraussetzung. Der Rootless-Docker-Daemon läuft als systemd-User-Unit (`systemctl --user enable docker`) und startet damit zusammen mit dem `deploy`-User-Linger aus [Phase 3](03-hardening.md) automatisch nach jedem Reboot — ohne aktive SSH-Session und ohne manuellen Start.
 
 Bleibt im VPS-Repo, da es eine System-Paket-Installation ist, keine Anwendungslogik — ändert sich mit dem Host, nicht mit jedem App-Deploy.
+
+Idempotent wie Phase 1–3: APT-Installation eines bereits installierten Pakets ist ein No-Op, `dockerd-rootless-setuptool.sh install` ist laut Docker-Dokumentation gefahrlos mehrfach ausführbar.

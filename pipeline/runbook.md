@@ -2,6 +2,8 @@
 
 Reihenfolge für einen kompletten Neuaufbau der VPS von Grund auf (z. B. bei Totalausfall). Die VPS läuft bereits, aber ohne schützenswerte Daten — der Neuaufbau beginnt daher direkt bei Schritt 2 auf dem bestehenden Server; Schritt 1 erkennt den existierenden Server per `hcloud server describe` und überspringt die Neuanlage.
 
+**Voraussetzung, einmalig:** MFA ist auf dem Hetzner-Cloud-Konto, dem DNS-Provider-Konto der Schule und dem gemeinsamen Passwortmanager aktiv (`rules.md` Abschnitt 2), bevor der erste persönliche Hetzner-API-Token für Schritt 1 erzeugt wird.
+
 1. **[Phase 1](vps-repo/01-provisioning.md)** (`vps/infra/`, beliebiger Admin-Rechner mit eigenem Hetzner-API-Token): hcloud-Skript ausführen → Server + Firewall stehen, Server-IP bekannt (neu angelegt oder bereits vorhanden).
 2. **DNS** (manuell, einmalig bzw. bei IP-Wechsel): A/AAAA-Record der Subdomain (`idea/02-netzwerk-firewall.md`) beim bestehenden DNS-Provider der Schule auf die Server-IP aus Schritt 1 setzen.
 3. **[Phase 2](vps-repo/02-rescue-install.md)** (einmalig, Admin-Rechner): Rescue-Skript auslösen → wiped + partitioniert + verschlüsselt + installiert Basis-OS, Bootloader/Auto-Unlock-Keyfile im Chroot. Server bootet danach vollautomatisch durch, kein Konsolen-Schritt nötig.
