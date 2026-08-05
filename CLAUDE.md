@@ -13,6 +13,10 @@ Ziel jeder Entscheidung in diesem Repo: so einfach wie möglich, dabei sicher ge
 - **Alles, was wiederkehrt, wird automatisiert** — Ausnahme nur, wo ein Mensch zwingend ein bewusst nur ihm bekanntes Geheimnis eingeben muss oder echtes Urteilsvermögen braucht. Ziel: Das System läuft weiter und bleibt wartbar, auch wenn der aktuelle Betreiber weg ist.
 - **Bei Zweifel gewinnt die einfachere Lösung**, solange sie das Sicherheits- und Automatisierungsniveau nicht senkt — nicht die technisch elegantere oder vollständigere.
 
+## Git-Identität (gilt für alle Repos)
+
+Commits in allen Repos (VPS-Repo, App-Stack-Repo, Teams-Apps-Repo, Static-Web-App-Repos, dieses Repo) laufen unter Pseudonym, nie Klarname oder private/Uni-Mail: GitHub-Nutzername `KnightmareEclipse`, E-Mail die von GitHub gestellte Noreply-Adresse (`312991717+KnightmareEclipse@users.noreply.github.com`, GitHub-Kontoeinstellungen → Emails). Gesetzt als repo-lokale `user.name`/`user.email` (nie global) — andere, projektfremde Repos auf derselben Maschine bleiben unberührt.
+
 ## Aktueller Fokus: VPS fertig, App-Stack-Repo im Aufbau
 
 Das VPS-Repo (Phasen 1–3 in `pipeline/`: Provisioning, Firewall/SSH-Härtung, Docker-Engine) ist fertig entwickelt und automatisiert.
