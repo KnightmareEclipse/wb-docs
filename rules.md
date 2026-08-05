@@ -7,12 +7,12 @@ Prinzipien, nach denen jede Entscheidung in `idea/`, `pipeline/`, `project-parts
 Vor jeder neuen Komponente, jedem neuen Dienst, jeder neuen Abstraktion diese Leiter durchgehen, am ersten tragfähigen Punkt stehenbleiben:
 
 1. **Braucht es das wirklich?** Kein Feature, kein Service für einen hypothetischen künftigen Bedarf — nur für einen konkret vorliegenden.
-2. **Bietet Hoster/Plattform es schon nativ?** Hetzner Cloud Firewall, Entra ID, M365 statt Eigenbau.
-3. **Löst Standardsoftware es?** Postgres statt eigener Datenhaltung, Caddy statt eigenem Reverse Proxy, Restic statt eigenem Backup-Tool, journald statt eigenem Log-Stack.
+2. **Bietet Hoster/Plattform es schon nativ?** Hetzner Cloud Firewall statt Eigenbau; die ohnehin vorhandene Identitäts-/Office-Umgebung der Schule statt eigener Nutzerverwaltung.
+3. **Löst Standardsoftware es?** Eine etablierte Standard-Datenbank statt eigener Datenhaltung, ein Standard-Reverse-Proxy statt Eigenbau, ein Standard-Backup-Tool statt Eigenbau, ein vorhandener Log-Mechanismus statt eigenem Log-Stack — konkrete Wahl folgt mit der App-Stack-Architektur.
 4. **Ist es schon im Stack vorhanden?** Kein zweites Tool für das, was ein bestehendes bereits kann.
 5. **Erst dann:** neuer Dienst/eigener Code — minimal gehalten, mit klar benanntem Zweck.
 
-Beispiele für bereits angewandte Entscheidungen nach dieser Leiter: kein Terraform (State-Overhead für eine VPS mit zwei Ressourcen), kein Ansible (ein Host mit statischer IP reicht für ein idempotentes Shell-Skript), kein Loki/Promtail (journald reicht für die Log-Menge). Neue Entscheidungen folgen demselben Muster.
+Beispiele für bereits angewandte Entscheidungen nach dieser Leiter: kein Terraform (State-Overhead für eine VPS mit zwei Ressourcen), kein Ansible (ein Host mit statischer IP reicht für ein idempotentes Shell-Skript), kein zusätzlicher Log-Stack, wenn ein bereits vorhandener Mechanismus für die Log-Menge reicht. Neue Entscheidungen folgen demselben Muster.
 
 Keine Hochverfügbarkeits-Infrastruktur (Multi-Server, Load-Balancer, Multi-Region) ohne konkreten Bedarf — eine VPS mit getesteten Backups und vollständiger Neuaufsetzbarkeit (Abschnitt 6) ist für diese Schulgröße ausreichend. Eine Wiederherstellungszeit von Stunden ist ein bewusst akzeptierter Trade-off gegen Komplexität, kein Mangel.
 
@@ -22,9 +22,9 @@ Keine Hochverfügbarkeits-Infrastruktur (Multi-Server, Load-Balancer, Multi-Regi
 - **Least Privilege:** jede neue Rolle, jeder neue Zugang bekommt nur die minimal nötige Berechtigung — nie „damit es bequemer ist" mehr.
 - **Schreiben ≠ Löschen:** destruktive/unwiderrufliche Aktionen (Prune, Delete, Force-Push) laufen über ein eigenes, stärker geschütztes Credential, das nicht dauerhaft auf einem internetexponierten System liegt (Push-/Prune-Split aus `idea/05-backup-recovery.md` ist das Referenzmuster für jede künftige destruktive Aktion).
 - **Ein Credential pro Person/Zweck**, nie geteilt — Admin-SSH-Keys, API-Tokens, Deploy-Keys. Ermöglicht Offboarding durch einfaches Widerrufen statt Rotation für alle.
-- **MFA-Pflicht für kritische Admin-Konten:** Hetzner-Cloud-Konto, GitLab.com, Entra-ID-Admin-Portal, DNS-Provider der Schule und der gemeinsame Passwortmanager selbst — überall dort, wo die Web-Konsole eines kritischen Kontos das Login ist, nicht Key-only-SSH/Dropbear (die bereits passwortlos sind). Diese Web-Konsolen sind sonst der weiche Punkt in einem ansonsten Key-only gehärteten System (Phishing/Credential-Stuffing statt Bruteforce).
+- **MFA-Pflicht für kritische Admin-Konten:** Hetzner-Cloud-Konto, DNS-Provider der Schule, der gemeinsame Passwortmanager selbst sowie — sobald gewählt — die Admin-Portale der App-Stack-Dienstleister (Code-/CI-Plattform, Identitätsanbieter) — überall dort, wo die Web-Konsole eines kritischen Kontos das Login ist, nicht Key-only-SSH/Dropbear (die bereits passwortlos sind). Diese Web-Konsolen sind sonst der weiche Punkt in einem ansonsten Key-only gehärteten System (Phishing/Credential-Stuffing statt Bruteforce).
 - **Secrets nie im Git, nie in CI-Logs, nie als Klartext-Env-Var in Containern.** Immer verschlüsselt at rest (age-Secrets-Datei) und als gemountete Datei (`/run/secrets/…`) in Container gereicht.
-- **Verschlüsselung Pflicht** für alles, was Schülerdaten führt: at rest (LUKS, Restic-Repo) und in transit (TLS).
+- **Verschlüsselung Pflicht** für alles, was Schülerdaten führt: at rest (LUKS, Backup-Repo) und in transit (TLS).
 - **Patch-Kadenz:** monatlich für Host und Container-Images. Automatisiert, wo kein Reboot-/Downtime-Risiko besteht (`unattended-upgrades`-Muster); wo doch, gebündelt und manuell angestoßen statt einzeln.
 
 ## 3. Automatisierung
@@ -33,14 +33,14 @@ Keine Hochverfügbarkeits-Infrastruktur (Multi-Server, Load-Balancer, Multi-Regi
 - Jedes Skript ist **idempotent** — beliebig oft wiederholbar, ohne Schaden anzurichten (Referenzmuster: die Wipe-/Bootstrap-Checks in `pipeline/vps-repo/01-provisioning.md`/`02-rescue-install.md`).
 - Jeder automatisierte Job (Cronjob, Systemd-Timer, CI-Pipeline) **meldet Fehlschläge aktiv** (Push-Alert), statt dass jemand aktiv nachschauen muss — ein stiller Fehlschlag zählt als nicht vorhanden.
 - **Eine Konfigurationsquelle pro Sachverhalt**, von allen Skripten referenziert, die sie brauchen (`ports.yml`, `admins.yml`-Muster) — keine duplizierten Listen, die auseinanderlaufen können.
-- Abhängigkeits-Updates (npm/pip/Docker-Base-Images) laufen über automatisierte PRs mit Renovate (kostenlos, native GitLab-Integration auf gitlab.com — Dependabot ist GitHub-first und bräuchte dort Zusatz-Setup) statt manuellem Nachschauen — eine `renovate.json` pro Repo (App-Stack-, Teams-Apps-, Static-Web-App-Repos), reduziert die monatliche Handarbeit aus `project-parts.md` Abschnitt 1 auf einen Review-Klick pro PR.
+- Abhängigkeits-Updates (npm/pip/Docker-Base-Images) laufen über automatisierte PRs (Tool offen, z. B. Renovate oder Dependabot, beide kostenlos) statt manuellem Nachschauen — konkretes Tool folgt mit der Wahl der Code-/CI-Plattform, reduziert die monatliche Handarbeit aus `project-parts.md` Abschnitt 1 auf einen Review-Klick pro PR.
 
 ## 4. Kosten & Software-Auswahl
 
 - Alles außer VPS-Miete und M365-Lizenz muss **quelloffen oder dauerhaft kostenlos** nutzbar sein — keine befristeten Trials, keine „kostenlos bis X Nutzer" ohne Wachstumsplan.
 - Azure-Dienste (Functions, Static Web Apps) laufen ausschließlich innerhalb der kostenlosen monatlichen Kontingente. Bei jeder neuen Azure-Ressource: Budget-Alert in Azure Cost Management auf niedriger Schwelle einrichten, damit ein Überschreiten nicht unbemerkt Kosten verursacht.
-- Vor jedem neuen Dienst: reicht eine bereits genutzte Lösung (Postgres, journald, healthchecks.io, GitLab CI)? Erst wenn nein — und dann bevorzugt ein Dienst mit großzügigem Free-Tier und EU-Sitz/-Hosting (vereinfacht Abschnitt 7).
-- **Boring Technology:** etablierte, weit verbreitete, gut dokumentierte Software (Debian Stable, Postgres, Docker, Caddy, Restic) statt Nischentools, die nur der aktuelle Betreiber kennt und die im Ernstfall niemand sonst debuggen kann.
+- Vor jedem neuen Dienst: reicht eine bereits genutzte Lösung (z. B. das bereits für den Host eingesetzte healthchecks.io)? Erst wenn nein — und dann bevorzugt ein Dienst mit großzügigem Free-Tier und EU-Sitz/-Hosting (vereinfacht Abschnitt 7).
+- **Boring Technology:** etablierte, weit verbreitete, gut dokumentierte Software (Debian Stable, Docker als Basis; beim App-Stack ebenso etablierte statt exotische Wahlen) statt Nischentools, die nur der aktuelle Betreiber kennt und die im Ernstfall niemand sonst debuggen kann.
 
 ## 5. Dokumentation & Wissenstransfer
 
@@ -52,7 +52,7 @@ Keine Hochverfügbarkeits-Infrastruktur (Multi-Server, Load-Balancer, Multi-Regi
 ## 6. Bus-Faktor, Übergabefähigkeit & Reproduzierbarkeit
 
 - Mindestens **zwei Admins** haben jederzeit vollen Zugriff auf alle kritischen Systeme und Credentials.
-- Kritische Konten (Passwortmanager, healthchecks.io, GitLab, Entra-ID-Admin, Hetzner-Cloud-Konto, DNS-Provider) laufen auf organisationseigenen, nicht auf persönlichen Zugängen.
+- Kritische Konten (Passwortmanager, healthchecks.io, Hetzner-Cloud-Konto, DNS-Provider sowie — sobald gewählt — Code-/CI-Plattform und Identitätsanbieter) laufen auf organisationseigenen, nicht auf persönlichen Zugängen.
 - Jeder personengebundene Zugang (Hetzner-API-Token, SSH-Key, Deploy-Key) hat einen dokumentierten, gleich einfachen Widerruf — Offboarding darf nie mehr sein als das Entfernen eines einzelnen Eintrags.
 - Das gesamte System ist aus Git + verschlüsselter Secrets-Datei vollständig neu aufsetzbar, ohne Wissen, das nur im Kopf des aktuellen Betreibers existiert — keine Konfiguration, die nur manuell in einer Cloud-Konsole entsteht und nirgends als Skript/Doku existiert.
 - **Umzugsfähig:** ein Wechsel des Hosters oder ein Neuaufbau auf einer neuen VPS ist mit vertretbarem Aufwand möglich, ohne Datenverlust — Hetzner-Spezifisches (hcloud-Skript, Firewall-API) bleibt sauber getrennt vom generischen Setup-Teil (LUKS, Docker, App-Stack), der 1:1 auf einen anderen Anbieter übertragbar ist.
@@ -72,5 +72,5 @@ Keine Hochverfügbarkeits-Infrastruktur (Multi-Server, Load-Balancer, Multi-Regi
 ## 9. Lokale Entwicklung
 
 - Es gibt keinen dedizierten Dev-/Staging-Server — jede App-Stack-Komponente (Abschnitt 3/4 in `project-parts.md`) muss per Docker Compose lokal auf der Entwickler-Maschine lauffähig sein, unabhängig von der Produktions-VPS.
-- Externe Abhängigkeiten (Entra-ID/OIDC, Microsoft Graph/SharePoint) werden lokal durch Dummy-Werte/Mocks ersetzt — Entwicklung hängt nie an Produktiv-Credentials.
-- Neue Änderungen laufen erst gegen eine lokale Postgres-Instanz, bevor sie über die Pipeline (Phase 5b) deployt werden — die Produktiv-VPS ist kein Testfeld.
+- Externe Abhängigkeiten (Identitätsanbieter/OIDC, ggf. Microsoft Graph/SharePoint) werden lokal durch Dummy-Werte/Mocks ersetzt — Entwicklung hängt nie an Produktiv-Credentials.
+- Neue Änderungen laufen erst gegen eine lokale Instanz der gewählten Datenbank, bevor sie über die Pipeline (Phase 5b) deployt werden — die Produktiv-VPS ist kein Testfeld.
