@@ -105,7 +105,7 @@ Explizit nicht in dieser Liste: KITA-Alltag, Schulalltag (Noten/Stundenplan) —
 
 ## 7. Erste Fachdomäne
 
-**Putzdienst** — zeitlich dringendster Prozess (Abschnitt 1), Ziel: produktiv nutzbar bis Schulanfang September 2026, kleiner Spielraum vorhanden, aber ausdrücklich ohne Abstriche bei Sicherheit/Automatisierung (`rules.md` §1–3).
+**Putzdienst** — zeitlich dringendster Prozess (Abschnitt 1), Ziel: produktiv nutzbar bis Schulanfang September 2026, kleiner Spielraum vorhanden, aber ausdrücklich ohne Abstriche bei Sicherheit/Automatisierung (`rules.md` §1–3). Prozessbeschreibung, Familie-Modell, Zyklus-Konfiguration und offene Punkte: `domains/putzdienst.md`.
 
 Kritischer Pfad bis dahin:
 
@@ -119,8 +119,8 @@ Kritischer Pfad bis dahin:
 - Externes Frontend (Azure Static Web App + Function, `project-parts.md` Abschnitt 9) erstmals aufsetzen — CORS-Policy wird dadurch jetzt konkret
 
 *Fachlich:*
-- Minimales Datenmodell: Schüler, Eltern, Erziehungsberechtigte↔Schüler-Zuordnung, Putztermine, Zuordnungslogik
-- Weitere Detailregeln des Prozesses jenseits von Terminwahl/Freikauf/Restzuordnung — *(offen, noch zu sammeln)*
+- Minimales Datenmodell: Familie, Erziehungsberechtigte, Kind, Erziehungsberechtigte↔Familie (M:N), Putztermine, Zyklus-Konfiguration — Details `domains/putzdienst.md`
+- Tabellen-Datenmodell selbst noch zu entwerfen, ein offener Punkt (Proration-Formel bei unterjährigem Eintritt) ist extern zu klären
 
 *Organisatorisch:*
 - Zweiter Admin muss vor Produktivbetrieb aktiv sein, nicht vor Entwicklungsstart (`TODO.md`)
