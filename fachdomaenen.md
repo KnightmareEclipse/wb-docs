@@ -120,7 +120,8 @@ Kritischer Pfad bis dahin:
 
 *Fachlich:*
 - Minimales Datenmodell: Familie, Erziehungsberechtigte, Kind, Erziehungsberechtigte↔Familie (M:N), Putztermine, Zyklus-Konfiguration — Details `domains/putzdienst.md`
-- Tabellen-Datenmodell selbst noch zu entwerfen, ein offener Punkt (Proration-Formel bei unterjährigem Eintritt) ist extern zu klären
+- Restplatz-Zuordnung über Google-OR-Tools-Constraint-Solver statt Eigenbau (`domains/putzdienst.md`)
+- Tabellen-Datenmodell selbst noch zu entwerfen
 
 *Organisatorisch:*
 - Zweiter Admin muss vor Produktivbetrieb aktiv sein, nicht vor Entwicklungsstart (`TODO.md`)
