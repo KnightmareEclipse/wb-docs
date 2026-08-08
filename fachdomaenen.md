@@ -81,7 +81,7 @@ Konkrete Berechtigungen (wer darf/kann was) hängen vom jeweiligen Prozess ab un
 
 **Schüler:** kein eigener Systemzugriff vorgesehen — durchgängig nur Datenobjekt, nie Akteur.
 
-**Eltern:** interagieren ausschließlich passiv über Formulare (Ferienprogramm buchen, Voranmeldung, Putzdienst-Terminwahl, …). Kein aktiver Portalzugriff (z. B. Noten einsehen, Chat mit Lehrern) — das ist dauerhaft out of scope, nicht nur vorerst.
+**Eltern:** interagieren aktuell ausschließlich passiv über Formulare (Ferienprogramm buchen, Voranmeldung, Putzdienst-Terminwahl, …). Ein Selfservice-Zugriff zur Korrektur eigener Stammdaten und eigener Kommunikationspräferenzen ist als nachrangiges Nice-to-have vorgesehen (Abschnitt 6, Domäne 8). Darüber hinausgehender Portalzugriff (z. B. Noten einsehen, Chat mit Lehrern) bleibt dauerhaft out of scope.
 
 ## 6. Domänen-Liste (jetzt + später)
 
@@ -100,6 +100,7 @@ Nicht terminlich getrieben, Priorität offen:
 5. **Rechnungsfreigabe** — läuft bereits stabil über Teams-App/SharePoint (Abschnitt 3), daher niedrige Migrationspriorität.
 6. **Mensa-, Hort-, AG-Anmeldung** — bisher nicht als akut/digitalisiert benannt.
 7. **M365-Kontenverwaltung** (Ablösung/Ergänzung von Vis365) — mittelfristiges Ziel (Abschnitt 4), IT-Administration statt klassischer Schulprozess.
+8. **Eltern-Selfservice** (eigene Stammdaten korrigieren, Kommunikationspräferenzen wie Info-Mail-Opt-out) — explizit nachrangig, erst nach Abschluss aller anderen hier gelisteten Domänen. Reduziert langfristig den Korrektur-Aufwand im Sekretariat, da Änderungen nicht mehr über Zuruf/Mail laufen müssen. Baut auf der bereits vorhandenen Selbstauskunft-Mechanik im Anmeldeprozess auf (`domains/stammdaten.md`, „Ausnahme Anmeldeprozess").
 
 Explizit nicht in dieser Liste: KITA-Alltag, Schulalltag (Noten/Stundenplan) — beide dauerhaft out of scope (Abschnitt 1/4).
 
