@@ -37,20 +37,20 @@ Reihenfolge, in der die Prozesse im Jahresverlauf wieder akut werden:
 
 ## 3. Aktuelle Probleme
 
-### Historie
+### Stand der Digitalisierung
 
-Früher liefen alle Prozesse (inkl. vermutlich einiger inzwischen vergessener) auf Papier bzw. handgepflegten Excel-Listen.
-
-### Bisherige Digitalisierung
+Automatisiert sind Voranmeldung, Anmeldeprozess, Putzdienst und Ferienprogrammanmeldung — alle mit Excel als Datenbank, angebunden über zwei Werkzeuge:
 
 1. Jotform-Formulare für Voranmeldung, Anmeldeprozess, Ferienprogrammanmeldung
 2. Power Automate: schreibt Formulardaten automatisch in Excel-Listen, übernimmt Mailversand
-3. Versuch, SharePoint-Listen als feste Struktur einzuführen und per Power Query nach Excel zu synchronisieren — gescheitert: die Verwaltung bearbeitete Daten direkt in der Power-Query-Tabelle, ein Refresh überschrieb diese Änderungen wieder
+
+Ob es darüber hinaus Prozesse gibt, die niemand mehr auf dem Schirm hat, ist offen — die Domänen-Liste in Abschnitt 6 ist deshalb ausdrücklich als erster Entwurf zu lesen.
+
+**Geprüft und verworfen:** SharePoint-Listen als feste Struktur, per Power Query nach Excel synchronisiert. Die Verwaltung bearbeitet Daten direkt in der Power-Query-Tabelle, ein Refresh überschreibt diese Änderungen wieder — der Weg scheidet damit für jede künftige Lösung aus, nicht nur für einen Anlauf.
 
 Ergebnis: viele parallele Excel-Dateien pro Prozess, hoher Wartungsaufwand (z. B. bricht ein in Teams verschobener Datei-Link den Prozess, ohne dass die verschiebende Person das merkt), unsauberer/inkonsistenter Datenstand — unabhängig von ASV-BW, Optigem und Office 365.
 
-Bisher automatisiert (alle über Excel als Datenbank): Voranmeldung, Anmeldeprozess, Putzdienst, Ferienprogrammanmeldung.
-- **Anmeldeprozess:** der zuletzt gebaute und am weitesten entwickelte — Power-Automate-HTTP-Trigger + Jotform simulieren Frontend und Backend, private (ungeteilte) Excel-Tabellen steuern den Prozess. Funktioniert, ist aber fragil.
+- **Anmeldeprozess:** der am weitesten entwickelte — Power-Automate-HTTP-Trigger + Jotform simulieren Frontend und Backend, private (ungeteilte) Excel-Tabellen steuern den Prozess. Funktioniert, ist aber fragil.
 - Manuelles Eingreifen ist nicht auf einzelne Prozesse beschränkt: Verwaltung oder Hort verursachen in allen Prozessen laufend Fehler, die manuell korrigiert werden müssen.
 
 ### Datenflüsse zu ASV-BW / Optigem / Office 365

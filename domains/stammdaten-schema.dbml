@@ -13,6 +13,8 @@ Project stammdaten {
 Table genders {
   id    integer [pk, increment]
   label text    [not null, unique]
+  code  text    [not null, unique]
+  Note: 'Amtliches Merkmal für ASV-BW/Statistik, deshalb stabiler code neben dem umbenennbaren label. ISO 5218 geprüft und verworfen — die Norm (0/1/2/9) kann "divers" nicht ausdrücken (§22 Abs. 3 PStG); Werte stammen aus der ASV-BW-Werteliste.'
 }
 
 Table salutations {
@@ -41,7 +43,14 @@ Table languages {
   id    integer [pk, increment]
   label text    [not null, unique]
   code  text    [not null, unique]
-  Note: 'Verkehrssprache. Lookup statt Freitext: speist den ASV-BW-Export, dort zählt ein konsistenter Wert. code = BCP 47.'
+  Note: 'Verkehrssprache. Lookup statt Freitext: speist den ASV-BW-Export, dort zählt ein konsistenter Wert. code = BCP 47, CHECK auf Grundform mit kanonisch kleingeschriebenem Primär-Subtag. Liste wird geseedet, label bleibt frei änderbar, code nicht (externer Standard).'
+}
+
+Table countries {
+  id    integer [pk, increment]
+  label text    [not null, unique]
+  code  text    [not null, unique]
+  Note: 'Land für Anschrift/Geburtsland/Staatsangehörigkeit. Lookup statt ISO-Code-Freitext: der Rücktransfer nach ASV-BW wird abgetippt, dafür braucht es "Türkei" statt "TR" — und ASV-BW führt die Werte selbst als Werteliste, nicht als ISO-Code. code = ISO 3166-1 alpha-3 (nicht alpha-2: das wird neu vergeben und kollidiert optisch mit languages.code), mit Format-CHECK. Liste wird aus ISO 3166-1 geseedet, label bleibt frei änderbar, code nicht (externer Standard).'
 }
 
 Table phone_types {
@@ -107,7 +116,7 @@ Table addresses {
   district     text
   postal_code  text
   city         text
-  country      text        [not null, default: 'DE']
+  country_id   integer     [not null]
   created_at   timestamptz [not null, default: `now()`]
   created_by   text        [not null]
   updated_at   timestamptz [not null, default: `now()`]
@@ -157,7 +166,7 @@ Table organizations {
   indexes {
     address_id
   }
-  Note: 'Erziehungsberechtigte als Organisation (Jugendamt, Pflegedienst, Vereinsvormund). email: CHECK <> \'\', analog persons.'
+  Note: 'Erziehungsberechtigte als Organisation (Jugendamt, Pflegedienst, Vereinsvormund). email: rein ausgehender Kanal (Schule schreibt die Behörde an), bewusst NICHT unique — kein Login daran, die OTP-Prüfung liest nur persons.email. CHECK <> \'\' analog persons.'
 }
 
 Table phone_numbers {
@@ -202,9 +211,9 @@ Table children {
   nickname                    text
   date_of_birth               date    [not null]
   birthplace                  text
-  birth_country               text
-  nationality                 text
-  second_nationality          text
+  birth_country_id            integer
+  nationality_id              integer
+  second_nationality_id       integer
   home_language_id            integer
   denomination_id             integer
   congregation                text
@@ -291,7 +300,7 @@ Table child_contacts {
     contact_id
     (child_id, priority) [unique, name: 'one_priority_rank_per_child']
   }
-  Note: 'relationship ("Großmutter") relativ zum Kind, nicht absolut zur Kontaktperson. priority: Notfallkontakt-Reihenfolge, nullable, höchstens einmal je Kind belegt.'
+  Note: 'relationship ("Großmutter") relativ zum Kind, nicht absolut zur Kontaktperson — Freitext, anders als guardian_categories: langer Wertevorrat-Schwanz, niemand wertet danach aus. priority: Notfallkontakt-Reihenfolge, nullable, höchstens einmal je Kind belegt.'
 }
 
 Table payers {
@@ -310,7 +319,7 @@ Table payers {
   indexes {
     billing_address_id
   }
-  Note: 'Entweder natürliche Person ODER Organisation (CHECK in SQL, wie guardians). billing_address_id nullable: NULL = Anschrift der zahlenden Person/Organisation gilt.'
+  Note: 'Entweder natürliche Person ODER Organisation (CHECK in SQL, wie guardians). billing_address_id nullable: NULL = Anschrift der zahlenden Person/Organisation gilt. iban/bic: Struktur-CHECK nach ISO 13616 bzw. ISO 9362 (international, nicht auf deutsche Längen festgelegt); gespeichert nur normalisiert, ohne Leerzeichen.'
 }
 
 Table child_payers {
@@ -343,6 +352,8 @@ Ref: persons.academic_title_id > academic_titles.id [delete: restrict]
 Ref: persons.gender_id > genders.id [delete: restrict]
 Ref: persons.address_id > addresses.id [delete: restrict]
 
+Ref: addresses.country_id > countries.id [delete: restrict]
+
 Ref: organizations.address_id > addresses.id [delete: restrict]
 
 Ref: phone_numbers.person_id > persons.id [delete: cascade]
@@ -353,6 +364,9 @@ Ref: children.id - persons.id [delete: cascade]
 Ref: children.family_id > families.id [delete: restrict]
 Ref: children.denomination_id > denominations.id [delete: restrict]
 Ref: children.home_language_id > languages.id [delete: restrict]
+Ref: children.birth_country_id > countries.id [delete: restrict]
+Ref: children.nationality_id > countries.id [delete: restrict]
+Ref: children.second_nationality_id > countries.id [delete: restrict]
 Ref: children.provisional_grade_level_id > grade_levels.id [delete: restrict]
 Ref: children.previous_school_id > previous_schools.id [delete: restrict]
 Ref: children.class_id > classes.id [delete: restrict]

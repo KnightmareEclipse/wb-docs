@@ -15,7 +15,7 @@ INSERT INTO grade_levels (school_branch_id, label, sort_order, is_final_grade)
     UNION ALL
     SELECT 2, g::text, g, (g = 10) FROM generate_series(5,10) g;
 INSERT INTO phone_types (label) VALUES ('Festnetz'), ('Mobil'), ('Arbeit');
-INSERT INTO genders (label) VALUES ('männlich'), ('weiblich'), ('divers'), ('keine Angabe');
+INSERT INTO genders (label, code) VALUES ('männlich','m'), ('weiblich','w'), ('divers','d'), ('keine Angabe','x');
 INSERT INTO salutations (label) VALUES ('Herr'), ('Frau'), ('keine Anrede');
 INSERT INTO denominations (label) VALUES ('römisch-katholisch'), ('evangelisch'), ('konfessionslos');
 INSERT INTO guardian_categories (label) VALUES ('Elternteil'), ('Pflegeeltern'), ('Jugendamt');
@@ -40,8 +40,9 @@ INSERT INTO classes (school_branch_id, grade_level_id, entry_year, stream)
 -- Adressen: eine je ca. 1,6 Personen (Familien teilen sich Adressen). Straße
 -- variiert (500 Werte) statt konstant — sonst testet der Adress-Suchindex
 -- (postal_code, street, house_number) nichts, weil eine Spalte konstant ist.
-INSERT INTO addresses (street, house_number, postal_code, city)
-    SELECT 'Musterstraße ' || (n % 500), (n % 200)::text, lpad((70000 + n % 900)::text, 5, '0'), 'Musterstadt'
+INSERT INTO countries (id, label, code) VALUES (1, 'Deutschland', 'DEU');
+INSERT INTO addresses (street, house_number, postal_code, city, country_id)
+    SELECT 'Musterstraße ' || (n % 500), (n % 200)::text, lpad((70000 + n % 900)::text, 5, '0'), 'Musterstadt', 1
     FROM generate_series(1, :n_children) n;
 
 -- Familien: ca. 1,8 Kinder je Familie
