@@ -87,6 +87,9 @@ Konkrete Berechtigungen (wer darf/kann was) hängen vom jeweiligen Prozess ab un
 
 Grobe Landkarte, abgeleitet aus Abschnitt 1 (Prozesskalender) und Abschnitt 4 (Zielbild) — erster Entwurf, noch zu prüfen.
 
+Grundlage, parallel zum ersten Punkt bearbeitet:
+- **Stammdaten** (Kind, Erziehungsberechtigte, Familie, Kontakte) — eigenständige Fachdomäne, kein bloßes Nebenprodukt: jeder folgende Prozess baut direkt darauf auf. Kein eigenes Kalenderdatum, aber ohne sie kann Putzdienst nicht starten. Datenimport kommt komplett auf einmal (nicht schrittweise je Fachdomäne) — Schema deckt deshalb von Anfang an die vollen ASV-BW-Kernfelder ab, nicht nur Putzdienst-Minimalfelder. Eigene Sekretariats-Oberfläche mit Vollzugriff auf alle Kind-Daten ist hoch priorisiert, aber nachrangig zu den terminlich gebundenen Prozessen unten. Details: `domains/stammdaten.md`.
+
 Zeitkritisch, in Reihenfolge des Schuljahres:
 1. **Putzdienst** — Eltern wählen/kaufen sich frei, Verwaltung startet den Prozess und pflegt die Termine, Restzuordnung automatisch. Ziel: Schulanfang September 2026. → erste Fachdomäne (Abschnitt 7).
 2. **Voranmeldung** — Erstkontakt/gebührenpflichtige Anmeldung neuer Familien, mündet ins Anmeldegespräch. Fällig bis Ende Oktober 2026.
@@ -97,9 +100,6 @@ Nicht terminlich getrieben, Priorität offen:
 5. **Rechnungsfreigabe** — läuft bereits stabil über Teams-App/SharePoint (Abschnitt 3), daher niedrige Migrationspriorität.
 6. **Mensa-, Hort-, AG-Anmeldung** — bisher nicht als akut/digitalisiert benannt.
 7. **M365-Kontenverwaltung** (Ablösung/Ergänzung von Vis365) — mittelfristiges Ziel (Abschnitt 4), IT-Administration statt klassischer Schulprozess.
-
-Kein eigener Prozess, sondern Grundlage, die als Nebenprodukt von 1–4 entsteht:
-- **Stammdaten** (Schüler, Eltern, Erziehungsberechtigte↔Schüler-Zuordnung) — langfristiges Ziel „Single Source of Truth" (Abschnitt 4); jeder der obigen Prozesse braucht diese Datensätze ohnehin.
 
 Explizit nicht in dieser Liste: KITA-Alltag, Schulalltag (Noten/Stundenplan) — beide dauerhaft out of scope (Abschnitt 1/4).
 
@@ -119,9 +119,10 @@ Kritischer Pfad bis dahin:
 - Externes Frontend (Azure Static Web App + Function, `project-parts.md` Abschnitt 9) erstmals aufsetzen — CORS-Policy wird dadurch jetzt konkret
 
 *Fachlich:*
-- Minimales Datenmodell: Familie, Erziehungsberechtigte, Kind, Erziehungsberechtigte↔Familie (M:N), Putztermine, Zyklus-Konfiguration — Details `domains/putzdienst.md`
+- Stammdaten-Fachdomäne (Familie, Erziehungsberechtigte, Kind, Kontakte) als Grundlage — Details `domains/stammdaten.md`, Tabellenschema `domains/stammdaten-schema.sql`
+- Putzdienst-eigenes Datenmodell darauf aufbauend: Putztermine, Zyklus-Konfiguration — Details `domains/putzdienst.md`
 - Restplatz-Zuordnung über Google-OR-Tools-Constraint-Solver statt Eigenbau (`domains/putzdienst.md`)
-- Tabellen-Datenmodell selbst noch zu entwerfen
+- Putzdienst-Tabellenschema selbst noch zu entwerfen
 
 *Organisatorisch:*
 - Zweiter Admin muss vor Produktivbetrieb aktiv sein, nicht vor Entwicklungsstart (`TODO.md`)
