@@ -5,7 +5,8 @@ Aufgaben, die reale Konten/Zugänge brauchen und die reine Konzept-Doku (`idea/`
 ## Bis Schulanfang September 2026 (Putzdienst als erste Fachdomäne, `fachdomaenen.md` Abschnitt 7)
 
 - [x] DNS A/AAAA-Record für `api.clemens.schule` beim DNS-Provider der Schule (All-Inkl, KAS-Panel) auf die Server-IP setzen — `pipeline/runbook.md` Schritt 2, Voraussetzung für Caddys automatisches HTTPS und damit für den externen Zugriffsweg
-- [x] Entra-ID-App-Registrierung im M365-Tenant der Schule anlegen (Tenant-Admin-Zugriff nötig, Redirect-URI, Tenant-Restriktion) — `pipeline/runbook.md` Schritt 7, zwingend da die Verwaltung den Putzdienst-Prozess intern startet und die Termine pflegt
+- [x] Entra-ID-App-Registrierung im M365-Tenant der Schule anlegen (Tenant-Admin-Zugriff nötig, Tenant-Restriktion) — `pipeline/runbook.md` Schritt 7, zwingend da die Verwaltung den Putzdienst-Prozess intern startet und die Termine pflegt
+- [ ] Redirect-URI in der bestehenden Entra-ID-App-Registrierung nachtragen (Tenant-Admin-Zugriff nötig) — zeigt auf die Origin des internen Frontends, nicht auf die API (`idea/04-identitaet-zugriff.md`) — setzbar erst, wenn dessen Hosting steht (`project-parts.md` Abschnitt 10), dieselbe Abhängigkeit wie die CORS-Policy
 - [ ] NAS-Backup-Bootstrap auf der Synology (DSM-Zugriff nötig): SSH-Keypair für den Pull-Key generieren (privat ausschließlich auf dem NAS), Task-Scheduler-Job anlegen, VPS-Host-Key vorab in `known_hosts` pinnen (nach jedem `rebuild.sh` neu zu wiederholen) — `idea/05-backup-recovery.md`, muss vor den ersten echten Elterndaten laufen. Öffentlichen Pull-Key liefert der zweite Admin nach seiner Urlaubsrückkehr Ende August 2026
 - [x] Neue Secrets im gemeinsamen KeePass ablegen: DB-Rollen-Passwörter (Runtime/Migration/Backup), Entra-ID Client-ID/Tenant-ID/Client-Secret, `age`-Verschlüsselungs-Passphrase — Feldschema folgt mit der `secrets.example.env`-Erweiterung im App-Stack-Repo
 - [ ] Zweiter Admin: GitHub-Username + SSH-Key einholen, vollen Zugriff auf GitHub-Org und VPS einrichten — für die Entwicklung unkritisch (alles in Git reproduzierbar), muss aber vor dem Produktivbetrieb mit echten Elterndaten stehen (`rules.md` Abschnitt 6). SSH-Key zugesagt für die Urlaubsrückkehr Ende August 2026
@@ -15,10 +16,11 @@ Aufgaben, die reale Konten/Zugänge brauchen und die reine Konzept-Doku (`idea/`
 ## Unabhängig vom Putzdienst-Termin
 
 - [ ] `wb-backend`-Grundgerüst (Compose-Skeleton, FastAPI-Grundgerüst) wurde in einer früheren Claude-Session erstellt und noch nicht selbst gegen `wb-backend/CLAUDE.md` durchgesehen
+- [ ] Aufbewahrungsfristen für Schülerunterlagen nach baden-württembergischem Schulrecht klären (Schulleitung bzw. Datenschutzbeauftragte:r) — bestimmt, wie lange Stammdaten nach dem Abgang **behalten** werden müssen, bevor die Löschfrist überhaupt greifen darf (`idea/06-dsgvo-organisatorisch.md`). Muss stehen, bevor der Lösch-Job gebaut wird
 
 ## Wiederkehrend / Ablauf-Termine
 
-- [ ] Entra-ID Client-Secret der App-Registrierung „Clemens-Schule Weltenbaum" läuft am **06.08.2028** ab — rechtzeitig vorher neues Secret erzeugen, in der Secrets-Datei im KeePass ersetzen, Phase 2 (`pipeline/vps-repo/02-hardening.md`) erneut laufen lassen (`pipeline/runbook.md` Schritt 7)
+- [ ] Entra-ID Client-Secret der App-Registrierung „Clemens-Schule Weltenbaum" (trägt den App-only-Graph-Zugriff `Mail.Send`, nicht den Login — läuft es ab, bricht der OTP-Versand und damit der gesamte Elternzugang) läuft am **06.08.2028** ab — rechtzeitig vorher neues Secret erzeugen, in der Secrets-Datei im KeePass ersetzen, Phase 2 (`pipeline/vps-repo/02-hardening.md`) erneut laufen lassen (`pipeline/runbook.md` Schritt 7)
 
 ## Später relevant, jetzt nicht klären
 

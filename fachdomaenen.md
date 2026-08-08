@@ -1,6 +1,6 @@
 # Fachdomänen — Scope
 
-Vor der ersten Fachdomäne (`CLAUDE.md`, „Nächster Schritt") klären, was Weltenbaum fachlich überhaupt abbilden soll — sonst trifft die erste Domäne Annahmen, die eine spätere wieder umwirft. Grundlage für die Domänen-Liste (jetzt + absehbar später) und die Auswahl der ersten Domäne. Arbeitsdokument — Abschnitte 1–5 ausgefüllt, 6–7 offen.
+Vor der ersten Fachdomäne (`CLAUDE.md`, „Nächster Schritt") klären, was Weltenbaum fachlich überhaupt abbilden soll — sonst trifft die erste Domäne Annahmen, die eine spätere wieder umwirft. Grundlage für die Domänen-Liste (jetzt + absehbar später) und die Auswahl der ersten Domäne.
 
 ## 1. Aktuelles Angebot der Schule
 
@@ -88,7 +88,7 @@ Konkrete Berechtigungen (wer darf/kann was) hängen vom jeweiligen Prozess ab un
 Grobe Landkarte, abgeleitet aus Abschnitt 1 (Prozesskalender) und Abschnitt 4 (Zielbild) — erster Entwurf, noch zu prüfen.
 
 Grundlage, parallel zum ersten Punkt bearbeitet:
-- **Stammdaten** (Kind, Erziehungsberechtigte, Familie, Kontakte) — eigenständige Fachdomäne, kein bloßes Nebenprodukt: jeder folgende Prozess baut direkt darauf auf. Kein eigenes Kalenderdatum, aber ohne sie kann Putzdienst nicht starten. Datenimport kommt komplett auf einmal (nicht schrittweise je Fachdomäne) — Schema deckt deshalb von Anfang an die vollen ASV-BW-Kernfelder ab, nicht nur Putzdienst-Minimalfelder. Eigene Sekretariats-Oberfläche mit Vollzugriff auf alle Kind-Daten ist hoch priorisiert, aber nachrangig zu den terminlich gebundenen Prozessen unten. Details: `domains/stammdaten.md`.
+- **Stammdaten** (Kind, Erziehungsberechtigte, Familie, Kontakte) — eigenständige Fachdomäne, kein bloßes Nebenprodukt: jeder folgende Prozess baut direkt darauf auf. Kein eigenes Kalenderdatum, aber ohne sie kann Putzdienst nicht starten. Datenimport kommt komplett auf einmal (nicht schrittweise je Fachdomäne) — das Schema deckt deshalb von Anfang an den vollen Stammdaten-Kern der realen Datenquellen ab (Voranmeldeformulare und Vis365-Feldliste, `domains/stammdaten.md`), nicht nur Putzdienst-Minimalfelder. Eigene Sekretariats-Oberfläche mit Vollzugriff auf alle Kind-Daten ist hoch priorisiert, aber nachrangig zu den terminlich gebundenen Prozessen unten. Details: `domains/stammdaten.md`.
 
 Zeitkritisch, in Reihenfolge des Schuljahres:
 1. **Putzdienst** — Eltern wählen/kaufen sich frei, Verwaltung startet den Prozess und pflegt die Termine, Restzuordnung automatisch. Ziel: Schulanfang September 2026. → erste Fachdomäne (Abschnitt 7).
@@ -113,7 +113,7 @@ Kritischer Pfad bis dahin:
 *Infrastruktur:*
 - Phase-4-Deploy-Auslöser auf der VPS bootstrappen (`pipeline/runbook.md` Schritt 5)
 - NAS-Backup-Bootstrap (`TODO.md`) — muss vor echten Elterndaten laufen, nicht nachträglich
-- Entra-ID-App-Registrierung (`pipeline/runbook.md` Schritt 7) — bestätigt zwingend: die Verwaltung startet den Prozess und pflegt die Putztermine intern, kein reiner Eltern-Self-Service
+- Redirect-URI der bestehenden Entra-ID-App-Registrierung nachtragen (`pipeline/runbook.md` Schritt 7, `TODO.md`) — steht erst mit der Frontend-/Domain-Struktur fest, wie die CORS-Policy (`idea/04-identitaet-zugriff.md`). Der interne Login wird zwingend gebraucht: die Verwaltung startet den Prozess und pflegt die Putztermine intern, kein reiner Eltern-Self-Service
 
 *Auth/Zugriff für Eltern:*
 - OTP-Fallback tatsächlich implementieren (E-Mail-Check mit Enumeration-Schutz, Code-Speicherung/Ablauf/Rate-Limiting, Graph-API-Mail.Send mit eingeschränkter Application Access Policy — bisher nirgends entschieden, welches Postfach senden darf)

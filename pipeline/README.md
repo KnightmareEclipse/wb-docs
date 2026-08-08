@@ -16,7 +16,7 @@ Kompletter Ablauf für einen Neuaufbau von Grund auf: [Runbook](runbook.md).
 
 ## Automatisierungsgrenze
 
-Server-Provisioning, Ersteinrichtung und jeder Reboot danach laufen komplett automatisch. Manuell bleiben nur die einmaligen Konto-Bootstrap-Schritte, die zwingend ein von einem Menschen gehaltenes Geheimnis voraussetzen — Schritte 3 (healthchecks.io), 5 (Deploy-Auslöser) und 7 (Identitätsanbieter-Registrierung) im [Runbook](runbook.md), die nur bei Neuanlage bzw. Rotation des jeweiligen Kontos/der Registrierung anfallen; Schritte 5 und 7 sind jetzt dran, da das App-Stack-Repo (`wb-backend`) existiert.
+Server-Provisioning, Ersteinrichtung und jeder Reboot danach laufen komplett automatisch. Manuell bleiben nur die einmaligen Konto-Bootstrap-Schritte, die zwingend ein von einem Menschen gehaltenes Geheimnis voraussetzen — Schritte 3 (healthchecks.io), 5 (Deploy-Auslöser) und 7 (Identitätsanbieter-Registrierung) im [Runbook](runbook.md), die nur bei Neuanlage bzw. Rotation des jeweiligen Kontos/der Registrierung anfallen.
 
 Phase 4 braucht zusätzlich keine dauerhaft lokal vorgehaltenen Secrets — der Deploy-Auslöser nutzt den vorhandenen, `git-shell`-beschränkten Admin-Key, kein separates CI-Credential nötig.
 

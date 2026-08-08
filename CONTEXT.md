@@ -28,4 +28,8 @@ _Avoid_: Eltern (enger als der rechtliche Personenkreis)
 Ein fachlich abgegrenzter Datenbereich im Backend (z. B. Stammdaten, künftig z. B. Noten), eigener Router/eigenes Model-Modul (`wb-backend/CLAUDE.md` Abschnitt 3), eigene mögliche Export-Berechtigung.
 
 **Stammdaten**:
-Feste Grunddaten einer Person (Schüler, Erziehungsberechtigte, Kontaktperson) — Anrede, Name, Anschrift, Telefonnummern, E-Mail; Geburtsdatum und Demografie nur beim Schüler. Die E-Mail eines Erziehungsberechtigten ist zugleich die Identifikation beim OTP-Login. Eigene Löschfrist nach Abgang, separat von Log-/Backup-Retention. Details: `domains/stammdaten.md`.
+Feste Grunddaten einer Person (Schüler, Erziehungsberechtigte, Kontaktperson, Zahlungsverantwortliche) — Anrede, Name, Anschrift, Telefonnummern, E-Mail; Geburtsdatum und Demografie nur beim Schüler. Erziehungsberechtigte und Zahlende können auch Organisationen sein (Jugendamt, Vereinsvormund) — die sind keine Personen und stehen in einer eigenen Tabelle. Die E-Mail eines Erziehungsberechtigten ist zugleich die Identifikation beim OTP-Login. Nach Abgang gelten zwei Fristen: gesetzliche Mindestaufbewahrung, dann Löschung — beide getrennt von Log-/Backup-Retention. Details: `domains/stammdaten.md`.
+
+**Familie**:
+Die Menge Erwachsener, die gemeinsam sorgeberechtigt für ein oder mehrere Kinder sind — **nicht** wer zusammenwohnt. Vom Sekretariat manuell gepflegt, nie algorithmisch hergeleitet. Grundlage des Ownership-Checks: wer Mitglied ist, sieht die Kinder dieser Familie (`idea/04-identitaet-zugriff.md`). Eine Person kann mehreren Familien angehören (Patchwork).
+_Avoid_: Haushalt

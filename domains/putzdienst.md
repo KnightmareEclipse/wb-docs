@@ -5,7 +5,7 @@ Erste Fachdomäne (`fachdomaenen.md` Abschnitt 7), Ziel: produktiv bis Schulanfa
 ## Prozess
 
 - **Pflicht:** pro Familie 5 reguläre + 1 Großputz-Termin/Jahr (Werte konfigurierbar, siehe Zyklus-Konfiguration unten) — unabhängig von Kinderzahl und Schulzweig (Grund-/Realschule). Eltern, die gleichzeitig Mitarbeiter sind, sind komplett befreit.
-- **Buchungsphase** (September, innerhalb des Buchungsfensters des Zyklus): Eltern wählen ihre Pflichttermine aus den verfügbaren Slots oder kaufen sich komplett frei. Absenden → Prüfung → Bestätigungsmail.
+- **Buchungsphase** (September, innerhalb des Buchungsfensters des Zyklus): Eltern wählen ihre Pflichttermine aus den verfügbaren Slots oder kaufen sich komplett frei. Absenden → Prüfung → Bestätigungsmail. Setzt voraus, dass der Jahreslauf (`domains/stammdaten.md`) vorher durchgelaufen ist — sonst tragen fortbestehende Klassen noch die Vorjahresstufe und die Abschlussklassen-Regel unten greift bei den falschen Familien.
 - **Buchungsschluss:** Restplätze pro Termin werden automatisch an Familien mit noch offenem Bedarf verteilt (siehe „Restplatz-Zuordnung" unten), danach Rundmail an alle. Ab hier ist die Buchungsphase abgeschlossen, der Prozess geht in den laufenden Betrieb über.
 - **Laufender Betrieb** (Okt–Sept): Erinnerungsmail vor jedem zugeteilten Termin (Vorlaufzeiten konfigurierbar, aktuell 1 Woche + 1 Tag). Anwesenheit läuft über eine Papier-Unterschriftenliste vor Ort — bewusst nicht digital erfasst (siehe v1-Scope-Abgrenzung). Nichterscheinen zieht eine Strafzahlung nach sich (Betrag im Zyklus konfiguriert). Eltern können Termine tauschen oder sich nachträglich noch freikaufen.
 - **Verantwortlich:** Sekretariat verwaltet den gesamten Prozess, inklusive Tausch-Abwicklung zwischen Eltern.
@@ -20,7 +20,7 @@ Kein reines Transportproblem, sondern ein Scheduling-Problem mit Nebenbedingunge
   - Jede Familie muss zwingend ihren vollen Restbedarf zugeordnet bekommen
   - Mindestabstand 2 Kalenderwochen zwischen zwei Terminen derselben Familie (Ferienwochen zählen dabei nicht extra — ein durch Ferien ohnehin entstandener größerer Abstand erfüllt die Regel automatisch)
   - Keine gleichzeitige Zuordnung zu Großputz und regulärem Putzdienst am selben Kalendertag — Regel selbst noch unbestätigt (Klärung Anfang September), aber als eigene, leicht entfernbare Constraint gebaut
-  - Familien, deren Kinder alle in der jeweils letzten Klasse ihrer Schulstufe sind (Klasse 4 oder 10), werden nicht den Terminen im letzten Zyklusmonat (September) zugeordnet (siehe „Abgänge & Klassenstufen-Übergänge")
+  - Familien, deren Kinder alle in der letzten Klassenstufe ihres Zweigs sind (`grade_levels.is_final_grade`), werden nicht den Terminen im letzten Zyklusmonat (September) zugeordnet (siehe „Abgänge & Klassenstufen-Übergänge")
 - **Kapazität pro Termin — zweistufig:**
   - **Live-Obergrenze während der Buchungsphase:** Zielkapazität je Termin = Gesamtbedarf des jeweiligen Typs (regulär/Großputz) gleichverteilt auf die Anzahl Termine dieses Typs, abzüglich eines Puffers (Zyklus-Konfigurationswert, siehe unten). Verhindert, dass beliebte frühe Termine (Erfahrungswert: Okt/Nov) live komplett volllaufen und dem Solver am Ende nur noch die unbeliebten späten Termine (Jul–Sep) zur Verteilung übrigbleiben. Wird periodisch neu berechnet (z. B. täglich), nicht bei jeder einzelnen Buchung live neu — die Live-Obergrenze muss nur grob balancieren, nicht exakt aktuell sein, die verbindliche Verteilung übernimmt ohnehin der Solver am Ende.
   - **Endgültige Kapazität bei Buchungsschluss:** aus dem tatsächlichen Restbedarf berechnet (Gesamtbedarf abzüglich Freikäufe). Der Solver darf dabei auch über die Live-Obergrenze hinaus in die durch den Puffer freigehaltenen Restplätze einsortieren, solange die reale Gesamtkapazität eines Termins nicht überschritten wird.
@@ -47,17 +47,17 @@ Sekretariat prorationiert nach verbleibendem Schuljahresanteil, Ferien fließen 
 
 ## Abgänge & Klassenstufen-Übergänge
 
-Buchung findet im September, also zu Zyklusbeginn, statt — zu diesem Zeitpunkt ist bereits bekannt, welche Kinder in der jeweils letzten Klasse ihrer Schulstufe sind (Klasse 4 oder 10). Statt eines nachträglichen Abgleichs wird das **proaktiv** in die Buchung eingebaut:
+Buchung findet im September, also zu Zyklusbeginn, statt — zu diesem Zeitpunkt ist bereits bekannt, welche Kinder in der letzten Klassenstufe ihres Zweigs sind (`grade_levels.is_final_grade`, heute Klasse 4 in der Grundschule bzw. 10 in der Realschule). Statt eines nachträglichen Abgleichs wird das **proaktiv** in die Buchung eingebaut:
 
-- Familien, bei denen **alle** Kinder in Klasse 4 oder 10 sind, wird der September-Termin (letzter Monat des Zyklus) gar nicht erst als Buchungsoption angezeigt, und dieselbe Regel gilt als Constraint im OR-Tools-Modell bei der automatischen Restzuordnung (siehe „Restplatz-Zuordnung").
-- Braucht `Kind.Klassenstufe` als Attribut — minimale Stammdaten-Angabe, die es schon für diese Fachdomäne braucht, auch wenn die vollständige Stammdaten-Fachdomäne noch nicht gebaut ist.
-- Klasse 4 zählt bewusst mit, weil ein Grundschulkind nicht zwingend intern in die Realschule wechselt — ob es danach bleibt oder geht, steht zum Buchungszeitpunkt noch nicht fest. Maßgeblich ist immer die ganze Familie: sobald **ein** Kind nicht in einer Abschlussklasse ist, ist dieses Kind im September des Folgejahres sicher noch da, also bleibt September für die ganze Familie buchbar. Nur wenn wirklich alle Kinder einer Familie in Klasse 4 oder 10 sind, wird September gesperrt.
-- **Restrisiko** (unerwarteter/vorzeitiger Abgang außerhalb der Klasse-4/10-Logik): wird nicht automatisch erkannt. Läuft über manuelle Terminverschiebung durchs Sekretariat, das dabei die berechnete Kapazität überschreiten darf (siehe „Restplatz-Zuordnung").
-- `Kind.Abgangsdatum` bleibt trotzdem als Feld sinnvoll — wird ohnehin für die Löschfrist gebraucht (`idea/06-dsgvo-organisatorisch.md`), auch wenn der Putzdienst selbst dank der Klasse-4/10-Regel oben meist nicht mehr darauf angewiesen ist.
+- Familien, bei denen **alle** Kinder in einer Klassenstufe mit `is_final_grade` sind, wird der September-Termin (letzter Monat des Zyklus) gar nicht erst als Buchungsoption angezeigt, und dieselbe Regel gilt als Constraint im OR-Tools-Modell bei der automatischen Restzuordnung (siehe „Restplatz-Zuordnung").
+- Die Klassenstufe steht nicht als eigene Spalte am Kind, sondern kommt über zwei Wege (`domains/stammdaten.md`): bei zugeteilter Klasse per Join `children.class_id → classes.grade_level_id`, bei neu eingeschulten Kindern ohne Klassenzuteilung aus `children.provisional_grade_level_id`. Die Regel muss beide abfragen — ein direkter Lesezugriff auf `provisional_grade_level_id` liefert bei zugeteilter Klasse NULL.
+- Die Grundschul-Abschlussklasse zählt bewusst mit, weil ein Grundschulkind nicht zwingend intern in die Realschule wechselt — ob es danach bleibt oder geht, steht zum Buchungszeitpunkt noch nicht fest. Maßgeblich ist immer die ganze Familie: sobald **ein** Kind nicht in einer Abschlussklasse ist, ist dieses Kind im September des Folgejahres sicher noch da, also bleibt September für die ganze Familie buchbar. Nur wenn wirklich alle Kinder einer Familie in einer Abschlussklasse sind, wird September gesperrt.
+- **Restrisiko** (unerwarteter/vorzeitiger Abgang außerhalb der Abschlussklassen-Regel): wird nicht automatisch erkannt. Läuft über manuelle Terminverschiebung durchs Sekretariat, das dabei die berechnete Kapazität überschreiten darf (siehe „Restplatz-Zuordnung").
+- `children.exit_date` bleibt trotzdem als Feld sinnvoll — wird ohnehin für die Löschfrist gebraucht (`idea/06-dsgvo-organisatorisch.md`), auch wenn der Putzdienst selbst dank der Abschlussklassen-Regel oben meist nicht mehr darauf angewiesen ist.
 
 ## Mitarbeiter-Ausnahme
 
-`ist_mitarbeiter` ist ein generisches Attribut auf dem Erziehungsberechtigten-Grunddatensatz, nicht Teil des Putzdienst-Schemas — befüllt beim Datenimport, für jede künftige Fachdomäne mitnutzbar.
+`guardians.is_employee` ist ein generisches Attribut auf dem Erziehungsberechtigten-Datensatz (`domains/stammdaten-schema.sql`), nicht Teil des Putzdienst-Schemas — befüllt beim Datenimport, für jede künftige Fachdomäne mitnutzbar.
 
 ## Zyklus-Konfiguration
 
