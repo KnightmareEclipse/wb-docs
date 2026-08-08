@@ -1,0 +1,359 @@
+// Stammdaten-Kernschema — DBML-Ansicht von stammdaten-schema.sql, nur für die
+// Visualisierung (z. B. dbdiagram.io). Quelle der Wahrheit ist die .sql-Datei;
+// bei Abweichung gewinnt die SQL. Kommentare hier stark gekürzt gegenüber dort.
+
+Project stammdaten {
+  database_type: 'PostgreSQL'
+}
+
+// ---------------------------------------------------------------------------
+// Lookup-Tabellen
+// ---------------------------------------------------------------------------
+
+Table genders {
+  id    integer [pk, increment]
+  label text    [not null, unique]
+}
+
+Table salutations {
+  id    integer [pk, increment]
+  label text    [not null, unique]
+  Note: 'Anrede — bewusst getrennt vom Geschlecht, nicht daraus abgeleitet.'
+}
+
+Table academic_titles {
+  id    integer [pk, increment]
+  label text    [not null, unique]
+}
+
+Table guardian_categories {
+  id    integer [pk, increment]
+  label text    [not null, unique]
+  Note: 'z.B. Elternteil, Pflegeeltern, Jugendamt — hängt an family_guardians, nicht am Guardian.'
+}
+
+Table denominations {
+  id    integer [pk, increment]
+  label text    [not null, unique]
+}
+
+Table phone_types {
+  id    integer [pk, increment]
+  label text    [not null, unique]
+}
+
+Table school_branches {
+  id    integer [pk, increment]
+  label text    [not null, unique]
+}
+
+Table grade_levels {
+  id               integer  [pk, increment]
+  school_branch_id integer  [not null]
+  label            text     [not null]
+  sort_order       smallint [not null]
+  is_final_grade   boolean  [not null, default: false]
+
+  indexes {
+    (school_branch_id, label) [unique]
+    (school_branch_id, sort_order) [unique]
+    (id, school_branch_id) [unique]
+  }
+  Note: '(id, school_branch_id): Ziel des zusammengesetzten FK von classes — hält classes.school_branch_id konsistent zur aktuellen Klassenstufe.'
+}
+
+Table classes {
+  id               integer  [pk, increment]
+  school_branch_id integer  [not null]
+  grade_level_id   integer  [not null]
+  entry_year       smallint [not null]
+  stream           text     [not null]
+
+  indexes {
+    (school_branch_id, entry_year, stream) [unique]
+  }
+  Note: 'Kohorte, nicht Klassenstufen-Slot: Zeile = gemeinsam eingeschulte Gruppe (Zweig/Eintrittsjahr/Zug), bleibt über die Schulzeit stabil. grade_level_id ist die AKTUELLE Klassenstufe, wandert beim Jahreslauf auf derselben Zeile weiter. Anzeigename ("5a") und Kohorten-Kennung ("RS25a") werden berechnet, nicht gespeichert.'
+}
+
+Table previous_schools {
+  id    integer [pk, increment]
+  label text    [not null, unique]
+  Note: 'Abgebende Schule, Realschul-Voranmeldung.'
+}
+
+// ---------------------------------------------------------------------------
+// Anschrift
+// ---------------------------------------------------------------------------
+
+Table addresses {
+  id           uuid        [pk, default: `gen_random_uuid()`]
+  street       text
+  house_number text
+  district     text
+  postal_code  text
+  city         text
+  country      text        [not null, default: 'DE']
+  created_at   timestamptz [not null, default: `now()`]
+  created_by   text
+  updated_at   timestamptz [not null, default: `now()`]
+  updated_by   text
+
+  indexes {
+    (postal_code, street, house_number)
+  }
+  Note: 'Eigene Tabelle statt Spalten je Person: Kind + Eltern teilen sich im Regelfall eine Zeile. Suchindex nötig, damit die Eingabemaske bestehende Zeilen findet — sonst verwaist das Konzept in der Praxis.'
+}
+
+// ---------------------------------------------------------------------------
+// Personen und Organisationen
+// ---------------------------------------------------------------------------
+
+Table persons {
+  id                uuid        [pk, default: `gen_random_uuid()`]
+  salutation_id     integer
+  academic_title_id integer
+  first_name        text
+  last_name         text        [not null]
+  gender_id         integer
+  address_id        uuid
+  email             citext
+  denomination_id   integer
+  congregation      text
+  created_at        timestamptz [not null, default: `now()`]
+  created_by        text
+  updated_at        timestamptz [not null, default: `now()`]
+  updated_by        text
+
+  indexes {
+    address_id
+    `lower(last_name)` [name: 'persons_last_name_pattern_idx']
+  }
+  Note: 'Gemeinsame Basis jeder natürlichen Person. Kind/Guardian/Kontakt/Zahler sind Rollen darauf, keine eigenen Personentabellen. denomination_id/congregation: Art.-9-Daten, geschützt per Spalten-GRANT statt eigener Tabelle. email: CHECK <> \'\', bewusst nicht unique (geteilte Mailbox erlaubt, OTP-Flow behandelt das als Haushalts-Session). last_name-Index in echt text_pattern_ops für Präfixsuche, hier nur als Ausdrucksindex angenähert.'
+}
+
+Table organizations {
+  id         uuid        [pk, default: `gen_random_uuid()`]
+  name       text        [not null]
+  address_id uuid
+  email      citext
+  created_at timestamptz [not null, default: `now()`]
+  created_by text
+  updated_at timestamptz [not null, default: `now()`]
+  updated_by text
+
+  indexes {
+    address_id
+  }
+  Note: 'Erziehungsberechtigte als Organisation (Jugendamt, Pflegedienst, Vereinsvormund).'
+}
+
+Table phone_numbers {
+  id              uuid        [pk, default: `gen_random_uuid()`]
+  person_id       uuid
+  organization_id uuid
+  phone_type_id   integer     [not null]
+  number          text        [not null]
+  is_primary      boolean     [not null, default: false]
+  note            text
+  created_at      timestamptz [not null, default: `now()`]
+  created_by      text
+  updated_at      timestamptz [not null, default: `now()`]
+  updated_by      text
+
+  indexes {
+    person_id
+    organization_id
+    (person_id) [unique, name: 'one_primary_per_person']
+    (organization_id) [unique, name: 'one_primary_per_org']
+  }
+  Note: 'Gehört entweder zu Person ODER Organisation (CHECK in SQL). is_primary: die von der Person benannte Rufnummer, genutzt für O365-Kontakte.'
+}
+
+// ---------------------------------------------------------------------------
+// Familie, Kind, Erziehungsberechtigte
+// ---------------------------------------------------------------------------
+
+Table families {
+  id         uuid        [pk, default: `gen_random_uuid()`]
+  created_at timestamptz [not null, default: `now()`]
+  created_by text
+  updated_at timestamptz [not null, default: `now()`]
+  updated_by text
+
+  Note: 'Sorgerecht-Konstellation, nicht Haushalt. Manuell gepflegt, kein Bezeichnungsfeld.'
+}
+
+Table children {
+  id                          uuid    [pk]
+  family_id                   uuid
+  nickname                    text
+  date_of_birth               date    [not null]
+  birthplace                  text
+  birth_country               text
+  nationality                 text
+  second_nationality          text
+  home_language               text
+  provisional_grade_level_id  integer
+  class_id                    integer
+  entry_date                  date
+  exit_date                   date
+  previous_school_id          integer
+  previous_school_consent_at  timestamptz
+  created_at                  timestamptz [not null, default: `now()`]
+  created_by                  text
+  updated_at                  timestamptz [not null, default: `now()`]
+  updated_by                  text
+
+  indexes {
+    family_id
+    class_id
+    provisional_grade_level_id
+    date_of_birth
+  }
+  Note: 'children.id = persons.id (Kind IST eine Person). provisional_grade_level_id UND class_id schließen sich per CHECK gegenseitig aus (kein redundantes Feld mehr) — ist eine Klasse zugeteilt, kommt die aktuelle Klassenstufe per Join aus classes.grade_level_id.'
+}
+
+Table guardians {
+  id              uuid    [pk, default: `gen_random_uuid()`]
+  person_id       uuid    [unique]
+  organization_id uuid    [unique]
+  occupation      text
+  is_employee     boolean [not null, default: false]
+  created_at      timestamptz [not null, default: `now()`]
+  created_by      text
+  updated_at      timestamptz [not null, default: `now()`]
+  updated_by      text
+
+  Note: 'Entweder natürliche Person ODER Organisation (CHECK in SQL). is_employee: Putzdienst-Befreiung.'
+}
+
+Table family_guardians {
+  family_id            uuid    [not null]
+  guardian_id          uuid    [not null]
+  guardian_category_id integer
+  contact_person       text
+  created_at           timestamptz [not null, default: `now()`]
+  created_by           text
+  updated_at           timestamptz [not null, default: `now()`]
+  updated_by           text
+
+  indexes {
+    (family_id, guardian_id) [pk]
+    guardian_id
+  }
+  Note: 'M:N Guardian↔Familie (Patchwork). Grundlage des OTP-Ownership-Checks.'
+}
+
+// ---------------------------------------------------------------------------
+// Kontakte (nicht-rechtliche Bezugspersonen)
+// ---------------------------------------------------------------------------
+
+Table contacts {
+  id         uuid [pk]
+  notes      text
+  created_at timestamptz [not null, default: `now()`]
+  created_by text
+  updated_at timestamptz [not null, default: `now()`]
+  updated_by text
+
+  Note: 'contacts.id = persons.id. Notfallkontakt/Abholberechtigt ohne Rechtsstellung, kein Login.'
+}
+
+Table child_contacts {
+  child_id     uuid [not null]
+  contact_id   uuid [not null]
+  relationship text
+  priority     smallint
+  created_at   timestamptz [not null, default: `now()`]
+  created_by   text
+  updated_at   timestamptz [not null, default: `now()`]
+  updated_by   text
+
+  indexes {
+    (child_id, contact_id) [pk]
+    contact_id
+    (child_id, priority) [unique, name: 'one_priority_rank_per_child']
+  }
+  Note: 'relationship ("Großmutter") relativ zum Kind, nicht absolut zur Kontaktperson. priority: Notfallkontakt-Reihenfolge, nullable, höchstens einmal je Kind belegt.'
+}
+
+Table payers {
+  id                 uuid    [pk, default: `gen_random_uuid()`]
+  person_id          uuid    [unique]
+  organization_id    uuid    [unique]
+  billing_address_id uuid
+  iban               text
+  bic                text
+  account_holder     text
+  created_at         timestamptz [not null, default: `now()`]
+  created_by         text
+  updated_at         timestamptz [not null, default: `now()`]
+  updated_by         text
+
+  indexes {
+    billing_address_id
+  }
+  Note: 'Entweder natürliche Person ODER Organisation (CHECK in SQL, wie guardians). billing_address_id nullable: NULL = Anschrift der zahlenden Person/Organisation gilt.'
+}
+
+Table child_payers {
+  child_id   uuid    [not null]
+  payer_id   uuid    [not null]
+  is_primary boolean [not null, default: false]
+  created_at timestamptz [not null, default: `now()`]
+  created_by text
+  updated_at timestamptz [not null, default: `now()`]
+  updated_by text
+
+  indexes {
+    (child_id, payer_id) [pk]
+    payer_id
+    (child_id) [unique, name: 'one_primary_payer_per_child']
+  }
+  Note: 'M:N, mehrere Zahler je Kind (Bezuschussung). is_primary: Hauptzahler:in, analog phone_numbers.is_primary.'
+}
+
+// ---------------------------------------------------------------------------
+// Beziehungen
+// ---------------------------------------------------------------------------
+
+Ref: grade_levels.school_branch_id > school_branches.id [delete: restrict]
+Ref: classes.school_branch_id > school_branches.id [delete: restrict]
+Ref: classes.(grade_level_id, school_branch_id) > grade_levels.(id, school_branch_id)
+
+Ref: persons.salutation_id > salutations.id [delete: restrict]
+Ref: persons.academic_title_id > academic_titles.id [delete: restrict]
+Ref: persons.gender_id > genders.id [delete: restrict]
+Ref: persons.address_id > addresses.id [delete: restrict]
+Ref: persons.denomination_id > denominations.id [delete: restrict]
+
+Ref: organizations.address_id > addresses.id [delete: restrict]
+
+Ref: phone_numbers.person_id > persons.id [delete: cascade]
+Ref: phone_numbers.organization_id > organizations.id [delete: cascade]
+Ref: phone_numbers.phone_type_id > phone_types.id [delete: restrict]
+
+Ref: children.id - persons.id [delete: cascade]
+Ref: children.family_id > families.id [delete: restrict]
+Ref: children.provisional_grade_level_id > grade_levels.id [delete: restrict]
+Ref: children.previous_school_id > previous_schools.id [delete: restrict]
+Ref: children.class_id > classes.id [delete: restrict]
+
+Ref: guardians.person_id - persons.id [delete: restrict]
+Ref: guardians.organization_id - organizations.id [delete: restrict]
+
+Ref: family_guardians.family_id > families.id [delete: cascade]
+Ref: family_guardians.guardian_id > guardians.id [delete: cascade]
+Ref: family_guardians.guardian_category_id > guardian_categories.id [delete: restrict]
+
+Ref: contacts.id - persons.id [delete: cascade]
+
+Ref: child_contacts.child_id > children.id [delete: cascade]
+Ref: child_contacts.contact_id > contacts.id [delete: cascade]
+
+Ref: payers.person_id - persons.id [delete: restrict]
+Ref: payers.organization_id - organizations.id [delete: restrict]
+Ref: payers.billing_address_id > addresses.id [delete: restrict]
+
+Ref: child_payers.child_id > children.id [delete: restrict]
+Ref: child_payers.payer_id > payers.id [delete: cascade]
