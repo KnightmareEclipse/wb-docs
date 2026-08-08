@@ -124,7 +124,7 @@ Table persons {
   last_name         text        [not null]
   gender_id         integer
   address_id        uuid
-  email             citext
+  email             citext      [unique]
   created_at        timestamptz [not null, default: `now()`]
   created_by        text        [not null]
   updated_at        timestamptz [not null, default: `now()`]
@@ -134,7 +134,7 @@ Table persons {
     address_id
     `lower(last_name)` [name: 'persons_last_name_pattern_idx']
   }
-  Note: 'Gemeinsame Basis jeder natürlichen Person. Kind/Guardian/Kontakt/Zahler sind Rollen darauf, keine eigenen Personentabellen. email: CHECK <> \'\', bewusst nicht unique (geteilte Mailbox erlaubt, OTP-Flow behandelt das als Haushalts-Session). last_name-Index in echt text_pattern_ops für Präfixsuche, hier nur als Ausdrucksindex angenähert.'
+  Note: 'Gemeinsame Basis jeder natürlichen Person. Kind/Guardian/Kontakt/Zahler sind Rollen darauf, keine eigenen Personentabellen. email: UNIQUE + CHECK <> \'\', identifiziert eindeutig eine Person (OTP-Login). last_name-Index in echt text_pattern_ops für Präfixsuche, hier nur als Ausdrucksindex angenähert.'
 }
 
 Table organizations {

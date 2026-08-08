@@ -253,40 +253,38 @@ CREATE TABLE persons (
     last_name         text NOT NULL,
     gender_id         integer REFERENCES genders(id) ON DELETE RESTRICT,
     address_id        uuid REFERENCES addresses(id) ON DELETE RESTRICT,
-    -- E-Mail der Person. Bei Erziehungsberechtigten zugleich die Identität für
-    -- den OTP-Login (idea/04). Bewusst NICHT UNIQUE: zwei Erziehungsberechtigte
-    -- mit derselben Mailbox kommen an dieser Schule real vor. Der OTP-Flow
-    -- behandelt einen Mehrfachtreffer als Haushalts-Session (Zugriff auf die
-    -- Vereinigung der Familien aller Treffer), ohne die beiden Personen zu
-    -- unterscheiden — akzeptiertes Risiko, bewusst auf die Familie ausgelagert:
-    -- wer sich eine Mailbox teilt, teilt auch deren Zugriff. E-Mail-basierte
-    -- Authentifizierung beweist ohnehin nur Postfach-Zugriff, nie eine konkrete
-    -- Einzelperson, unabhängig davon, ob die Mail geteilt ist. Prozesse mit
-    -- echtem Einzelzustimmungsbedarf (z. B. Schulvertrag, wo beide
-    -- Erziehungsberechtigte separat zustimmen müssen) brauchen eine eigene,
-    -- explizite Zustimmungserfassung je Erziehungsberechtigtem
-    -- (Anmeldeprozess-Fachdomäne) statt sich auf die Login-Identität zu
-    -- verlassen. Beim Kind bleibt die Mail beim Import leer; befüllt wird sie
-    -- erst durch die spätere M365-Kontenverwaltung (Schulpostfach,
-    -- fachdomaenen.md Abschnitt 6) — ein Login-Ziel wird das Kind dadurch
-    -- nicht, Weltenbaum kennt für Schüler keinen Zugangsweg.
-    email             citext,
+    -- E-Mail der Person, eindeutig (UNIQUE). Bei Erziehungsberechtigten
+    -- zugleich die Identität für den OTP-Login (idea/04) — UNIQUE stellt damit
+    -- sicher, dass ein Treffer bei der OTP-Prüfung immer genau eine Person
+    -- ergibt, nie eine Mehrdeutigkeit zwischen mehreren Personen. Jede Person
+    -- braucht deshalb eine eigene Adresse, auch wenn zwei Erziehungsberechtigte
+    -- bislang eine Mailbox geteilt haben. E-Mail-basierte Authentifizierung
+    -- beweist trotzdem weiterhin nur Postfach-Zugriff, nie zwingend die
+    -- dahinterstehende Einzelperson — Prozesse mit echtem Einzelzustimmungs-
+    -- bedarf (z. B. Schulvertrag, wo beide Erziehungsberechtigte separat
+    -- zustimmen müssen) brauchen deshalb weiterhin eine eigene, explizite
+    -- Zustimmungserfassung je Erziehungsberechtigtem (Anmeldeprozess-
+    -- Fachdomäne) statt sich auf die Login-Identität zu verlassen. Beim Kind
+    -- bleibt die Mail beim Import leer; befüllt wird sie erst durch die
+    -- spätere M365-Kontenverwaltung (Schulpostfach, fachdomaenen.md
+    -- Abschnitt 6) — ein Login-Ziel wird das Kind dadurch nicht, Weltenbaum
+    -- kennt für Schüler keinen Zugangsweg.
+    email             citext UNIQUE,
     created_at        timestamptz NOT NULL DEFAULT now(),
     created_by        text NOT NULL,
     updated_at        timestamptz NOT NULL DEFAULT now(),
     updated_by        text NOT NULL,
     -- Leerstring statt NULL ist ein typisches Import-Artefakt (CSV/Excel) und
-    -- würde bei einer geteilten Mailbox als vermeintliches Duplikat auffallen
-    -- bzw. bei sonstiger Auswertung wie ein Wert statt wie „keine Angabe"
-    -- behandelt — billig hier verhindert.
+    -- würde bei sonstiger Auswertung wie ein Wert statt wie „keine Angabe"
+    -- behandelt — billig hier verhindert. Mit UNIQUE oben zusätzlich wichtig:
+    -- ohne diesen CHECK würde bereits die zweite Person mit Leerstring-Mail
+    -- (z. B. ein Kind vor der M365-Kontenverwaltung) den UNIQUE-Constraint
+    -- verletzen.
     CHECK (email <> '')
 );
 CREATE INDEX ON persons (address_id);
--- Ohne UNIQUE (bewusst entfernt, siehe oben) entsteht kein Index automatisch
--- mehr — für den OTP-Login (idea/04), den mit Abstand häufigsten Zugriff auf
--- diese Spalte, ist ein einfacher (nicht eindeutiger) Index trotzdem Pflicht,
--- sonst scannt jeder Login-Versuch die komplette Tabelle.
-CREATE INDEX ON persons (email);
+-- UNIQUE oben legt den Index für den OTP-Login (idea/04) automatisch an,
+-- kein separates CREATE INDEX nötig.
 -- Ein normaler B-Tree kann unter einer echten (nicht-C-)Collation kein
 -- `LIKE 'Müll%'` beschleunigen, nur Gleichheit — für die Namenssuche der
 -- Verwaltungsoberfläche (Präfix, case-insensitiv) nötig: text_pattern_ops auf

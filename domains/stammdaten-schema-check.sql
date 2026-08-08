@@ -68,18 +68,18 @@ ROLLBACK;
 SET app.actor = 'system:test';
 
 -- ---------------------------------------------------------------------------
--- citext: Gleichheitsvergleich ist case-insensitiv (für den OTP-Lookup);
--- E-Mail ist bewusst NICHT UNIQUE — zwei Erziehungsberechtigte dürfen sich
--- eine Mailbox teilen (domains/stammdaten.md, akzeptiertes Risiko)
+-- E-Mail ist UNIQUE (citext-Vergleich dabei case-insensitiv) — jede Person
+-- braucht eine eigene Adresse, ein OTP-Treffer (idea/04) ist damit immer
+-- genau eine Person
 -- ---------------------------------------------------------------------------
 INSERT INTO persons (id, last_name, email) VALUES
     ('bbbbbbbb-2222-2222-2222-222222222222', 'Beispiel', 'Vorname.Nachname@Beispiel.de');
--- Erlaubt: zweite Person mit derselben Mailbox (andere Groß-/Kleinschreibung
--- macht dabei keinen Unterschied, citext-Vergleich unten belegt das gleich mit)
+SELECT 'citext-Lookup case-insensitiv' AS pruefung, count(*) AS anzahl
+    FROM persons WHERE email = 'VORNAME.NACHNAME@BEISPIEL.DE';  -- andere Schreibweise, muss trotzdem finden
+
+\echo '--- erwartet: FEHLER (dieselbe Mailbox, andere Groß-/Kleinschreibung — citext-UNIQUE greift)'
 INSERT INTO persons (id, last_name, email) VALUES
     ('cccccccc-2222-2222-2222-222222222222', 'Beispiel2', 'vorname.nachname@beispiel.de');
-SELECT 'zwei Personen mit geteilter Mailbox erlaubt' AS pruefung, count(*) AS anzahl
-    FROM persons WHERE email = 'VORNAME.NACHNAME@BEISPIEL.DE';  -- dritte Schreibweise, muss beide finden
 
 \echo '--- erwartet: FEHLER (Leerstring statt NULL bei E-Mail)'
 INSERT INTO persons (id, last_name, email) VALUES ('dddddddd-2222-2222-2222-222222222222', 'Leer', '');
