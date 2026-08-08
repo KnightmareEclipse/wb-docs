@@ -71,7 +71,7 @@ SET app.actor = 'system:test';
 
 -- ---------------------------------------------------------------------------
 -- E-Mail ist UNIQUE (citext-Vergleich dabei case-insensitiv) — jede Person
--- braucht eine eigene Adresse, ein OTP-Treffer (idea/04) ist damit immer
+-- braucht eine eigene E-Mail-Adresse, ein OTP-Treffer (idea/04) ist damit immer
 -- genau eine Person
 -- ---------------------------------------------------------------------------
 INSERT INTO persons (id, last_name, email) VALUES
@@ -110,6 +110,36 @@ INSERT INTO persons (id, last_name, email) VALUES
 SELECT 'E-Mail: Plus-Tag, mehrstufige Domain, Apostroph/Bindestrich akzeptiert' AS pruefung;
 
 -- ---------------------------------------------------------------------------
+-- Leerstring auf den identitätstragenden Pflichtspalten: NOT NULL allein lässt
+-- ihn durch, beim Vollimport aus CSV/Excel ist er der häufigste Artefakt
+-- (Begründung an persons.last_name)
+-- ---------------------------------------------------------------------------
+\echo '--- erwartet: FEHLER (Person ohne Nachnamen, Leerstring statt NULL)'
+INSERT INTO persons (id, last_name) VALUES ('e1e1e1e1-2222-2222-2222-222222222222', '');
+
+\echo '--- erwartet: FEHLER (Organisation ohne Namen)'
+UPDATE organizations SET name = '' WHERE id = '44444444-4444-4444-4444-444444444444';
+
+\echo '--- erwartet: FEHLER (Telefonzeile ohne Nummer)'
+INSERT INTO phone_numbers (person_id, phone_type_id, number)
+    VALUES ('33333333-3333-3333-3333-333333333333', 1, '');
+
+\echo '--- erwartet: FEHLER (Klasse ohne Zug — Kohorten-Kennung wäre mehrdeutig)'
+INSERT INTO classes (school_branch_id, grade_level_id, entry_year, stream) VALUES (2, 5, 2027, '');
+
+-- ---------------------------------------------------------------------------
+-- Höchstens eine Abschlussklasse je Zweig — is_final_grade steuert die
+-- Putzdienst-Abgangsregel (domains/putzdienst.md), eine zweite gesetzte Zeile
+-- desselben Zweigs bliebe sonst unbemerkt
+-- ---------------------------------------------------------------------------
+\echo '--- erwartet: FEHLER (zweite Abschlussklasse in der Grundschule)'
+INSERT INTO grade_levels (school_branch_id, label, sort_order, is_final_grade) VALUES (1, '3', 3, true);
+
+-- Der jeweils erste Eintrag je Zweig bleibt erlaubt (Realschule hat noch keinen)
+INSERT INTO grade_levels (id, school_branch_id, label, sort_order, is_final_grade) VALUES (10, 2, '10', 10, true);
+SELECT 'erste Abschlussklasse je Zweig erlaubt' AS pruefung;
+
+-- ---------------------------------------------------------------------------
 -- Klassenstufe und Klasse am Kind schließen sich gegenseitig aus — keine
 -- gekoppelte Kopie, keine Redundanz
 -- ---------------------------------------------------------------------------
@@ -121,6 +151,15 @@ UPDATE children SET provisional_grade_level_id = 4 WHERE id = '22222222-2222-222
 -- ---------------------------------------------------------------------------
 \echo '--- erwartet: FEHLER (zweite Staatsangehörigkeit ohne erste)'
 UPDATE children SET second_nationality_id = 2 WHERE id = '22222222-2222-2222-2222-222222222222';
+
+\echo '--- erwartet: FEHLER (zweimal derselbe Staat — doppelt gemappte Importspalte)'
+UPDATE children SET nationality_id = 1, second_nationality_id = 1
+    WHERE id = '22222222-2222-2222-2222-222222222222';
+
+-- Zwei verschiedene Staaten bleiben erlaubt
+UPDATE children SET nationality_id = 1, second_nationality_id = 2
+    WHERE id = '22222222-2222-2222-2222-222222222222';
+SELECT 'doppelte Staatsangehörigkeit mit zwei verschiedenen Staaten erlaubt' AS pruefung;
 
 -- Land kommt aus der Lookup-Tabelle, nicht aus einem Regex: ein nicht gepflegter
 -- Wert ist damit gar nicht eintragbar. Der Code ist ISO 3166-1 alpha-3 — das aus
@@ -179,6 +218,11 @@ INSERT INTO classes (school_branch_id, grade_level_id, entry_year, stream) VALUE
 
 \echo '--- erwartet: FEHLER (Kohorte Realschule/2025/a existiert schon)'
 INSERT INTO classes (school_branch_id, grade_level_id, entry_year, stream) VALUES (2, 5, 2025, 'a');
+
+-- classes.grade_level_id hat keinen eigenen einspaltigen Fremdschlüssel
+-- (Tabellenkommentar): der zusammengesetzte sperrt die Löschung trotzdem.
+\echo '--- erwartet: FEHLER (Klassenstufe mit bestehender Klasse nicht löschbar)'
+DELETE FROM grade_levels WHERE id = 4;
 
 -- Ein zweites Kind wirklich an Klasse 50 hängen, damit der Jahreslauf unten
 -- nicht nur eine leere Zeile verschiebt.

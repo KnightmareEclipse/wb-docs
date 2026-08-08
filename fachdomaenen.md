@@ -120,10 +120,11 @@ Kritischer Pfad bis dahin:
 - Externes Frontend (Azure Static Web App + Function, `project-parts.md` Abschnitt 9) erstmals aufsetzen — CORS-Policy wird dadurch jetzt konkret
 
 *Fachlich:*
-- Stammdaten-Fachdomäne (Familie, Erziehungsberechtigte, Kind, Kontakte) als Grundlage — Details `domains/stammdaten.md`, Tabellenschema `domains/stammdaten-schema.sql`
+- Stammdaten-Fachdomäne (Familie, Erziehungsberechtigte, Kind, Kontakte) als Grundlage — steht: Schema, DBML-Ansicht, Prüfskript und Benchmark in `domains/`, Fachbeschreibung `domains/stammdaten.md`
 - Putzdienst-eigenes Datenmodell darauf aufbauend: Putztermine, Zyklus-Konfiguration — Details `domains/putzdienst.md`
 - Restplatz-Zuordnung über Google-OR-Tools-Constraint-Solver statt Eigenbau (`domains/putzdienst.md`)
 - Putzdienst-Tabellenschema selbst noch zu entwerfen
+- Zeitgesteuerter Hintergrundjob im Backend für die Erinnerungsmails (täglicher Check, für wen heute eine Erinnerungsstufe fällig ist) — in keinem Pipeline-Dokument benannt (`domains/putzdienst.md`, „Technischer Punkt")
 
 *Organisatorisch:*
 - Zweiter Admin muss vor Produktivbetrieb aktiv sein, nicht vor Entwicklungsstart (`TODO.md`)

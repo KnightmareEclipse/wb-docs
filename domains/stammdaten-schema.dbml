@@ -78,8 +78,9 @@ Table grade_levels {
     (school_branch_id, label) [unique]
     (school_branch_id, sort_order) [unique]
     (id, school_branch_id) [unique]
+    (school_branch_id) [unique, name: 'one_final_grade_per_branch']
   }
-  Note: '(id, school_branch_id): Ziel des zusammengesetzten FK von classes — hält classes.school_branch_id konsistent zur aktuellen Klassenstufe.'
+  Note: '(id, school_branch_id): Ziel des zusammengesetzten FK von classes — hält classes.school_branch_id konsistent zur aktuellen Klassenstufe. one_final_grade_per_branch ist in echt partiell (WHERE is_final_grade): höchstens eine Abschlussklasse je Zweig, sonst sperrt die Putzdienst-Abgangsregel still den September für Familien, die noch bleiben.'
 }
 
 Table classes {
@@ -87,7 +88,7 @@ Table classes {
   school_branch_id integer  [not null]
   grade_level_id   integer  [not null]
   entry_year       smallint [not null]
-  stream           text     [not null]
+  stream           text     [not null, note: 'CHECK <> \'\'']
   created_at       timestamptz [not null, default: `now()`]
   created_by       text     [not null]
   updated_at       timestamptz [not null, default: `now()`]
@@ -137,7 +138,7 @@ Table persons {
   salutation_id     integer
   academic_title_id integer
   first_name        text
-  last_name         text        [not null]
+  last_name         text        [not null, note: 'CHECK <> \'\'']
   gender_id         integer
   address_id        uuid
   email             citext      [unique]
@@ -150,12 +151,12 @@ Table persons {
     address_id
     `lower(last_name)` [name: 'persons_last_name_pattern_idx']
   }
-  Note: 'Gemeinsame Basis jeder natürlichen Person. Kind/Guardian/Kontakt/Zahler sind Rollen darauf, keine eigenen Personentabellen. email: UNIQUE + CHECK <> \'\', identifiziert eindeutig eine Person (OTP-Login). last_name-Index in echt text_pattern_ops für Präfixsuche, hier nur als Ausdrucksindex angenähert.'
+  Note: 'Gemeinsame Basis jeder natürlichen Person. Kind/Guardian/Kontakt/Zahler sind Rollen darauf, keine eigenen Personentabellen. email: UNIQUE + Struktur-CHECK (genau ein @, kein Leerzeichen, Punkt in der Domain — fängt Leerstring und Import-Artefakte), identifiziert eindeutig eine Person (OTP-Login). last_name-Index in echt text_pattern_ops für Präfixsuche, hier nur als Ausdrucksindex angenähert.'
 }
 
 Table organizations {
   id         uuid        [pk, default: `gen_random_uuid()`]
-  name       text        [not null]
+  name       text        [not null, note: 'CHECK <> \'\'']
   address_id uuid
   email      citext
   created_at timestamptz [not null, default: `now()`]
@@ -166,7 +167,7 @@ Table organizations {
   indexes {
     address_id
   }
-  Note: 'Erziehungsberechtigte als Organisation (Jugendamt, Pflegedienst, Vereinsvormund). email: rein ausgehender Kanal (Schule schreibt die Behörde an), bewusst NICHT unique — kein Login daran, die OTP-Prüfung liest nur persons.email. CHECK <> \'\' analog persons.'
+  Note: 'Erziehungsberechtigte als Organisation (Jugendamt, Pflegedienst, Vereinsvormund). email: rein ausgehender Kanal (Schule schreibt die Behörde an), bewusst NICHT unique — kein Login daran, die OTP-Prüfung liest nur persons.email. Struktur-CHECK auf email analog persons.'
 }
 
 Table phone_numbers {
@@ -174,7 +175,7 @@ Table phone_numbers {
   person_id       uuid
   organization_id uuid
   phone_type_id   integer     [not null]
-  number          text        [not null]
+  number          text        [not null, note: 'CHECK <> \'\'']
   is_primary      boolean     [not null, default: false]
   note            text
   created_at      timestamptz [not null, default: `now()`]
@@ -233,7 +234,7 @@ Table children {
     class_id
     provisional_grade_level_id
   }
-  Note: 'children.id = persons.id (Kind IST eine Person). provisional_grade_level_id UND class_id schließen sich per CHECK gegenseitig aus (kein redundantes Feld mehr) — ist eine Klasse zugeteilt, kommt die aktuelle Klassenstufe per Join aus classes.grade_level_id. denomination_id/congregation: Art.-9-Daten, geschützt per Spalten-GRANT, rollenspezifisch (auch auf guardians, nicht auf persons).'
+  Note: 'children.id = persons.id (Kind IST eine Person). provisional_grade_level_id UND class_id schließen sich per CHECK gegenseitig aus (keine Redundanz, die auseinanderlaufen könnte) — ist eine Klasse zugeteilt, kommt die aktuelle Klassenstufe per Join aus classes.grade_level_id. second_nationality_id: nur mit gesetzter nationality_id und nicht derselbe Staat (CHECK). denomination_id/congregation: Art.-9-Daten, geschützt per Spalten-GRANT, rollenspezifisch (auch auf guardians, nicht auf persons).'
 }
 
 Table guardians {
@@ -275,7 +276,7 @@ Table family_guardians {
 
 Table contacts {
   id         uuid [pk]
-  notes      text
+  note       text
   created_at timestamptz [not null, default: `now()`]
   created_by text [not null]
   updated_at timestamptz [not null, default: `now()`]
