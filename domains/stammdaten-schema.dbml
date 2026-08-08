@@ -50,7 +50,7 @@ Table countries {
   id    integer [pk, increment]
   label text    [not null, unique]
   code  text    [not null, unique]
-  Note: 'Land für Anschrift/Geburtsland/Staatsangehörigkeit. Lookup statt ISO-Code-Freitext: der Rücktransfer nach ASV-BW wird abgetippt, dafür braucht es "Türkei" statt "TR" — und ASV-BW führt die Werte selbst als Werteliste, nicht als ISO-Code. code = ISO 3166-1 alpha-3 (nicht alpha-2: das wird neu vergeben und kollidiert optisch mit languages.code), mit Format-CHECK. Liste wird aus ISO 3166-1 geseedet, label bleibt frei änderbar, code nicht (externer Standard).'
+  Note: 'Land für Anschrift/Geburtsland/Staatsangehörigkeit. Lookup statt ISO-Code-Freitext: der Weg nach ASV-BW läuft über einen CSV-Export mit manueller Nacharbeit — der label trägt die Sichtprüfung, der code die maschinelle Seite (ein Export auf Basis der umbenennbaren Bezeichnung bricht still). ASV-BW führt die Werte selbst als Werteliste, nicht als ISO-Code. code = ISO 3166-1 alpha-3 (nicht alpha-2: das wird neu vergeben und kollidiert optisch mit languages.code), mit Format-CHECK. Liste wird aus ISO 3166-1 geseedet, label bleibt frei änderbar, code nicht (externer Standard).'
 }
 
 Table phone_types {
@@ -232,7 +232,6 @@ Table children {
     family_id
     class_id
     provisional_grade_level_id
-    date_of_birth
   }
   Note: 'children.id = persons.id (Kind IST eine Person). provisional_grade_level_id UND class_id schließen sich per CHECK gegenseitig aus (kein redundantes Feld mehr) — ist eine Klasse zugeteilt, kommt die aktuelle Klassenstufe per Join aus classes.grade_level_id. denomination_id/congregation: Art.-9-Daten, geschützt per Spalten-GRANT, rollenspezifisch (auch auf guardians, nicht auf persons).'
 }

@@ -90,8 +90,9 @@ CREATE EXTENSION IF NOT EXISTS citext;  -- für case-insensitive E-Mail-Vergleic
 
 -- Geschlecht ist das amtliche Merkmal für ASV-BW und Statistik (domains/
 -- stammdaten.md), deshalb wie countries/languages mit stabilem code neben dem
--- frei umbenennbaren label: eine Umbenennung von "divers" darf den Wert, auf den
--- sich eine Statistikmeldung stützt, nicht mitverschieben.
+-- frei umbenennbaren label. Konkreter Abnehmer ist der CSV-Export nach ASV-BW
+-- (fachdomaenen.md): setzte er auf dem label auf, bräche er still, sobald jemand
+-- "divers" umbenennt — der code ist der Wert, der die Umbenennung überlebt.
 --
 -- ISO 5218 geprüft und bewusst NICHT übernommen: die Norm kennt nur 0/1/2/9
 -- (unbekannt/männlich/weiblich/nicht anwendbar) und kann "divers" gar nicht
@@ -157,12 +158,14 @@ CREATE TABLE languages (
 );
 
 -- Land (Anschrift, Geburtsland, Staatsangehörigkeit). Lookup statt ISO-Code als
--- Freitext (rules.md Abschnitt 3), aus demselben Grund wie languages: wiederholte
--- Auswahl aus einem stabilen Satz, und der Wert wird gebraucht, um ihn zu lesen —
--- der Rücktransfer nach ASV-BW läuft manuell (fachdomaenen.md), ein Mensch tippt
--- ab und braucht dafür "Türkei", nicht "TR". Ohne Lookup läge die Länderliste
--- zwangsläufig hartkodiert in der Eingabemaske: dieselbe CHECK-Konstante, nur
--- eine Schicht weiter außen. Ein Regex auf zwei Großbuchstaben wäre keine
+-- Freitext (rules.md Abschnitt 3), aus demselben Grund wie languages — und beide
+-- Spalten der Lookup werden gebraucht, weil der Weg nach ASV-BW beide anspricht:
+-- Weltenbaum erzeugt einen CSV-Export, ein Mensch passt ihn von Hand an, ASV-BW
+-- importiert ihn (fachdomaenen.md). Der label trägt die Sichtprüfung dazwischen
+-- ("Türkei" ist prüfbar, "TUR" kaum), der code die maschinelle Seite: ein Export,
+-- der auf der frei umbenennbaren Bezeichnung aufsetzt, bricht still, sobald jemand
+-- eine Zeile umbenennt. Ohne Lookup läge die Länderliste zwangsläufig hartkodiert
+-- in der Eingabemaske: dieselbe CHECK-Konstante, nur eine Schicht weiter außen. Ein Regex auf zwei Großbuchstaben wäre keine
 -- Werteliste — "XX" und vor allem das häufige "UK" (ISO wäre "GB") kämen
 -- ungehindert durch. ASV-BW führt Staatsangehörigkeit, Geburtsland und Staat der
 -- Anschrift ebenfalls als Werteliste (svp_*.wl_staatsangehoerigkeit_id /
@@ -462,6 +465,11 @@ CREATE UNIQUE INDEX ON phone_numbers (organization_id) WHERE is_primary AND orga
 -- (gibbonFamily + gibbonFamilyAdult + gibbonFamilyChild), hängt dort aber
 -- zusätzlich die Wohnanschrift an die Familie — bei uns falsch, weil Familie
 -- hier die Sorgerechtslage abbildet und nicht den gemeinsamen Haushalt.
+-- updated_at/updated_by können hier strukturell nie von created_* abweichen: die
+-- Tabelle hat außer der id keine Nutzlast-Spalte, ein UPDATE ändert also nie etwas.
+-- Trotzdem bewusst beibehalten — sie wegzulassen hieße, families vom gemeinsamen
+-- set_row_audit-Trigger auszunehmen und eine zweite Trigger-Variante zu pflegen.
+-- Vier tote Spalten sind billiger als ein Sonderfall im einzigen Audit-Pfad.
 CREATE TABLE families (
     id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     created_at timestamptz NOT NULL DEFAULT now(),
@@ -534,7 +542,11 @@ CREATE TABLE children (
 CREATE INDEX ON children (family_id);
 CREATE INDEX ON children (class_id);
 CREATE INDEX ON children (provisional_grade_level_id);
-CREATE INDEX ON children (date_of_birth);
+-- Bewusst KEIN Index auf date_of_birth: die einzige Abfrage, die das Feld filtert,
+-- ist die Dublettenprüfung (Nachname + Geburtsdatum, domains/stammdaten.md) — die
+-- startet über den Namen, und der Planer wählt bei dieser Datenmenge ohnehin einen
+-- Hash-Join über beide Seiten statt eines Index-Zugriffs (gegen Postgres 16 mit
+-- 500 Kindern nachgestellt). Kein Fremdschlüssel hängt daran.
 
 -- Erziehungsberechtigte: entweder eine natürliche Person ODER eine Organisation —
 -- genau eine der beiden Referenzen ist gesetzt (CHECK unten). Die strukturelle
