@@ -26,6 +26,7 @@ INSERT INTO classes (id, school_branch_id, grade_level_id, entry_year, stream) V
     (40, 1, 4, 2022, 'a'),
     (50, 2, 5, 2025, 'a');
 INSERT INTO phone_types (id, label) VALUES (1, 'Festnetz'), (2, 'Mobil'), (3, 'Arbeit');
+INSERT INTO denominations (id, label) VALUES (1, 'evangelisch');
 INSERT INTO addresses (id, street, city)
     VALUES ('11111111-1111-1111-1111-111111111111', 'Hauptstr. 1', 'Musterdorf');
 -- Kind und Elternteil unter derselben Anschrift
@@ -82,6 +83,9 @@ SELECT 'zwei Personen mit geteilter Mailbox erlaubt' AS pruefung, count(*) AS an
 
 \echo '--- erwartet: FEHLER (Leerstring statt NULL bei E-Mail)'
 INSERT INTO persons (id, last_name, email) VALUES ('dddddddd-2222-2222-2222-222222222222', 'Leer', '');
+
+\echo '--- erwartet: FEHLER (Leerstring statt NULL bei Organisations-E-Mail)'
+UPDATE organizations SET email = '' WHERE id = '44444444-4444-4444-4444-444444444444';
 
 -- ---------------------------------------------------------------------------
 -- Klassenstufe und Klasse am Kind schließen sich gegenseitig aus — keine
@@ -154,6 +158,21 @@ SELECT 'Erziehungsberechtigte als Person und als Organisation angelegt' AS pruef
 
 \echo '--- erwartet: FEHLER (Beruf an einer Organisation)'
 UPDATE guardians SET occupation = 'Sachbearbeiter' WHERE id = '66666666-6666-6666-6666-666666666666';
+
+\echo '--- erwartet: FEHLER (Konfession an einer Organisation)'
+UPDATE guardians SET denomination_id = 1 WHERE id = '66666666-6666-6666-6666-666666666666';
+
+-- family_guardians.contact_person nur bei Organisation als Guardian (per Trigger,
+-- kein CHECK möglich — Organisations-Status steht auf guardians, nicht hier)
+INSERT INTO families (id) VALUES ('99999999-1111-1111-1111-111111111111');
+
+\echo '--- erwartet: FEHLER (Sachbearbeiter-Notiz bei natürlicher Person als Guardian)'
+INSERT INTO family_guardians (family_id, guardian_id, contact_person) VALUES
+    ('99999999-1111-1111-1111-111111111111', '55555555-5555-5555-5555-555555555555', 'Frau Beispiel');
+
+INSERT INTO family_guardians (family_id, guardian_id, contact_person) VALUES
+    ('99999999-1111-1111-1111-111111111111', '66666666-6666-6666-6666-666666666666', 'Frau Beispiel');
+SELECT 'Sachbearbeiter-Notiz bei Organisation als Guardian erlaubt' AS pruefung;
 
 -- ---------------------------------------------------------------------------
 -- Kontakte: Notfallkontakt-Reihenfolge höchstens einmal je Kind belegt

@@ -53,6 +53,10 @@ Table grade_levels {
   label            text     [not null]
   sort_order       smallint [not null]
   is_final_grade   boolean  [not null, default: false]
+  created_at       timestamptz [not null, default: `now()`]
+  created_by       text     [not null]
+  updated_at       timestamptz [not null, default: `now()`]
+  updated_by       text     [not null]
 
   indexes {
     (school_branch_id, label) [unique]
@@ -68,6 +72,10 @@ Table classes {
   grade_level_id   integer  [not null]
   entry_year       smallint [not null]
   stream           text     [not null]
+  created_at       timestamptz [not null, default: `now()`]
+  created_by       text     [not null]
+  updated_at       timestamptz [not null, default: `now()`]
+  updated_by       text     [not null]
 
   indexes {
     (school_branch_id, entry_year, stream) [unique]
@@ -94,9 +102,9 @@ Table addresses {
   city         text
   country      text        [not null, default: 'DE']
   created_at   timestamptz [not null, default: `now()`]
-  created_by   text
+  created_by   text        [not null]
   updated_at   timestamptz [not null, default: `now()`]
-  updated_by   text
+  updated_by   text        [not null]
 
   indexes {
     (postal_code, street, house_number)
@@ -117,18 +125,16 @@ Table persons {
   gender_id         integer
   address_id        uuid
   email             citext
-  denomination_id   integer
-  congregation      text
   created_at        timestamptz [not null, default: `now()`]
-  created_by        text
+  created_by        text        [not null]
   updated_at        timestamptz [not null, default: `now()`]
-  updated_by        text
+  updated_by        text        [not null]
 
   indexes {
     address_id
     `lower(last_name)` [name: 'persons_last_name_pattern_idx']
   }
-  Note: 'Gemeinsame Basis jeder natürlichen Person. Kind/Guardian/Kontakt/Zahler sind Rollen darauf, keine eigenen Personentabellen. denomination_id/congregation: Art.-9-Daten, geschützt per Spalten-GRANT statt eigener Tabelle. email: CHECK <> \'\', bewusst nicht unique (geteilte Mailbox erlaubt, OTP-Flow behandelt das als Haushalts-Session). last_name-Index in echt text_pattern_ops für Präfixsuche, hier nur als Ausdrucksindex angenähert.'
+  Note: 'Gemeinsame Basis jeder natürlichen Person. Kind/Guardian/Kontakt/Zahler sind Rollen darauf, keine eigenen Personentabellen. email: CHECK <> \'\', bewusst nicht unique (geteilte Mailbox erlaubt, OTP-Flow behandelt das als Haushalts-Session). last_name-Index in echt text_pattern_ops für Präfixsuche, hier nur als Ausdrucksindex angenähert.'
 }
 
 Table organizations {
@@ -137,14 +143,14 @@ Table organizations {
   address_id uuid
   email      citext
   created_at timestamptz [not null, default: `now()`]
-  created_by text
+  created_by text        [not null]
   updated_at timestamptz [not null, default: `now()`]
-  updated_by text
+  updated_by text        [not null]
 
   indexes {
     address_id
   }
-  Note: 'Erziehungsberechtigte als Organisation (Jugendamt, Pflegedienst, Vereinsvormund).'
+  Note: 'Erziehungsberechtigte als Organisation (Jugendamt, Pflegedienst, Vereinsvormund). email: CHECK <> \'\', analog persons.'
 }
 
 Table phone_numbers {
@@ -156,9 +162,9 @@ Table phone_numbers {
   is_primary      boolean     [not null, default: false]
   note            text
   created_at      timestamptz [not null, default: `now()`]
-  created_by      text
+  created_by      text        [not null]
   updated_at      timestamptz [not null, default: `now()`]
-  updated_by      text
+  updated_by      text        [not null]
 
   indexes {
     person_id
@@ -176,9 +182,9 @@ Table phone_numbers {
 Table families {
   id         uuid        [pk, default: `gen_random_uuid()`]
   created_at timestamptz [not null, default: `now()`]
-  created_by text
+  created_by text        [not null]
   updated_at timestamptz [not null, default: `now()`]
-  updated_by text
+  updated_by text        [not null]
 
   Note: 'Sorgerecht-Konstellation, nicht Haushalt. Manuell gepflegt, kein Bezeichnungsfeld.'
 }
@@ -193,6 +199,8 @@ Table children {
   nationality                 text
   second_nationality          text
   home_language               text
+  denomination_id             integer
+  congregation                text
   provisional_grade_level_id  integer
   class_id                    integer
   entry_date                  date
@@ -200,9 +208,9 @@ Table children {
   previous_school_id          integer
   previous_school_consent_at  timestamptz
   created_at                  timestamptz [not null, default: `now()`]
-  created_by                  text
+  created_by                  text    [not null]
   updated_at                  timestamptz [not null, default: `now()`]
-  updated_by                  text
+  updated_by                  text    [not null]
 
   indexes {
     family_id
@@ -210,7 +218,7 @@ Table children {
     provisional_grade_level_id
     date_of_birth
   }
-  Note: 'children.id = persons.id (Kind IST eine Person). provisional_grade_level_id UND class_id schließen sich per CHECK gegenseitig aus (kein redundantes Feld mehr) — ist eine Klasse zugeteilt, kommt die aktuelle Klassenstufe per Join aus classes.grade_level_id.'
+  Note: 'children.id = persons.id (Kind IST eine Person). provisional_grade_level_id UND class_id schließen sich per CHECK gegenseitig aus (kein redundantes Feld mehr) — ist eine Klasse zugeteilt, kommt die aktuelle Klassenstufe per Join aus classes.grade_level_id. denomination_id/congregation: Art.-9-Daten, geschützt per Spalten-GRANT, rollenspezifisch (auch auf guardians, nicht auf persons).'
 }
 
 Table guardians {
@@ -219,12 +227,14 @@ Table guardians {
   organization_id uuid    [unique]
   occupation      text
   is_employee     boolean [not null, default: false]
+  denomination_id integer
+  congregation    text
   created_at      timestamptz [not null, default: `now()`]
-  created_by      text
+  created_by      text    [not null]
   updated_at      timestamptz [not null, default: `now()`]
-  updated_by      text
+  updated_by      text    [not null]
 
-  Note: 'Entweder natürliche Person ODER Organisation (CHECK in SQL). is_employee: Putzdienst-Befreiung.'
+  Note: 'Entweder natürliche Person ODER Organisation (CHECK in SQL). is_employee: Putzdienst-Befreiung. denomination_id/congregation nur bei natürlicher Person (CHECK).'
 }
 
 Table family_guardians {
@@ -233,15 +243,15 @@ Table family_guardians {
   guardian_category_id integer
   contact_person       text
   created_at           timestamptz [not null, default: `now()`]
-  created_by           text
+  created_by           text    [not null]
   updated_at           timestamptz [not null, default: `now()`]
-  updated_by           text
+  updated_by           text    [not null]
 
   indexes {
     (family_id, guardian_id) [pk]
     guardian_id
   }
-  Note: 'M:N Guardian↔Familie (Patchwork). Grundlage des OTP-Ownership-Checks.'
+  Note: 'M:N Guardian↔Familie (Patchwork). Grundlage des OTP-Ownership-Checks. contact_person nur bei Organisation als Guardian, durchgesetzt per Trigger (kein CHECK möglich, cross-table).'
 }
 
 // ---------------------------------------------------------------------------
@@ -252,9 +262,9 @@ Table contacts {
   id         uuid [pk]
   notes      text
   created_at timestamptz [not null, default: `now()`]
-  created_by text
+  created_by text [not null]
   updated_at timestamptz [not null, default: `now()`]
-  updated_by text
+  updated_by text [not null]
 
   Note: 'contacts.id = persons.id. Notfallkontakt/Abholberechtigt ohne Rechtsstellung, kein Login.'
 }
@@ -265,9 +275,9 @@ Table child_contacts {
   relationship text
   priority     smallint
   created_at   timestamptz [not null, default: `now()`]
-  created_by   text
+  created_by   text [not null]
   updated_at   timestamptz [not null, default: `now()`]
-  updated_by   text
+  updated_by   text [not null]
 
   indexes {
     (child_id, contact_id) [pk]
@@ -286,9 +296,9 @@ Table payers {
   bic                text
   account_holder     text
   created_at         timestamptz [not null, default: `now()`]
-  created_by         text
+  created_by         text [not null]
   updated_at         timestamptz [not null, default: `now()`]
-  updated_by         text
+  updated_by         text [not null]
 
   indexes {
     billing_address_id
@@ -301,9 +311,9 @@ Table child_payers {
   payer_id   uuid    [not null]
   is_primary boolean [not null, default: false]
   created_at timestamptz [not null, default: `now()`]
-  created_by text
+  created_by text [not null]
   updated_at timestamptz [not null, default: `now()`]
-  updated_by text
+  updated_by text [not null]
 
   indexes {
     (child_id, payer_id) [pk]
@@ -325,7 +335,6 @@ Ref: persons.salutation_id > salutations.id [delete: restrict]
 Ref: persons.academic_title_id > academic_titles.id [delete: restrict]
 Ref: persons.gender_id > genders.id [delete: restrict]
 Ref: persons.address_id > addresses.id [delete: restrict]
-Ref: persons.denomination_id > denominations.id [delete: restrict]
 
 Ref: organizations.address_id > addresses.id [delete: restrict]
 
@@ -335,12 +344,14 @@ Ref: phone_numbers.phone_type_id > phone_types.id [delete: restrict]
 
 Ref: children.id - persons.id [delete: cascade]
 Ref: children.family_id > families.id [delete: restrict]
+Ref: children.denomination_id > denominations.id [delete: restrict]
 Ref: children.provisional_grade_level_id > grade_levels.id [delete: restrict]
 Ref: children.previous_school_id > previous_schools.id [delete: restrict]
 Ref: children.class_id > classes.id [delete: restrict]
 
 Ref: guardians.person_id - persons.id [delete: restrict]
 Ref: guardians.organization_id - organizations.id [delete: restrict]
+Ref: guardians.denomination_id > denominations.id [delete: restrict]
 
 Ref: family_guardians.family_id > families.id [delete: cascade]
 Ref: family_guardians.guardian_id > guardians.id [delete: cascade]
