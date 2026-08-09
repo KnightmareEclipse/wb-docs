@@ -71,6 +71,9 @@ CREATE TABLE classes (
     grade_level_id   integer NOT NULL,
     entry_year       smallint NOT NULL,
     stream           text NOT NULL CHECK (stream <> ''),
+    is_active        boolean NOT NULL DEFAULT true,
+    class_teacher_id uuid,
+    room             text,
     created_at       timestamptz NOT NULL DEFAULT now(),
     created_by       text NOT NULL,
     updated_at       timestamptz NOT NULL DEFAULT now(),
@@ -109,7 +112,7 @@ CREATE TABLE persons (
     last_name         text NOT NULL CHECK (last_name <> ''),
     gender_id         integer REFERENCES genders(id) ON DELETE RESTRICT,
     address_id        uuid REFERENCES addresses(id) ON DELETE RESTRICT,
-    email             citext UNIQUE,
+    email             citext,
     created_at        timestamptz NOT NULL DEFAULT now(),
     created_by        text NOT NULL,
     updated_at        timestamptz NOT NULL DEFAULT now(),
@@ -118,6 +121,8 @@ CREATE TABLE persons (
 );
 
 CREATE INDEX ON persons (address_id);
+
+CREATE INDEX ON persons (email);
 
 CREATE INDEX ON persons (lower(last_name) text_pattern_ops);
 
@@ -147,12 +152,10 @@ CREATE TABLE phone_numbers (
     created_by      text NOT NULL,
     updated_at      timestamptz NOT NULL DEFAULT now(),
     updated_by      text NOT NULL,
-    CHECK ((person_id IS NULL) <> (organization_id IS NULL))
+    CHECK ((person_id IS NULL) <> (organization_id IS NULL)),
+    UNIQUE (person_id, number),
+    UNIQUE (organization_id, number)
 );
-
-CREATE INDEX ON phone_numbers (person_id);
-
-CREATE INDEX ON phone_numbers (organization_id);
 
 CREATE UNIQUE INDEX ON phone_numbers (person_id)       WHERE is_primary AND person_id IS NOT NULL;
 
@@ -180,6 +183,7 @@ CREATE TABLE children (
     congregation       text,
     provisional_grade_level_id integer REFERENCES grade_levels(id) ON DELETE RESTRICT,
     class_id           integer REFERENCES classes(id) ON DELETE RESTRICT,
+    registration_date  date,
     entry_date         date,
     exit_date          date,
     previous_school_id integer REFERENCES previous_schools(id) ON DELETE RESTRICT,
@@ -191,6 +195,7 @@ CREATE TABLE children (
     CHECK (second_nationality_id IS NULL OR nationality_id IS NOT NULL),
     CHECK (second_nationality_id IS NULL OR second_nationality_id <> nationality_id),
     CHECK (exit_date IS NULL OR entry_date IS NULL OR exit_date >= entry_date),
+    CHECK (entry_date IS NULL OR registration_date IS NULL OR entry_date >= registration_date),
     CHECK (previous_school_consent_at IS NULL OR previous_school_id IS NOT NULL),
     CHECK (class_id IS NULL OR provisional_grade_level_id IS NULL)
 );
@@ -206,7 +211,6 @@ CREATE TABLE guardians (
     person_id       uuid UNIQUE REFERENCES persons(id) ON DELETE RESTRICT,
     organization_id uuid UNIQUE REFERENCES organizations(id) ON DELETE RESTRICT,
     occupation      text,
-    is_employee     boolean NOT NULL DEFAULT false,
     denomination_id integer REFERENCES denominations(id) ON DELETE RESTRICT,
     congregation    text,
     created_at      timestamptz NOT NULL DEFAULT now(),
@@ -214,13 +218,31 @@ CREATE TABLE guardians (
     updated_at      timestamptz NOT NULL DEFAULT now(),
     updated_by      text NOT NULL,
     CHECK ((person_id IS NULL) <> (organization_id IS NULL)),
-    CHECK (person_id IS NOT NULL OR (occupation IS NULL AND is_employee = false AND denomination_id IS NULL AND congregation IS NULL))
+    CHECK (person_id IS NOT NULL OR (occupation IS NULL AND denomination_id IS NULL AND congregation IS NULL))
 );
+
+CREATE TABLE employees (
+    id               uuid PRIMARY KEY REFERENCES persons(id) ON DELETE CASCADE,
+    work_email       citext UNIQUE,
+    entra_object_id  text UNIQUE CHECK (entra_object_id <> ''),
+    employment_start date,
+    employment_end   date,
+    created_at       timestamptz NOT NULL DEFAULT now(),
+    created_by       text NOT NULL,
+    updated_at       timestamptz NOT NULL DEFAULT now(),
+    updated_by       text NOT NULL,
+    CHECK (work_email ~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$'),
+    CHECK (employment_end IS NULL OR employment_start IS NULL OR employment_end >= employment_start)
+);
+ALTER TABLE classes ADD FOREIGN KEY (class_teacher_id) REFERENCES employees(id) ON DELETE RESTRICT;
+
+CREATE INDEX ON classes (class_teacher_id);
 
 CREATE TABLE family_guardians (
     family_id            uuid NOT NULL REFERENCES families(id) ON DELETE CASCADE,
     guardian_id          uuid NOT NULL REFERENCES guardians(id) ON DELETE CASCADE,
     guardian_category_id integer REFERENCES guardian_categories(id) ON DELETE RESTRICT,
+    include_in_correspondence boolean NOT NULL DEFAULT true,
     contact_person       text,
     created_at           timestamptz NOT NULL DEFAULT now(),
     created_by           text NOT NULL,
@@ -264,11 +286,15 @@ CREATE TABLE payers (
     iban               text CHECK (iban ~ '^[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}$'),
     bic                text CHECK (bic ~ '^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$'),
     account_holder     text,
+    mandate_reference  text UNIQUE CHECK (mandate_reference <> ''),
+    mandate_signed_at  date,
     created_at         timestamptz NOT NULL DEFAULT now(),
     created_by         text NOT NULL,
     updated_at         timestamptz NOT NULL DEFAULT now(),
     updated_by         text NOT NULL,
-    CHECK ((person_id IS NULL) <> (organization_id IS NULL))
+    CHECK ((person_id IS NULL) <> (organization_id IS NULL)),
+    CHECK ((mandate_reference IS NULL) = (mandate_signed_at IS NULL)),
+    CHECK (mandate_reference IS NULL OR iban IS NOT NULL)
 );
 
 CREATE INDEX ON payers (billing_address_id);
@@ -294,6 +320,9 @@ DECLARE
 BEGIN
     IF actor IS NULL THEN
         RAISE EXCEPTION 'app.actor nicht gesetzt — SET LOCAL app.actor vor jedem Schreibzugriff auf eine Audit-Tabelle';
+    END IF;
+    IF actor !~ '^(entra|guardian|system):.' THEN
+        RAISE EXCEPTION 'app.actor braucht ein bekanntes Präfix (entra:/guardian:/system:), war: %', actor;
     END IF;
     IF TG_OP = 'INSERT' THEN
         NEW.created_at := now();
@@ -333,6 +362,9 @@ CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON children
     FOR EACH ROW EXECUTE FUNCTION set_row_audit();
 
 CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON guardians
+    FOR EACH ROW EXECUTE FUNCTION set_row_audit();
+
+CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON employees
     FOR EACH ROW EXECUTE FUNCTION set_row_audit();
 
 CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON family_guardians

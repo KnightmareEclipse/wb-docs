@@ -1,6 +1,17 @@
 // Stammdaten-Kernschema — DBML-Ansicht von stammdaten-schema.sql, nur für die
 // Visualisierung (z. B. dbdiagram.io). Quelle der Wahrheit ist die .sql-Datei;
 // bei Abweichung gewinnt die SQL. Kommentare hier stark gekürzt gegenüber dort.
+//
+// Diese Datei ist die einzige von Hand gepflegte Zweitdarstellung des Schemas und
+// damit die, die still danebenlaufen kann. Nach jeder Schemaänderung den
+// Spaltensatz gegenprüfen — schweigt bei Deckungsgleichheit, listet sonst die
+// Abweichung und liefert Exit-Code 1:
+//   diff <(awk '/^CREATE TABLE/{t=$3; next} /^\);/{t=""} t && /^    [a-z_]+ /{print t"."$1}' \
+//              domains/stammdaten-schema-plain.sql | sort) \
+//        <(awk '/^Table /{t=$2; next} /^}/{t=""} t && /^  [a-z_]+ /{if ($1!="indexes") print t"."$1}' \
+//              domains/stammdaten-schema.dbml | sort)
+// Prüft Tabellen und Spalten, nicht die Note:-Texte — Prosa-Drift ist hier
+// verkraftbar, eine fehlende Spalte nicht.
 
 Project stammdaten {
   database_type: 'PostgreSQL'
@@ -89,6 +100,9 @@ Table classes {
   grade_level_id   integer  [not null]
   entry_year       smallint [not null]
   stream           text     [not null, note: 'CHECK <> \'\'']
+  is_active        boolean  [not null, default: true, note: 'false = Kohorte durch oder Zug aufgelöst; Zeile bleibt für die Akte, zählt nirgends mehr als Klasse mit']
+  class_teacher_id uuid     [note: 'FK auf employees, in SQL per ALTER TABLE nachgezogen — Definitionsreihenfolge']
+  room             text
   created_at       timestamptz [not null, default: `now()`]
   created_by       text     [not null]
   updated_at       timestamptz [not null, default: `now()`]
@@ -96,14 +110,15 @@ Table classes {
 
   indexes {
     (school_branch_id, entry_year, stream) [unique]
+    class_teacher_id
   }
-  Note: 'Kohorte, nicht Klassenstufen-Slot: Zeile = gemeinsam eingeschulte Gruppe (Zweig/Eintrittsjahr/Zug), bleibt über die Schulzeit stabil. grade_level_id ist die AKTUELLE Klassenstufe, wandert beim Jahreslauf auf derselben Zeile weiter. Anzeigename ("5a") und Kohorten-Kennung ("RS25a") werden berechnet, nicht gespeichert.'
+  Note: 'Kohorte, nicht Klassenstufen-Slot: Zeile = ein Zug eines Jahrgangs im Zweig (Zweig/Eintrittsjahr/Zug). Stabil ist die Zeile, nicht ihre Besetzung — Quereinsteiger kommen dazu, Abgänger fallen weg, Wiederholer wechseln die Kohorte. entry_year ist das Startjahr der Kohorte, der Eintritt des Kindes steht als children.entry_date. grade_level_id ist die AKTUELLE Klassenstufe, wandert beim Jahreslauf auf derselben Zeile weiter, bei einer durchgelaufenen Kohorte bleibt sie auf der Abschlussstufe stehen und is_active wird false. Anzeigename ("5a") und Kohorten-Kennung ("RS25a") werden berechnet, nicht gespeichert.'
 }
 
 Table previous_schools {
   id    integer [pk, increment]
   label text    [not null, unique]
-  Note: 'Abgebende Schule, Realschul-Voranmeldung.'
+  Note: 'Abgebende Schule; steht auf dem Grundschul- wie dem Realschul-Voranmeldeformular.'
 }
 
 // ---------------------------------------------------------------------------
@@ -141,7 +156,7 @@ Table persons {
   last_name         text        [not null, note: 'CHECK <> \'\'']
   gender_id         integer
   address_id        uuid
-  email             citext      [unique]
+  email             citext
   created_at        timestamptz [not null, default: `now()`]
   created_by        text        [not null]
   updated_at        timestamptz [not null, default: `now()`]
@@ -149,9 +164,10 @@ Table persons {
 
   indexes {
     address_id
+    email
     `lower(last_name)` [name: 'persons_last_name_pattern_idx']
   }
-  Note: 'Gemeinsame Basis jeder natürlichen Person. Kind/Guardian/Kontakt/Zahler sind Rollen darauf, keine eigenen Personentabellen. email: UNIQUE + Struktur-CHECK (genau ein @, kein Leerzeichen, Punkt in der Domain — fängt Leerstring und Import-Artefakte), identifiziert eindeutig eine Person (OTP-Login). last_name-Index in echt text_pattern_ops für Präfixsuche, hier nur als Ausdrucksindex angenähert.'
+  Note: 'Gemeinsame Basis jeder natürlichen Person. Kind/Guardian/Kontakt/Zahler sind Rollen darauf, keine eigenen Personentabellen. email: Struktur-CHECK (genau ein @, kein Leerzeichen, Punkt in der Domain — fängt Leerstring und Import-Artefakte), bewusst NICHT unique — zwei Erziehungsberechtigte dürfen sich eine Mailbox teilen, ein OTP-Treffer (idea/04) liefert dann die Vereinigung ihrer Familien. Eigener Index, da kein Constraint ihn mehr anlegt. last_name-Index in echt text_pattern_ops für Präfixsuche, hier nur als Ausdrucksindex angenähert.'
 }
 
 Table organizations {
@@ -184,12 +200,12 @@ Table phone_numbers {
   updated_by      text        [not null]
 
   indexes {
-    person_id
-    organization_id
+    (person_id, number) [unique]
+    (organization_id, number) [unique]
     (person_id) [unique, name: 'one_primary_per_person']
     (organization_id) [unique, name: 'one_primary_per_org']
   }
-  Note: 'Gehört entweder zu Person ODER Organisation (CHECK in SQL). is_primary: die von der Person benannte Rufnummer, genutzt für O365-Kontakte.'
+  Note: 'Gehört entweder zu Person ODER Organisation (CHECK in SQL). is_primary: die von der Person benannte Rufnummer, genutzt für O365-Kontakte; one_primary_* sind in echt partiell (WHERE is_primary AND … IS NOT NULL). Dieselbe Nummer nur einmal je Eigentümer — der Typ ist eine Eigenschaft der Nummer, nicht ihre Identität; diese beiden Unique-Indizes tragen zugleich den Zugriff über person_id bzw. organization_id allein, ein einspaltiger Index daneben wäre redundant.'
 }
 
 // ---------------------------------------------------------------------------
@@ -220,6 +236,7 @@ Table children {
   congregation                text
   provisional_grade_level_id  integer
   class_id                    integer
+  registration_date           date
   entry_date                  date
   exit_date                   date
   previous_school_id          integer
@@ -242,7 +259,6 @@ Table guardians {
   person_id       uuid    [unique]
   organization_id uuid    [unique]
   occupation      text
-  is_employee     boolean [not null, default: false]
   denomination_id integer
   congregation    text
   created_at      timestamptz [not null, default: `now()`]
@@ -250,13 +266,14 @@ Table guardians {
   updated_at      timestamptz [not null, default: `now()`]
   updated_by      text    [not null]
 
-  Note: 'Entweder natürliche Person ODER Organisation (CHECK in SQL). is_employee: Putzdienst-Befreiung. denomination_id/congregation nur bei natürlicher Person (CHECK).'
+  Note: 'Entweder natürliche Person ODER Organisation (CHECK in SQL). Bewusst kein is_employee-Flag — die Mitarbeitereigenschaft steht an employees und ist von dort ableitbar; die Putzdienst-Befreiung fragt „aktuell beschäftigt", nicht „war mal". denomination_id/congregation nur bei natürlicher Person (CHECK).'
 }
 
 Table family_guardians {
   family_id            uuid    [not null]
   guardian_id          uuid    [not null]
   guardian_category_id integer
+  include_in_correspondence boolean [not null, default: true, note: '„In Briefe miteinbeziehen" — steht auf allen vier Anmeldetag-Checklisten neben „Sorgeberechtigt"']
   contact_person       text
   created_at           timestamptz [not null, default: `now()`]
   created_by           text    [not null]
@@ -268,6 +285,23 @@ Table family_guardians {
     guardian_id
   }
   Note: 'M:N Guardian↔Familie (Patchwork). Grundlage des OTP-Ownership-Checks. contact_person nur bei Organisation als Guardian, durchgesetzt per Trigger (kein CHECK möglich, cross-table).'
+}
+
+// ---------------------------------------------------------------------------
+// Mitarbeiter
+// ---------------------------------------------------------------------------
+
+Table employees {
+  id               uuid        [pk]
+  work_email       citext      [unique]
+  entra_object_id  text        [unique, note: 'CHECK <> \'\'']
+  employment_start date
+  employment_end   date
+  created_at       timestamptz [not null, default: `now()`]
+  created_by       text        [not null]
+  updated_at       timestamptz [not null, default: `now()`]
+  updated_by       text        [not null]
+  Note: 'Rolle auf persons (id = persons.id), immer natürliche Person. work_email getrennt von persons.email: Letztere ist privat und zugleich OTP-Identität — ein Mitarbeiter, der auch Elternteil ist, verlöre sonst beim Offboarding seinen Elternzugang. Hier UNIQUE, weil die Schule diese Postfächer selbst vergibt. entra_object_id verbindet den Audit-Verursacher "entra:<oid>" mit der Person und trägt die Zugriffsentscheidung "ist Klassenlehrer:in dieser Klasse". employment_end gesetzt = ausgeschieden; die Putzdienst-Befreiung fragt employment_end IS NULL. Bereichs-/Vorgesetztenstruktur bewusst noch nicht enthalten (erst mit der Rechnungsfreigabe).'
 }
 
 // ---------------------------------------------------------------------------
@@ -311,6 +345,8 @@ Table payers {
   iban               text
   bic                text
   account_holder     text
+  mandate_reference  text        [unique]
+  mandate_signed_at  date
   created_at         timestamptz [not null, default: `now()`]
   created_by         text [not null]
   updated_at         timestamptz [not null, default: `now()`]
@@ -319,7 +355,7 @@ Table payers {
   indexes {
     billing_address_id
   }
-  Note: 'Entweder natürliche Person ODER Organisation (CHECK in SQL, wie guardians). billing_address_id nullable: NULL = Anschrift der zahlenden Person/Organisation gilt. iban/bic: Struktur-CHECK nach ISO 13616 bzw. ISO 9362 (international, nicht auf deutsche Längen festgelegt); gespeichert nur normalisiert, ohne Leerzeichen.'
+  Note: 'Entweder natürliche Person ODER Organisation (CHECK in SQL, wie guardians). billing_address_id nullable: NULL = Anschrift der zahlenden Person/Organisation gilt. iban/bic: Struktur-CHECK nach ISO 13616 bzw. ISO 9362 (international, nicht auf deutsche Längen festgelegt); gespeichert nur normalisiert, ohne Leerzeichen. SEPA-Mandat: ein Mandat je Zahler, nicht je Zweck; mandate_reference und mandate_signed_at nur gemeinsam und nie ohne iban (CHECKs in SQL). Kein Kreditinstitut (folgt aus der BIC), keine Mandatshistorie; das signierte PDF liegt in der Schulvertrags-Fachdomäne und trägt kein eigenes Datum.'
 }
 
 Table child_payers {
@@ -390,3 +426,5 @@ Ref: payers.billing_address_id > addresses.id [delete: restrict]
 
 Ref: child_payers.child_id > children.id [delete: restrict]
 Ref: child_payers.payer_id > payers.id [delete: cascade]
+Ref: employees.id - persons.id [delete: cascade]
+Ref: classes.class_teacher_id > employees.id [delete: restrict]

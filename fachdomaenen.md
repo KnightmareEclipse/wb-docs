@@ -19,6 +19,23 @@ Weitere Einrichtungen/Angebote:
 - **Kochwerkstatt:** für Kinder und Erwachsene, auch für schulfremde Personen offen
 - Geplant: Ausweitung des außerschulischen Angebots allgemein
 
+### Jahreskalender der Verwaltung
+
+Der reale Betriebsrhythmus, an dem die Prozesse hängen — Grundlage für die Reihenfolge unten und für den Zeitpunkt des Jahreslaufs (`domains/stammdaten.md`).
+
+| Monat | Was passiert |
+|---|---|
+| Oktober | Voranmeldung für das Folgejahr wird veröffentlicht (zu den Herbstferien); Putzdienst-Zyklus beginnt |
+| Januar | Infoabend für die bereits angemeldeten Kinder, danach regelmäßig ein zweiter Anmeldeschub |
+| Januar/Februar | Voranmeldung wird geschlossen — Zeitpunkt je Schule dynamisch gesetzt, teils erst im Juni |
+| ab Februar | Anmeldegespräche, Aufnahmeentscheidung, Schulvertragsprozess |
+| Ende Juli | ASV-BW-CSV-Import der neuen Schüler (deckt nicht alles ab, viel Handarbeit); M365: neue Konten anlegen, Abgänger löschen, Klassen/Gruppen/Verteiler umziehen |
+| August | Sommerpause — nur Ferienprogramm im Hort und laufende Rechnungen |
+| Anfang September | Terminkalender/Feste festlegen → Putztermine planen → Putzdienst-Anmeldung freigeben |
+| Ende September | Schulstatistik des Landes — ASV-BW muss dafür vollständig gepflegt sein |
+
+Ganzjährig und außerhalb dieses Rhythmus: Quereinsteiger-Anmeldung samt Schulvertrag, Ferienprogramm in allen Ferien außer Weihnachten, Mensa- und Hortbuchungen, Rechnungsfreigabe.
+
 ### Zeitliche Dringlichkeit (nächste 12 Monate)
 
 Reihenfolge, in der die Prozesse im Jahresverlauf wieder akut werden:
@@ -31,7 +48,7 @@ Reihenfolge, in der die Prozesse im Jahresverlauf wieder akut werden:
 
 - **ASV-BW:** amtliche Schulverwaltungssoftware, Pflicht für die jährliche Schulstatistik; für staatliche Schulen konzipiert, deckt daher nicht alle eigenen Besonderheiten ab
 - **Optigem:** Buchhaltung
-- **Untis** (Desktop, nicht WebUntis): Noten, Stundenpläne etc. in der Realschule — liegt außerhalb des eigenen Verwaltungsalltags, hier nicht im Detail betrachtet
+- **Untis** (Desktop; WebUntis gibt es an der Schule nicht): Noten, Stundenpläne etc. in der Realschule — dauerhaft out of scope, hier nicht im Detail betrachtet. Die Quereinsteiger-Checkliste führt unter „To do Lehrer" noch „WebUntis anmelden" — ein Punkt ohne Entsprechung, der mit der Ablösung der Checkliste wegfällt
 - **Office 365:** zentrale Ablage für alles, was in keinem der drei genannten Tools abgebildet ist (Mail, Dateien, …)
 - **Jotform:** Formulare
 
@@ -39,12 +56,12 @@ Reihenfolge, in der die Prozesse im Jahresverlauf wieder akut werden:
 
 ### Stand der Digitalisierung
 
-Automatisiert sind Voranmeldung, Anmeldeprozess, Putzdienst und Ferienprogrammanmeldung — alle mit Excel als Datenbank, angebunden über zwei Werkzeuge:
+Automatisiert sind Voranmeldung (Grundschule, Realschule, Quereinsteiger), Anmeldeprozess, Putzdienst und Ferienprogrammanmeldung — alle mit Excel als Datenbank, angebunden über zwei Werkzeuge:
 
-1. Jotform-Formulare für Voranmeldung, Anmeldeprozess, Ferienprogrammanmeldung
+1. Jotform-Formulare für alle sechs genannten Prozesse
 2. Power Automate: schreibt Formulardaten automatisch in Excel-Listen, übernimmt Mailversand
 
-Ob es darüber hinaus Prozesse gibt, die niemand mehr auf dem Schirm hat, ist offen — die Domänen-Liste in Abschnitt 6 ist deshalb ausdrücklich als erster Entwurf zu lesen.
+Einzige Ausnahme ist die Rechnungsfreigabe: SPFx-Teams-App plus Power Automate, Daten in SharePoint statt Excel.
 
 **Geprüft und verworfen:** SharePoint-Listen als feste Struktur, per Power Query nach Excel synchronisiert. Die Verwaltung bearbeitet Daten direkt in der Power-Query-Tabelle, ein Refresh überschreibt diese Änderungen wieder — der Weg scheidet damit für jede künftige Lösung aus, nicht nur für einen Anlauf.
 
@@ -52,12 +69,38 @@ Ergebnis: viele parallele Excel-Dateien pro Prozess, hoher Wartungsaufwand (z. B
 
 - **Anmeldeprozess:** der am weitesten entwickelte — Power-Automate-HTTP-Trigger + Jotform simulieren Frontend und Backend, private (ungeteilte) Excel-Tabellen steuern den Prozess. Funktioniert, ist aber fragil.
 - Manuelles Eingreifen ist nicht auf einzelne Prozesse beschränkt: Verwaltung oder Hort verursachen in allen Prozessen laufend Fehler, die manuell korrigiert werden müssen.
+- Wo ein Prozess im Weg steht, wird er umgangen statt gemeldet: Eltern, die die Voranmeldung verpassen, laufen heute über das Quereinsteigerformular und landen damit in der falschen Liste; das Sekretariat hat schon individuelle Schulverträge mit gestrichenen oder handschriftlich ergänzten Passagen ausgestellt. Für jede künftige Regel heißt das: eine harte Sperre braucht einen benannten legitimen Ausweg (z. B. Einzel-Nachmeldelink über das Sekretariat), sonst wird sie umgangen statt eingehalten.
+
+### Kein Prozess für alltägliche Datenänderungen
+
+Der häufigste Vorgang überhaupt hat als einziger gar keine Automatisierung: Umzug, neue Telefonnummer oder E-Mail-Adresse, Namensänderung, Trennung oder neuer Sorgerechtsbeschluss, neuer Notfallkontakt kommen per Mail, Telefon oder persönlich ans Sekretariat. Je nach Änderung und Status der Familie muss sie danach in ASV-BW, Optigem und Excel nachgezogen werden, bei einer E-Mail zusätzlich in Office 365 — ohne dass irgendetwas prüft, ob das überall passiert ist. Änderungen gehen dabei verloren oder landen nur in einem System, und es fällt niemandem auf. Das ist der stärkste einzelne Treiber für das Zielbild in Abschnitt 4 und gehört zur Stammdaten-Domäne (Abschnitt 6), nicht zu einem der Formularprozesse.
+
+**Zielbild dafür:** die Änderung passiert **zuerst in Weltenbaum**, und Weltenbaum erzeugt daraus eine Notiz, in welchem Fremdsystem sie noch nachzuziehen ist. Solange ASV-BW und Optigem keine Update-Schnittstelle haben (Abschnitt 4), bleibt das Nachziehen Handarbeit — aber es ist dann eine benannte, nachverfolgbare Aufgabe statt eines Vorgangs, an den sich jemand erinnern muss. Welche Änderung welches System betrifft, ist aus dem geänderten Feld ableitbar und damit kein Erfahrungswissen mehr.
+
+Denselben Charakter hat der **Abgang eines Kindes**: Sekretariat und Schulleitung erfahren es zuerst, ASV-BW wird gepflegt, alles Weitere (Konto, Mensa, Hort, Optigem, Bescheinigungen) läuft über Zuruf an hoffentlich die richtigen Personen — ebenfalls kein definierter Prozess. Und die **regelmäßigen Elternmails** (Elternbriefe, Erinnerung an Elternabende, allgemeine Informationen) stößt das Sekretariat von Hand an; automatisiert sind nur die Mails der Formularprozesse.
+
+### Wer welche Liste heute führt
+
+Ansprechpartner je Migration — der Betreiber hat auf die meisten dieser Dateien selbst keinen Zugriff.
+
+| Liste | geführt von |
+|---|---|
+| Hortliste, Ferienprogramm | Hort |
+| Voranmeldung | Sekretariat + Schulleitung |
+| Anmeldeprozess | Betreiber selbst |
+| Kochwerkstatt | Hausdienstverwaltung |
+| Mensaliste | Hausdienstverwaltung + Sekretariat |
+| Gesundheitsdaten | Sekretariat |
+| Digitale Schülerakte | Sekretariat (SharePoint, nicht Excel) |
+| iPad-/Leihgeräteliste | Realschule, extern begleitet |
+
+**Randbedingung für jede Oberfläche:** das Sekretariat ist nicht IT-affin, vergisst Abläufe regelmäßig und meldet Probleme nicht denen, die sie beheben könnten — Unfertiges bleibt eher liegen, als dass nachgefragt wird. Bedienführung muss deshalb durch den Vorgang führen statt ihn nur zu ermöglichen, und Fehlerzustände müssen aktiv nach außen melden statt auf eine Rückmeldung zu warten (`rules.md` Abschnitt 3).
 
 ### Datenflüsse zu ASV-BW / Optigem / Office 365
 
 - **ASV-BW:** enthält die Stammdaten aller Schüler; neue Schüler werden nach abgeschlossenem Anmeldeprozess dort angelegt, spätere Änderungen laufen ebenfalls dort ein. Ob darüber hinaus weitere Daten dort geführt werden, ist unklar — die Dateneingabe erfolgt nicht selbst, sondern nur die Prozessautomatisierung drumherum.
 - Daten, die ASV-BW nicht abbilden kann (z. B. Schulvertrag, Gesundheitsinformationen), liegen in Excel/SharePoint Teams.
-- **Optigem:** Abrechnung aller Gebühren (Schulkosten, Mensa, Putzdienst-Freikauf, Ferienprogramm) sowie laufender Rechnungen/Ausgaben.
+- **Optigem:** Abrechnung aller Gebühren (Schulkosten, Mensa, Putzdienst-Freikauf, Ferienprogramm) sowie laufender Rechnungen/Ausgaben. Die Bankverbindung samt SEPA-Mandat wandert einmal von Hand dorthin, sobald die Verträge vorliegen — kein Import, kein laufender Abgleich; bis dahin ist Weltenbaum führend (`domains/stammdaten.md`, „Zahlungsverantwortliche").
 - **Rechnungsfreigabe:** eigener, stabil laufender Prozess über eine Teams-App (SPFx) + SharePoint-Listen, PDFs in SharePoint, mit rudimentärer Rechteverwaltung.
 
 ## 4. Zielbild
@@ -75,7 +118,7 @@ Träger ist ein gemeinnütziger Verein. Hierarchie:
 - **Vorstand:** nicht operativ, aber Entscheidungsmacht über das große Bild
 - **Geschäftsführung:** operativer Kopf
 - **Schulleitung und Bereichsleitungen** (je eine für Sekretariat, Hort, KITA, Grundschule, Realschule — bei Grundschule/Realschule zugleich der jeweilige Schulleiter): gleiche Ebene, unterhalb der Geschäftsführung
-- **Übrige Mitarbeiter und Lehrer:** darunter, operative Nutzung teils bereichsübergreifend (KITA-Mitarbeiter z. B. im Buchungsbeleg-/Rechnungsfreigabeprozess, Abschnitt 1)
+- **Übrige Mitarbeiter und Lehrer:** darunter, operative Nutzung teils bereichsübergreifend (KITA-Mitarbeiter z. B. im Buchungsbeleg-/Rechnungsfreigabeprozess, Abschnitt 1). Die **Hausdienstverwaltung** führt eigene Listen (Mensa gemeinsam mit dem Sekretariat, Kochwerkstatt allein) und ist damit eine eigene Nutzergruppe, auch ohne eigene Bereichsleitung
 
 Konkrete Berechtigungen (wer darf/kann was) hängen vom jeweiligen Prozess ab und werden pro Fachdomäne separat geklärt.
 
@@ -85,24 +128,48 @@ Konkrete Berechtigungen (wer darf/kann was) hängen vom jeweiligen Prozess ab un
 
 ## 6. Domänen-Liste (jetzt + später)
 
-Grobe Landkarte, abgeleitet aus Abschnitt 1 (Prozesskalender) und Abschnitt 4 (Zielbild) — erster Entwurf, noch zu prüfen.
+Landkarte aus Abschnitt 1 (Kalender) und Abschnitt 4 (Zielbild), gegen die Prozesserhebung des Betreibers abgeglichen. Je Domäne steht dabei ihre **Stammdaten-Berührung**: was sie liest, was sie verändert, was sie neu erzeugt — die Schreib-Berührungen sind die, an denen sich das Schema entscheidet.
 
 Grundlage, parallel zum ersten Punkt bearbeitet:
-- **Stammdaten** (Kind, Erziehungsberechtigte, Familie, Kontakte) — eigenständige Fachdomäne, kein bloßes Nebenprodukt: jeder folgende Prozess baut direkt darauf auf. Kein eigenes Kalenderdatum, aber ohne sie kann Putzdienst nicht starten. Datenimport kommt komplett auf einmal (nicht schrittweise je Fachdomäne) — das Schema deckt deshalb von Anfang an den vollen Stammdaten-Kern der realen Datenquellen ab (Voranmeldeformulare und Vis365-Feldliste, `domains/stammdaten.md`), nicht nur Putzdienst-Minimalfelder. Eigene Sekretariats-Oberfläche mit Vollzugriff auf alle Kind-Daten ist hoch priorisiert, aber nachrangig zu den terminlich gebundenen Prozessen unten. Details: `domains/stammdaten.md`.
+- **Stammdaten** (Kind, Erziehungsberechtigte, Familie, Kontakte) — eigenständige Fachdomäne, kein bloßes Nebenprodukt: jeder folgende Prozess baut direkt darauf auf. Kein eigenes Kalenderdatum, aber ohne sie kann Putzdienst nicht starten. Datenimport kommt komplett auf einmal (nicht schrittweise je Fachdomäne) — das Schema deckt deshalb von Anfang an den vollen Stammdaten-Kern der realen Datenquellen ab (Voranmeldeformulare und Vis365-Feldliste, `domains/stammdaten.md`), nicht nur Putzdienst-Minimalfelder. Details: `domains/stammdaten.md`.
+  *Berührung:* Diese Domäne **ist** der Schreibpfad — die heute prozesslose alltägliche Datenänderung (Abschnitt 3) ist ihr eigentlicher Tagesbetrieb, nicht ein Nebenprodukt der Formularprozesse. Die Sekretariats-Oberfläche mit Vollzugriff auf alle Kind-Daten ist deshalb hoch priorisiert, bleibt aber nachrangig zu den terminlich gebundenen Prozessen unten.
 
 Zeitkritisch, in Reihenfolge des Schuljahres:
 1. **Putzdienst** — Eltern wählen/kaufen sich frei, Verwaltung startet den Prozess und pflegt die Termine, Restzuordnung automatisch. Ziel: Schulanfang September 2026. → erste Fachdomäne (Abschnitt 7).
-2. **Voranmeldung** — Erstkontakt/gebührenpflichtige Anmeldung neuer Familien, mündet ins Anmeldegespräch. Fällig bis Ende Oktober 2026.
-3. **Ferienanmeldung** (Ferienprogramm) — Buchung durch Eltern, auch schulfremde Personen. Fällig ab spätestens Weihnachten 2026.
-4. **Anmeldeprozess + Anmeldegespräch** — vollständiger Aufnahmeprozess, mündet in Neuanlage in ASV-BW. Muss ab Februar 2027 stehen.
+   *Berührung:* liest Familie, eingeschriebene Kinder samt Klassenstufe, die aktuelle Beschäftigung der Erziehungsberechtigten (`employees.employment_end IS NULL`, Befreiung) und die E-Mail aller natürlichen Personen der Familie, die von der Korrespondenz nicht abgewählt sind. Verändert und erzeugt **keine** Stammdaten — die einzige zeitkritische Domäne, die rein lesend ist.
+2. **Voranmeldung** — Erstkontakt/gebührenpflichtige Anmeldung, mündet ins Anmeldegespräch. Nicht nur für neue Familien: der Wechsel von der eigenen Grundschule in die eigene Realschule durchläuft denselben vollständigen Prozess, obwohl das Kind bereits in Stammdaten steht (`domains/stammdaten.md`, „Ausblick"). Für die Grundschule sind dagegen **alle** Bewerber extern — KITA-Kinder werden nicht vorgehalten. Grund- und Realschulformular sind feldgleich bis auf den Anmeldestatus; das Quereinsteigerformular ist das Realschulformular plus Zielklasse und Zielschuljahr. Fällig bis Ende Oktober 2026.
+   *Berührung:* liest bei internen Übergängern die vollständige Kind- und Familienzeile. Verändert nichts. **Erzeugt** bei externen Bewerbern Person, Kind, Familie, Erziehungsberechtigte und Anschrift — offen bleibt, ob schon zur Voranmeldung oder erst zur Aufnahme (`domains/stammdaten.md`, „Ausblick"). Die Anmeldegebühr wird beim Absenden gezahlt, ein Zahler mit Anschrift ist also bereits zur Voranmeldung nötig — ein Argument für die frühe Anlage. Die Warteliste zieht abgelehnt-aber-vorgemerkte Bewerber jedes Jahr eine Klassenstufe weiter und fragt das Interesse erneut ab: ein zweiter, bewerbungsseitiger Jahreslauf neben dem in `domains/stammdaten.md`, mit eigener Löschfrist.
+3. **Ferienanmeldung** (Ferienprogramm, Kochwerkstatt) — Buchung durch Eltern, mehrere Kinder je Formular, gebucht wird je Tag und Betreuungsende (14 oder 16 Uhr), Bezahlung beim Absenden. Kapazität je Tag begrenzt, Anmeldeschluss dynamisch vor Programmbeginn (es muss vorab eingekauft/geplant werden). Erfasst außerdem eine Notfallnummer und, bei schulfremden Kindern, die Anschrift. Stornierungen laufen heute per Mail an den Hort, der seine Excel-Liste von Hand nachzieht. Auch für schulfremde Personen. Fällig ab spätestens Weihnachten 2026.
+   *Berührung:* liest, ob ein Kind eingeschrieben ist (das Formularfeld „Clemens-Kind" ist daraus ableitbar, kein eigenes Feld). Verändert nichts. **Erzeugt** schulfremde Kinder samt anmeldendem Elternteil und Zahler. Zwei Folgen: der Löschfrist-Anker `children.exit_date` bleibt bei diesen Kindern dauerhaft NULL, die Frist muss deshalb an der letzten Buchung hängen (`idea/06-dsgvo-organisatorisch.md`), und die Werbe-Mail-Einwilligung des Formulars gehört hierher, nicht an `persons` — sie gilt nur für die Ferienbetreuung. Die Kochwerkstatt ist auch für Erwachsene offen; ein erwachsener Teilnehmer ist eine `persons`-Zeile ohne Rollenzeile.
+4. **Anmeldeprozess, Anmeldegespräch und Schulvertrag** — vollständiger Aufnahmeprozess: Terminvereinbarung, Bewertung durch Lehrer samt Ranking und Notizen (Realschule zusätzlich mit bewerteten Testblättern), Aufnahme-/Warteliste-/Absageentscheidung, dann je ein persönlicher Link an Mutter und Vater. Bei Quereinsteigern geht dem Gespräch eine Platzprüfung in der Zielklassenstufe voraus. Das Gespräch selbst erhebt **keine** Stammdaten, es gibt nur Informationen heraus. Der Vertragsteil danach: Platzannahme, Stammdatenbestätigung, Vertragsunterschrift (einfache elektronische Signatur), Gesundheitsdaten, Fotoeinverständnis, SEPA-Mandat — **Frist 14 Tage** für die Eltern, danach prüft das Sekretariat auf Vollständigkeit und die Schulleitung gibt frei und zeichnet gegen; erst dann geht die Bestätigungsmail mit dem abgeschlossenen Vertrag raus. Mündet in die Neuanlage in ASV-BW. Läuft für Quereinsteiger ganzjährig. Muss ab Februar 2027 stehen.
+   *Berührung:* die schreibintensivste Domäne. **Verändert** Stammdaten durch Selbstauskunft — jeder Erziehungsberechtigte bestätigt oder korrigiert seine eigenen Daten, die des Kindes bestätigen beide (`domains/stammdaten.md`, „Ausnahme Anmeldeprozess") — und setzt bei Aufnahme `children.entry_date` sowie `class_id` bzw. `provisional_grade_level_id`. **Erzeugt** über das SEPA-Mandat einen `payers`-Datensatz mit IBAN/BIC und ggf. abweichender Rechnungsadresse. Ab 14 Jahren muss beim Fotoeinverständnis zusätzlich das Kind selbst unterschreiben; die private Adresse, an die sein Signaturlink geht, bleibt an der Zustimmungszeile und wandert nicht nach `persons.email` (`domains/stammdaten-schema.sql`). Eigene Entitäten daneben, nicht in Stammdaten: Bewerbung samt Bewertung, Gesundheitsdaten (Domäne 9) und die **signierten Dokumente** — Schulvertrag, Gesundheitsdatenblatt, Fotoeinverständnis und SEPA-Mandat sind vier Artefakte desselben Vorgangs und damit eine Entität, nicht vier Sonderfälle. Das Mandats-PDF zeigt auf `payers.id` und trägt bewusst kein eigenes Unterschriftsdatum (`domains/stammdaten.md`, „Zahlungsverantwortliche"). Braucht getrennte Zustimmungserfassung je Erziehungsberechtigtem samt Zustelladresse (`domains/stammdaten.md`, „Geteilte Mailbox"). Sonderfall Rücktritt oder Kündigung vor dem ersten Schultag: ein Kind mit Vertrag, das nie eingeschrieben war.
 
 Nicht terminlich getrieben, Priorität offen:
-5. **Rechnungsfreigabe** — läuft bereits stabil über Teams-App/SharePoint (Abschnitt 3), daher niedrige Migrationspriorität.
-6. **Mensa-, Hort-, AG-Anmeldung** — bisher nicht als akut/digitalisiert benannt.
-7. **M365-Kontenverwaltung** (Ablösung/Ergänzung von Vis365) — mittelfristiges Ziel (Abschnitt 4), IT-Administration statt klassischer Schulprozess.
-8. **Eltern-Selfservice** (eigene Stammdaten korrigieren, Kommunikationspräferenzen wie Info-Mail-Opt-out) — explizit nachrangig, erst nach Abschluss aller anderen hier gelisteten Domänen. Reduziert langfristig den Korrektur-Aufwand im Sekretariat, da Änderungen nicht mehr über Zuruf/Mail laufen müssen. Baut auf der bereits vorhandenen Selbstauskunft-Mechanik im Anmeldeprozess auf (`domains/stammdaten.md`, „Ausnahme Anmeldeprozess").
+5. **Rechnungsfreigabe** — läuft bereits stabil über Teams-App/SharePoint (Abschnitt 3), daher niedrige Migrationspriorität. Ablauf: Mitarbeiter reichen Rechnung oder Fahrtkosten samt Beleg ein (Sekretariat/Buchhaltung ebenso für reguläre Rechnungen) und wählen die zuständige Führungskraft; die gibt frei, lehnt mit Begründung ab, korrigiert, leitet weiter oder **teilt den Beleg auf mehrere Bereiche auf** — dann muss jede beteiligte Führungskraft ihren Anteil annehmen. Beim Annehmen werden Projektnummer und Buchungskonto vergeben, danach geht der Beleg an die Buchhaltung. Bestehender SPFx-Code: `~/Documents/SPFX/bookingreceiptprocess/`.
+   *Berührung:* liest Mitarbeiter, Vorgesetzte und eine Bereichs-/Vorgesetztenstruktur, die es in Weltenbaum nicht gibt — setzt die `employees`-Tabelle aus dem Ausblick (`domains/stammdaten.md`) plus eine Hierarchie darüber voraus. Verändert und erzeugt keine Stammdaten.
+6. **Mensa- und AG-Anmeldung** — Mensa läuft heute über Excel, AGs sind ein Zukunftsprojekt ohne bekannte Details. Die Essensberechtigung wird bei der Ausgabe auf Papier geprüft — bei den wenigen Kindern heute im Kopf merkbar. Abgerechnet wird vollständig über Optigem; ein späteres Buchungsportal erfasst deshalb keine Zahlung, sondern nur die Erlaubnis, vom hinterlegten SEPA-Mandat abzubuchen.
+   *Berührung:* rein lesend (Kind, Klasse). Verändert und erzeugt keine Stammdaten.
+7. **M365-Kontenverwaltung** (Ablösung/Ergänzung von Vis365) — mittelfristiges Ziel (Abschnitt 4), IT-Administration statt klassischer Schulprozess. Läuft heute Ende Juli vollständig von Hand durch den zweiten Admin; getrennte Domains je Gruppe (Schüler, Schulpersonal, KITA-Personal) im gemeinsamen Tenant mit der KITA. Offboarding hat eine feste Mechanik: automatische Antwort einrichten, Passwort hart zurücksetzen, Konto nach einer Frist vollständig löschen — die Information dazu kommt aus Sekretariat oder Geschäftsführung, und genau da reißt der Faden heute (siehe „Abgang" in Abschnitt 3).
+   *Berührung:* liest Rufname, Name, Klasse, Geburtsdatum und bis zu zwei Erziehungsberechtigte mit Anrede/Name/E-Mail/Mobil — vollständig durch das Schema gedeckt (`domains/stammdaten.md`, „Offene Punkte"). **Verändert** `persons.email` beim Kind (Schulpostfach). Abgänge erkennt sie an `children.exit_date`, das dafür verlässlich gesetzt sein muss.
+8. **Eltern-Selfservice** (eigene Stammdaten korrigieren, Kommunikationspräferenzen) — explizit nachrangig, erst nach Abschluss aller anderen hier gelisteten Domänen. Reduziert langfristig den Korrektur-Aufwand im Sekretariat, da Änderungen nicht mehr über Zuruf/Mail laufen müssen. Baut auf der Selbstauskunft-Mechanik aus Domäne 4 auf.
+   *Berührung:* **verändert** die eigenen Personendaten der angemeldeten Person.
+9. **Gesundheitsdaten** — Allergien, Unverträglichkeiten, chronische Erkrankungen, Medikamentengabe samt Attest, Notfallmedikation, körperliche Einschränkungen, Zeckenentfernung. Besondere Kategorien nach Art. 9 DSGVO, heute in einer Excel-Liste beim Sekretariat. Erhoben wird der Satz im Schulvertrag (Domäne 4), gebraucht wird er aber auch als Sammelaktion mitten im Schuljahr.
+   *Berührung:* **eigene Tabelle mit eigener, engerer DB-Rolle**, verankert an `children.id` — dieselbe Abwägung wie bei `payers.iban`: anderer Zugriffskontext (Betreuung im Notfall statt allgemeines Personenprofil), eigene Atteste, eigener Lebenszyklus. Kein Eingriff in den Stammdaten-Kern; dieser liefert nur den Anker. Braucht die Zustimmung beider Sorgeberechtigter (§1629 BGB), also dieselbe Zustimmungserfassung wie Domäne 4.
+10. **Krankmeldung** — heute Anruf oder Mail ans Sekretariat, kein Formular, in keiner bisherigen Liste. *Berührung:* liest Kind und Klasse, erzeugt Abwesenheitsdaten außerhalb der Stammdaten.
+11. **Bonussystem Elternmitarbeit** — zweite Anlage zum Schulvertrag neben der Putzdienstregelung, speist sich vermutlich aus demselben Stundennachweis (`domains/putzdienst.md`). Noch nicht erhoben, ausdrücklich nicht v1.
+12. **Klassenbildung** — für die neuen Klassen 1 und 5 sammelt die Verwaltung heute in einer Liste, welche Kinder zusammenkommen möchten, dazu Wohnort und Geschlechterverteilung, um ausgewogene Züge zu bilden; Klassenlehrer:in wird dabei mit festgelegt. Einmal jährlich, mündet in `children.class_id`. *Berührung:* liest Stammdaten, **schreibt** die Klassenzuteilung.
+13. **Klassenorganisation** — Elternvertretung und Stellvertretung je Klasse, dazu Klassenlehrer:in und Klassenzimmer, die heute in `classes` keinen Platz haben. *Berührung:* Verknüpfung Person↔Klasse; ob Klassenlehrer:in und Raum ins Stammdaten-Schema wandern, ist offen (`domains/grenzkarte.md`, „Weiße Flecken").
 
-Explizit nicht in dieser Liste: KITA-Alltag, Schulalltag (Noten/Stundenplan) — beide dauerhaft out of scope (Abschnitt 1/4).
+Explizit **nicht** in dieser Liste, jeweils mit Grund:
+
+- **KITA-Alltag** — die KITA-Anmeldung läuft über die Stadt, geteilt werden nur Räume/Ressourcen und der Belegprozess. Dauerhaft draußen (Abschnitt 1/4).
+- **Schulalltag** (Noten, Stundenplan, Wahlpflichtfächer) — Untis deckt das ab. Dauerhaft draußen (Abschnitt 4).
+- **Hort-Alltag** (Anwesenheit, gebuchte Betreuungszeiten je Tag, Mittagessen, Frühdienst) — der Hort führt dafür eigene, sehr umfangreiche Excel-Dateien; sich dort einzuarbeiten lohnt den Aufwand derzeit nicht. Betrifft ausdrücklich **nicht** das Ferienprogramm (Domäne 3, eigene Deadline) und nicht eine mögliche spätere Hortbuchung über dasselbe Portal wie Mensa.
+- **Leihgeräte** (iPad-Liste der Realschule) — extern begleitet, kein eigener Bedarf.
+
+**Entitäten und Zuständigkeiten je Domäne stehen in `domains/grenzkarte.md`** — welche Entität es gibt, wem welche Tatsache gehört, und die fünf Querschnitts-Entitäten (Zustimmung, Dokument/Signatur, Forderung, Mitarbeiter/Bereichsstruktur, Nachzieh-Aufgabe), die in mehreren Domänen vorkommen und deshalb genau einmal gebaut werden. Diese Liste hier bleibt der Scope, die Grenzkarte trägt die Struktur.
+
+**Bekannte Unbekannte:** die Verwaltung führt weitere Excel-Listen, auf die der Betreiber keinen Zugriff hat und deren Bestand niemand vollständig kennt. Die Liste oben ist damit belastbar für alles, was heute über Formulare oder benannte Listen läuft — nicht für alles, was existiert.
 
 ## 7. Erste Fachdomäne
 
@@ -122,6 +189,7 @@ Kritischer Pfad bis dahin:
 *Fachlich:*
 - Stammdaten-Fachdomäne (Familie, Erziehungsberechtigte, Kind, Kontakte) als Grundlage — steht: Schema, DBML-Ansicht, Prüfskript und Benchmark in `domains/`, Fachbeschreibung `domains/stammdaten.md`
 - Putzdienst-eigenes Datenmodell darauf aufbauend: Putztermine, Zyklus-Konfiguration — Details `domains/putzdienst.md`
+- **Nicht** auf dem kritischen Pfad: der Jahreslauf (`domains/stammdaten.md`). Er liegt Ende Juli, der für den ersten Zyklus maßgebliche ist damit schon von Hand in ASV-BW und M365 gelaufen — der Vollimport bringt den fortgeschriebenen Stand also bereits mit. Der Weltenbaum-Job läuft erstmals Ende Juli 2027 und muss bis dahin nicht stehen. Was für September 2026 trotzdem gesetzt sein muss, sind die Einzelfälle daneben (Wiederholer, Quereinsteiger, Zugwechsler) — die entscheidet ohnehin ein Mensch
 - Restplatz-Zuordnung über Google-OR-Tools-Constraint-Solver statt Eigenbau (`domains/putzdienst.md`)
 - Putzdienst-Tabellenschema selbst noch zu entwerfen
 - Zeitgesteuerter Hintergrundjob im Backend für die Erinnerungsmails (täglicher Check, für wen heute eine Erinnerungsstufe fällig ist) — in keinem Pipeline-Dokument benannt (`domains/putzdienst.md`, „Technischer Punkt")

@@ -124,7 +124,7 @@ Der Worst-Case-Export (2 % Gewicht, aber 1000× über realer Datenmenge und ohne
 
 ## Befunde, die der Test selbst hervorgebracht hat
 
-- **Der OTP-Login hängt an einem Index auf `persons.email`**: Ohne ihn ein Parallel Seq Scan über 1,1 Mio. Zeilen — 250–350 ms statt der gemessenen ~1,5 ms. Den Index legt das `UNIQUE` auf der Spalte automatisch an (`domains/stammdaten-schema.sql`); ein separates `CREATE INDEX` wäre redundant. Ein schmaler Query-Mix aus wenigen Beispielabfragen zeigt das nicht — der Befund hängt an der Breite der Suite.
+- **Der OTP-Login hängt an einem Index auf `persons.email`**: Ohne ihn ein Parallel Seq Scan über 1,1 Mio. Zeilen — 250–350 ms statt der gemessenen ~1,5 ms. Der Index steht deshalb als eigenes `CREATE INDEX` im Schema (`domains/stammdaten-schema.sql`) — die Spalte ist bewusst nicht UNIQUE, es legt ihn also kein Constraint nebenbei an. Ein schmaler Query-Mix aus wenigen Beispielabfragen zeigt das nicht — der Befund hängt an der Breite der Suite.
 - **Dockers Standard-`/dev/shm` (64 MB) reicht nicht** für Postgres' parallele Worker unter gleichzeitiger Last — führt zu `could not resize shared memory segment`-Fehlern ab ~20 parallelen Verbindungen. Kein Schema-Problem, sondern eine Docker-Startparameter-Frage. **Für `wb-backend/docker-compose.yml` zu übernehmen:** `shm_size` explizit setzen (in diesem Test mit 1024 MB stabil, kleinere Werte nicht systematisch ausgetestet).
 
 ## Ergebnis

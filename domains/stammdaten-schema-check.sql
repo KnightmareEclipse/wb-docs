@@ -7,12 +7,31 @@
 --   podman cp domains/stammdaten-schema.sql       pg:/tmp/schema.sql
 --   podman cp domains/stammdaten-schema-check.sql pg:/tmp/check.sql
 --   podman exec pg psql -U postgres -v ON_ERROR_STOP=1 -f /tmp/schema.sql
---   podman exec pg psql -U postgres -f /tmp/check.sql
+--   podman exec pg sh -c 'psql -U postgres -f /tmp/check.sql 2>&1'
 --   podman rm -f pg
 --
 -- Erwartet: jede mit „--- erwartet: FEHLER" angekündigte Anweisung scheitert,
 -- jede andere läuft durch. ON_ERROR_STOP hier bewusst NICHT gesetzt, sonst
 -- bricht das Skript beim ersten erwarteten Fehler ab.
+--
+-- Fallstricke beim Auswerten:
+--   * Pro Lauf eine frische Datenbank. Ein zweiter Lauf gegen dieselbe DB
+--     erzeugt Folgefehler, die wie Befunde aussehen.
+--   * stdout und stderr im Container zusammenführen — das `sh -c '… 2>&1'`
+--     oben. Sonst reordert podman die beiden Ströme und die Paarung
+--     Ankündigung/ERROR sieht wie ein Befund aus.
+--   * Sollstand: 56 Ankündigungen zu 56 ERROR-Zeilen. Verankert zählen, und auf
+--     der AUSGABE statt auf dieser Datei — deren Kopfkommentar enthält die
+--     Zeichenkette selbst und verfälscht die Zahl:
+--       grep -cE '^--- erwartet: FEHLER'  gegen  grep -cE '^psql:.*: ERROR:'
+--     Zusätzlich prüfen, dass jeder Ankündigung ein ERROR folgt — unmittelbar,
+--     außer bei den beiden app.actor-Fällen: dort steht erst das BEGIN ihrer
+--     Transaktion dazwischen.
+--   * Jede Berührung dieser Datei oder des Schemas so validieren, auch bei
+--     reinen Kommentaränderungen. Ändern sich Spalten, muss zusätzlich
+--     domains/stammdaten-benchmark/generate.sql mit n_children=500 durchlaufen
+--     und exakt die Zeilenzahlen aus domains/stammdaten-schema-benchmark.md
+--     (Durchlauf 1) liefern, sonst sind die dokumentierten Messwerte hinfällig.
 
 -- ---------------------------------------------------------------------------
 -- Ausgangsdaten
@@ -69,19 +88,40 @@ UPDATE persons SET first_name = 'Anna2' WHERE id = '22222222-2222-2222-2222-2222
 ROLLBACK;
 SET app.actor = 'system:test';
 
+-- Präfixprüfung: die nackte Entra-Object-ID ohne "entra:" ist der Fall, den das
+-- vereinheitlichte Format verhindern soll (Begründung im Schema-Kopfkommentar).
+\echo '--- erwartet: FEHLER (app.actor ohne bekanntes Präfix — nackte Entra-Object-ID)'
+BEGIN;
+SET LOCAL app.actor = '00000000-1111-2222-3333-444444444444';
+UPDATE persons SET first_name = 'Anna3' WHERE id = '22222222-2222-2222-2222-222222222222';
+ROLLBACK;
+SET app.actor = 'system:test';
+
+BEGIN;
+SET LOCAL app.actor = 'entra:00000000-1111-2222-3333-444444444444';
+UPDATE persons SET first_name = 'Anna4' WHERE id = '22222222-2222-2222-2222-222222222222';
+COMMIT;
+SELECT 'app.actor mit entra:-Präfix akzeptiert' AS pruefung, updated_by
+    FROM persons WHERE id = '22222222-2222-2222-2222-222222222222';
+SET app.actor = 'system:test';
+
 -- ---------------------------------------------------------------------------
--- E-Mail ist UNIQUE (citext-Vergleich dabei case-insensitiv) — jede Person
--- braucht eine eigene E-Mail-Adresse, ein OTP-Treffer (idea/04) ist damit immer
--- genau eine Person
+-- E-Mail ist bewusst NICHT UNIQUE: zwei Erziehungsberechtigte dürfen sich eine
+-- Mailbox teilen (Begründung am Feld). Der citext-Vergleich bleibt dabei
+-- case-insensitiv, damit die OTP-Prüfung (idea/04) auch die andere
+-- Schreibweise findet — und dann eben mehrere Personen liefert.
 -- ---------------------------------------------------------------------------
 INSERT INTO persons (id, last_name, email) VALUES
     ('bbbbbbbb-2222-2222-2222-222222222222', 'Beispiel', 'Vorname.Nachname@Beispiel.de');
 SELECT 'citext-Lookup case-insensitiv' AS pruefung, count(*) AS anzahl
     FROM persons WHERE email = 'VORNAME.NACHNAME@BEISPIEL.DE';  -- andere Schreibweise, muss trotzdem finden
 
-\echo '--- erwartet: FEHLER (dieselbe Mailbox, andere Groß-/Kleinschreibung — citext-UNIQUE greift)'
+-- Muss durchlaufen: geteilte Mailbox zweier Erziehungsberechtigter, hier
+-- zusätzlich in abweichender Schreibweise.
 INSERT INTO persons (id, last_name, email) VALUES
     ('cccccccc-2222-2222-2222-222222222222', 'Beispiel2', 'vorname.nachname@beispiel.de');
+SELECT 'geteilte Mailbox: OTP-Treffer liefert mehrere Personen' AS pruefung, count(*) AS anzahl
+    FROM persons WHERE email = 'vorname.nachname@beispiel.de';  -- erwartet: 2
 
 \echo '--- erwartet: FEHLER (Leerstring statt NULL bei E-Mail)'
 INSERT INTO persons (id, last_name, email) VALUES ('dddddddd-2222-2222-2222-222222222222', 'Leer', '');
@@ -239,7 +279,8 @@ FROM children c JOIN classes cl ON cl.id = c.class_id
 WHERE c.id = 'aaaaaaaa-1111-1111-1111-111111111111';
 
 -- ---------------------------------------------------------------------------
--- Telefonnummern: höchstens eine Hauptnummer, genau ein Eigentümer
+-- Telefonnummern: höchstens eine Hauptnummer, genau ein Eigentümer, dieselbe
+-- Nummer nur einmal je Eigentümer
 -- ---------------------------------------------------------------------------
 INSERT INTO phone_numbers (person_id, phone_type_id, number, is_primary) VALUES
     ('22222222-2222-2222-2222-222222222222', 1, '07123 1', true),
@@ -251,6 +292,24 @@ INSERT INTO phone_numbers (person_id, phone_type_id, number, is_primary)
 
 \echo '--- erwartet: FEHLER (Nummer ohne Person und ohne Organisation)'
 INSERT INTO phone_numbers (phone_type_id, number) VALUES (1, '07123 4');
+
+\echo '--- erwartet: FEHLER (dieselbe Nummer nochmals an derselben Person, nur mit anderem Typ)'
+INSERT INTO phone_numbers (person_id, phone_type_id, number)
+    VALUES ('22222222-2222-2222-2222-222222222222', 3, '07123 1');
+
+-- Muss durchlaufen: dieselbe Nummer bei einer ANDEREN Person (Festnetz eines
+-- Haushalts) und bei einer Organisation — die Eindeutigkeit gilt je Eigentümer,
+-- nicht global.
+INSERT INTO phone_numbers (person_id, phone_type_id, number)
+    VALUES ('33333333-3333-3333-3333-333333333333', 1, '07123 1');
+INSERT INTO phone_numbers (organization_id, phone_type_id, number)
+    VALUES ('44444444-4444-4444-4444-444444444444', 1, '07123 1');
+SELECT 'dieselbe Nummer bei anderer Person und bei Organisation akzeptiert' AS pruefung, count(*) AS anzahl
+    FROM phone_numbers WHERE number = '07123 1';  -- erwartet: 3
+
+\echo '--- erwartet: FEHLER (dieselbe Nummer nochmals an derselben Organisation)'
+INSERT INTO phone_numbers (organization_id, phone_type_id, number)
+    VALUES ('44444444-4444-4444-4444-444444444444', 2, '07123 1');
 
 -- ---------------------------------------------------------------------------
 -- Erziehungsberechtigte: Person ODER Organisation, nie beides
@@ -271,12 +330,57 @@ UPDATE guardians SET occupation = 'Sachbearbeiter' WHERE id = '66666666-6666-666
 \echo '--- erwartet: FEHLER (Konfession an einer Organisation)'
 UPDATE guardians SET denomination_id = 1 WHERE id = '66666666-6666-6666-6666-666666666666';
 
-\echo '--- erwartet: FEHLER (Mitarbeiter-Kennzeichen an einer Organisation)'
-UPDATE guardians SET is_employee = true WHERE id = '66666666-6666-6666-6666-666666666666';
+-- ---------------------------------------------------------------------------
+-- Mitarbeiter: Rolle auf persons, eigene Dienstadresse (UNIQUE, anders als
+-- persons.email), Beschäftigungszeitraum trägt die Putzdienst-Befreiung
+-- ---------------------------------------------------------------------------
+INSERT INTO persons (id, last_name) VALUES ('7e7e7e7e-1111-1111-1111-111111111111', 'Lehrkraft');
+INSERT INTO employees (id, work_email, entra_object_id, employment_start)
+    VALUES ('7e7e7e7e-1111-1111-1111-111111111111', 'a.lehrkraft@clemens.schule',
+            '00000000-aaaa-bbbb-cccc-000000000001', '2020-09-01');
+SELECT 'Mitarbeiter angelegt, private und dienstliche Adresse getrennt' AS pruefung,
+       (SELECT email FROM persons WHERE id = '7e7e7e7e-1111-1111-1111-111111111111') AS privat,
+       (SELECT work_email FROM employees WHERE id = '7e7e7e7e-1111-1111-1111-111111111111') AS dienstlich;
+
+INSERT INTO persons (id, last_name) VALUES ('7e7e7e7e-2222-2222-2222-222222222222', 'Zweitkraft');
+
+\echo '--- erwartet: FEHLER (Dienstadresse doppelt vergeben, hier in abweichender Schreibweise)'
+INSERT INTO employees (id, work_email) VALUES ('7e7e7e7e-2222-2222-2222-222222222222', 'A.Lehrkraft@Clemens.Schule');
+
+\echo '--- erwartet: FEHLER (Dienstadresse ohne Struktur)'
+INSERT INTO employees (id, work_email) VALUES ('7e7e7e7e-2222-2222-2222-222222222222', 'kein Postfach');
+
+\echo '--- erwartet: FEHLER (Austritt vor Eintritt)'
+UPDATE employees SET employment_end = '2019-01-01' WHERE id = '7e7e7e7e-1111-1111-1111-111111111111';
+
+\echo '--- erwartet: FEHLER (Mitarbeiter ohne Personenzeile)'
+INSERT INTO employees (id) VALUES ('7e7e7e7e-9999-9999-9999-999999999999');
+
+-- Klassenlehrer:in an der Kohorte
+UPDATE classes SET class_teacher_id = '7e7e7e7e-1111-1111-1111-111111111111', room = 'A 1.02' WHERE id = 50;
+SELECT 'Klassenlehrer:in und Raum an der Kohorte gesetzt' AS pruefung, class_teacher_id, room
+    FROM classes WHERE id = 50;
+
+\echo '--- erwartet: FEHLER (Löschung einer Person, die noch Klassenlehrer:in ist)'
+DELETE FROM persons WHERE id = '7e7e7e7e-1111-1111-1111-111111111111';
 
 -- family_guardians.contact_person nur bei Organisation als Guardian (per Trigger,
 -- kein CHECK möglich — Organisations-Status steht auf guardians, nicht hier)
 INSERT INTO families (id) VALUES ('99999999-1111-1111-1111-111111111111');
+
+-- Anmeldedatum: angemeldet wird vor dem Eintritt, nie danach
+UPDATE children SET registration_date = '2024-11-15', entry_date = '2025-09-01'
+    WHERE id = '22222222-2222-2222-2222-222222222222';
+SELECT 'Anmeldung/Eintritt/Austritt am Kind' AS pruefung, registration_date, entry_date, exit_date
+    FROM children WHERE id = '22222222-2222-2222-2222-222222222222';
+
+\echo '--- erwartet: FEHLER (Eintritt vor dem Anmeldedatum — vertauschte Importspalten)'
+UPDATE children SET registration_date = '2025-10-01'
+    WHERE id = '22222222-2222-2222-2222-222222222222';
+
+-- family_guardians: „In Briefe miteinbeziehen" ist per Default gesetzt
+SELECT 'include_in_correspondence per Default true' AS pruefung, include_in_correspondence
+    FROM family_guardians LIMIT 1;
 
 \echo '--- erwartet: FEHLER (Sachbearbeiter-Notiz bei natürlicher Person als Guardian)'
 INSERT INTO family_guardians (family_id, guardian_id, contact_person) VALUES
@@ -352,6 +456,37 @@ UPDATE payers SET iban = 'NO938601111' WHERE id = '88888888-8888-8888-8888-88888
 \echo '--- erwartet: FEHLER (BIC mit 9 Stellen — erlaubt sind nur 8 oder 11)'
 UPDATE payers SET bic = 'DEUTDEFF5' WHERE id = '88888888-8888-8888-8888-888888888888';
 
+-- SEPA-Mandat: Referenz und Unterschriftsdatum nur gemeinsam, nie ohne IBAN,
+-- Referenz je Gläubiger-ID eindeutig (Begründung am Feld).
+UPDATE payers SET mandate_reference = 'WB-2026-0001', mandate_signed_at = '2026-03-01'
+    WHERE id = '88888888-8888-8888-8888-888888888888';
+SELECT 'SEPA-Mandat: Referenz + Datum auf Zahler mit IBAN akzeptiert' AS pruefung;
+
+\echo '--- erwartet: FEHLER (Mandatsreferenz ohne Unterschriftsdatum)'
+UPDATE payers SET mandate_reference = 'WB-2026-0002', mandate_signed_at = NULL
+    WHERE id = '88888888-8888-8888-8888-888888888888';
+
+\echo '--- erwartet: FEHLER (Unterschriftsdatum ohne Mandatsreferenz)'
+UPDATE payers SET mandate_reference = NULL, mandate_signed_at = '2026-03-01'
+    WHERE id = '88888888-8888-8888-8888-888888888888';
+
+\echo '--- erwartet: FEHLER (leere Mandatsreferenz statt NULL)'
+UPDATE payers SET mandate_reference = '', mandate_signed_at = '2026-03-01'
+    WHERE id = '88888888-8888-8888-8888-888888888888';
+
+\echo '--- erwartet: FEHLER (Mandat auf einem Zahler ohne IBAN)'
+UPDATE payers SET mandate_reference = 'WB-2026-0003', mandate_signed_at = '2026-03-01'
+    WHERE id = '99999999-9999-9999-9999-999999999999';
+
+\echo '--- erwartet: FEHLER (Mandatsreferenz doppelt vergeben)'
+UPDATE payers SET iban = 'DE89370400440532013000', mandate_reference = 'WB-2026-0001', mandate_signed_at = '2026-04-01'
+    WHERE id = '99999999-9999-9999-9999-999999999999';
+
+-- Umgekehrt erlaubt: IBAN ohne Mandat (Import aus Optigem, Erfassung vor
+-- Vertragsabschluss).
+UPDATE payers SET iban = 'DE89370400440532013000' WHERE id = '99999999-9999-9999-9999-999999999999';
+SELECT 'IBAN ohne Mandat akzeptiert' AS pruefung;
+
 INSERT INTO child_payers (child_id, payer_id, is_primary) VALUES
     ('22222222-2222-2222-2222-222222222222', '88888888-8888-8888-8888-888888888888', true),
     ('22222222-2222-2222-2222-222222222222', '99999999-9999-9999-9999-999999999999', false);
@@ -381,5 +516,9 @@ DELETE FROM persons WHERE id = '33333333-3333-3333-3333-333333333333';
 -- Telefonnummern hängen daran und verschwinden mit.
 DELETE FROM persons WHERE id = '22222222-2222-2222-2222-222222222222';
 SELECT 'nach Löschung der Kind-Person' AS pruefung,
-       (SELECT count(*) FROM children)      AS kinder,
-       (SELECT count(*) FROM phone_numbers) AS telefonnummern;
+       (SELECT count(*) FROM children) AS kinder,
+       -- bewusst auf diese Person eingegrenzt: Nummern anderer Eigentümer
+       -- bleiben erwartungsgemäß stehen (Prüffall „dieselbe Nummer bei anderer
+       -- Person" oben), eine Gesamtzahl verwischte hier die Aussage
+       (SELECT count(*) FROM phone_numbers
+          WHERE person_id = '22222222-2222-2222-2222-222222222222') AS telefonnummern_des_kindes;

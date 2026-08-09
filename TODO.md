@@ -1,6 +1,6 @@
 # TODO — Organisatorische Vorbereitungen
 
-Aufgaben, die reale Konten/Zugänge brauchen und die reine Konzept-Doku (`idea/`, `pipeline/`) nicht abdeckt — sortiert nach Dringlichkeit.
+Aufgaben, die reale Konten/Zugänge brauchen und die reine Konzept-Doku (`idea/`, `pipeline/`) nicht abdeckt — sortiert nach Dringlichkeit. Fachliche/technische Punkte, die eine Entwicklungs-Session selbst abarbeiten kann, stehen in `TODO-SESSIONS.md`.
 
 ## Bis Schulanfang September 2026 (Putzdienst als erste Fachdomäne, `fachdomaenen.md` Abschnitt 7)
 

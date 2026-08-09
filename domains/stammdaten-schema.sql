@@ -39,11 +39,16 @@
 -- veränderlichem Inhalt (idea/03) — dazu zählen classes/grade_levels (Jahreslauf
 -- bzw. Regeländerung über die Verwaltungsoberfläche sind ebenfalls Änderungen),
 -- nicht aber die übrigen, nur per Bezeichnung änderbaren Lookup-Tabellen.
--- Format von created_by/updated_by:
---   "<oid>"            — Entra-ID Object-ID des internen Nutzers (stabil, überlebt
+-- Format von created_by/updated_by — durchgängig mit Präfix, damit alle drei
+-- Formen greppbar und maschinell unterscheidbar sind:
+--   "entra:<oid>"      — Entra-ID Object-ID des internen Nutzers (stabil, überlebt
 --                        Namens-/Mailwechsel, anders als UPN)
 --   "guardian:<uuid>"  — Erziehungsberechtigte über den OTP-Pfad (idea/04)
 --   "system:<job>"     — automatische Läufe (z. B. "system:import", "system:rollover")
+-- Der Trigger prüft das Präfix, bewusst nicht die Nutzlast: der reale Fehlermodus
+-- ist ein vertippter oder ganz fehlender Präfix, nicht eine kaputte UUID. Ein
+-- solcher Wert landet sonst in zehntausenden Zeilen und lässt sich hinterher
+-- nicht mehr von einem echten unterscheiden.
 -- Alle vier Spalten werden per Trigger gefüllt (ganz unten), nicht von der
 -- Anwendung — kein Schreibpfad kann sie vergessen. created_by/updated_by sind
 -- zusätzlich NOT NULL: der Trigger ist der Regelweg, NOT NULL der Schema-Backstop,
@@ -239,19 +244,23 @@ CREATE TABLE grade_levels (
 -- Bedingung über mehrere Zeilen hinweg und damit ein weiterer Trigger.
 CREATE UNIQUE INDEX ON grade_levels (school_branch_id) WHERE is_final_grade;
 
--- Klasse als Kohorte ("RS25a"), nicht als Klassenstufen-Slot: die Zeile gehört
--- zur Gruppe Kinder, die gemeinsam eingeschult wurde (Zweig + Eintrittsjahr +
--- Zug), nicht zu einer festen Klassenstufe. Der Zug (a/b) bleibt über die
--- gesamte Schulzeit stabil, auch wenn einzelne Kinder wechseln/dazukommen/
--- abgehen (domains/stammdaten.md) — deshalb trägt die Zeile selbst die
--- Kohorten-Identität (school_branch_id, entry_year, stream). grade_level_id
+-- Klasse als Kohorte ("RS25a"), nicht als Klassenstufen-Slot: die Zeile ist ein
+-- Zug eines Jahrgangs innerhalb eines Zweigs (Zweig + Eintrittsjahr + Zug),
+-- nicht eine feste Klassenstufe. Stabil ist dabei die ZEILE, nicht ihre
+-- Besetzung — Quereinsteiger kommen dazu, Abgänger fallen weg, Wiederholer
+-- wechseln auf die Kohorte der zu wiederholenden Stufe (domains/stammdaten.md,
+-- „Schuljahreswechsel"). Deshalb trägt die Zeile selbst die Kohorten-Identität
+-- (school_branch_id, entry_year, stream) und nicht die Menge ihrer Kinder. grade_level_id
 -- ist die AKTUELLE Klassenstufe und wird beim jährlichen Jahreslauf auf
 -- derselben Zeile fortgeschrieben, ohne die Kinder auf eine andere Klassenzeile
 -- umzuhängen. Diese Kennung ist an der Schule bereits im Gebrauch, u. a. für
 -- die digitale Schülerakte — Ordnerstruktur/Ablage bleiben über die gesamte
 -- Schulzeit einer Kohorte stabil.
 --
--- entry_year: Kalenderjahr, in dem das Schuljahr der Kohorte beginnt, vierstellig
+-- entry_year: Startjahr der Kohorte im jeweiligen Zweig, nicht der Eintritt des
+-- einzelnen Kindes — der steht als children.entry_date am Kind und weicht bei
+-- Quereinsteigern ab.
+-- Kalenderjahr, in dem das Schuljahr der Kohorte beginnt, vierstellig
 -- (z. B. 2025 für Schuljahr 25/26) — konsistent mit date_of_birth/entry_date,
 -- keine Y2K-artige Mehrdeutigkeit. Die zweistellige Kurzform in „RS25a" ist reine
 -- Anzeigeberechnung (entry_year % 100), kein eigener Speicherwert.
@@ -287,6 +296,42 @@ CREATE TABLE classes (
     -- begründet an persons.last_name — ein leerer Zug macht die Kohorten-Kennung
     -- "RS25" mehrdeutig.
     stream           text NOT NULL CHECK (stream <> ''),
+    -- Kohorte ist durch — oder ein Zug wurde aufgelöst (zu wenige Kinder, in den
+    -- Parallelzug zusammengelegt). Die Zeile bleibt für die Akte stehen, zählt
+    -- aber nirgends mehr als Klasse mit: Klassenlisten, Auswahlfelder,
+    -- M365-Verteiler und die Putzdienst-Pflichtermittlung
+    -- (domains/putzdienst.md) lesen ausschließlich aktive Klassen. Der
+    -- Jahreslauf setzt das Kennzeichen, wenn eine Kohorte über die
+    -- Abschluss-Klassenstufe hinaus ist; grade_level_id bleibt dabei auf der
+    -- letzten Stufe stehen, eine nächste gibt es nicht.
+    --
+    -- Bewusst gespeichert statt abgeleitet, obwohl „hat noch Kinder ohne
+    -- exit_date" nahe liegt (rules.md Abschnitt 1): die Klassenzeile eines neuen
+    -- Jahrgangs existiert vor ihren Kindern — genau dafür gibt es
+    -- children.provisional_grade_level_id — und wäre nach dieser Ableitung
+    -- fälschlich inaktiv. Umgekehrt hinge „aktiv" sonst daran, dass der
+    -- Jahreslauf bei jedem einzelnen Kind das Abgangsdatum gesetzt hat; das
+    -- Kennzeichen an der Kohorte ist die davon unabhängige zweite Aussage.
+    -- Dass eine inaktive Klasse keine Kinder ohne exit_date mehr hat, sichert
+    -- der Jahreslauf — schemaseitig wäre das eine Bedingung über mehrere Zeilen
+    -- hinweg und damit ein weiterer Trigger, gleiche Abwägung wie bei
+    -- phone_numbers.is_primary.
+    --
+    -- Ja/Nein-Merkmal, keine Auswahl aus benannten Alternativen: Boolean statt
+    -- Lookup (rules.md Abschnitt 3). Und bewusst kein „Ehemalige" als weitere
+    -- grade_levels-Zeile, auf die der Jahreslauf sonderfallfrei weiterschalten
+    -- könnte — das ist keine Klassenstufe und wäre über
+    -- children.provisional_grade_level_id einem Kind zuweisbar.
+    -- Kein Index: die Tabelle hat die Größenordnung Dutzende Zeilen, der Planer
+    -- liest sie ohnehin am Stück (domains/stammdaten-schema-benchmark.md).
+    is_active        boolean NOT NULL DEFAULT true,
+    -- Klassenlehrer:in und Klassenzimmer stehen beide auf der real geführten
+    -- Klassenliste des Sekretariats. Der Fremdschlüssel auf employees wird
+    -- weiter unten per ALTER TABLE nachgezogen (Reihenfolge, siehe dort).
+    -- Raum als Freitext statt Lookup (rules.md Abschnitt 3): niemand wertet
+    -- über Räume hinweg aus, und eine Raumverwaltung gibt es nicht.
+    class_teacher_id uuid,
+    room             text,
     -- Audit-Spalten hier wie bei grade_levels bewusst vorhanden, anders als bei
     -- den übrigen Lookup-Tabellen: grade_level_id wird vom Jahreslauf jährlich
     -- fortgeschrieben (Tabellenkommentar oben) — ohne created_by/updated_by
@@ -300,7 +345,8 @@ CREATE TABLE classes (
     CHECK (entry_year BETWEEN 2000 AND 2100)
 );
 
--- Abgebende Schule (Realschul-Voranmeldeformular, siehe children.previous_school_id).
+-- Abgebende Schule (steht auf beiden Voranmeldeformularen, siehe
+-- children.previous_school_id).
 -- Lookup statt Freitext, weil dieselbe Grundschule sonst in drei Schreibweisen
 -- in der Datenbank steht; wächst über die Verwaltungsoberfläche.
 CREATE TABLE previous_schools (
@@ -376,25 +422,40 @@ CREATE TABLE persons (
     last_name         text NOT NULL CHECK (last_name <> ''),
     gender_id         integer REFERENCES genders(id) ON DELETE RESTRICT,
     address_id        uuid REFERENCES addresses(id) ON DELETE RESTRICT,
-    -- E-Mail der Person, eindeutig (UNIQUE). Bei Erziehungsberechtigten
-    -- zugleich die Identität für den OTP-Login (idea/04) — UNIQUE stellt damit
-    -- sicher, dass ein Treffer bei der OTP-Prüfung immer genau eine Person
-    -- ergibt, nie eine Mehrdeutigkeit zwischen mehreren Personen. Jede Person
-    -- braucht deshalb eine eigene E-Mail-Adresse, auch wenn zwei
-    -- Erziehungsberechtigte bislang eine Mailbox geteilt haben — betrifft nur
-    -- die Mailbox, die Anschrift (address_id oben) teilen sich
-    -- Familienmitglieder weiterhin bewusst. E-Mail-basierte Authentifizierung
-    -- beweist trotzdem weiterhin nur Postfach-Zugriff, nie zwingend die
-    -- dahinterstehende Einzelperson — Prozesse mit echtem Einzelzustimmungs-
-    -- bedarf (z. B. Schulvertrag, wo beide Erziehungsberechtigte separat
-    -- zustimmen müssen) brauchen deshalb weiterhin eine eigene, explizite
-    -- Zustimmungserfassung je Erziehungsberechtigtem (Anmeldeprozess-
-    -- Fachdomäne) statt sich auf die Login-Identität zu verlassen. Beim Kind
-    -- bleibt die Mail beim Import leer; befüllt wird sie erst durch die
-    -- spätere M365-Kontenverwaltung (Schulpostfach, fachdomaenen.md
-    -- Abschnitt 6) — ein Login-Ziel wird das Kind dadurch nicht, Weltenbaum
-    -- kennt für Schüler keinen Zugangsweg.
-    email             citext UNIQUE,
+    -- E-Mail der Person. Bei Erziehungsberechtigten zugleich die Identität für
+    -- den OTP-Login (idea/04) — und bewusst NICHT UNIQUE: an der Schule teilen
+    -- sich real 1–2 Elternpaare je Klasse eine Mailbox, und die Voranmeldung
+    -- erzeugt den Fall aktiv (die Mutter trägt ihre Adresse für beide ein). Ein
+    -- UNIQUE löste ihn nicht auf, sondern versteckte ihn: der zweite Insert
+    -- bricht, und statt eines zweiten Postfachs entsteht erfahrungsgemäß eine
+    -- erfundene Adresse, die niemand liest — beide Codes landen weiterhin in
+    -- derselben Mailbox, aber die Datenbank sieht sauber aus. Ohne UNIQUE bleibt
+    -- der Zustand abfragbar (zwei Personen derselben Familie mit gleicher
+    -- email), und das Sekretariat weiß vor einem Prozess mit Doppelzustimmung,
+    -- wo es auf Papier nachfassen muss.
+    --
+    -- Folge für den OTP-Pfad: ein Treffer kann mehrere Personen ergeben; der
+    -- Check liefert dann die Vereinigung ihrer Familien, und die Oberfläche
+    -- fragt nach Code-Eingabe, als wer die Sitzung läuft — Bedienführung, keine
+    -- Sicherheitsgrenze (idea/04). E-Mail-Authentifizierung beweist ohnehin nur
+    -- Postfach-Zugriff, nie die dahinterstehende Einzelperson. Prozesse mit
+    -- echtem Einzelzustimmungsbedarf (z. B. Schulvertrag, wo beide
+    -- Erziehungsberechtigte separat zustimmen müssen) brauchen deshalb eine
+    -- eigene, explizite Zustimmungserfassung je Erziehungsberechtigtem samt
+    -- Zustelladresse (Anmeldeprozess-Fachdomäne) statt sich auf die
+    -- Login-Identität zu verlassen — mit festgehaltener Zustelladresse ist
+    -- hinterher auswertbar, ob zwei Zustimmungen über dasselbe Postfach kamen.
+    --
+    -- Beim Kind bleibt die Mail beim Import leer; befüllt wird sie erst durch
+    -- die spätere M365-Kontenverwaltung (Schulpostfach, fachdomaenen.md
+    -- Abschnitt 6). Die private Adresse, an die das Fotoeinverständnis ab
+    -- 14 Jahren den Signaturlink schickt, gehört NICHT hierher, sondern als
+    -- Zustelladresse an die Zustimmungszeile selbst (Anmeldeprozess-
+    -- Fachdomäne): sie belegt, wohin dieser eine Vorgang ging, und wird von der
+    -- späteren Schulmail überschrieben statt ergänzt. Ein Login-Ziel wird das
+    -- Kind so oder so nicht — die OTP-Eintrittsbedingung verlangt zusätzlich
+    -- mindestens eine family_guardians-Zeile (idea/04).
+    email             citext,
     created_at        timestamptz NOT NULL DEFAULT now(),
     created_by        text NOT NULL,
     updated_at        timestamptz NOT NULL DEFAULT now(),
@@ -405,14 +466,16 @@ CREATE TABLE persons (
     -- eigentliche Prüfung ist ohnehin, ob der OTP-Code ankommt (idea/04). Der
     -- CHECK fängt die realen Import-Artefakte: Leerstring, "unbekannt", "kein",
     -- ein versehentlich mitkopierter Anzeigename. Leerstring statt NULL ist
-    -- dabei der häufigste (CSV/Excel) und mit dem UNIQUE oben besonders
-    -- schädlich: die zweite Person mit Leerstring-Mail verletzte sonst bereits
-    -- den UNIQUE-Constraint.
+    -- dabei der häufigste (CSV/Excel) und ohne das UNIQUE von früher der
+    -- gefährlichste: mehrere Personen mit Leerstring-Mail liefen sonst
+    -- widerspruchsfrei ein und stünden in derselben Trefferliste wie eine echte
+    -- Adresse.
     CHECK (email ~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$')
 );
 CREATE INDEX ON persons (address_id);
--- UNIQUE oben legt den Index für den OTP-Login (idea/04) automatisch an,
--- kein separates CREATE INDEX nötig.
+-- Der OTP-Login (idea/04) schlägt über die E-Mail nach. Ohne UNIQUE legt kein
+-- Constraint diesen Index mehr an, er muss deshalb explizit stehen.
+CREATE INDEX ON persons (email);
 -- Ein normaler B-Tree kann unter einer echten (nicht-C-)Collation kein
 -- `LIKE 'Müll%'` beschleunigen, nur Gleichheit — für die Namenssuche der
 -- Verwaltungsoberfläche (Präfix, case-insensitiv) nötig: text_pattern_ops auf
@@ -477,10 +540,21 @@ CREATE TABLE phone_numbers (
     created_by      text NOT NULL,
     updated_at      timestamptz NOT NULL DEFAULT now(),
     updated_by      text NOT NULL,
-    CHECK ((person_id IS NULL) <> (organization_id IS NULL))
+    CHECK ((person_id IS NULL) <> (organization_id IS NULL)),
+    -- Dieselbe Nummer steht real zweimal an derselben Person, einmal als
+    -- "Mobil" und einmal als "Arbeit" — der Typ ist aber eine Eigenschaft der
+    -- Nummer, nicht ihre Identität. Zwei Zeilen dafür wären ein zweiter Ort für
+    -- denselben Sachverhalt (rules.md Abschnitt 1), und is_primary säße dann
+    -- womöglich auf der falschen. Deckt nebenbei den doppelten Importlauf ab.
+    -- Ohne WHERE-Klausel ausreichend: Postgres wertet NULLs in einem UNIQUE als
+    -- verschieden, die jeweils leere Hälfte der Entweder-oder-Modellierung
+    -- kollidiert also nicht mit sich selbst.
+    -- Diese beiden Indizes tragen zugleich den Zugriff über person_id bzw.
+    -- organization_id allein (B-Tree-Präfix) — ein zusätzlicher einspaltiger
+    -- Index daneben wäre redundant.
+    UNIQUE (person_id, number),
+    UNIQUE (organization_id, number)
 );
-CREATE INDEX ON phone_numbers (person_id);
-CREATE INDEX ON phone_numbers (organization_id);
 -- Höchstens eine Hauptnummer je Person bzw. je Organisation.
 CREATE UNIQUE INDEX ON phone_numbers (person_id)       WHERE is_primary AND person_id IS NOT NULL;
 CREATE UNIQUE INDEX ON phone_numbers (organization_id) WHERE is_primary AND organization_id IS NOT NULL;
@@ -559,9 +633,31 @@ CREATE TABLE children (
     congregation       text,               -- Kirchengemeinde, Freitext
     provisional_grade_level_id integer REFERENCES grade_levels(id) ON DELETE RESTRICT,  -- NUR gültig, solange class_id NULL ist (CHECK unten) — danach gilt classes.grade_level_id
     class_id           integer REFERENCES classes(id) ON DELETE RESTRICT,  -- Klasse; NULL solange nicht zugeteilt oder nicht eingeschult
-    entry_date         date,               -- Eintrittsdatum: Grundlage der Quereinsteiger-Proration (domains/putzdienst.md)
-    exit_date          date,               -- Abgangsdatum: Löschfrist-Anker (idea/06-dsgvo-organisatorisch.md)
-    previous_school_id integer REFERENCES previous_schools(id) ON DELETE RESTRICT,  -- abgebende Schule (Realschul-Voranmeldung)
+    -- Eintritt in die SCHULE, nicht in den Zweig — Grundlage der
+    -- Quereinsteiger-Proration (domains/putzdienst.md). Bleibt beim internen
+    -- Wechsel Grundschule → Realschule unverändert, ebenso wie exit_date dabei
+    -- leer bleibt: ein Abgangsdatum startete dort die Löschfrist
+    -- (idea/06-dsgvo-organisatorisch.md) für ein Kind, das weiter an der Schule
+    -- ist, und nähme seiner Familie die Putzdienst-Pflicht. Der Wechsel ist genau
+    -- ein UPDATE auf class_id. „Seit wann im Zweig" braucht keine eigene Spalte,
+    -- das ist classes.entry_year der neuen Kohorte.
+    -- Anmeldedatum: der Tag, an dem die Anmeldung einging. Zusammen mit
+    -- entry_date und exit_date das Trio, das den Verlauf des Kindes an der
+    -- Schule beschreibt. Bewusst hier und nicht nur an der Bewerbung
+    -- (Anmeldeprozess-Fachdomäne): die Bewerbung hat eine kürzere Löschfrist,
+    -- nach deren Ablauf das Datum sonst verloren wäre.
+    registration_date  date,
+    entry_date         date,
+    -- Abgangsdatum: Löschfrist-Anker (idea/06-dsgvo-organisatorisch.md). class_id
+    -- bleibt beim Abgang stehen und wird NICHT geleert — die Kohorten-Kennung ist
+    -- der Ablageort der digitalen Schülerakte (Tabellenkommentar an classes), und
+    -- es gibt keine zweite Stelle, die festhält, in welcher Kohorte das Kind war.
+    -- Gilt gleichermaßen für den regulären Abgang nach der Abschlussklasse und
+    -- den Schulwechsel mitten im Jahr: bewusst kein Abgangsgrund daneben, kein
+    -- benannter Prozess unterscheidet die beiden (domains/stammdaten.md,
+    -- „Geprüft, bewusst nicht übernommen").
+    exit_date          date,
+    previous_school_id integer REFERENCES previous_schools(id) ON DELETE RESTRICT,  -- abgebende Schule; steht auf dem Grundschul- wie dem Realschul-Voranmeldeformular
     previous_school_consent_at timestamptz,  -- Einwilligung zur Auskunftseinholung dort; NULL = keine Einwilligung. Zeitpunkt statt Boolean wegen Nachweispflicht (Art. 7 Abs. 1 DSGVO)
     created_at         timestamptz NOT NULL DEFAULT now(),
     created_by         text NOT NULL,
@@ -575,6 +671,9 @@ CREATE TABLE children (
     -- Staatsangehörigkeit ab.
     CHECK (second_nationality_id IS NULL OR second_nationality_id <> nationality_id),
     CHECK (exit_date IS NULL OR entry_date IS NULL OR exit_date >= entry_date),
+    -- Angemeldet wird vor dem Eintritt, nie danach. Fängt vertauschte Spalten
+    -- beim Import — die beiden Daten liegen dort nebeneinander.
+    CHECK (entry_date IS NULL OR registration_date IS NULL OR entry_date >= registration_date),
     CHECK (previous_school_consent_at IS NULL OR previous_school_id IS NOT NULL),
     CHECK (class_id IS NULL OR provisional_grade_level_id IS NULL)
 );
@@ -610,7 +709,11 @@ CREATE TABLE guardians (
     -- Prozess wertet nach Beruf aus, eine gepflegte Berufsliste wäre
     -- Pflegeaufwand ohne Nutzen (rules.md Abschnitt 3).
     occupation      text,
-    is_employee     boolean NOT NULL DEFAULT false,  -- Putzdienst-Befreiung (domains/putzdienst.md), nur bei natürlicher Person
+    -- Bewusst KEIN is_employee-Flag: die Mitarbeiter-Eigenschaft steht an
+    -- employees (unten) und ist von dort ableitbar — ein Flag daneben wäre ein
+    -- zweiter Ort für dieselbe Tatsache (rules.md Abschnitt 1) und träfe zudem
+    -- die falsche Aussage: die Putzdienst-Befreiung (domains/putzdienst.md)
+    -- hängt daran, ob jemand AKTUELL beschäftigt ist, nicht ob er es einmal war.
     -- Konfession/Kirchengemeinde: Art.-9-DSGVO-Daten, Voranmeldeformular, nur
     -- bei natürlicher Person — Begründung und GRANT-Hinweis an children.denomination_id.
     denomination_id integer REFERENCES denominations(id) ON DELETE RESTRICT,
@@ -620,8 +723,67 @@ CREATE TABLE guardians (
     updated_at      timestamptz NOT NULL DEFAULT now(),
     updated_by      text NOT NULL,
     CHECK ((person_id IS NULL) <> (organization_id IS NULL)),
-    CHECK (person_id IS NOT NULL OR (occupation IS NULL AND is_employee = false AND denomination_id IS NULL AND congregation IS NULL))
+    CHECK (person_id IS NOT NULL OR (occupation IS NULL AND denomination_id IS NULL AND congregation IS NULL))
 );
+
+-- ---------------------------------------------------------------------------
+-- Mitarbeiter
+-- ---------------------------------------------------------------------------
+
+-- Mitarbeiter: IST eine Person (immer natürlich) — deshalb teilt sich
+-- employees.id direkt mit persons.id, wie bei children und contacts.
+--
+-- Steht schon jetzt und nicht erst mit der M365-Kontenverwaltung, obwohl die
+-- Domäne noch nicht gebaut ist (fachdomaenen.md Abschnitt 6). Drei Gründe:
+--   * Die Putzdienst-Befreiung (domains/putzdienst.md) hängt an „ist aktuell
+--     Mitarbeiter" — ein statisches Flag an guardians träfe die Aussage nicht
+--     und müsste später auf Live-Daten migriert werden.
+--   * Die Gesundheitsdaten-Fachdomäne gibt nur Sekretariat, Klassenlehrer:in
+--     und Hort Zugriff (domains/grenzkarte.md). „Klassenlehrer:in dieses
+--     Kindes" ist ohne diese Tabelle und classes.class_teacher_id unten nicht
+--     ausdrückbar.
+--   * Der Vollimport kommt komplett auf einmal (fachdomaenen.md Abschnitt 6) —
+--     was danach fehlt, wird zur Migration auf echten Daten.
+--
+-- Bewusst NOCH NICHT enthalten: Bereichs-/Vorgesetztenstruktur. Die braucht
+-- erst die Rechnungsfreigabe (fachdomaenen.md Abschnitt 6, niedrige Priorität),
+-- und wie tief sie geschnitten ist, ist unbekannt — sie zu raten wäre teurer
+-- als sie später zu ergänzen (rules.md Abschnitt 1).
+CREATE TABLE employees (
+    id               uuid PRIMARY KEY REFERENCES persons(id) ON DELETE CASCADE,
+    -- Dienstadresse, getrennt von persons.email. Letztere ist die private
+    -- Adresse und zugleich die OTP-Identität (idea/04) — ein Mitarbeiter, der
+    -- zugleich Elternteil ist, verlöre sonst beim Offboarding seinen
+    -- Elternzugang, obwohl er Elternteil bleibt. Anders als persons.email hier
+    -- UNIQUE: die Schule vergibt diese Postfächer selbst, geteilte gibt es
+    -- nicht. Struktur-CHECK identisch zu persons.email und dort begründet.
+    work_email       citext UNIQUE,
+    -- Entra-ID Object-ID. Verbindet den Audit-Verursacher „entra:<oid>"
+    -- (Kopfkommentar) mit einer Person und trägt die Zugriffsentscheidung der
+    -- API: welche:r angemeldete Mitarbeiter:in ist Klassenlehrer:in welcher
+    -- Klasse. Ohne sie ist beides nur über einen Graph-Abruf je Anfrage lösbar.
+    entra_object_id  text UNIQUE CHECK (entra_object_id <> ''),
+    employment_start date,
+    -- Gesetzt heißt: ausgeschieden. Trägt die Putzdienst-Befreiung („aktuell
+    -- beschäftigt" = employment_end IS NULL) und den Offboarding-Lauf der
+    -- M365-Kontenverwaltung. Die Zeile bleibt danach stehen, weil der
+    -- Audit-Trail auf sie zeigt.
+    employment_end   date,
+    created_at       timestamptz NOT NULL DEFAULT now(),
+    created_by       text NOT NULL,
+    updated_at       timestamptz NOT NULL DEFAULT now(),
+    updated_by       text NOT NULL,
+    CHECK (work_email ~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$'),
+    CHECK (employment_end IS NULL OR employment_start IS NULL OR employment_end >= employment_start)
+);
+
+-- Klassenlehrer:in. Der Fremdschlüssel steht hier statt an der Tabelle, weil
+-- classes weiter oben definiert wird (Schulstruktur-Block) und employees erst
+-- persons voraussetzt — die einzige Stelle im Schema mit dieser Reihenfolge.
+-- Nullable: eine neue Kohorte existiert vor ihrer Lehrkraft, festgelegt wird
+-- sie erst bei der Klassenbildung (fachdomaenen.md Abschnitt 6).
+ALTER TABLE classes ADD FOREIGN KEY (class_teacher_id) REFERENCES employees(id) ON DELETE RESTRICT;
+CREATE INDEX ON classes (class_teacher_id);
 
 -- Erziehungsberechtigte↔Familie: M:N (Patchwork-Fall, domains/stammdaten.md).
 -- Nur sorgerechtgebende Mitgliedschaft — reines Umgangsrecht wird hier nie
@@ -634,6 +796,14 @@ CREATE TABLE family_guardians (
     family_id            uuid NOT NULL REFERENCES families(id) ON DELETE CASCADE,
     guardian_id          uuid NOT NULL REFERENCES guardians(id) ON DELETE CASCADE,
     guardian_category_id integer REFERENCES guardian_categories(id) ON DELETE RESTRICT,
+    -- „In Briefe miteinbeziehen" — steht auf allen vier Anmeldetag-Checklisten
+    -- direkt neben „Sorgeberechtigt" und entscheidet, wer Schulpost und
+    -- Prozessmails bekommt. An der Familienzugehörigkeit und nicht an der
+    -- Person: dieselbe Person kann für ein Kind einbezogen sein und für ein
+    -- anderes nicht. Default true — wer sorgeberechtigt ist, wird im Regelfall
+    -- angeschrieben; das Abwählen ist der begründungspflichtige Fall.
+    -- Betrifft auch die Putzdienst-Erinnerungen (domains/putzdienst.md).
+    include_in_correspondence boolean NOT NULL DEFAULT true,
     -- nur bei Organisation: Sachbearbeiter für diesen Fall, Freitext (wechselt
     -- öfter, keine eigene Person-Zeile wert). Kein CHECK möglich (Organisations-
     -- Status steht auf guardians, nicht auf dieser Zeile) — durchgesetzt per
@@ -761,11 +931,45 @@ CREATE TABLE payers (
     iban               text CHECK (iban ~ '^[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}$'),
     bic                text CHECK (bic ~ '^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$'),
     account_holder     text,               -- Kontoinhaber, falls abweichend vom Namen der Person/Organisation
+    -- SEPA-Lastschriftmandat. EIN Mandat je Zahler, nicht je Zweck: Schulgeld,
+    -- Mensa, Putzdienst-Freikauf und Ferienprogramm ziehen alle über dasselbe
+    -- Mandat ein (fachdomaenen.md Abschnitt 6) — deshalb Spalten hier und keine
+    -- eigene Tabelle. Ohne beide Felder ist eine gespeicherte IBAN nicht
+    -- einziehbar, sie gehören in den SEPA-Datensatz.
+    --
+    -- Die Referenz vergibt die Schule (das Formular fragt sie nicht ab) und sie
+    -- muss je Gläubiger-ID eindeutig sein — daher UNIQUE.
+    --
+    -- Kreditinstitut steht bewusst NICHT daneben, obwohl das Formular es
+    -- abfragt: es folgt aus der BIC und wäre ein zweiter Ort für denselben
+    -- Sachverhalt (rules.md Abschnitt 1).
+    --
+    -- Keine Mandatshistorie: Optigem führt die Lastschrift aus
+    -- (fachdomaenen.md Abschnitt 4), Weltenbaum hält nur den aktuellen Stand —
+    -- wie überall sonst in diesem Schema (domains/stammdaten.md,
+    -- „Schuljahreswechsel").
+    --
+    -- Das unterschriebene Mandat wird zusätzlich digital abgelegt (PDF samt
+    -- Signatur). Dieses Artefakt gehört NICHT hierher, sondern in die
+    -- Schulvertrags-/Anmeldeprozess-Fachdomäne, die dieselbe Struktur schon für
+    -- Schulvertrag, Gesundheitsdatenblatt und Fotoeinverständnis braucht; es
+    -- zeigt auf payers.id. Wichtig dabei: das Dokument trägt KEIN eigenes
+    -- Unterschriftsdatum — das steht hier, einmal. Der Nachweis ist das
+    -- Artefakt, der Datenwert für den Einzug ist diese Spalte.
+    mandate_reference  text UNIQUE CHECK (mandate_reference <> ''),
+    mandate_signed_at  date,
     created_at         timestamptz NOT NULL DEFAULT now(),
     created_by         text NOT NULL,
     updated_at         timestamptz NOT NULL DEFAULT now(),
     updated_by         text NOT NULL,
-    CHECK ((person_id IS NULL) <> (organization_id IS NULL))
+    CHECK ((person_id IS NULL) <> (organization_id IS NULL)),
+    -- Referenz ohne Datum ist kein gültiges Mandat und umgekehrt — beide oder
+    -- keines.
+    CHECK ((mandate_reference IS NULL) = (mandate_signed_at IS NULL)),
+    -- Mandat ohne Konto ist sinnlos. Umgekehrt gilt das nicht: eine IBAN darf
+    -- vor der Unterschrift dastehen (Import aus Optigem, Erfassung vor
+    -- Vertragsabschluss).
+    CHECK (mandate_reference IS NULL OR iban IS NOT NULL)
 );
 CREATE INDEX ON payers (billing_address_id);
 
@@ -819,6 +1023,9 @@ BEGIN
     IF actor IS NULL THEN
         RAISE EXCEPTION 'app.actor nicht gesetzt — SET LOCAL app.actor vor jedem Schreibzugriff auf eine Audit-Tabelle';
     END IF;
+    IF actor !~ '^(entra|guardian|system):.' THEN
+        RAISE EXCEPTION 'app.actor braucht ein bekanntes Präfix (entra:/guardian:/system:), war: %', actor;
+    END IF;
     IF TG_OP = 'INSERT' THEN
         NEW.created_at := now();
         NEW.created_by := actor;
@@ -849,6 +1056,8 @@ CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON families
 CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON children
     FOR EACH ROW EXECUTE FUNCTION set_row_audit();
 CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON guardians
+    FOR EACH ROW EXECUTE FUNCTION set_row_audit();
+CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON employees
     FOR EACH ROW EXECUTE FUNCTION set_row_audit();
 CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON family_guardians
     FOR EACH ROW EXECUTE FUNCTION set_row_audit();

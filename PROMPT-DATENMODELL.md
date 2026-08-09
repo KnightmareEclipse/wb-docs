@@ -22,7 +22,7 @@ Bereits entschieden, gilt auch hier, nicht neu diskutieren:
 - Lookup-Tabellen statt ENUM/CHECK für Putztermin-Typ, Zahlungsstatus, Buchungsquelle (`rules.md` Abschnitt 3) — Ausnahme bleibt ein strukturelles, nicht umbenennbares Flag, falls eine Ausprägung Pflichtfelder derselben Zeile bestimmt; ein reines Ja/Nein-Merkmal („ist bezahlt") ist ohnehin kein Kategoriewert und braucht die Ausnahme nicht.
 - Audit-Spalten (`created_by`/`created_at`/`updated_by`/`updated_at`) auf jeder Tabelle mit veränderlichem Inhalt, gefüllt über denselben `set_row_audit`-Trigger wie im Stammdaten-Schema.
 - Keine feste Kapazitäts-Spalte am Termin — Kapazität wird berechnet, nicht gespeichert.
-- Pflicht und Buchung hängen an der Familie, nicht am Kind.
+- Pflicht und Buchung hängen an der Familie, nicht am Kind — der Schulvertrag knüpft an dieselbe Einheit („einmal pro Familie"). Die `families`-Zeile wird nie nach Putzdienst-Gesichtspunkten geschnitten, sie ist zugleich die OTP-Ownership-Grenze; Sonderfälle laufen über die abweichende Pflichtmenge je Familie und Zyklus (`domains/putzdienst.md`, „Familie"), die zugleich die Quereinsteiger-Proration aufnimmt.
 
 Ergebnis in `domains/putzdienst-schema.sql`, Prüfskript analog `domains/stammdaten-schema-check.sql` (Postgres-Container, keine Testframeworks).
 
