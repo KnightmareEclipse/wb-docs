@@ -46,6 +46,7 @@ Keine Hochverfügbarkeits-Infrastruktur (Multi-Server, Load-Balancer, Multi-Regi
 ## 4. Kosten & Software-Auswahl
 
 - Alles außer VPS-Miete und M365-Lizenz muss **quelloffen oder dauerhaft kostenlos** nutzbar sein — keine befristeten Trials, keine „kostenlos bis X Nutzer" ohne Wachstumsplan.
+- **Ausnahme Transaktionsgebühren:** Eine Gebühr, die von einem eingehenden Betrag abgezogen wird, fällt nicht unter die Regel oben — sie erzeugt keine laufenden Kosten, die die Schule aus eigenen Mitteln trägt, und ohne Zahlungen entsteht sie gar nicht. Die Regel zielt auf Fixkosten und auslaufende Free-Tiers, nicht auf erfolgsabhängige Anteile. Konkret angewandt auf Stripe (`domains/grenzkarte.md`, Q3); der AVV-Teil bleibt davon unberührt und läuft nach Abschnitt 7.
 - Azure-Dienste (Functions, Static Web Apps) laufen ausschließlich innerhalb der kostenlosen monatlichen Kontingente. Bei jeder neuen Azure-Ressource: Budget-Alert in Azure Cost Management auf niedriger Schwelle einrichten, damit ein Überschreiten nicht unbemerkt Kosten verursacht.
 - Vor jedem neuen Dienst: reicht eine bereits genutzte Lösung (z. B. das bereits für den Host eingesetzte healthchecks.io)? Erst wenn nein — und dann bevorzugt ein Dienst mit großzügigem Free-Tier und EU-Sitz/-Hosting (vereinfacht Abschnitt 7).
 - **Boring Technology:** etablierte, weit verbreitete, gut dokumentierte Software (Debian Stable, Docker als Basis; beim App-Stack ebenso etablierte statt exotische Wahlen) statt Nischentools, die nur der aktuelle Betreiber kennt und die im Ernstfall niemand sonst debuggen kann.
