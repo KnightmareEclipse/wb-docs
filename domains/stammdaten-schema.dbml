@@ -239,7 +239,7 @@ Table children {
     class_id
     provisional_grade_level_id
   }
-  Note: 'children.child_id = persons.person_id (Kind IST eine Person). provisional_grade_level_id UND class_id schließen sich per CHECK gegenseitig aus (keine Redundanz, die auseinanderlaufen könnte) — ist eine Klasse zugeteilt, kommt die aktuelle Klassenstufe per Join aus classes.grade_level_id. second_nationality_id: nur mit gesetzter nationality_id und nicht derselbe Staat (CHECK). denomination_id/congregation: Art.-9-Daten, geschützt per Spalten-GRANT, rollenspezifisch (auch auf guardians, nicht auf persons).'
+  Note: 'children.child_id = persons.person_id (Kind IST eine Person). provisional_grade_level_id UND class_id schließen sich per CHECK gegenseitig aus (keine Redundanz, die auseinanderlaufen könnte) — ist eine Klasse zugeteilt, kommt die aktuelle Klassenstufe per Join aus classes.grade_level_id. second_nationality_id: nur mit gesetzter nationality_id und nicht derselbe Staat (CHECK). denomination_id/congregation: Art.-9-Daten, geschützt per Spalten-GRANT, rollenspezifisch (nur hier am Kind, nicht auf persons und nicht auf guardians).'
 }
 
 Table guardians {

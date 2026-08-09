@@ -38,7 +38,14 @@ Diese Datei wird automatisch geladen — verlinkt werden muss nichts, es genügt
 - **Übertragung nach `wb-backend`:** `TODO-SESSIONS.md`, `project-parts.md`, `idea/04-identitaet-zugriff.md`.
 - **Infrastruktur:** `pipeline/runbook.md`, `idea/03-container-anwendung.md`, `idea/05-backup-recovery.md`, `TODO.md`.
 
-Die Begründungen des Datenmodells stehen als **Kommentare in der `.sql`**, nicht in der Prosa — wer nur `domains/stammdaten-schema-plain.sql` liest, sieht dieselbe Struktur ohne jedes „warum" und schlägt zuverlässig vor, was bereits verworfen wurde. Die `-plain.sql` ist abgeleitet und nie die Lesefassung; die `.dbml` nur relevant, wenn es ums Diagramm geht. Referenzquelle für Fragen zum amtlichen Datenmodell: `~/Documents/projectNightmare/ASV-BW/asv_struktur.sql` — der Wert steckt in den `COMMENT ON COLUMN`-Zeilen, die `*Statistikpflichtfeld*` markieren.
+Die Begründungen des Datenmodells stehen als **Kommentare in der `.sql`**, nicht in der Prosa — wer nur `domains/stammdaten-schema-plain.sql` liest, sieht dieselbe Struktur ohne jedes „warum" und schlägt zuverlässig vor, was bereits verworfen wurde. Die `-plain.sql` ist abgeleitet und nie die Lesefassung; die `.dbml` nur relevant, wenn es ums Diagramm geht.
+
+**Grenze zwischen `.sql` und `.md`** — sie entscheidet, wo eine Begründung hingehört, und verhindert, dass dieselbe zweimal dasteht:
+
+> Hängt die Begründung an genau einer Spalte oder einem Constraint? → **`.sql`**.
+> Braucht sie zwei Tabellen oder einen Prozess, um überhaupt formulierbar zu sein? → **`.md`**.
+
+In die `.sql` gehören damit Typwahl, CHECK-Begründungen, nullable-ja/nein, Lookup-statt-Freitext an dieser Stelle, die Vergleiche gegen ASV-BW/SVWS/Gibbon und **warum eine Spalte bewusst fehlt** (als Kommentar an der betroffenen Tabelle — eine nicht existierende Spalte hat keinen anderen Anker). In die `.md` gehören Modelle über mehrere Tabellen hinweg (Familie, Ownership), Zugriffs- und Sichtbarkeitsregeln, Abläufe (Jahreslauf, Löschmechanik, Import) und die Domänengrenzen. Die `.md` sagt bei einem Feld *was* gilt und verweist fürs *warum* auf die `.sql`, statt es zu wiederholen. Referenzquelle für Fragen zum amtlichen Datenmodell: `~/Documents/projectNightmare/ASV-BW/asv_struktur.sql` — der Wert steckt in den `COMMENT ON COLUMN`-Zeilen, die `*Statistikpflichtfeld*` markieren.
 
 ## Pflichten bei jeder Schemaänderung
 
