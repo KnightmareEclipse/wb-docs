@@ -32,6 +32,7 @@ Gebaut sind die Schemata **Stammdaten** und **Putzdienst**, jeweils samt Prüfsk
 Diese Datei wird automatisch geladen — verlinkt werden muss nichts, es genügt, in dieser Reihenfolge zu lesen:
 
 - **Immer bei Schema- oder Domänenarbeit:** `rules.md` (die Maßstäbe, besonders die Ladder aus §1 **samt der ausdrücklichen Ausnahme für DB-Schema-Design**), `domains/grenzkarte.md` (wem welche Tatsache gehört, Freeze-Definition, weiße Flecken), `domains/stammdaten-schema.sql`, `domains/stammdaten.md`.
+- **Begriffe:** `glossar.md` — Rollen (Infra-Admin vs. Admin vs. Verwaltung) und Kernbegriffe, repo-übergreifend gültig. Kurz, aber die einzige Quelle für das Rollen-Vokabular.
 - **Neue Fachdomäne:** dazu `fachdomaenen.md` (Scope und Stammdaten-Berührung je Domäne), `PROZESSE-ROH.md` (die realen Formularfeldlisten) und die vier Anmeldetag-Checklisten in `~/Downloads/CHECKLISTEN/`.
 - **Putzdienst:** `domains/putzdienst.md`, `domains/putzdienst-schema.sql`.
 - **Übertragung nach `wb-backend`:** `TODO-SESSIONS.md`, `project-parts.md`, `idea/04-identitaet-zugriff.md`.
