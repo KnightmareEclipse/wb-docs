@@ -25,6 +25,28 @@ Die App-Stack-Architektur (Backend-Stack, Reverse-Proxy, Deploy-Auslöser, Ident
 
 Das Stammdaten-Datenmodell steht: Schema, DBML-Ansicht, Prüfskript und Performance-Benchmark in `domains/`, Fachbeschreibung dazu in `domains/stammdaten.md`. Die Entitäten- und Zuständigkeitsgrenzen **aller** Fachdomänen sind vorab in `domains/grenzkarte.md` festgelegt — bewusst ohne Spalten: eine Spalte lässt sich nachtragen, eine falsch gezogene Grenze nicht, und ohne diese Karte modellieren mehrere Domänen denselben Sachverhalt je einmal. Jedes neue Domänenschema entsteht gegen sie. Stammdaten sind ab dem Vollimport Ende August 2026 **eingefroren** (Definition in `domains/grenzkarte.md`): keine Änderung an bestehenden Spalten, Typen oder Constraints, neue Tabellen jederzeit erlaubt. Das Putzdienst-Schema steht ebenfalls (`domains/putzdienst-schema.sql` samt Prüfskript) und bringt die erste gebaute Querschnitts-Entität mit, den Zahlungsvorgang Q3. Nächster Schritt: die Übertragung nach SQLAlchemy/Alembic in `wb-backend` — der engere Pfad bis September 2026, nicht der Entwurf. Bis dahin zusätzlich nötig: Deploy-Auslöser (`pipeline/runbook.md` Schritt 5) auf der VPS bootstrappen, internes Frontend (`project-parts.md` Abschnitt 10) aufsetzen und damit die Redirect-URI der bestehenden Entra-ID-Registrierung nachtragen (sie zeigt auf die Origin des internen Frontends, nicht auf die API), externes Frontend (`project-parts.md` Abschnitt 9) erstmals aufsetzen und damit die CORS-Policy festlegen. Der Datenmodell-Entwurf selbst blockiert nicht auf diesen Schritten, da lokale Entwicklung gegen Docker Compose läuft (`rules.md` Abschnitt 9).
 
+## Einstieg in eine Session
+
+Diese Datei wird automatisch geladen — verlinkt werden muss nichts, es genügt, in dieser Reihenfolge zu lesen:
+
+- **Immer bei Schema- oder Domänenarbeit:** `rules.md` (die Maßstäbe, besonders die Ladder aus §1 **samt der ausdrücklichen Ausnahme für DB-Schema-Design**), `domains/grenzkarte.md` (wem welche Tatsache gehört, Freeze-Definition, weiße Flecken), `domains/stammdaten-schema.sql`, `domains/stammdaten.md`.
+- **Neue Fachdomäne:** dazu `fachdomaenen.md` (Scope und Stammdaten-Berührung je Domäne), `PROZESSE-ROH.md` (die realen Formularfeldlisten) und die vier Anmeldetag-Checklisten in `~/Downloads/CHECKLISTEN/`.
+- **Putzdienst:** `domains/putzdienst.md`, `domains/putzdienst-schema.sql`.
+- **Übertragung nach `wb-backend`:** `TODO-SESSIONS.md`, `project-parts.md`, `idea/04-identitaet-zugriff.md`.
+- **Infrastruktur:** `pipeline/runbook.md`, `idea/03-container-anwendung.md`, `idea/05-backup-recovery.md`, `TODO.md`.
+
+Die Begründungen des Datenmodells stehen als **Kommentare in der `.sql`**, nicht in der Prosa — wer nur `domains/stammdaten-schema-plain.sql` liest, sieht dieselbe Struktur ohne jedes „warum" und schlägt zuverlässig vor, was bereits verworfen wurde. Die `-plain.sql` ist abgeleitet und nie die Lesefassung; die `.dbml` nur relevant, wenn es ums Diagramm geht. Referenzquelle für Fragen zum amtlichen Datenmodell: `~/Documents/projectNightmare/ASV-BW/asv_struktur.sql` — der Wert steckt in den `COMMENT ON COLUMN`-Zeilen, die `*Statistikpflichtfeld*` markieren.
+
+## Pflichten bei jeder Schemaänderung
+
+Zieldatenbank ist **PostgreSQL 18** (19 erscheint erst um September/Oktober 2026 und kommt für den Produktivstart zu spät — `rules.md` Abschnitt 4, Boring Technology).
+
+Eine Schemaänderung ist erst fertig, wenn alle abhängigen Dateien mitgezogen sind — diese Liste steht nur hier, und eine vergessene Datei fällt sonst monatelang nicht auf:
+
+`…-schema.sql` → `.dbml` → `-plain.sql` (regenerieren, nie von Hand) → Prüfskript **samt Sollstand** → `domains/stammdaten-schema-benchmark.md` und die Dateien in `domains/stammdaten-benchmark/` → die betroffenen `.md` → `domains/grenzkarte.md`.
+
+Danach **einmal** validieren, nicht nach jedem Einzelpunkt: beide Prüfskripte (Aufruf und Sollstand im jeweiligen Kopfkommentar), der Spaltenabgleich `.sql` gegen `.dbml` (Aufruf im Kopf der `.dbml`, Exit-Code 1 bei Drift), und bei Spaltenänderungen der Benchmark-Generator mit `n_children=500`/`n_classes=20` — die Zeilenzahlen müssen denen aus `domains/stammdaten-schema-benchmark.md` (Durchlauf 1) entsprechen.
+
 ## Dokumentationsstil
 
 Alle `.md`-Dateien in diesem Repo bilden ausschließlich den **aktuellen Stand** ab — keine Historie, keine Changelogs, keine Formulierungen wie „früher", „vorher hatten wir", „wurde ersetzt durch". Beim Ändern von Inhalten wird der alte Stand ersetzt, nicht ergänzt oder als Verlauf stehen gelassen.
