@@ -3,7 +3,7 @@
 Ableitung aus `idea/` und `project-parts.md` — Phasen mit Automatisierungsgrad, sortiert nach Repo-Zuordnung (siehe „Repo-Struktur" in `project-parts.md`):
 
 *   **`vps-repo/`** — Phasen 1, 2, 3. Leben im VPS-Repo (`wb-vps`, Unterordner `infra/`, `setup/`), laufen weiter lokal/manuell und werden jetzt konkret umgesetzt.
-*   **`app-stack-repo/`** — Phase 4. Lebt im App-Stack-Repo (`wb-backend`) und läuft über einen Git-Push-Auslöser (Bare-Repo + `post-receive`-Hook) gegen einen eingeschränkten `deploy`-User — keine dauerhaft lokal vorgehaltenen Secrets für Routine-Deploys. Stack: FastAPI/PostgreSQL/Caddy, siehe `project-parts.md`.
+*   **`app-stack-repo/`** — Phase 4. Lebt im App-Stack-Repo (`wb-backend`) und läuft über einen Git-Push-Auslöser gegen einen eingeschränkten `deploy`-User. Stack: FastAPI/PostgreSQL/Caddy, siehe `project-parts.md`.
 
 ## Phasen
 
@@ -18,7 +18,7 @@ Kompletter Ablauf für einen Neuaufbau von Grund auf: [Runbook](runbook.md).
 
 Server-Provisioning, Ersteinrichtung und jeder Reboot danach laufen komplett automatisch. Manuell bleiben nur die einmaligen Konto-Bootstrap-Schritte, die zwingend ein von einem Menschen gehaltenes Geheimnis voraussetzen — Schritte 3 (healthchecks.io), 5 (Deploy-Auslöser) und 7 (Identitätsanbieter-Registrierung) im [Runbook](runbook.md), die nur bei Neuanlage bzw. Rotation des jeweiligen Kontos/der Registrierung anfallen.
 
-Phase 4 braucht zusätzlich keine dauerhaft lokal vorgehaltenen Secrets — der Deploy-Auslöser nutzt den vorhandenen, `git-shell`-beschränkten Admin-Key, kein separates CI-Credential nötig.
+Auch Phase 4 braucht danach keine dauerhaft lokal vorgehaltenen Secrets für Routine-Deploys (`app-stack-repo/04-app-stack-deploy.md`).
 
 ## Testbarkeit vor Prod-Lauf
 

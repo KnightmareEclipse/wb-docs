@@ -67,14 +67,14 @@ Das trifft genau drei Anlässe, alle über **Stripe**: Voranmeldung samt Querein
 
 Zwei Grenzen, die nicht verwischen dürfen:
 
-- **`payers` in Stammdaten trägt das Einzugs*mittel*** (Bankverbindung, SEPA-Mandat) und ist von Q3 unabhängig: die drei Stripe-Anlässe brauchen keine IBAN, und das Mandat trägt keine Zahlung.
+- **`payers` in Stammdaten trägt das Einzugs*mittel*** (Bankverbindung, SEPA-Mandat) und ist von Q3 unabhängig: die drei Stripe-Anlässe brauchen weder IBAN noch Mandat, und das Mandat trägt keine Zahlung. Folge für die Ferienanmeldung: der regulär über Stripe zahlende Elternteil bekommt **keine** `payers`-Zeile — sie hätte keinen einzigen Nutzlast-Wert. Eine entsteht dort nur bei Kostenübernahme durch das Jugendamt (`stammdaten.md`, „Zahlungsverantwortliche").
 - **Projektnummer und Buchungskonto** sind Attribute des Belegprozesses (Domäne 5) und haben mit Q3 nichts zu tun — dort geht Geld heraus, hier herein.
 
 Die **Putzdienst-Strafzahlung** bei Nichterscheinen liegt ebenfalls außerhalb von Q3: sie entsteht nachträglich, wird nicht im Selbstservice bezahlt und läuft über die Buchhaltung mit Optigem. Weltenbaum hält nur fest, dass jemand nicht erschienen ist (Attribut der Zuteilung) — die Forderung daraus zieht die Buchhaltung.
 
 ### Q4 — Mitarbeiter und Bereichsstruktur
 
-**`employees` ist gebaut** (Rolle auf `persons`, `stammdaten-schema.sql`) — vorgezogen, obwohl keine der Domänen, die sie braucht, gebaut ist: die Putzdienst-Befreiung fragt „aktuell beschäftigt", die Gesundheitsdaten-Domäne braucht „Klassenlehrer:in dieses Kindes", und der Vollimport kommt komplett auf einmal. Ein Mitarbeiter-Flag am Erziehungsberechtigten gibt es deshalb nicht — es wäre ein zweiter Ort für dieselbe Tatsache. Die Dienstadresse liegt an `employees` und nicht in `persons.email`, weil Letztere die private Adresse und zugleich die OTP-Identität ist — ein Mitarbeiter, der auch Elternteil ist, verlöre sonst beim Offboarding seinen Elternzugang.
+**`employees` ist gebaut** (Rolle auf `persons`, `stammdaten-schema.sql`) — vorgezogen, obwohl keine der Domänen, die sie braucht, gebaut ist: die Putzdienst-Befreiung fragt „aktuell beschäftigt" (`putzdienst.md`), die Gesundheitsdaten-Domäne braucht „Klassenlehrer:in dieses Kindes" (unten), und der Vollimport kommt komplett auf einmal. Ein Mitarbeiter-Flag am Erziehungsberechtigten gibt es deshalb nicht — es wäre ein zweiter Ort für dieselbe Tatsache, und ein Beschäftigungszeitraum lässt sich als Flag ohnehin nicht ausdrücken. Zur Dienstadresse an dieser Rolle: `stammdaten.md`, „Ausblick".
 
 **Offen bleibt die Bereichs- und Vorgesetztenstruktur** (`fachdomaenen.md` Abschnitt 5). Sie braucht erst die Rechnungsfreigabe, und wie tief sie geschnitten ist, ist unbekannt — raten wäre teurer als später ergänzen.
 
