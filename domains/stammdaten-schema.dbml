@@ -34,11 +34,6 @@ Table salutations {
   Note: 'Anrede — bewusst getrennt vom Geschlecht, nicht daraus abgeleitet.'
 }
 
-Table academic_titles {
-  academic_title_id integer [pk, increment]
-  label text    [not null, unique]
-}
-
 Table guardian_categories {
   guardian_category_id      integer     [pk, increment]
   label                     text        [not null, unique]
@@ -156,7 +151,6 @@ Table addresses {
 Table persons {
   person_id uuid        [pk, default: `gen_random_uuid()`]
   salutation_id     integer
-  academic_title_id integer
   first_name        text
   last_name         text        [not null, note: 'CHECK <> \'\'']
   gender_id         integer
@@ -348,7 +342,6 @@ Ref: classes.school_branch_id > school_branches.school_branch_id [delete: restri
 Ref: classes.(grade_level_id, school_branch_id) > grade_levels.(grade_level_id, school_branch_id)
 
 Ref: persons.salutation_id > salutations.salutation_id [delete: restrict]
-Ref: persons.academic_title_id > academic_titles.academic_title_id [delete: restrict]
 Ref: persons.gender_id > genders.gender_id [delete: restrict]
 Ref: persons.address_id > addresses.address_id [delete: restrict]
 

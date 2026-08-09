@@ -28,7 +28,7 @@ _Avoid_: Eltern (enger als der rechtliche Personenkreis)
 Ein fachlich abgegrenzter Datenbereich im Backend (z. B. Stammdaten, künftig z. B. Noten), eigener Router/eigenes Model-Modul (`wb-backend/CLAUDE.md` Abschnitt 3), eigene mögliche Export-Berechtigung.
 
 **Stammdaten**:
-Feste Grunddaten einer Person in einer ihrer fünf Rollen (Schüler, Erziehungsberechtigte, Kontaktperson, Zahlungsverantwortliche, Mitarbeiter). Gemeinsam für alle Rollen an `persons`: Anrede, akademischer Grad, Name, Geschlecht, Anschrift, Telefonnummern, E-Mail. Alles Rollenspezifische steht an der jeweiligen Rollentabelle und ist für die übrigen Rollen strukturell gar nicht befüllbar. Felder, Begründungen, Sonderfälle und Zugriffsschutz: `domains/stammdaten.md`.
+Feste Grunddaten einer Person in einer ihrer fünf Rollen (Schüler, Erziehungsberechtigte, Kontaktperson, Zahlungsverantwortliche, Mitarbeiter). Gemeinsam für alle Rollen an `persons`: Anrede, Name, Geschlecht, Anschrift, Telefonnummern, E-Mail. Alles Rollenspezifische steht an der jeweiligen Rollentabelle und ist für die übrigen Rollen strukturell gar nicht befüllbar. Felder, Begründungen, Sonderfälle und Zugriffsschutz: `domains/stammdaten.md`.
 
 **Familie**:
 Die Menge Erwachsener, die gemeinsam sorgeberechtigt für ein oder mehrere Kinder sind — **nicht** wer zusammenwohnt. Vom Sekretariat manuell gepflegt, nie algorithmisch hergeleitet. Grundlage des Ownership-Checks: wer Mitglied ist, sieht die Kinder dieser Familie (`idea/04-identitaet-zugriff.md`). Modell und Sonderfälle: `domains/stammdaten.md`, „Familie".
