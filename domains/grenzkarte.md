@@ -167,7 +167,6 @@ Was diese Karte offenlässt, ist selbst Ergebnis: es sind die Fragen, die vor de
 
 | Was fehlt | Wen fragen | Spätestens vor |
 |---|---|---|
-| Kommt ein **nicht sorgeberechtigter** Elternteil vor, der trotzdem Schulpost bekommen soll? Auf allen vier Checklisten sind „Sorgeberechtigt" und „In Briefe miteinbeziehen" zwei unabhängige Häkchen, `include_in_correspondence` hängt aber an `family_guardians` und damit an der Sorgeberechtigung — eine solche Person liefe als `contacts` und hätte das Feld nicht | Sekretariat | Vollimport (Freeze) |
 | Bereichs- und Vorgesetztenstruktur an `employees` (Q4) — Zuschnitt unbekannt | Geschäftsführung | Domäne 5 |
 | Steht in der Realschul-Bewertungstabelle derselbe Wert wie im Feld „Empfehlung Schulart" der Papier-Checkliste, oder eine eigene Einschätzung? Bis zur Klärung zwei Felder — beantwortbar von den Personen, die beide ausfüllen | Sekretariat, Realschulleitung | Domäne 2/4 |
 | Graph-Scoping für den SharePoint-Dateizugriff (welche Site, lesend oder schreibend) | zweiter Admin | Domäne 4 |
