@@ -24,8 +24,8 @@
 --   * Kind, Erziehungsberechtigte, Kontakt und Zahlungsverantwortliche/r sind
 --     Rollen AUF persons, keine parallelen Personentabellen mit je eigenen
 --     Namens-/Telefonspalten.
---   * Organisationen sind eine eigene Tabelle, nicht ein Satz Zusatzspalten auf
---     guardians, die bei natürlichen Personen leer bliebe.
+--   * Jede Rolle ist eine natürliche Person. Es gibt bewusst KEINE Organisation
+--     als eigene Partei — Begründung an guardians.
 --   * Kein abgeleitetes/redundantes Feld — auch nicht Klassenstufe und Klasse am
 --     Kind: children.provisional_grade_level_id und children.class_id schließen
 --     sich per CHECK gegenseitig aus, es gibt also nie zwei Werte für denselben
@@ -34,6 +34,23 @@
 -- Datensparsamkeit (rules.md Abschnitt 7): ein Feld existiert nur, wenn es auf
 -- einem realen Formular steht ODER ein benannter Prozess es braucht. Deshalb
 -- führen Erziehungsberechtigte kein Geburtsdatum und keine Demografie.
+--
+-- Für FREITEXT gilt das doppelt, und deshalb gibt es hier kein allgemeines
+-- Kommentar- oder Notizfeld — weder an persons noch an children, guardians,
+-- contacts oder families. Erfahrungswert des Betreibers: das Sekretariat füllt
+-- jedes leicht befüllbare Feld mit allem Möglichen. Ein Freitextfeld ohne
+-- benannten Abnehmer sammelt damit Personendaten ohne Rechtsgrundlage, ohne
+-- Zweckbindung und ohne Löschregel — und ist als Einziges hinterher nicht
+-- selektiv löschbar. Die drei vorhandenen Freitexte haben je einen konkreten
+-- Abnehmer: phone_numbers.note die Erreichbarkeit einer Nummer,
+-- child_contacts.relationship den Bezug zum Kind, family_guardians.acting_for
+-- die Briefanschrift bei Amtsvormundschaft.
+--
+-- Nachrüsten ist ausdrücklich der vorgesehene Weg, nicht der Notnagel: eine
+-- nullable Spalte anzufügen ist Katalogarbeit (gemessen: 1,9 ms auf einer
+-- Tabelle mit einer Million Zeilen) und vom Freeze nicht berührt, der nur
+-- bestehende Spalten schützt. Auslöser ist ein benannter Fall, in dem etwas
+-- Legitimes sonst keinen Platz hat — nicht die Vermutung, dass er kommt.
 --
 -- Audit-Spalten: created_at/created_by/updated_at/updated_by auf jeder Tabelle mit
 -- veränderlichem Inhalt (idea/03) — dazu zählen classes/grade_levels (Jahreslauf
@@ -55,16 +72,15 @@
 -- falls ein Schreibpfad den Trigger je umgeht (z. B. absichtlich deaktiviert für
 -- einen Bulk-Import).
 
--- Unveränderliche Spalten: id auf jeder Tabelle sowie die Identitäts-
--- Fremdschlüssel person_id/organization_id auf guardians und payers bleiben nach
--- dem Anlegen unveränderlich, durchgesetzt per Spaltenrecht der Laufzeit-Rolle
+-- Unveränderliche Spalten: der Primärschlüssel jeder Tabelle bleibt nach dem
+-- Anlegen unveränderlich, durchgesetzt per Spaltenrecht der Laufzeit-Rolle
 -- (wb-backend/db/init-roles.sh) — kein Trigger nötig, keine Laufzeitkosten,
--- derselbe Mechanismus wie beim Art.-9-Spaltenschutz unten. Damit wird eine
--- natürliche Person nie zur Organisation und umgekehrt, und ein Guardian lässt
--- sich nicht auf einen anderen Menschen umbiegen: das verschöbe sämtliche
--- Familienzugehörigkeiten und damit den OTP-Ownership-Check (idea/04)
--- stillschweigend mit.
--- Für die Umsetzung, gegen Postgres 16 verifiziert:
+-- derselbe Mechanismus wie beim Art.-9-Spaltenschutz unten. Bei den Rollen-
+-- tabellen (children, guardians, payers, contacts, employees) ist das zugleich
+-- der Fremdschlüssel auf persons: eine Rollenzeile lässt sich damit nicht auf
+-- einen anderen Menschen umbiegen, was sämtliche Familienzugehörigkeiten und
+-- damit den OTP-Ownership-Check (idea/04) stillschweigend mitverschöbe.
+-- Für die Umsetzung, gegen Postgres 18 verifiziert:
 --   * Die Laufzeit-Rolle darf KEIN tabellenweites GRANT UPDATE bekommen. Das
 --     deckt alle Spalten ab, und ein nachträgliches REVOKE UPDATE (spalte) hebt
 --     es nicht auf — der Schreibzugriff bliebe erlaubt. Stattdessen nur die
@@ -74,6 +90,26 @@
 --   * Wie beim Art.-9-Schutz wirkt das weder gegen den Tabelleneigentümer noch
 --     gegen die Migrations-Rolle (die darf das richtigerweise), und das
 --     Prüfskript kann es nicht belegen, da es als Superuser läuft.
+
+-- Benannte Constraints: Postgres leitet einen brauchbaren Namen selbst ab,
+-- solange eine Regel an genau einer Spalte hängt (persons_email_check,
+-- children_family_id_fkey, payers_mandate_reference_key, und ab Postgres 18 auch
+-- persons_last_name_not_null). Nur bei MEHRSPALTIGEN Regeln fehlt ihm der Anker,
+-- dann zählt er durch: "children_check3" sagt weder im Log noch in der
+-- API-Antwort, welche Zusage gebrochen wurde. Genau diese bekommen deshalb einen
+-- expliziten Namen, ebenso die partiellen Unique-Indizes (die gar keine
+-- Constraints sein können — Postgres kennt kein UNIQUE mit WHERE-Klausel und
+-- führt sie in pg_index statt pg_constraint).
+-- Muster ist Postgres' eigenes, <tabelle>_<sachverhalt>_check, damit benannte und
+-- automatische Namen nicht als zwei Dialekte nebeneinanderstehen. Einspaltige
+-- Regeln bewusst NICHT explizit benannt: rund hundert CONSTRAINT-Klauseln für
+-- praktisch identische Namen machen das Schema schwerer lesbar, ohne eine
+-- Fehlermeldung zu verbessern.
+--
+-- Für die Umsetzung in wb-backend gilt die Regel strenger: dort sorgt
+-- SQLAlchemys MetaData(naming_convention=...) dafür, dass JEDES Constraint einen
+-- deterministischen Namen bekommt — nur so kann eine Alembic-Migration es später
+-- sicher per ALTER greifen (TODO-SESSIONS.md).
 
 CREATE EXTENSION IF NOT EXISTS citext;  -- für case-insensitive E-Mail-Vergleiche
 
@@ -110,9 +146,9 @@ CREATE EXTENSION IF NOT EXISTS citext;  -- für case-insensitive E-Mail-Vergleic
 -- (svp_wl_wert.schluessel); der CHECK sichert nur die Form — kurz, ohne
 -- Leerzeichen, damit dort nicht die Bezeichnung selbst landet.
 CREATE TABLE genders (
-    id    integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    label text NOT NULL UNIQUE,  -- z. B. "männlich", "weiblich", "divers", "keine Angabe"
-    code  text NOT NULL UNIQUE CHECK (code ~ '^[A-Za-z0-9]{1,8}$')
+    gender_id integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    label     text NOT NULL UNIQUE,  -- z. B. "männlich", "weiblich", "divers", "keine Angabe"
+    code      text NOT NULL UNIQUE CHECK (code ~ '^[A-Za-z0-9]{1,8}$')
 );
 
 -- Anrede für Anschreiben ("Herr", "Frau", "keine Anrede"). Bewusst getrennt vom
@@ -123,30 +159,55 @@ CREATE TABLE genders (
 -- beide Felder ebenfalls nebeneinander. Fehlt heute im ASV-Export nach Vis365
 -- und damit in M365 — Rundschreiben sind deshalb dort nicht sauber anredbar.
 CREATE TABLE salutations (
-    id    integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    label text NOT NULL UNIQUE
+    salutation_id integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    label         text NOT NULL UNIQUE
 );
 
 -- Akademischer Grad ("Dr.", "Prof. Dr.") — gehört zur Ansprache im Schreiben,
 -- nicht zum Namen. Werteliste wie in ASV-BW (wl_akademischer_grad).
 CREATE TABLE academic_titles (
-    id    integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    label text NOT NULL UNIQUE
+    academic_title_id integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    label             text NOT NULL UNIQUE
 );
 
--- Klassifizierung einer Erziehungsberechtigten-Beziehung (z. B. "Elternteil",
--- "Pflegeeltern", "Jugendamt", "Vereinsvormund") — rein informativ. Hängt an
--- family_guardians, nicht am Erziehungsberechtigten: dieselbe Person kann in
--- einer Familie leiblicher Elternteil und in einer anderen Pflegeelternteil sein.
+-- Klassifizierung einer Erziehungsberechtigten-Beziehung ("Mutter", "Vater",
+-- "Pflegeeltern", "Jugendamt", "Vereinsvormund"). Hängt an family_guardians,
+-- nicht am Erziehungsberechtigten: dieselbe Person kann in einer Familie
+-- leiblicher Elternteil und in einer anderen Amtsvormund sein.
 -- Entspricht K_ErzieherArt in SVWS-NRW.
+--
+-- exempt_from_parent_duties ist die Ausnahme aus rules.md Abschnitt 3: keine
+-- Bezeichnung, sondern eine strukturelle Tatsache — diese Art der
+-- Erziehungsberechtigung begründet keine Elternmitarbeit. Sie trägt damit die
+-- Putzdienst-Befreiung der Amts- und Vereinsvormundschaft
+-- (domains/putzdienst.md): eine Sachbearbeiterin des Jugendamts ist eine ganz
+-- normale natürliche Person (Begründung an guardians) und wäre sonst
+-- putzdienstpflichtig. Deshalb ein nicht umbenennbares Flag neben dem frei
+-- benennbaren label — die Befreiung darf nicht daran hängen, dass niemand
+-- "Jugendamt" umbenennt.
+--
+-- Die Aussage gilt je Familienzugehörigkeit und nicht je Person, und das ist
+-- genau richtig: dieselbe Frau ist für ein Mündel "Jugendamt" und befreit, für
+-- ihr eigenes Kind "Mutter" und pflichtig. Fehlt die Kategorie, gilt pflichtig —
+-- der sichere Ausgang. Pflegeeltern sind ausdrücklich pflichtig.
+--
+-- Mit Audit-Spalten, anders als die übrigen Lookup-Tabellen und aus demselben
+-- Grund wie bei grade_levels.is_final_grade: eine unbemerkte Fehländerung
+-- befreit still ganze Familien von der Mitarbeitspflicht, statt nur eine
+-- Bezeichnung zu ändern.
 CREATE TABLE guardian_categories (
-    id    integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    label text NOT NULL UNIQUE
+    guardian_category_id      integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    label                     text NOT NULL UNIQUE,
+    exempt_from_parent_duties boolean NOT NULL DEFAULT false,
+    created_at                timestamptz NOT NULL DEFAULT now(),
+    created_by                text NOT NULL,
+    updated_at                timestamptz NOT NULL DEFAULT now(),
+    updated_by                text NOT NULL
 );
 
 CREATE TABLE denominations (
-    id    integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    label text NOT NULL UNIQUE   -- z. B. "römisch-katholisch", "evangelisch", "konfessionslos"
+    denomination_id integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    label           text NOT NULL UNIQUE   -- z. B. "römisch-katholisch", "evangelisch", "konfessionslos"
 );
 
 -- Verkehrssprache des Kindes. Lookup statt Freitext (rules.md Abschnitt 3):
@@ -160,9 +221,9 @@ CREATE TABLE denominations (
 -- "DE" und "de" wären sonst zwei Zeilen für dieselbe Sprache, und genau das
 -- soll die Spalte verhindern ("deutsch"/"German" fallen ohnehin durch).
 CREATE TABLE languages (
-    id    integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    label text NOT NULL UNIQUE,  -- z. B. "Deutsch", "Türkisch"
-    code  text NOT NULL UNIQUE CHECK (code ~ '^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$')  -- BCP 47, z. B. "de", "tr"
+    language_id integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    label       text NOT NULL UNIQUE,  -- z. B. "Deutsch", "Türkisch"
+    code        text NOT NULL UNIQUE CHECK (code ~ '^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$')  -- BCP 47, z. B. "de", "tr"
 );
 
 -- Land (Anschrift, Geburtsland, Staatsangehörigkeit). Lookup statt ISO-Code als
@@ -188,23 +249,23 @@ CREATE TABLE languages (
 -- Die Liste wird aus ISO 3166-1 geseedet, nicht von Hand gepflegt; der CHECK auf
 -- code sichert deshalb Seed und Import, er ersetzt die Liste nicht.
 CREATE TABLE countries (
-    id    integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    label text NOT NULL UNIQUE,                           -- z. B. "Deutschland", "Türkei"
-    code  text NOT NULL UNIQUE CHECK (code ~ '^[A-Z]{3}$')  -- ISO 3166-1 alpha-3, z. B. "DEU", "TUR"
+    country_id integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    label      text NOT NULL UNIQUE,                           -- z. B. "Deutschland", "Türkei"
+    code       text NOT NULL UNIQUE CHECK (code ~ '^[A-Z]{3}$')  -- ISO 3166-1 alpha-3, z. B. "DEU", "TUR"
 );
 
 -- Art einer Telefonnummer ("Festnetz", "Mobil", "Arbeit"). Lookup statt fester
 -- Spalten, damit eine vierte Art eine Datenzeile ist und keine Migration —
 -- Muster von SVWS-NRW (K_TelefonArt) und ASV-BW (Kommunikationstyp).
 CREATE TABLE phone_types (
-    id    integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    label text NOT NULL UNIQUE
+    phone_type_id integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    label         text NOT NULL UNIQUE
 );
 
 -- Schulzweig — heute Grundschule und Realschule (fachdomaenen.md Abschnitt 1).
 CREATE TABLE school_branches (
-    id    integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    label text NOT NULL UNIQUE
+    school_branch_id integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    label            text NOT NULL UNIQUE
 );
 
 -- Klassenstufen als Daten statt als Zahlenbereich: label ist frei ("1", "10",
@@ -218,8 +279,8 @@ CREATE TABLE school_branches (
 -- unbemerkte Fehländerung hat also eine reale Auswirkung auf laufende
 -- Zuteilungen statt nur eine Bezeichnung zu ändern.
 CREATE TABLE grade_levels (
-    id               integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    school_branch_id integer NOT NULL REFERENCES school_branches(id) ON DELETE RESTRICT,
+    grade_level_id   integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    school_branch_id integer NOT NULL REFERENCES school_branches(school_branch_id) ON DELETE RESTRICT,
     label            text NOT NULL,
     sort_order       smallint NOT NULL,
     is_final_grade   boolean NOT NULL DEFAULT false,
@@ -232,17 +293,17 @@ CREATE TABLE grade_levels (
     -- Ziel des zusammengesetzten Fremdschlüssels von classes unten — hält
     -- classes.school_branch_id konsistent zur jeweils referenzierten
     -- Klassenstufe, statt es unabhängig pflegbar zu lassen.
-    UNIQUE (id, school_branch_id)
+    UNIQUE (grade_level_id, school_branch_id)
 );
 -- Höchstens eine Abschlussklasse je Zweig. Ohne diesen Index ließen sich zwei
 -- Klassenstufen desselben Zweigs als "letzte" markieren, und die Putzdienst-
 -- Abgangsregel (domains/putzdienst.md) sperrte den September-Termin still für
 -- Familien, die noch ein Jahr bleiben — sichtbar wird das nirgends, denn
 -- is_final_grade steht in keiner Anzeige. Dieselbe Bauform wie bei
--- phone_numbers/child_payers.is_primary. Dass überhaupt eine Zeile je Zweig
+-- phone_numbers.is_primary. Dass überhaupt eine Zeile je Zweig
 -- gesetzt ist, sichert wie dort die Eingabemaske: schemaseitig wäre das eine
 -- Bedingung über mehrere Zeilen hinweg und damit ein weiterer Trigger.
-CREATE UNIQUE INDEX ON grade_levels (school_branch_id) WHERE is_final_grade;
+CREATE UNIQUE INDEX grade_levels_one_final_per_branch ON grade_levels (school_branch_id) WHERE is_final_grade;
 
 -- Klasse als Kohorte ("RS25a"), nicht als Klassenstufen-Slot: die Zeile ist ein
 -- Zug eines Jahrgangs innerhalb eines Zweigs (Zweig + Eintrittsjahr + Zug),
@@ -285,8 +346,8 @@ CREATE UNIQUE INDEX ON grade_levels (school_branch_id) WHERE is_final_grade;
 -- ein ON DELETE RESTRICT. Ein zweiter Fremdschlüssel wäre eine Einschränkung
 -- ohne eigene Wirkung; das Prüfskript belegt, dass die Sperre trotzdem greift.
 CREATE TABLE classes (
-    id               integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    school_branch_id integer NOT NULL REFERENCES school_branches(id) ON DELETE RESTRICT,
+    class_id         integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    school_branch_id integer NOT NULL REFERENCES school_branches(school_branch_id) ON DELETE RESTRICT,
     grade_level_id   integer NOT NULL,
     entry_year       smallint NOT NULL,
     -- "a", "b", … — Freitext statt Lookup (rules.md Abschnitt 3): der Zug ist
@@ -341,7 +402,7 @@ CREATE TABLE classes (
     updated_at       timestamptz NOT NULL DEFAULT now(),
     updated_by       text NOT NULL,
     UNIQUE (school_branch_id, entry_year, stream),
-    FOREIGN KEY (grade_level_id, school_branch_id) REFERENCES grade_levels(id, school_branch_id),
+    FOREIGN KEY (grade_level_id, school_branch_id) REFERENCES grade_levels(grade_level_id, school_branch_id),
     CHECK (entry_year BETWEEN 2000 AND 2100)
 );
 
@@ -350,8 +411,8 @@ CREATE TABLE classes (
 -- Lookup statt Freitext, weil dieselbe Grundschule sonst in drei Schreibweisen
 -- in der Datenbank steht; wächst über die Verwaltungsoberfläche.
 CREATE TABLE previous_schools (
-    id    integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    label text NOT NULL UNIQUE
+    previous_school_id integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    label              text NOT NULL UNIQUE
 );
 
 -- ---------------------------------------------------------------------------
@@ -376,7 +437,7 @@ CREATE TABLE previous_schools (
 -- Getrennte Personen bekommen dadurch je ihre eigene Adresszeile; es gibt
 -- weiterhin keine mehrdeutige "Familienadresse".
 CREATE TABLE addresses (
-    id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    address_id   uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     street       text,
     house_number text,               -- text statt Zahl wegen "12a", "12-14"
     district     text,               -- Teilort (baden-württembergische Besonderheit, ASV: ortsteil)
@@ -385,7 +446,7 @@ CREATE TABLE addresses (
     -- Kein DB-DEFAULT auf Deutschland: das wäre eine fest verdrahtete Lookup-ID
     -- im Schema. Die Eingabemaske wählt Deutschland vor, der Import liefert den
     -- Wert mit.
-    country_id   integer NOT NULL REFERENCES countries(id) ON DELETE RESTRICT,
+    country_id   integer NOT NULL REFERENCES countries(country_id) ON DELETE RESTRICT,
     created_at   timestamptz NOT NULL DEFAULT now(),
     created_by   text NOT NULL,
     updated_at   timestamptz NOT NULL DEFAULT now(),
@@ -409,19 +470,19 @@ CREATE INDEX ON addresses (postal_code, street, house_number);
 -- keine Personen (eigene Tabelle unten). Entspricht svp_person (ASV-BW) und
 -- gibbonPerson (Gibbon).
 CREATE TABLE persons (
-    id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    salutation_id     integer REFERENCES salutations(id) ON DELETE RESTRICT,
-    academic_title_id integer REFERENCES academic_titles(id) ON DELETE RESTRICT,
+    person_id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    salutation_id     integer REFERENCES salutations(salutation_id) ON DELETE RESTRICT,
+    academic_title_id integer REFERENCES academic_titles(academic_title_id) ON DELETE RESTRICT,
     first_name        text,            -- nullable: seltene Einzelname-Fälle
     -- CHECK <> '': NOT NULL allein lässt den Leerstring durch — beim Vollimport
     -- aus CSV/Excel der häufigste Artefakt (wie bei email unten), und auf einer
     -- identitätstragenden Pflichtspalte fällt er hinterher nur als "leeres Feld"
-    -- auf. Ebenso an organizations.name, phone_numbers.number, classes.stream;
+    -- auf. Ebenso an phone_numbers.number und classes.stream;
     -- bewusst nicht an den nullable Freitextspalten, dort ist '' statt NULL kein
     -- Identitätsproblem und ein CHECK je Spalte wäre Aufwand ohne Nutzen.
     last_name         text NOT NULL CHECK (last_name <> ''),
-    gender_id         integer REFERENCES genders(id) ON DELETE RESTRICT,
-    address_id        uuid REFERENCES addresses(id) ON DELETE RESTRICT,
+    gender_id         integer REFERENCES genders(gender_id) ON DELETE RESTRICT,
+    address_id        uuid REFERENCES addresses(address_id) ON DELETE RESTRICT,
     -- E-Mail der Person. Bei Erziehungsberechtigten zugleich die Identität für
     -- den OTP-Login (idea/04) — und bewusst NICHT UNIQUE: an der Schule teilen
     -- sich real 1–2 Elternpaare je Klasse eine Mailbox, und die Voranmeldung
@@ -483,32 +544,6 @@ CREATE INDEX ON persons (email);
 -- (Dublettenprüfung Nachname+Geburtsdatum, domains/stammdaten.md) mit ab.
 CREATE INDEX ON persons (lower(last_name) text_pattern_ops);
 
--- Organisation als Erziehungsberechtigte (Jugendamt, Pflegedienst, Vereinsvormund
--- — real vorkommend, domains/stammdaten.md). Eigene Anschrift und Telefonnummer,
--- weil die Schule sie anschreiben und anrufen können muss. Der fallbezogene
--- Sachbearbeiter steht nicht hier, sondern an family_guardians: das Jugendamt
--- vergibt ihn pro Fall, nicht pro Behörde.
-CREATE TABLE organizations (
-    id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    name       text NOT NULL CHECK (name <> ''),  -- CHECK begründet an persons.last_name
-    address_id uuid REFERENCES addresses(id) ON DELETE RESTRICT,
-    -- Rein ausgehender Kanal: die Schule schreibt die Behörde an. Anders als
-    -- persons.email bewusst NICHT UNIQUE, weil kein Login daran hängt — die
-    -- OTP-Prüfung liest ausschließlich persons.email (idea/04). Ohne
-    -- Login-Funktion kauft Eindeutigkeit hier nichts und würde den realen Fall
-    -- blockieren, dass mehrere Außenstellen derselben Behörde eine gemeinsame
-    -- Poststelle-Adresse nutzen.
-    -- Leerstring-Import-Artefakt und Formatprüfung: CHECK unten, identisch zu
-    -- persons.email und dort begründet.
-    email      citext,
-    created_at timestamptz NOT NULL DEFAULT now(),
-    created_by text NOT NULL,
-    updated_at timestamptz NOT NULL DEFAULT now(),
-    updated_by text NOT NULL,
-    CHECK (email ~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$')
-);
-CREATE INDEX ON organizations (address_id);
-
 -- Telefonnummern als Zeilen statt als feste Spalten (Festnetz/Arbeit/Mobil):
 -- eine weitere Art ist damit eine Datenzeile, keine Migration. is_primary
 -- kennzeichnet die von der Person benannte Hauptnummer — für O365-Kontakte und
@@ -517,14 +552,13 @@ CREATE INDEX ON organizations (address_id);
 -- (svp_kommunikation); Gibbon nimmt stattdessen vier feste Slots phone1..phone4
 -- und kann deshalb keine fünfte Nummer.
 --
--- Gehört entweder zu einer Person ODER zu einer Organisation — dieselbe
--- Entweder-oder-Modellierung wie bei guardians unten, damit die Nummer einer
--- Behörde nicht in einer zweiten Tabelle landet.
+-- Gehört immer zu einer Person. Eine Behördennummer gibt es nicht als eigenen
+-- Fall: die Sachbearbeiterin des Jugendamts ist selbst eine Person (Begründung
+-- an guardians), ihre Durchwahl also ihre Nummer.
 CREATE TABLE phone_numbers (
-    id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    person_id       uuid REFERENCES persons(id) ON DELETE CASCADE,
-    organization_id uuid REFERENCES organizations(id) ON DELETE CASCADE,
-    phone_type_id   integer NOT NULL REFERENCES phone_types(id) ON DELETE RESTRICT,
+    phone_number_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    person_id       uuid NOT NULL REFERENCES persons(person_id) ON DELETE CASCADE,
+    phone_type_id   integer NOT NULL REFERENCES phone_types(phone_type_id) ON DELETE RESTRICT,
     -- Speicherform ist E.164 (+4971231234567): das ist, was Vis365/M365 beim
     -- Kontaktabgleich übernimmt, und es beendet das Nebeneinander von "0170 2"
     -- und "+49 170 2" für dieselbe Nummer. Bewusst OHNE CHECK: das Sekretariat
@@ -540,43 +574,57 @@ CREATE TABLE phone_numbers (
     created_by      text NOT NULL,
     updated_at      timestamptz NOT NULL DEFAULT now(),
     updated_by      text NOT NULL,
-    CHECK ((person_id IS NULL) <> (organization_id IS NULL)),
     -- Dieselbe Nummer steht real zweimal an derselben Person, einmal als
     -- "Mobil" und einmal als "Arbeit" — der Typ ist aber eine Eigenschaft der
     -- Nummer, nicht ihre Identität. Zwei Zeilen dafür wären ein zweiter Ort für
     -- denselben Sachverhalt (rules.md Abschnitt 1), und is_primary säße dann
     -- womöglich auf der falschen. Deckt nebenbei den doppelten Importlauf ab.
-    -- Ohne WHERE-Klausel ausreichend: Postgres wertet NULLs in einem UNIQUE als
-    -- verschieden, die jeweils leere Hälfte der Entweder-oder-Modellierung
-    -- kollidiert also nicht mit sich selbst.
-    -- Diese beiden Indizes tragen zugleich den Zugriff über person_id bzw.
-    -- organization_id allein (B-Tree-Präfix) — ein zusätzlicher einspaltiger
-    -- Index daneben wäre redundant.
-    UNIQUE (person_id, number),
-    UNIQUE (organization_id, number)
+    -- Dieser Index trägt zugleich den Zugriff über person_id allein
+    -- (B-Tree-Präfix) — ein zusätzlicher einspaltiger daneben wäre redundant.
+    UNIQUE (person_id, number)
 );
--- Höchstens eine Hauptnummer je Person bzw. je Organisation.
-CREATE UNIQUE INDEX ON phone_numbers (person_id)       WHERE is_primary AND person_id IS NOT NULL;
-CREATE UNIQUE INDEX ON phone_numbers (organization_id) WHERE is_primary AND organization_id IS NOT NULL;
+-- Höchstens eine Hauptnummer je Person.
+CREATE UNIQUE INDEX phone_numbers_one_primary_per_person ON phone_numbers (person_id) WHERE is_primary;
 
 -- ---------------------------------------------------------------------------
 -- Familie, Kind, Erziehungsberechtigte
 -- ---------------------------------------------------------------------------
 
 -- Familie: Sorgerecht-Konstellation, nicht Haushalt (domains/stammdaten.md).
--- Manuell durch die Verwaltung gepflegt, kein abgeleitetes Feld. Bewusst ohne
--- Bezeichnungsfeld: ein „Familie Müller" veraltet beim ersten Namenswechsel und
--- ist ohnehin aus den Mitgliedern ableitbar. Gibbon führt dieselbe Struktur
+-- Manuell durch die Verwaltung gepflegt. Gibbon führt dieselbe Struktur
 -- (gibbonFamily + gibbonFamilyAdult + gibbonFamilyChild), hängt dort aber
 -- zusätzlich die Wohnanschrift an die Familie — bei uns falsch, weil Familie
 -- hier die Sorgerechtslage abbildet und nicht den gemeinsamen Haushalt.
--- updated_at/updated_by können hier strukturell nie von created_* abweichen: die
--- Tabelle hat außer der id keine Nutzlast-Spalte, ein UPDATE ändert also nie etwas.
--- Trotzdem bewusst beibehalten — sie wegzulassen hieße, families vom gemeinsamen
--- set_row_audit-Trigger auszunehmen und eine zweite Trigger-Variante zu pflegen.
--- Vier tote Spalten sind billiger als ein Sonderfall im einzigen Audit-Pfad.
+--
+-- Zwei Bezeichnungsfelder mit verschiedenem Publikum. Sie sind bewusst nicht zu
+-- einem zusammengelegt, anders als beim Freitext der Warteliste
+-- (domains/grenzkarte.md): dort teilen sich zwei Felder dieselbe Leserschaft und
+-- laufen deshalb auseinander, hier ist genau die Trennung der Zweck — label geht
+-- nach außen, alias nie.
 CREATE TABLE families (
-    id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    family_id  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    -- Außenbezeichnung für Anschreiben und Listen („Familie Müller").
+    -- Nullable, und leer heißt NICHT „namenlos", sondern „aus den Mitgliedern
+    -- ableiten" — dieselbe Übersteuerungs-Bauform wie payers.billing_address_id.
+    -- Damit bleibt der Regelfall ohne Pflege korrekt und veraltet beim
+    -- Namenswechsel nicht; gesetzt wird das Feld nur, wo die Ableitung
+    -- danebenliegt. Das ist real der Patchwork-Fall: Mutter Müller, Vater
+    -- Schmidt, Kinder teils so, teils so — dort ist aus den Mitgliedern keine
+    -- eindeutige Anrede zu bilden, und ein Mensch muss entscheiden.
+    -- Bewusst KEIN UNIQUE: zwei Familien Müller sind real und legitim — genau
+    -- dafür gibt es das alias unten.
+    label      text CHECK (label <> ''),
+    -- Interne Unterscheidung fürs Sekretariat („Müller Sonnenweg", „Müller RS").
+    -- Geht NIE in eine Zustellung: die Außenbezeichnung ist label. Deshalb ein
+    -- zweites Feld und kein Zusatz im ersten — sonst steht der interne
+    -- Unterscheider im Elternbrief.
+    -- UNIQUE, weil ein doppelt vergebenes alias seinen einzigen Zweck verfehlt.
+    -- Nullable bleibt es trotzdem, und Postgres wertet NULLs in einem UNIQUE als
+    -- verschieden — die vielen Familien ohne alias kollidieren also nicht.
+    -- CHECK <> '' hier anders als bei den übrigen nullable Freitextspalten
+    -- (Begründung an persons.last_name): mit dem UNIQUE daneben belegte der
+    -- erste Leerstring den Platz und der zweite schlüge scheinbar grundlos fehl.
+    alias      text UNIQUE CHECK (alias <> ''),
     created_at timestamptz NOT NULL DEFAULT now(),
     created_by text NOT NULL,
     updated_at timestamptz NOT NULL DEFAULT now(),
@@ -604,10 +652,26 @@ CREATE TABLE families (
 -- nur classes.grade_level_id fort (wenige Zeilen) — kein Kind wird dafür
 -- angefasst.
 CREATE TABLE children (
-    id                 uuid PRIMARY KEY REFERENCES persons(id) ON DELETE CASCADE,
-    family_id          uuid REFERENCES families(id) ON DELETE RESTRICT,  -- nullable: Familie wird ggf. erst nach dem Import zugeordnet
-    nickname           text,               -- Rufname, falls abweichend vom Vornamen — Schulalltag (Lehrer), nicht amtlicher Schriftverkehr; ASV-BW bleibt für die amtliche Rufname/Vorname-Unterscheidung führend
-    date_of_birth      date NOT NULL,
+    child_id                   uuid PRIMARY KEY REFERENCES persons(person_id) ON DELETE CASCADE,
+    family_id                  uuid REFERENCES families(family_id) ON DELETE RESTRICT,  -- nullable: Familie wird ggf. erst nach dem Import zugeordnet
+    -- Zahlungsverantwortliche/r für dieses Kind. Genau eine/r: an der Schule
+    -- zahlt real immer eine Partei allein, auch bei Kostenübernahme durch das
+    -- Jugendamt — geteilte Beiträge gibt es nicht. Deshalb ein Fremdschlüssel
+    -- am Kind statt einer Verknüpfungstabelle mit Hauptzahler-Kennzeichen: die
+    -- M:N-Struktur konnte einen Anteil ohnehin nicht ausdrücken und hätte für
+    -- den Aufteilungsfall trotzdem umgebaut werden müssen.
+    -- Umgekehrt bleibt N:1: dieselbe zahlende Partei trägt mehrere Kinder
+    -- (Geschwister, oder das Jugendamt für mehrere Mündel).
+    -- Nullable: vor dem Schulvertrag gibt es keine/n, und ein reines
+    -- Ferienprogramm-Kind zahlt über Stripe ganz ohne payers-Zeile
+    -- (domains/grenzkarte.md, Q3).
+    -- ON DELETE RESTRICT: eine zahlende Person verschwindet nicht, solange noch
+    -- ein Kind auf sie zeigt.
+    -- Fremdschlüssel per ALTER TABLE unten, weil payers erst nach children
+    -- definiert wird (Reihenfolge, siehe dort).
+    payer_id                   uuid,
+    nickname                   text,               -- Rufname, falls abweichend vom Vornamen — Schulalltag (Lehrer), nicht amtlicher Schriftverkehr; ASV-BW bleibt für die amtliche Rufname/Vorname-Unterscheidung führend
+    date_of_birth              date NOT NULL,
     -- Freitext, anders als das direkt benachbarte birth_country_id: ein
     -- Geburtsort ist keine wiederholte Auswahl aus einem gepflegten Satz (jede
     -- Klinikstadt der Welt kommt in Frage) und niemand gruppiert danach
@@ -615,11 +679,11 @@ CREATE TABLE children (
     -- Stelle: svp_schueler_stamm.geburtsort ist dort Freitext ("Geburtsort laut
     -- Geburtsurkunde"), das direkt daneben stehende wl_geburtsland_id dagegen
     -- Werteliste und Statistikpflichtfeld.
-    birthplace         text,
-    birth_country_id      integer REFERENCES countries(id) ON DELETE RESTRICT,
-    nationality_id        integer REFERENCES countries(id) ON DELETE RESTRICT,
-    second_nationality_id integer REFERENCES countries(id) ON DELETE RESTRICT,  -- doppelte Staatsangehörigkeit
-    home_language_id   integer REFERENCES languages(id) ON DELETE RESTRICT,  -- ein Feld für Verkehrs-/Muttersprache, siehe domains/stammdaten.md
+    birthplace                 text,
+    birth_country_id           integer REFERENCES countries(country_id) ON DELETE RESTRICT,
+    nationality_id             integer REFERENCES countries(country_id) ON DELETE RESTRICT,
+    second_nationality_id      integer REFERENCES countries(country_id) ON DELETE RESTRICT,  -- doppelte Staatsangehörigkeit
+    home_language_id           integer REFERENCES languages(language_id) ON DELETE RESTRICT,  -- ein Feld für Verkehrs-/Muttersprache, siehe domains/stammdaten.md
     -- Konfession/Kirchengemeinde: Art.-9-DSGVO-Daten (besondere Kategorie,
     -- Religionszugehörigkeit, Voranmeldeformular). Rollenspezifisch auf
     -- children UND guardians statt an der gemeinsamen Basistabelle persons —
@@ -629,10 +693,10 @@ CREATE TABLE children (
     -- zwei Spalten je Tabelle statt über eine eigene Tabellengrenze
     -- (wb-backend/db/init-roles.sh; Owner von children/guardians darf dabei
     -- nicht backend_runtime sein, sonst greift das Spalten-GRANT nicht).
-    denomination_id    integer REFERENCES denominations(id) ON DELETE RESTRICT,
-    congregation       text,               -- Kirchengemeinde, Freitext
-    provisional_grade_level_id integer REFERENCES grade_levels(id) ON DELETE RESTRICT,  -- NUR gültig, solange class_id NULL ist (CHECK unten) — danach gilt classes.grade_level_id
-    class_id           integer REFERENCES classes(id) ON DELETE RESTRICT,  -- Klasse; NULL solange nicht zugeteilt oder nicht eingeschult
+    denomination_id            integer REFERENCES denominations(denomination_id) ON DELETE RESTRICT,
+    congregation               text,               -- Kirchengemeinde, Freitext
+    provisional_grade_level_id integer REFERENCES grade_levels(grade_level_id) ON DELETE RESTRICT,  -- NUR gültig, solange class_id NULL ist (CHECK unten) — danach gilt classes.grade_level_id
+    class_id                   integer REFERENCES classes(class_id) ON DELETE RESTRICT,  -- Klasse; NULL solange nicht zugeteilt oder nicht eingeschult
     -- Eintritt in die SCHULE, nicht in den Zweig — Grundlage der
     -- Quereinsteiger-Proration (domains/putzdienst.md). Bleibt beim internen
     -- Wechsel Grundschule → Realschule unverändert, ebenso wie exit_date dabei
@@ -646,8 +710,8 @@ CREATE TABLE children (
     -- Schule beschreibt. Bewusst hier und nicht nur an der Bewerbung
     -- (Anmeldeprozess-Fachdomäne): die Bewerbung hat eine kürzere Löschfrist,
     -- nach deren Ablauf das Datum sonst verloren wäre.
-    registration_date  date,
-    entry_date         date,
+    registration_date          date,
+    entry_date                 date,
     -- Abgangsdatum: Löschfrist-Anker (idea/06-dsgvo-organisatorisch.md). class_id
     -- bleibt beim Abgang stehen und wird NICHT geleert — die Kohorten-Kennung ist
     -- der Ablageort der digitalen Schülerakte (Tabellenkommentar an classes), und
@@ -656,56 +720,80 @@ CREATE TABLE children (
     -- den Schulwechsel mitten im Jahr: bewusst kein Abgangsgrund daneben, kein
     -- benannter Prozess unterscheidet die beiden (domains/stammdaten.md,
     -- „Geprüft, bewusst nicht übernommen").
-    exit_date          date,
-    previous_school_id integer REFERENCES previous_schools(id) ON DELETE RESTRICT,  -- abgebende Schule; steht auf dem Grundschul- wie dem Realschul-Voranmeldeformular
+    exit_date                  date,
+    previous_school_id         integer REFERENCES previous_schools(previous_school_id) ON DELETE RESTRICT,  -- abgebende Schule; steht auf dem Grundschul- wie dem Realschul-Voranmeldeformular
     previous_school_consent_at timestamptz,  -- Einwilligung zur Auskunftseinholung dort; NULL = keine Einwilligung. Zeitpunkt statt Boolean wegen Nachweispflicht (Art. 7 Abs. 1 DSGVO)
-    created_at         timestamptz NOT NULL DEFAULT now(),
-    created_by         text NOT NULL,
-    updated_at         timestamptz NOT NULL DEFAULT now(),
-    updated_by         text NOT NULL,
-    CHECK (second_nationality_id IS NULL OR nationality_id IS NOT NULL),
+    created_at                 timestamptz NOT NULL DEFAULT now(),
+    created_by                 text NOT NULL,
+    updated_at                 timestamptz NOT NULL DEFAULT now(),
+    updated_by                 text NOT NULL,
+    CONSTRAINT children_second_nationality_requires_first_check
+        CHECK (second_nationality_id IS NULL OR nationality_id IS NOT NULL),
     -- Zweimal derselbe Staat ist keine doppelte Staatsangehörigkeit, sondern das
     -- Ergebnis einer doppelt gemappten Importspalte. Der NULL-Zweig muss explizit
     -- stehen: IS DISTINCT FROM allein wäre falsch, denn zwei NULL gelten dabei
     -- als nicht verschieden und der CHECK wiese jedes Kind ohne
     -- Staatsangehörigkeit ab.
-    CHECK (second_nationality_id IS NULL OR second_nationality_id <> nationality_id),
-    CHECK (exit_date IS NULL OR entry_date IS NULL OR exit_date >= entry_date),
+    CONSTRAINT children_second_nationality_differs_check
+        CHECK (second_nationality_id IS NULL OR second_nationality_id <> nationality_id),
+    CONSTRAINT children_exit_after_entry_check
+        CHECK (exit_date IS NULL OR entry_date IS NULL OR exit_date >= entry_date),
     -- Angemeldet wird vor dem Eintritt, nie danach. Fängt vertauschte Spalten
     -- beim Import — die beiden Daten liegen dort nebeneinander.
-    CHECK (entry_date IS NULL OR registration_date IS NULL OR entry_date >= registration_date),
-    CHECK (previous_school_consent_at IS NULL OR previous_school_id IS NOT NULL),
-    CHECK (class_id IS NULL OR provisional_grade_level_id IS NULL)
+    CONSTRAINT children_entry_after_registration_check
+        CHECK (entry_date IS NULL OR registration_date IS NULL OR entry_date >= registration_date),
+    CONSTRAINT children_previous_school_consent_check
+        CHECK (previous_school_consent_at IS NULL OR previous_school_id IS NOT NULL),
+    CONSTRAINT children_class_excludes_provisional_grade_check
+        CHECK (class_id IS NULL OR provisional_grade_level_id IS NULL)
 );
 CREATE INDEX ON children (family_id);
 CREATE INDEX ON children (class_id);
 CREATE INDEX ON children (provisional_grade_level_id);
+-- „Welche Kinder zahlt diese Partei" — die Abfrage der Buchhaltung vor dem
+-- Optigem-Übertrag und die Grundlage jeder Rechnung.
+CREATE INDEX ON children (payer_id);
 -- Bewusst KEIN Index auf date_of_birth: die einzige Abfrage, die das Feld filtert,
 -- ist die Dublettenprüfung (Nachname + Geburtsdatum, domains/stammdaten.md) — die
--- startet über den Namen, und der Planer wählt bei dieser Datenmenge ohnehin einen
--- Hash-Join über beide Seiten statt eines Index-Zugriffs (gegen Postgres 16 mit
--- 500 Kindern nachgestellt). Kein Fremdschlüssel hängt daran.
+-- startet über den Namen, und das Geburtsdatum ist nur noch der zweite Filter auf
+-- einer Tabelle dieser Größe. Gegen Postgres 18 mit 500 Kindern nachgestellt: der
+-- Planer scannt children und schlägt persons je Zeile über den Primärschlüssel
+-- nach, ein Index auf date_of_birth käme dabei nicht zum Einsatz. Kein
+-- Fremdschlüssel hängt daran.
 
--- Erziehungsberechtigte: entweder eine natürliche Person ODER eine Organisation —
--- genau eine der beiden Referenzen ist gesetzt (CHECK unten). Die strukturelle
--- Unterscheidung trägt damit der Fremdschlüssel selbst; ein zusätzliches
--- is_organization-Flag wäre ein zweiter Ort für dieselbe Tatsache und könnte
--- widersprüchlich gepflegt werden. Die frei benennbare Klassifizierung
--- („Elternteil"/„Jugendamt") steht an der Familienzugehörigkeit unten.
+-- Erziehungsberechtigte: IST eine Person — deshalb teilt sich guardians.id
+-- direkt mit persons.id, wie bei children, contacts und employees. Kein
+-- Surrogatschlüssel und keine zusätzliche person_id daneben.
 --
--- person_id/organization_id sind nach dem Anlegen unveränderlich (Spaltenrecht,
--- siehe Kopfkommentar) — eine Person wird nie zur Organisation, und die Zeile
--- lässt sich nicht auf einen anderen Menschen umbiegen.
+-- Es gibt bewusst KEINE Organisation als Erziehungsberechtigte, obwohl das
+-- Jugendamt (Amtsvormundschaft, §1791b BGB, §55 SGB VIII) und ein Verein
+-- (§1791a BGB) rechtlich Vormund sein können. Grund ist der einzige Eingang ins
+-- System: Kinder kommen ausschließlich über den Anmeldeprozess, und dessen
+-- Formular fragt Mutter, Vater und Pflegeeltern — nie eine Institution
+-- (fachdomaenen.md Abschnitt 6). Was tatsächlich ankommt, ist die handelnde
+-- Person; dass sie beim Jugendamt arbeitet, erfährt die Schule erst danach. Eine
+-- Organisationszeile hätte damit keinen Erzeuger, und entscheiden kann ohnehin
+-- nur ein Mensch: das Gesetz trennt genau so (das Amt überträgt die AUSÜBUNG
+-- einzelnen Beamten oder Angestellten). Für welche Institution jemand handelt,
+-- trägt family_guardians.acting_for; dass daraus keine Elternmitarbeitspflicht
+-- folgt, trägt guardian_categories.exempt_from_parent_duties.
 --
--- Name, Anschrift, Telefon und E-Mail stehen nicht hier, sondern an persons bzw.
--- organizations — SVWS-NRW legt sie stattdessen als Anrede1/Name1/Vorname1 +
+-- Folge, bewusst so: eine Amtsvormundin bekommt damit denselben OTP-Zugang wie
+-- jede andere Erziehungsberechtigte (idea/04). Das ist nötig, weil sie den
+-- Anmeldeprozess durchlaufen und den Schulvertrag zeichnen muss — und es macht
+-- sie zugleich in Q1/Q2 referenzierbar, was mit einem Namensstring unmöglich wäre.
+--
+-- Name, Anschrift, Telefon und E-Mail stehen nicht hier, sondern an persons —
+-- SVWS-NRW legt sie stattdessen als Anrede1/Name1/Vorname1 +
 -- Anrede2/Name2/Vorname2 in EINE Zeile am Schüler (SchuelerErzAdr) und kann damit
 -- weder Patchwork noch einen dritten Sorgeberechtigten abbilden.
+--
+-- ON DELETE RESTRICT statt CASCADE wie bei children/contacts: einen
+-- Erziehungsberechtigten zu löschen ist eine echte Entscheidung des Lösch-Jobs
+-- (domains/stammdaten.md, „Löschmechanik").
 CREATE TABLE guardians (
-    id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    person_id       uuid UNIQUE REFERENCES persons(id) ON DELETE RESTRICT,
-    organization_id uuid UNIQUE REFERENCES organizations(id) ON DELETE RESTRICT,
-    -- Beruf (Voranmeldeformular), nur bei natürlicher Person. Freitext: kein
+    guardian_id     uuid PRIMARY KEY REFERENCES persons(person_id) ON DELETE RESTRICT,
+    -- Beruf (Voranmeldeformular). Freitext: kein
     -- Prozess wertet nach Beruf aus, eine gepflegte Berufsliste wäre
     -- Pflegeaufwand ohne Nutzen (rules.md Abschnitt 3).
     occupation      text,
@@ -714,16 +802,21 @@ CREATE TABLE guardians (
     -- zweiter Ort für dieselbe Tatsache (rules.md Abschnitt 1) und träfe zudem
     -- die falsche Aussage: die Putzdienst-Befreiung (domains/putzdienst.md)
     -- hängt daran, ob jemand AKTUELL beschäftigt ist, nicht ob er es einmal war.
-    -- Konfession/Kirchengemeinde: Art.-9-DSGVO-Daten, Voranmeldeformular, nur
-    -- bei natürlicher Person — Begründung und GRANT-Hinweis an children.denomination_id.
-    denomination_id integer REFERENCES denominations(id) ON DELETE RESTRICT,
-    congregation    text,               -- Kirchengemeinde, Freitext
+    -- Bewusst KEINE Konfession/Kirchengemeinde und keine Staatsangehörigkeit,
+    -- obwohl beide Voranmeldeformulare beides abfragen: kein benannter Prozess
+    -- braucht sie bei Erziehungsberechtigten — der ASV-BW-Export betrifft nur
+    -- Kinder. Ein Formularfeld allein reicht als Beleg nicht, wenn es keinen
+    -- Abnehmer gibt (rules.md Abschnitt 7), und bei Art.-9-Daten wiegt das
+    -- doppelt: die Spalte gar nicht erst anzulegen ist die einzige Absicherung,
+    -- die auch ein Import nicht umgehen kann. Beide Felder werden beim Umzug
+    -- nach Weltenbaum aus dem Formular gestrichen statt ins Schema übernommen.
+    -- Sollte die Aufnahmeentscheidung die Konfession der Eltern doch bewerten,
+    -- gehört sie an die Bewerbung (domains/grenzkarte.md, Domäne 2/4) — dort hat
+    -- sie die kürzere Löschfrist, die Art.-9-Daten ohnehin verdienen.
     created_at      timestamptz NOT NULL DEFAULT now(),
     created_by      text NOT NULL,
     updated_at      timestamptz NOT NULL DEFAULT now(),
-    updated_by      text NOT NULL,
-    CHECK ((person_id IS NULL) <> (organization_id IS NULL)),
-    CHECK (person_id IS NOT NULL OR (occupation IS NULL AND denomination_id IS NULL AND congregation IS NULL))
+    updated_by      text NOT NULL
 );
 
 -- ---------------------------------------------------------------------------
@@ -750,7 +843,7 @@ CREATE TABLE guardians (
 -- und wie tief sie geschnitten ist, ist unbekannt — sie zu raten wäre teurer
 -- als sie später zu ergänzen (rules.md Abschnitt 1).
 CREATE TABLE employees (
-    id               uuid PRIMARY KEY REFERENCES persons(id) ON DELETE CASCADE,
+    employee_id      uuid PRIMARY KEY REFERENCES persons(person_id) ON DELETE CASCADE,
     -- Dienstadresse, getrennt von persons.email. Letztere ist die private
     -- Adresse und zugleich die OTP-Identität (idea/04) — ein Mitarbeiter, der
     -- zugleich Elternteil ist, verlöre sonst beim Offboarding seinen
@@ -774,15 +867,17 @@ CREATE TABLE employees (
     updated_at       timestamptz NOT NULL DEFAULT now(),
     updated_by       text NOT NULL,
     CHECK (work_email ~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$'),
-    CHECK (employment_end IS NULL OR employment_start IS NULL OR employment_end >= employment_start)
+    CONSTRAINT employees_employment_period_check
+        CHECK (employment_end IS NULL OR employment_start IS NULL OR employment_end >= employment_start)
 );
 
 -- Klassenlehrer:in. Der Fremdschlüssel steht hier statt an der Tabelle, weil
 -- classes weiter oben definiert wird (Schulstruktur-Block) und employees erst
--- persons voraussetzt — die einzige Stelle im Schema mit dieser Reihenfolge.
+-- persons voraussetzt. Eine von zwei Stellen im Schema mit dieser Reihenfolge,
+-- die zweite ist children.payer_id ganz unten.
 -- Nullable: eine neue Kohorte existiert vor ihrer Lehrkraft, festgelegt wird
 -- sie erst bei der Klassenbildung (fachdomaenen.md Abschnitt 6).
-ALTER TABLE classes ADD FOREIGN KEY (class_teacher_id) REFERENCES employees(id) ON DELETE RESTRICT;
+ALTER TABLE classes ADD FOREIGN KEY (class_teacher_id) REFERENCES employees(employee_id) ON DELETE RESTRICT;
 CREATE INDEX ON classes (class_teacher_id);
 
 -- Erziehungsberechtigte↔Familie: M:N (Patchwork-Fall, domains/stammdaten.md).
@@ -793,9 +888,9 @@ CREATE INDEX ON classes (class_teacher_id);
 -- führt dort genau dafür ein Flag (gibbonFamilyAdult.childDataAccess). Wir bauen
 -- es erst, wenn ein Fall vorliegt; die Struktur muss dafür nicht geändert werden.
 CREATE TABLE family_guardians (
-    family_id            uuid NOT NULL REFERENCES families(id) ON DELETE CASCADE,
-    guardian_id          uuid NOT NULL REFERENCES guardians(id) ON DELETE CASCADE,
-    guardian_category_id integer REFERENCES guardian_categories(id) ON DELETE RESTRICT,
+    family_id                 uuid NOT NULL REFERENCES families(family_id) ON DELETE CASCADE,
+    guardian_id               uuid NOT NULL REFERENCES guardians(guardian_id) ON DELETE CASCADE,
+    guardian_category_id      integer REFERENCES guardian_categories(guardian_category_id) ON DELETE RESTRICT,
     -- „In Briefe miteinbeziehen" — steht auf allen vier Anmeldetag-Checklisten
     -- direkt neben „Sorgeberechtigt" und entscheidet, wer Schulpost und
     -- Prozessmails bekommt. An der Familienzugehörigkeit und nicht an der
@@ -804,17 +899,23 @@ CREATE TABLE family_guardians (
     -- angeschrieben; das Abwählen ist der begründungspflichtige Fall.
     -- Betrifft auch die Putzdienst-Erinnerungen (domains/putzdienst.md).
     include_in_correspondence boolean NOT NULL DEFAULT true,
-    -- nur bei Organisation: Sachbearbeiter für diesen Fall, Freitext (wechselt
-    -- öfter, keine eigene Person-Zeile wert). Kein CHECK möglich (Organisations-
-    -- Status steht auf guardians, nicht auf dieser Zeile) — durchgesetzt per
-    -- Trigger unten (check_family_guardians_contact_person). Ein nachträglicher
-    -- Wechsel des Guardians von Organisation auf Person, der die Notiz sonst
-    -- verwaist zurückließe, ist per Spaltenrecht ausgeschlossen (Kopfkommentar).
-    contact_person       text,
-    created_at           timestamptz NOT NULL DEFAULT now(),
-    created_by           text NOT NULL,
-    updated_at           timestamptz NOT NULL DEFAULT now(),
-    updated_by           text NOT NULL,
+    -- Für welche Institution diese Person in diesem Fall handelt („Jugendamt
+    -- Musterkreis"), Freitext. Leer im Regelfall — gesetzt bei Amts- oder
+    -- Vereinsvormundschaft, wo die Person selbst Erziehungsberechtigte ist
+    -- (Begründung an guardians), der Brief aber „Jugendamt Musterkreis, z. Hd.
+    -- Frau Meier" adressiert werden muss. An der Familienzugehörigkeit und nicht
+    -- an der Person: dieselbe Frau handelt für ein Mündel als Amtsvormundin und
+    -- ist für ihr eigenes Kind Privatperson.
+    --
+    -- Freitext und keine Werteliste: es sind einstellig viele Institutionen,
+    -- niemand gruppiert danach, und die Befreiung von der Elternmitarbeit hängt
+    -- nicht hieran, sondern an guardian_categories — dieses Feld trägt keine
+    -- Regel, nur die Anschrift im Brief.
+    acting_for                text,
+    created_at                timestamptz NOT NULL DEFAULT now(),
+    created_by                text NOT NULL,
+    updated_at                timestamptz NOT NULL DEFAULT now(),
+    updated_by                text NOT NULL,
     PRIMARY KEY (family_id, guardian_id)
 );
 CREATE INDEX ON family_guardians (guardian_id);
@@ -835,14 +936,17 @@ CREATE INDEX ON family_guardians (guardian_id);
 -- (emergency1Name … emergency2Relationship) auf die Person des Kindes und
 -- kann deshalb keinen dritten Kontakt und keine geteilte Nummer.
 --
+-- Reine Rollenzeile ohne eigene Nutzlast. Das frühere Notizfeld ist entfallen:
+-- sein einziges dokumentiertes Beispiel („nur nachmittags erreichbar") trägt
+-- phone_numbers.note bereits je Nummer und damit genauer.
+--
 -- Preis dieser Vereinheitlichung: Anschrift und E-Mail sind für Kontakte
 -- technisch befüllbar. Datensparsamkeit ist hier also nur noch eine Regel der
 -- Eingabemaske, nicht mehr strukturell erzwungen — anders als bei Demografie
 -- (nur children) und Beruf (nur guardians), die weiterhin an der Rollentabelle
 -- hängen und für andere Rollen gar nicht existieren.
 CREATE TABLE contacts (
-    id         uuid PRIMARY KEY REFERENCES persons(id) ON DELETE CASCADE,
-    note       text,               -- z. B. "nur nachmittags erreichbar"; Singular wie phone_numbers.note
+    contact_id uuid PRIMARY KEY REFERENCES persons(person_id) ON DELETE CASCADE,
     created_at timestamptz NOT NULL DEFAULT now(),
     created_by text NOT NULL,
     updated_at timestamptz NOT NULL DEFAULT now(),
@@ -861,8 +965,8 @@ CREATE TABLE contacts (
 -- Notfall-Rolle); wo gesetzt, höchstens einmal je Kind (UNIQUE unten) — keine
 -- zwei Kontakte mit demselben Rang.
 CREATE TABLE child_contacts (
-    child_id     uuid NOT NULL REFERENCES children(id) ON DELETE CASCADE,
-    contact_id   uuid NOT NULL REFERENCES contacts(id) ON DELETE CASCADE,
+    child_id     uuid NOT NULL REFERENCES children(child_id) ON DELETE CASCADE,
+    contact_id   uuid NOT NULL REFERENCES contacts(contact_id) ON DELETE CASCADE,
     -- Freitext, bewusst anders als guardian_categories an family_guardians —
     -- dort steht dieselbe Art Frage („wie steht diese Person zum Kind?") als
     -- Lookup. Unterschied: dort ist der Satz klein, rechtlich relevant und
@@ -879,7 +983,7 @@ CREATE TABLE child_contacts (
     PRIMARY KEY (child_id, contact_id)
 );
 CREATE INDEX ON child_contacts (contact_id);
-CREATE UNIQUE INDEX ON child_contacts (child_id, priority) WHERE priority IS NOT NULL;
+CREATE UNIQUE INDEX child_contacts_one_contact_per_priority ON child_contacts (child_id, priority) WHERE priority IS NOT NULL;
 
 -- ---------------------------------------------------------------------------
 -- Zahlungsverantwortliche
@@ -887,15 +991,21 @@ CREATE UNIQUE INDEX ON child_contacts (child_id, priority) WHERE priority IS NOT
 
 -- Zahlungsverantwortlich für ein Kind ist nicht dasselbe wie sorgeberechtigt
 -- (domains/stammdaten.md) — Großeltern zahlen mit oder allein, ohne
--- Erziehungsberechtigte zu sein; das Jugendamt übernimmt bei Kostenübernahmen
--- (z. B. Ferienprogramm) direkt als Organisation. Deshalb eine eigene Rolle
--- statt Wiederverwendung von guardians/contacts, mit demselben
--- Entweder-Person-oder-Organisation-Muster wie guardians (Fremdschlüssel trägt
--- die Unterscheidung, kein zusätzliches Flag).
+-- Erziehungsberechtigte zu sein. Deshalb eine eigene Rolle statt
+-- Wiederverwendung von guardians/contacts; wie diese IST sie eine Person und
+-- teilt sich den Schlüssel mit persons.
 --
--- Bewusst KEIN Anteil/Betrag je Zahler (Bezuschussung, Gutscheine) — offener
--- Punkt, noch zu klären; child_payers.is_primary hält vorerst nur fest, wer
--- der/die Hauptzahler:in ist, analog phone_numbers.is_primary.
+-- Auch eine Kostenübernahme durch das Jugendamt (z. B. Ferienprogramm) läuft
+-- über eine Person — die handelnde Sachbearbeiterin, Begründung an guardians.
+-- Dass das Geld vom Amt kommt, tragen die vorhandenen Spalten: account_holder
+-- nimmt den abweichenden Kontoinhaber auf, billing_address_id die Amtsanschrift.
+--
+-- Bewusst KEIN Anteil/Betrag: an der Schule zahlt real immer eine Partei allein
+-- (auch das Jugendamt bei Kostenübernahme), geteilte Beiträge gibt es nicht.
+-- Die Zuordnung ist deshalb ein Fremdschlüssel am Kind (children.payer_id) und
+-- keine Verknüpfungstabelle. Käme die Aufteilung später doch, ist sie eine neue
+-- Tabelle neben dieser — die alte M:N-Struktur hätte den Anteil ohnehin nicht
+-- getragen, also für denselben Fall ebenfalls umgebaut werden müssen.
 --
 -- IBAN/BIC sind sensible, aber keine Art.-9-Daten — eigene Rollentabelle statt
 -- Spalten auf persons/children/guardians (anders als Konfession oben): der
@@ -904,14 +1014,19 @@ CREATE UNIQUE INDEX ON child_contacts (child_id, priority) WHERE priority IS NOT
 -- die Daten nie mit. Eigene, engere DB-Rolle wie bei den Konfessionsspalten
 -- (wb-backend/db/init-roles.sh).
 --
--- billing_address_id nullable: NULL heißt „Anschrift der zahlenden
--- Person/Organisation gilt", nur bei abweichender Rechnungsadresse gesetzt —
--- kein Pflicht-Duplikat der ohnehin vorhandenen Adresse.
+-- billing_address_id nullable: NULL heißt „Anschrift der zahlenden Person
+-- gilt", nur bei abweichender Rechnungsadresse gesetzt — kein Pflicht-Duplikat
+-- der ohnehin vorhandenen Adresse.
+--
+-- ON DELETE RESTRICT wie bei guardians: eine zahlende Person verschwindet nicht
+-- nebenbei, solange sie referenziert ist. Umgekehrt blockiert seit dem Wegfall
+-- der Verknüpfungstabelle nichts mehr das Löschen eines Kindes mit
+-- Zahlungsverantwortung — die Zuordnung verschwindet mit der Kindzeile, die
+-- payers-Zeile bleibt und fällt als verwaist im selben Lauf
+-- (domains/stammdaten.md, „Löschmechanik").
 CREATE TABLE payers (
-    id                 uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    person_id          uuid UNIQUE REFERENCES persons(id) ON DELETE RESTRICT,
-    organization_id    uuid UNIQUE REFERENCES organizations(id) ON DELETE RESTRICT,
-    billing_address_id uuid REFERENCES addresses(id) ON DELETE RESTRICT,
+    payer_id           uuid PRIMARY KEY REFERENCES persons(person_id) ON DELETE RESTRICT,
+    billing_address_id uuid REFERENCES addresses(address_id) ON DELETE RESTRICT,
     -- Struktur-CHECK nach ISO 13616 (IBAN) bzw. ISO 9362 (BIC), bewusst
     -- international und nicht auf die deutsche Länge festgelegt: IBAN ist
     -- Ländercode + zwei Prüfziffern + 11–30 Zeichen BBAN, also 15 (Norwegen) bis
@@ -962,36 +1077,21 @@ CREATE TABLE payers (
     created_by         text NOT NULL,
     updated_at         timestamptz NOT NULL DEFAULT now(),
     updated_by         text NOT NULL,
-    CHECK ((person_id IS NULL) <> (organization_id IS NULL)),
     -- Referenz ohne Datum ist kein gültiges Mandat und umgekehrt — beide oder
     -- keines.
-    CHECK ((mandate_reference IS NULL) = (mandate_signed_at IS NULL)),
+    CONSTRAINT payers_mandate_complete_check
+        CHECK ((mandate_reference IS NULL) = (mandate_signed_at IS NULL)),
     -- Mandat ohne Konto ist sinnlos. Umgekehrt gilt das nicht: eine IBAN darf
     -- vor der Unterschrift dastehen (Import aus Optigem, Erfassung vor
     -- Vertragsabschluss).
-    CHECK (mandate_reference IS NULL OR iban IS NOT NULL)
+    CONSTRAINT payers_mandate_requires_iban_check
+        CHECK (mandate_reference IS NULL OR iban IS NOT NULL)
 );
 CREATE INDEX ON payers (billing_address_id);
 
--- Kind↔Zahler: M:N (mehrere Zahler je Kind für Bezuschussungsfälle, dieselbe
--- zahlende Person/Organisation ggf. für mehrere Kinder). ON DELETE RESTRICT
--- auf child_id: ein Kind mit noch bestehender Zahlungsverantwortung wird nicht
--- nebenbei mitgelöscht, das ist eine echte Entscheidung wie bei guardians
--- (domains/stammdaten.md, „Löschmechanik") — anders als child_contacts, das
--- keine Rechtsfolge hat.
-CREATE TABLE child_payers (
-    child_id   uuid NOT NULL REFERENCES children(id) ON DELETE RESTRICT,
-    payer_id   uuid NOT NULL REFERENCES payers(id) ON DELETE CASCADE,
-    is_primary boolean NOT NULL DEFAULT false,
-    created_at timestamptz NOT NULL DEFAULT now(),
-    created_by text NOT NULL,
-    updated_at timestamptz NOT NULL DEFAULT now(),
-    updated_by text NOT NULL,
-    PRIMARY KEY (child_id, payer_id)
-);
-CREATE INDEX ON child_payers (payer_id);
--- Höchstens eine/r Hauptzahler:in je Kind.
-CREATE UNIQUE INDEX ON child_payers (child_id) WHERE is_primary;
+-- Zahlungsverantwortliche/r des Kindes. Wie bei classes.class_teacher_id per
+-- ALTER TABLE nachgezogen: children wird oben definiert, payers erst hier.
+ALTER TABLE children ADD FOREIGN KEY (payer_id) REFERENCES payers(payer_id) ON DELETE RESTRICT;
 
 -- ---------------------------------------------------------------------------
 -- Audit-Spalten automatisch fortschreiben. In der Datenbank statt in der
@@ -1039,6 +1139,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON guardian_categories
+    FOR EACH ROW EXECUTE FUNCTION set_row_audit();
 CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON grade_levels
     FOR EACH ROW EXECUTE FUNCTION set_row_audit();
 CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON classes
@@ -1046,8 +1148,6 @@ CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON classes
 CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON addresses
     FOR EACH ROW EXECUTE FUNCTION set_row_audit();
 CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON persons
-    FOR EACH ROW EXECUTE FUNCTION set_row_audit();
-CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON organizations
     FOR EACH ROW EXECUTE FUNCTION set_row_audit();
 CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON phone_numbers
     FOR EACH ROW EXECUTE FUNCTION set_row_audit();
@@ -1067,27 +1167,3 @@ CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON child_contacts
     FOR EACH ROW EXECUTE FUNCTION set_row_audit();
 CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON payers
     FOR EACH ROW EXECUTE FUNCTION set_row_audit();
-CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON child_payers
-    FOR EACH ROW EXECUTE FUNCTION set_row_audit();
-
--- ---------------------------------------------------------------------------
--- family_guardians.contact_person nur bei Organisation als Erziehungsberechtigte
--- (Tabellenkommentar oben) — kein CHECK möglich, weil der Organisations-Status
--- auf guardians steht, einer anderen Tabelle als contact_person selbst; CHECK-
--- Constraints dürfen keine andere Tabelle nachschlagen. Analog zu
--- guardians.occupation, nur eben cross-table statt in derselben Zeile.
--- ---------------------------------------------------------------------------
-
-CREATE FUNCTION check_family_guardians_contact_person() RETURNS trigger AS $$
-BEGIN
-    IF NEW.contact_person IS NOT NULL AND NOT EXISTS (
-        SELECT 1 FROM guardians WHERE id = NEW.guardian_id AND organization_id IS NOT NULL
-    ) THEN
-        RAISE EXCEPTION 'contact_person nur zulässig, wenn guardian_id eine Organisation ist (guardian_id %)', NEW.guardian_id;
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER check_family_guardians_contact_person BEFORE INSERT OR UPDATE ON family_guardians
-    FOR EACH ROW EXECUTE FUNCTION check_family_guardians_contact_person();

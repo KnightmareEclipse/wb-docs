@@ -4,7 +4,17 @@ Legt für **jede** Domäne aus `fachdomaenen.md` Abschnitt 6 fest, welche Entit�
 
 **Was hier bewusst nicht steht:** Spalten, Typen, Constraints, Indizes. Die entstehen je Domäne in Deadline-Reihenfolge gegen diese Karte. Eine Spalte nachzutragen ist billig, eine falsch gezogene Grenze nicht — deshalb wird nur Letztere vorab entschieden.
 
-Stand der Umsetzung: **Stammdaten** ist gebaut (`stammdaten-schema.sql`). Alles andere ist Karte, kein Schema.
+Stand der Umsetzung: **Stammdaten** ist gebaut (`stammdaten-schema.sql`), ebenso **Putzdienst** samt der Querschnitts-Entität Q3 (`putzdienst-schema.sql`). Alles andere ist Karte, kein Schema.
+
+## Freeze der Stammdaten
+
+Stammdaten sind gegen die Rückwirkung der Domänen 2/4, 3 und 9 geprüft — der Domänen also, die vor der nächsten Gelegenheit zum Umbau fällig werden. **Keine von ihnen verlangt eine Änderung an einer bestehenden Spalte, einem Typ oder einem Constraint.** Was sie verlangen, steht unten je Domäne und läuft ausnahmslos auf neue Tabellen hinaus.
+
+Ab dem **Vollimport Ende August 2026** gilt deshalb: eingefroren heißt **keine Änderung an bestehenden Spalten, Typen oder Constraints**. Neue Tabellen, die Stammdaten nur referenzieren, bleiben jederzeit erlaubt und stören keine lesende Domäne.
+
+Der Stichtag trägt die Regel, nicht das Schema: davor ist eine Änderung ein Texteingriff in einen Entwurf, danach eine Migration auf echten Personendaten, und die externe Abnahme liegt ebenfalls davor. Wer nach dem Stichtag eine bestehende Spalte ändern zu müssen glaubt, prüft zuerst, ob eine neue Tabelle dasselbe leistet.
+
+Drei Befunde aus dieser Prüfung sind keine Schemaänderung, sondern Festlegungen, die den Freeze überhaupt erst halten — sie stehen an ihrer jeweiligen Stelle und sind hier nur genannt, damit sie nicht als „noch offen" wieder aufgemacht werden: der Kindergarten bekommt eine eigene Werteliste statt `previous_schools` (unten), die Geburtsurkunde bleibt eine reine Q2-Zeile ohne Datumsfeld (unten), und die Notfallnummer bekommt kein eigenes Feld (`stammdaten.md`, „Kontakte").
 
 ## Vier Regeln, aus denen sich der Rest ergibt
 
@@ -49,7 +59,9 @@ Zwei Folgen dieser Entscheidung:
 
 **Keine Buchhaltung in Weltenbaum, keine Forderungsverwaltung, keine Fälligkeiten.** Optigem bleibt dafür führend. Weltenbaum berührt Geld nur an einer Stelle: wo ein Elternteil im Selbstservice bezahlt und der Prozess erst danach weiterlaufen darf.
 
-Das trifft genau drei Anlässe, alle über **Stripe**: Voranmeldung samt Quereinstieg, Ferienprogramm-Buchung und Putzdienst-Freikauf. Form entsprechend schmal: *Anlass (Domäne + Vorgang) × Betrag × Status × Zahlungsreferenz*. Status bleibt zahlungswegneutral (offen/bestätigt), weil der Putzdienst im September 2026 noch über manuelle Bestätigung durch die Buchhaltung läuft und Stripe dort erst nachrückt (`putzdienst.md`) — dieselbe Zeile trägt beides, die Zahlungsreferenz bleibt dann leer.
+Das trifft genau drei Anlässe, alle über **Stripe**: Voranmeldung samt Quereinstieg, Ferienprogramm-Buchung und Putzdienst-Freikauf. Form entsprechend schmal: *Anlass (Domäne + Vorgang) × Betrag × Status × Zahlungsreferenz*. Status bleibt trotzdem zahlungswegneutral (offen/bestätigt): neben Stripe bleibt die manuelle Bestätigung durch die Buchhaltung als benannter Ausweg für Überweisung und Bargeld bestehen (`putzdienst.md`) — dieselbe Zeile trägt beides, die Zahlungsreferenz bleibt dann leer.
+
+**Gebaut ist Q3 mit dem Putzdienst-Freikauf als erstem und bisher einzigem Anlass** (`putzdienst-schema.sql`). Die beiden übrigen kommen als je eine weitere Vorgangs-Spalte samt erweitertem Entweder-oder-CHECK dazu, nicht als zweite Zahlungstabelle: der Fremdschlüssel trägt die Unterscheidung, wie bei `guardians` und `payers` in Stammdaten. Ein Typ-Feld plus untypisierte Vorgangs-ID gäbe die referenzielle Integrität auf, und genau die ist der Grund, Q3 überhaupt einmal zu bauen.
 
 **Schulgeld, Mensa und Hort haben im System nichts verloren.** Sie werden vollständig über die Buchhaltung mit Optigem abgerechnet. Sollten Mensa- und Hortbuchungen später ein eigenes Portal bekommen, entsteht dort **keine** Zahlung, sondern eine Erlaubnis: „darf vom hinterlegten SEPA-Mandat abgebucht werden". Das ist eine Zustimmung und gehört nach Q1, nicht hierher — ein Zahlungsdatensatz ohne Zahlung wäre der Anfang einer Schatten-Buchhaltung.
 
@@ -72,7 +84,7 @@ Zielbild für Datenänderungen (`fachdomaenen.md` Abschnitt 3): die Änderung pa
 
 Die Änderung selbst ist bereits erfasst (Audit-Spalten), und welches Feld welches Fremdsystem betrifft, ist eine statische Abbildung im Code — beides braucht keine Tabelle. Gespeichert wird nur, was sich nicht ableiten lässt: **ob die Aufgabe erledigt ist**.
 
-Die „Abschließenden Aufgaben" der vier Anmeldetag-Checklisten sind die reale Vorlage dieser Liste — und zugleich der Nutzennachweis. Von den heute abzuarbeitenden Punkten entfallen mit Weltenbaum ersatzlos: Klassenlisten ausdrucken, Hort-/Mensaliste aktualisieren, Klassenverteiler in Outlook pflegen, Eintrag im Telefonbuch-PC, Kontaktdaten in die Putzliste übertragen. Als echte Nachzieh-Aufgaben bleiben ASV-BW, Optigem und der Austausch der Schülerüberweisung mit der staatlichen Schule. Solange ASV-BW und Optigem keine Update-Schnittstelle haben, ist das der einzige Weg, aus „hoffentlich hat es jemand gemacht" ein prüfbares Ergebnis zu machen.
+Die „Abschließenden Aufgaben" der vier Anmeldetag-Checklisten sind die reale Vorlage dieser Liste — und zugleich der Nutzennachweis. Von den heute abzuarbeitenden Punkten entfallen mit Weltenbaum ersatzlos: Klassenlisten ausdrucken, Hort-/Mensaliste aktualisieren, Klassenverteiler in Outlook pflegen, Eintrag im Telefonbuch-PC, Kontaktdaten in die Putzliste übertragen. Als echte Nachzieh-Aufgaben bleiben ASV-BW und Optigem. Der Austausch der Schülerüberweisung mit der staatlichen Schule bleibt ebenfalls Handarbeit, gehört aber nicht hierher: er zieht keine Weltenbaum-Änderung in ein Fremdsystem nach, sondern ist ein Vorgangsschritt der Bewerbung (unten) — an zwei Orten geführt wäre derselbe Erledigt-Haken zweimal pflegbar. Solange ASV-BW und Optigem keine Update-Schnittstelle haben, ist das der einzige Weg, aus „hoffentlich hat es jemand gemacht" ein prüfbares Ergebnis zu machen.
 
 ## Je Domäne
 
@@ -81,9 +93,9 @@ Nummerierung wie `fachdomaenen.md` Abschnitt 6.
 | Domäne | Eigene Entitäten | Nutzt Querschnitt | Schreibt Stammdaten |
 |---|---|---|---|
 | **Stammdaten** | Person, Anschrift, Telefon, Familie, Familienzugehörigkeit, Kind, Erziehungsberechtigte, Kontakt, Zahler, **Mitarbeiter**, Klasse/Klassenstufe/Zweig, 11 Lookups | — | besitzt sie |
-| **1 Putzdienst** | Zyklus, Erinnerungsstufe, Putztermin, Zuteilung, abweichende Pflichtmenge, Freikauf | Q3 | nein |
-| **2 Voranmeldung** / **4 Anmeldeprozess und Anmeldegespräch** (eine Domäne, drei Phasen: Voranmeldung → Gespräch → Schulvertrag) | Bewerbung, Gesprächstermin, Vertragsvorgang | Q1, Q2, Q3 | ja (viel) |
-| **3 Ferienanmeldung** (Ferienprogramm, Kochwerkstatt) | Programm, Angebotstag, Buchung | Q1, Q3 | ja (legt schulfremde Kinder an) |
+| **1 Putzdienst** (gebaut) | Zyklus, Erinnerungsstufe, Terminart, Putztermin, Zuteilung, abweichende Pflichtmenge, Freikauf | Q3 | nein |
+| **2 Voranmeldung** / **4 Anmeldeprozess und Anmeldegespräch** (eine Domäne, drei Phasen: Voranmeldung → Gespräch → Schulvertrag) | Bewerbung, Gesprächstermin, Vertragsvorgang, Betreuungsmodul (inkl. Hortvertrag) | Q1, Q2, Q3 | ja (viel) |
+| **3 Ferienanmeldung** (Ferienprogramm, Kochwerkstatt) | Programm, Angebotstag, Buchung | Q1, Q3 | ja (legt schulfremde Kinder samt Familie, Erziehungsberechtigten und Notfallkontakt an) |
 | **6 Mensa** | Essensanmeldung je Kind und Tag | Q1 (Lastschrift-Erlaubnis) | nein |
 | **6 AGs** | unbekannt | unbekannt | vermutlich nein |
 | **9 Gesundheitsdaten** | Gesundheitsmerkmal je Kind | Q1, Q2 | nein |
@@ -95,7 +107,7 @@ Nummerierung wie `fachdomaenen.md` Abschnitt 6.
 | **12 Klassenbildung** | **keine** — alle Eingaben sind vorhanden oder ableitbar (siehe unten) | — | ja (`children.class_id`) |
 | **13 Klassenorganisation** (neu) | Elternvertretung je Klasse | — | ja, falls Klassenlehrer/Raum an `classes` gehen |
 
-**Die Hort-Buchung gehört dazu, der Hort-Alltag nicht.** Alle vier Anmeldetag-Checklisten erheben „Betreuungsbedarf: Kernzeit / Nachmittag / Ganztags", beim Quereinsteiger zusätzlich Lernbetreuung und Mittagessen für Realschüler, und es gibt einen eigenen **Hortvertrag** mit eigener Akte, eigenem SEPA-Bezug und eigenem Welcome-Brief. Das Betreuungsmodul ist damit Teil des Anmeldevorgangs (Domäne 2/4) und nicht abtrennbar. Out of scope bleibt allein der laufende **Hort-Alltag** — wer war wann da, Mittagessen je Tag —, für den der Hort eigene, sehr umfangreiche Excel-Dateien führt; sich dort einzuarbeiten lohnt den Aufwand derzeit nicht. Ebenfalls draußen: **Leihgeräte/iPads** (extern begleitet) und **Wahlpflichtfächer** (Schulalltag, Untis).
+**Die Hort-Buchung gehört dazu, der Hort-Alltag nicht.** Alle vier Anmeldetag-Checklisten erheben „Betreuungsbedarf: Kernzeit / Nachmittag / Ganztags", beim Quereinsteiger zusätzlich Lernbetreuung und Mittagessen für Realschüler, und es gibt einen eigenen **Hortvertrag** mit eigener Akte und eigenem Welcome-Brief. Eingezogen wird er über dasselbe SEPA-Mandat wie das Schulgeld — ein Mandat je Zahler, nicht je Zweck (`stammdaten.md`, „Zahlungsverantwortliche"); alle vier Checklisten haken genau eines ab. Das Betreuungsmodul ist damit Teil des Anmeldevorgangs (Domäne 2/4) und nicht abtrennbar. Out of scope bleibt allein der laufende **Hort-Alltag** — wer war wann da, Mittagessen je Tag —, für den der Hort eigene, sehr umfangreiche Excel-Dateien führt; sich dort einzuarbeiten lohnt den Aufwand derzeit nicht. Ebenfalls draußen: **Leihgeräte/iPads** (extern begleitet) und **Wahlpflichtfächer** (Schulalltag, Untis).
 
 Vier Stellen brauchen eine Erläuterung, weil die Grenze dort nicht offensichtlich ist:
 
@@ -111,7 +123,7 @@ Die Anmeldetag-Checklisten ergänzen je Schulart weitere Bewerbungsfelder: Grund
 
 Eigene, kürzere Löschfrist als Stammdaten, weil die meisten Bewerbungen nicht zur Aufnahme führen.
 
-**Zwei Schulen, nicht eine.** `children.previous_school_id` trägt die staatliche Schule, mit der die **Schülerüberweisung** läuft — bei Quereinstieg und Realschulwechsel die Herkunftsschule, bei der Einschulung in Klasse 1 die zuständige örtliche Grundschule, bei der das Kind bis zur Zusage angemeldet sein muss. Verschiedene Herkunft, dieselbe Rolle im Prozess, deshalb eine Spalte. Der **Kindergarten** ist davon getrennt: er liefert den Beobachtungsbogen und braucht eine eigene Rücksprache-Erlaubnis, ist aber kein Überweisungspartner — beides gehört an die Bewerbung. Der Austausch der Überweisung selbst (erhalten, zurückgesendet) ist ein Vorgangsschritt, kein Stammdatum.
+**Zwei Schulen, nicht eine.** `children.previous_school_id` trägt die staatliche Schule, mit der die **Schülerüberweisung** läuft — bei Quereinstieg und Realschulwechsel die Herkunftsschule, bei der Einschulung in Klasse 1 die zuständige örtliche Grundschule, bei der das Kind bis zur Zusage angemeldet sein muss. Verschiedene Herkunft, dieselbe Rolle im Prozess, deshalb eine Spalte. Der **Kindergarten** ist davon getrennt: er liefert den Beobachtungsbogen und braucht eine eigene Rücksprache-Erlaubnis, ist aber kein Überweisungspartner — beides gehört an die Bewerbung. Zwei Folgen, die sonst später als Eingriff in Stammdaten zurückkommen: Sein Name kommt aus einer **eigenen Werteliste in Domäne 2/4**, nicht aus `previous_schools` — die trägt seit der Bedeutungserweiterung genau die staatlichen Überweisungspartner, und ein Kindergarten darin verschöbe die Bedeutung einer bestehenden Spalte. Und die Rücksprache-Erlaubnis ist zwar wie `children.previous_school_consent_at` ein einmaliges, sofort verbrauchtes Einverständnis (also nicht Q1), steht aber trotzdem an der **Bewerbung** und nicht an `children`: die abgebende Schule wird über den Anmeldetag hinaus gebraucht, der Kindergarten nicht. Der Austausch der Überweisung selbst (erhalten, zurückgesendet) ist ein Vorgangsschritt, kein Stammdatum.
 
 **Bewertung ist keine eigene Entität (2/4).** Im Gespräch beurteilen mehrere Lehrkräfte dasselbe Kind, festgehalten wird aber nur das **konsolidierte Ergebnis**: eine Einschätzung je Kind auf der Skala Zusage / Eher Ja / Eher Nein / Absage, in der Realschule dazu das Niveau (Hauptschule / Realschule / Gymnasium). Beides als Lookup (`rules.md` Abschnitt 3), beides als Attribut der Bewerbung — eine Zeile je Lehrkraft zu modellieren hieße, fünf konkurrierende Urteile ohne definierten Sieger zu speichern, die es so gar nicht gibt.
 
@@ -123,9 +135,12 @@ Dazu die **Rangnummer** aus der Entscheidungsrunde, nullable: vergeben wird sie 
 
 **Zwei Bemerkungen aus der heutigen Tabelle sind keine Bemerkungen.** „Nachrücker" ist eine Ausprägung des Bewerbungsstatus, kein Freitext — sonst steht dieselbe Tatsache neben dem Status ein zweites Mal. Und **Schulbegleitung** ist ein Unterstützungsbedarf, der über die Bewerbung hinaus gilt und im Schulalltag gebraucht wird; er gehört zu den Gesundheits- und Förderdaten (Domäne 9) mit deren Zugriffsprofil, nicht in ein Freitextfeld der Bewerbung. Beides steht heute in derselben Spalte, weil Excel keine andere anbietet.
 
-**Gesundheitsmerkmal (9).** Der Satz ist größer als der Schulvertrag allein: die Anmeldetag-Checklisten ergänzen Seh-/Hörschwäche sowie therapeutische Maßnahmen mit Behandlungsgrund und -zeitraum, und **derselbe Satz wird auf allen vier Checklisten plus im Schulvertrag erhoben** — fünf Formulare, ein Datenbestand. Alle folgen demselben Muster: Merkmal vorhanden, Beschreibung, ggf. Attest, ggf. Erlaubnis zur Verabreichung oder Durchführung. Also **eine Zeile je Merkmal mit Merkmalsart als Lookup**, nicht rund dreißig Spalten — eine weitere Merkmalsart ist damit ein Datensatz statt einer Migration, und das Spalten-GRANT der engeren DB-Rolle greift auf einer Tabelle statt auf dreißig Spalten.
+**Gesundheitsmerkmal (9).** Der Satz ist größer als der Schulvertrag allein: die Anmeldetag-Checklisten ergänzen Seh-/Hörschwäche sowie therapeutische Maßnahmen mit Behandlungsgrund und -zeitraum, und **derselbe Satz wird auf allen vier Checklisten plus im Schulvertrag erhoben** — fünf Formulare, ein Datenbestand. Alle folgen demselben Muster: Merkmal vorhanden, Beschreibung, ggf. Behandlungszeitraum (von/bis, bei therapeutischen Maßnahmen real erhoben), ggf. Attest, ggf. Erlaubnis zur Verabreichung oder Durchführung. Also **eine Zeile je Merkmal mit Merkmalsart als Lookup**, nicht rund dreißig Spalten — eine weitere Merkmalsart ist damit ein Datensatz statt einer Migration, und das Spalten-GRANT der engeren DB-Rolle greift auf einer Tabelle statt auf dreißig Spalten.
 
-Sonderfall daneben: der **Masernschutznachweis** ist gesetzlich verpflichtend (§20 IfSG) und wird auf allen vier Checklisten geprüft. Er ist kein Merkmal mit Beschreibung, sondern ein Nachweisdokument (Q2) plus ein Vorlagedatum — dasselbe gilt für die Geburtsurkunden-Kopie, die aber kein Gesundheitsdatum ist.
+Zwei Nachweise daneben, die keine Merkmale sind — und die trotz ähnlicher Form auseinandergehen:
+
+- Der **Masernschutznachweis** ist gesetzlich verpflichtend (§20 IfSG) und wird auf allen vier Checklisten geprüft, aber nicht immer als Kopie: die Realschul-Checkliste hakt „Impfpass Masernschutzimpfung **dokumentiert**" ab, der Pass wird also nur vorgelegt. Es gibt damit Fälle ganz ohne Dokument, und Q2 allein trägt den Nachweis nicht — er braucht ein **Vorlagedatum in Domäne 9** (Impfstatus ist ein Gesundheitsdatum).
+- Die **Geburtsurkunden-Kopie** steht auf allen vier Checklisten ausdrücklich als „Kopie", es entsteht also immer ein Dokument. Sie ist damit **eine Q2-Zeile mit Bezug Kind und sonst nichts** — kein eigenes Datumsfeld, weder an `children` noch in Domäne 9: sie ist kein Gesundheitsdatum und hätte dort das falsche Zugriffsprofil.
 
 **Zugriff, zweistufig.** Den vollen Satz sehen Sekretariat, Klassenlehrer:in und Hort. Daneben steht ein kurzer **handlungsrelevanter Hinweis** („keine Sprungübungen", „Notfallmedikament im Sekretariat"), den die Klassenlehrkraft formuliert und den alle unterrichtenden Personen sehen. Grund: ein Fachlehrer braucht die Handlungsregel, nicht die Diagnose — der volle Satz wäre Über-Offenlegung nach Art. 9. Eine echte Fachlehrer-Berechtigung bräuchte ein Unterrichtszuordnungs-Modell, und das lebt in Untis, dauerhaft out of scope. Zwei Spalten mit unterschiedlichem GRANT auf derselben Tabelle, kein zweites Berechtigungssystem.
 
@@ -152,6 +167,7 @@ Was diese Karte offenlässt, ist selbst Ergebnis: es sind die Fragen, die vor de
 
 | Was fehlt | Wen fragen | Spätestens vor |
 |---|---|---|
+| Kommt ein **nicht sorgeberechtigter** Elternteil vor, der trotzdem Schulpost bekommen soll? Auf allen vier Checklisten sind „Sorgeberechtigt" und „In Briefe miteinbeziehen" zwei unabhängige Häkchen, `include_in_correspondence` hängt aber an `family_guardians` und damit an der Sorgeberechtigung — eine solche Person liefe als `contacts` und hätte das Feld nicht | Sekretariat | Vollimport (Freeze) |
 | Bereichs- und Vorgesetztenstruktur an `employees` (Q4) — Zuschnitt unbekannt | Geschäftsführung | Domäne 5 |
 | Steht in der Realschul-Bewertungstabelle derselbe Wert wie im Feld „Empfehlung Schulart" der Papier-Checkliste, oder eine eigene Einschätzung? Bis zur Klärung zwei Felder — beantwortbar von den Personen, die beide ausfüllen | Sekretariat, Realschulleitung | Domäne 2/4 |
 | Graph-Scoping für den SharePoint-Dateizugriff (welche Site, lesend oder schreibend) | zweiter Admin | Domäne 4 |

@@ -9,7 +9,7 @@ SET app.actor = 'system:stresstest';
 -- ---------------------------------------------------------------------------
 -- Lookups
 -- ---------------------------------------------------------------------------
-INSERT INTO school_branches (id, label) VALUES (1,'Grundschule'), (2,'Realschule');
+INSERT INTO school_branches (school_branch_id, label) VALUES (1,'Grundschule'), (2,'Realschule');
 INSERT INTO grade_levels (school_branch_id, label, sort_order, is_final_grade)
     SELECT 1, g::text, g, (g = 4) FROM generate_series(1,4) g
     UNION ALL
@@ -18,7 +18,8 @@ INSERT INTO phone_types (label) VALUES ('Festnetz'), ('Mobil'), ('Arbeit');
 INSERT INTO genders (label, code) VALUES ('männlich','m'), ('weiblich','w'), ('divers','d'), ('keine Angabe','x');
 INSERT INTO salutations (label) VALUES ('Herr'), ('Frau'), ('keine Anrede');
 INSERT INTO denominations (label) VALUES ('römisch-katholisch'), ('evangelisch'), ('konfessionslos');
-INSERT INTO guardian_categories (label) VALUES ('Elternteil'), ('Pflegeeltern'), ('Jugendamt');
+INSERT INTO guardian_categories (label, exempt_from_parent_duties)
+    VALUES ('Mutter', false), ('Vater', false), ('Pflegeeltern', false), ('Jugendamt', true);
 
 -- ---------------------------------------------------------------------------
 -- Größenordnung — bewusst weit jenseits der realen ~500 Schüler
@@ -33,52 +34,52 @@ INSERT INTO guardian_categories (label) VALUES ('Elternteil'), ('Pflegeeltern'),
 -- hält entry_year innerhalb des CHECK (2000..2100) auch bei n_classes=20000,
 -- und 26 Buchstaben allein reichen ohnehin nicht für 20.000 Kombinationen.
 INSERT INTO classes (school_branch_id, grade_level_id, entry_year, stream)
-    SELECT gl.school_branch_id, gl.id, 2000 + (n % 100), 's' || (n / 100)
+    SELECT gl.school_branch_id, gl.grade_level_id, 2000 + (n % 100), 's' || (n / 100)
     FROM generate_series(1, :n_classes) AS s(n)
-    JOIN grade_levels gl ON gl.id = 1 + (s.n % 10);
+    JOIN grade_levels gl ON gl.grade_level_id = 1 + (s.n % 10);
 
 -- Adressen: eine je ca. 1,6 Personen (Familien teilen sich Adressen). Straße
 -- variiert (500 Werte) statt konstant — sonst testet der Adress-Suchindex
 -- (postal_code, street, house_number) nichts, weil eine Spalte konstant ist.
-INSERT INTO countries (id, label, code) VALUES (1, 'Deutschland', 'DEU');
+INSERT INTO countries (country_id, label, code) VALUES (1, 'Deutschland', 'DEU');
 INSERT INTO addresses (street, house_number, postal_code, city, country_id)
     SELECT 'Musterstraße ' || (n % 500), (n % 200)::text, lpad((70000 + n % 900)::text, 5, '0'), 'Musterstadt', 1
     FROM generate_series(1, :n_children) n;
 
 -- Familien: ca. 1,8 Kinder je Familie
-INSERT INTO families (id)
+INSERT INTO families (family_id)
     SELECT gen_random_uuid() FROM generate_series(1, :n_children / 18 * 10);
 
 -- Kind-Personen + children in einem Rutsch: gen_random_uuid() einmal je Zeile,
--- per CTE geteilt, damit persons.id = children.id exakt übereinstimmt.
+-- per CTE geteilt, damit persons.person_id = children.child_id exakt übereinstimmt.
 WITH new_children AS (
     SELECT gen_random_uuid() AS id, n
     FROM generate_series(1, :n_children) n
 ),
 addr AS (
-    SELECT id, row_number() OVER () AS rn FROM addresses
+    SELECT address_id AS id, row_number() OVER () AS rn FROM addresses
 ),
 fam AS (
-    SELECT id, row_number() OVER () AS rn FROM families
+    SELECT family_id AS id, row_number() OVER () AS rn FROM families
 ),
 cls AS (
-    SELECT id, grade_level_id, row_number() OVER () AS rn FROM classes
+    SELECT class_id AS id, grade_level_id, row_number() OVER () AS rn FROM classes
 )
-INSERT INTO persons (id, last_name, first_name, address_id)
+INSERT INTO persons (person_id, last_name, first_name, address_id)
     SELECT nc.id, 'Nachname' || nc.n, 'Vorname' || nc.n, a.id
     FROM new_children nc
     JOIN addr a ON a.rn = 1 + (nc.n % (SELECT count(*) FROM addresses));
 
 WITH new_children AS (
-    SELECT p.id, row_number() OVER () AS n FROM persons p
+    SELECT p.person_id AS id, row_number() OVER () AS n FROM persons p
 ),
 fam AS (
-    SELECT id, row_number() OVER () AS rn FROM families
+    SELECT family_id AS id, row_number() OVER () AS rn FROM families
 ),
 cls AS (
-    SELECT id, row_number() OVER () AS rn FROM classes
+    SELECT class_id AS id, row_number() OVER () AS rn FROM classes
 )
-INSERT INTO children (id, family_id, date_of_birth, class_id, entry_date)
+INSERT INTO children (child_id, family_id, date_of_birth, class_id, entry_date)
     SELECT nc.id,
            f.id,
            date '2010-01-01' + (nc.n % 4000)::int,
@@ -98,9 +99,9 @@ WITH new_guardians AS (
     SELECT gen_random_uuid() AS id, n FROM generate_series(1, (SELECT (:n_children / 18 * 10 * 1.7)::int)) n
 ),
 addr AS (
-    SELECT id, row_number() OVER () AS rn FROM addresses
+    SELECT address_id AS id, row_number() OVER () AS rn FROM addresses
 )
-INSERT INTO persons (id, last_name, first_name, email, address_id)
+INSERT INTO persons (person_id, last_name, first_name, email, address_id)
     SELECT ng.id, 'Erziehungsberechtigt' || ng.n, 'Vorname' || ng.n,
            ('eltern' || ng.n || '@example.invalid')::citext,
            a.id
@@ -108,22 +109,22 @@ INSERT INTO persons (id, last_name, first_name, email, address_id)
     JOIN addr a ON a.rn = 1 + (ng.n % (SELECT count(*) FROM addresses));
 
 WITH person_pool AS (
-    SELECT p.id, row_number() OVER () AS rn
+    SELECT p.person_id AS id, row_number() OVER () AS rn
     FROM persons p
-    LEFT JOIN children c ON c.id = p.id
-    WHERE c.id IS NULL   -- nur die gerade angelegten Erziehungsberechtigten-Personen
+    LEFT JOIN children c ON c.child_id = p.person_id
+    WHERE c.child_id IS NULL   -- nur die gerade angelegten Erziehungsberechtigten-Personen
 )
-INSERT INTO guardians (id, person_id)
-    SELECT gen_random_uuid(), id FROM person_pool;
+INSERT INTO guardians (guardian_id)
+    SELECT id FROM person_pool;
 
 -- family_guardians: jede/r Erziehungsberechtigte:r einer Familie zugeordnet
 -- (gleiche Korrektur wie oben: Skalar-Subquery statt count(*) OVER()-Spalte
 -- der anderen CTE in der JOIN-Bedingung)
 WITH g AS (
-    SELECT id, row_number() OVER () AS rn FROM guardians
+    SELECT guardian_id AS id, row_number() OVER () AS rn FROM guardians
 ),
 fam AS (
-    SELECT id, row_number() OVER () AS rn FROM families
+    SELECT family_id AS id, row_number() OVER () AS rn FROM families
 )
 INSERT INTO family_guardians (family_id, guardian_id)
     SELECT f.id, g.id
@@ -132,49 +133,44 @@ INSERT INTO family_guardians (family_id, guardian_id)
 
 -- Telefonnummern: eine je Person (Kind + Erziehungsberechtigte), Hauptnummer markiert
 INSERT INTO phone_numbers (person_id, phone_type_id, number, is_primary)
-    SELECT id, 1 + (row_number() OVER () % 3), '0170' || lpad((row_number() OVER ())::text, 7, '0'), true
+    SELECT person_id, 1 + (row_number() OVER () % 3), '0170' || lpad((row_number() OVER ())::text, 7, '0'), true
     FROM persons;
 
--- Zahlungsverantwortliche: der/die erste Erziehungsberechtigte je Familie wird
--- Hauptzahler:in aller Kinder dieser Familie (Regelfall, domains/stammdaten.md)
+-- Zahlungsverantwortliche: der/die erste Erziehungsberechtigte je Familie zahlt
+-- für alle Kinder dieser Familie (Regelfall, domains/stammdaten.md)
 WITH first_guardian_per_family AS (
     SELECT DISTINCT ON (family_id) family_id, guardian_id
     FROM family_guardians
     ORDER BY family_id, guardian_id
 ),
 new_payers AS (
-    INSERT INTO payers (id, person_id)
-    SELECT gen_random_uuid(), g.person_id
-    FROM first_guardian_per_family fg
-    JOIN guardians g ON g.id = fg.guardian_id
-    RETURNING id, person_id
+    INSERT INTO payers (payer_id)
+    SELECT guardian_id FROM first_guardian_per_family
+    RETURNING payer_id
 )
-INSERT INTO child_payers (child_id, payer_id, is_primary)
-SELECT c.id, np.id, true
-FROM children c
-JOIN first_guardian_per_family fg ON fg.family_id = c.family_id
-JOIN guardians g ON g.id = fg.guardian_id
-JOIN new_payers np ON np.person_id = g.person_id;
+UPDATE children c SET payer_id = fg.guardian_id
+FROM first_guardian_per_family fg
+WHERE fg.family_id = c.family_id;
 
 -- Kontakte: eine Kontaktperson auf ca. drei Kinder, Notfallkontakt-Priorität 1
 WITH new_contact_persons AS (
     SELECT gen_random_uuid() AS id, n FROM generate_series(1, greatest(:n_children / 3, 1)) n
 ),
 inserted_persons AS (
-    INSERT INTO persons (id, last_name, first_name)
+    INSERT INTO persons (person_id, last_name, first_name)
     SELECT id, 'Kontakt' || n, 'Vorname' || n FROM new_contact_persons
-    RETURNING id
+    RETURNING person_id
 ),
 new_contacts AS (
-    INSERT INTO contacts (id)
-    SELECT id FROM inserted_persons
-    RETURNING id
+    INSERT INTO contacts (contact_id)
+    SELECT person_id FROM inserted_persons
+    RETURNING contact_id
 ),
 contact_pool AS (
-    SELECT id, row_number() OVER () AS rn FROM new_contacts
+    SELECT contact_id AS id, row_number() OVER () AS rn FROM new_contacts
 ),
 kids AS (
-    SELECT id, row_number() OVER () AS rn FROM children
+    SELECT child_id AS id, row_number() OVER () AS rn FROM children
 )
 INSERT INTO child_contacts (child_id, contact_id, relationship, priority)
 SELECT k.id, cp.id, 'Großmutter', 1
@@ -193,6 +189,5 @@ UNION ALL SELECT 'family_guardians', count(*) FROM family_guardians
 UNION ALL SELECT 'phone_numbers', count(*) FROM phone_numbers
 UNION ALL SELECT 'classes', count(*) FROM classes
 UNION ALL SELECT 'payers', count(*) FROM payers
-UNION ALL SELECT 'child_payers', count(*) FROM child_payers
 UNION ALL SELECT 'contacts', count(*) FROM contacts
 UNION ALL SELECT 'child_contacts', count(*) FROM child_contacts;

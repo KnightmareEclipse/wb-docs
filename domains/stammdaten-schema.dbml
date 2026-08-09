@@ -22,60 +22,65 @@ Project stammdaten {
 // ---------------------------------------------------------------------------
 
 Table genders {
-  id    integer [pk, increment]
+  gender_id integer [pk, increment]
   label text    [not null, unique]
   code  text    [not null, unique]
   Note: 'Amtliches Merkmal für ASV-BW/Statistik, deshalb stabiler code neben dem umbenennbaren label. ISO 5218 geprüft und verworfen — die Norm (0/1/2/9) kann "divers" nicht ausdrücken (§22 Abs. 3 PStG); Werte stammen aus der ASV-BW-Werteliste.'
 }
 
 Table salutations {
-  id    integer [pk, increment]
+  salutation_id integer [pk, increment]
   label text    [not null, unique]
   Note: 'Anrede — bewusst getrennt vom Geschlecht, nicht daraus abgeleitet.'
 }
 
 Table academic_titles {
-  id    integer [pk, increment]
+  academic_title_id integer [pk, increment]
   label text    [not null, unique]
 }
 
 Table guardian_categories {
-  id    integer [pk, increment]
-  label text    [not null, unique]
-  Note: 'z.B. Elternteil, Pflegeeltern, Jugendamt — hängt an family_guardians, nicht am Guardian.'
+  guardian_category_id      integer     [pk, increment]
+  label                     text        [not null, unique]
+  exempt_from_parent_duties boolean     [not null, default: false]
+  created_at                timestamptz [not null, default: `now()`]
+  created_by                text        [not null]
+  updated_at                timestamptz [not null, default: `now()`]
+  updated_by                text        [not null]
+  Note: 'Mutter/Vater/Pflegeeltern/Jugendamt/Vereinsvormund — hängt an family_guardians, nicht am Guardian. exempt_from_parent_duties ist keine Bezeichnung, sondern eine strukturelle Tatsache: diese Art begründet keine Elternmitarbeit und trägt damit die Putzdienst-Befreiung der Amts- und Vereinsvormundschaft. Fehlt die Kategorie, gilt pflichtig.'
 }
 
 Table denominations {
-  id    integer [pk, increment]
+  denomination_id integer [pk, increment]
   label text    [not null, unique]
 }
 
 Table languages {
-  id    integer [pk, increment]
+  language_id integer [pk, increment]
   label text    [not null, unique]
   code  text    [not null, unique]
   Note: 'Verkehrssprache. Lookup statt Freitext: speist den ASV-BW-Export, dort zählt ein konsistenter Wert. code = BCP 47, CHECK auf Grundform mit kanonisch kleingeschriebenem Primär-Subtag. Liste wird geseedet, label bleibt frei änderbar, code nicht (externer Standard).'
 }
 
 Table countries {
-  id    integer [pk, increment]
+  country_id integer [pk, increment]
   label text    [not null, unique]
   code  text    [not null, unique]
   Note: 'Land für Anschrift/Geburtsland/Staatsangehörigkeit. Lookup statt ISO-Code-Freitext: der Weg nach ASV-BW läuft über einen CSV-Export mit manueller Nacharbeit — der label trägt die Sichtprüfung, der code die maschinelle Seite (ein Export auf Basis der umbenennbaren Bezeichnung bricht still). ASV-BW führt die Werte selbst als Werteliste, nicht als ISO-Code. code = ISO 3166-1 alpha-3 (nicht alpha-2: das wird neu vergeben und kollidiert optisch mit languages.code), mit Format-CHECK. Liste wird aus ISO 3166-1 geseedet, label bleibt frei änderbar, code nicht (externer Standard).'
 }
 
 Table phone_types {
-  id    integer [pk, increment]
+  phone_type_id integer [pk, increment]
   label text    [not null, unique]
 }
 
 Table school_branches {
-  id    integer [pk, increment]
+  school_branch_id integer [pk, increment]
   label text    [not null, unique]
 }
 
 Table grade_levels {
-  id               integer  [pk, increment]
+  grade_level_id integer  [pk, increment]
   school_branch_id integer  [not null]
   label            text     [not null]
   sort_order       smallint [not null]
@@ -95,7 +100,7 @@ Table grade_levels {
 }
 
 Table classes {
-  id               integer  [pk, increment]
+  class_id integer  [pk, increment]
   school_branch_id integer  [not null]
   grade_level_id   integer  [not null]
   entry_year       smallint [not null]
@@ -116,7 +121,7 @@ Table classes {
 }
 
 Table previous_schools {
-  id    integer [pk, increment]
+  previous_school_id integer [pk, increment]
   label text    [not null, unique]
   Note: 'Abgebende Schule; steht auf dem Grundschul- wie dem Realschul-Voranmeldeformular.'
 }
@@ -126,7 +131,7 @@ Table previous_schools {
 // ---------------------------------------------------------------------------
 
 Table addresses {
-  id           uuid        [pk, default: `gen_random_uuid()`]
+  address_id uuid        [pk, default: `gen_random_uuid()`]
   street       text
   house_number text
   district     text
@@ -149,7 +154,7 @@ Table addresses {
 // ---------------------------------------------------------------------------
 
 Table persons {
-  id                uuid        [pk, default: `gen_random_uuid()`]
+  person_id uuid        [pk, default: `gen_random_uuid()`]
   salutation_id     integer
   academic_title_id integer
   first_name        text
@@ -170,26 +175,9 @@ Table persons {
   Note: 'Gemeinsame Basis jeder natürlichen Person. Kind/Guardian/Kontakt/Zahler sind Rollen darauf, keine eigenen Personentabellen. email: Struktur-CHECK (genau ein @, kein Leerzeichen, Punkt in der Domain — fängt Leerstring und Import-Artefakte), bewusst NICHT unique — zwei Erziehungsberechtigte dürfen sich eine Mailbox teilen, ein OTP-Treffer (idea/04) liefert dann die Vereinigung ihrer Familien. Eigener Index, da kein Constraint ihn mehr anlegt. last_name-Index in echt text_pattern_ops für Präfixsuche, hier nur als Ausdrucksindex angenähert.'
 }
 
-Table organizations {
-  id         uuid        [pk, default: `gen_random_uuid()`]
-  name       text        [not null, note: 'CHECK <> \'\'']
-  address_id uuid
-  email      citext
-  created_at timestamptz [not null, default: `now()`]
-  created_by text        [not null]
-  updated_at timestamptz [not null, default: `now()`]
-  updated_by text        [not null]
-
-  indexes {
-    address_id
-  }
-  Note: 'Erziehungsberechtigte als Organisation (Jugendamt, Pflegedienst, Vereinsvormund). email: rein ausgehender Kanal (Schule schreibt die Behörde an), bewusst NICHT unique — kein Login daran, die OTP-Prüfung liest nur persons.email. Struktur-CHECK auf email analog persons.'
-}
-
 Table phone_numbers {
-  id              uuid        [pk, default: `gen_random_uuid()`]
-  person_id       uuid
-  organization_id uuid
+  phone_number_id uuid        [pk, default: `gen_random_uuid()`]
+  person_id       uuid        [not null]
   phone_type_id   integer     [not null]
   number          text        [not null, note: 'CHECK <> \'\'']
   is_primary      boolean     [not null, default: false]
@@ -201,11 +189,9 @@ Table phone_numbers {
 
   indexes {
     (person_id, number) [unique]
-    (organization_id, number) [unique]
-    (person_id) [unique, name: 'one_primary_per_person']
-    (organization_id) [unique, name: 'one_primary_per_org']
+    (person_id) [unique, name: 'phone_numbers_one_primary_per_person']
   }
-  Note: 'Gehört entweder zu Person ODER Organisation (CHECK in SQL). is_primary: die von der Person benannte Rufnummer, genutzt für O365-Kontakte; one_primary_* sind in echt partiell (WHERE is_primary AND … IS NOT NULL). Dieselbe Nummer nur einmal je Eigentümer — der Typ ist eine Eigenschaft der Nummer, nicht ihre Identität; diese beiden Unique-Indizes tragen zugleich den Zugriff über person_id bzw. organization_id allein, ein einspaltiger Index daneben wäre redundant.'
+  Note: 'Gehört immer zu einer Person — eine Behördennummer gibt es nicht als eigenen Fall (Begründung an guardians). is_primary: die von der Person benannte Rufnummer, genutzt für O365-Kontakte; one_primary_per_person ist in echt partiell (WHERE is_primary). Dieselbe Nummer nur einmal je Person — der Typ ist eine Eigenschaft der Nummer, nicht ihre Identität; dieser Unique-Index trägt zugleich den Zugriff über person_id allein.'
 }
 
 // ---------------------------------------------------------------------------
@@ -213,18 +199,20 @@ Table phone_numbers {
 // ---------------------------------------------------------------------------
 
 Table families {
-  id         uuid        [pk, default: `gen_random_uuid()`]
+  family_id  uuid        [pk, default: `gen_random_uuid()`]
+  label      text        [note: 'Außenbezeichnung „Familie Müller"; leer = aus den Mitgliedern ableiten. Bewusst nicht unique.']
+  alias      text        [unique, note: 'Interne Unterscheidung, geht nie in eine Zustellung.']
   created_at timestamptz [not null, default: `now()`]
   created_by text        [not null]
   updated_at timestamptz [not null, default: `now()`]
   updated_by text        [not null]
-
-  Note: 'Sorgerecht-Konstellation, nicht Haushalt. Manuell gepflegt, kein Bezeichnungsfeld.'
+  Note: 'Sorgerecht-Konstellation, nicht Haushalt. Zwei Bezeichnungsfelder mit verschiedenem Publikum: label nach außen (leer = ableiten), alias nur intern und deshalb unique.'
 }
 
 Table children {
-  id                          uuid    [pk]
+  child_id                    uuid    [pk]
   family_id                   uuid
+  payer_id                    uuid    [note: 'Genau eine/r je Kind — geteilte Beiträge gibt es nicht. FK in SQL per ALTER TABLE nachgezogen (Definitionsreihenfolge).']
   nickname                    text
   date_of_birth               date    [not null]
   birthplace                  text
@@ -251,22 +239,18 @@ Table children {
     class_id
     provisional_grade_level_id
   }
-  Note: 'children.id = persons.id (Kind IST eine Person). provisional_grade_level_id UND class_id schließen sich per CHECK gegenseitig aus (keine Redundanz, die auseinanderlaufen könnte) — ist eine Klasse zugeteilt, kommt die aktuelle Klassenstufe per Join aus classes.grade_level_id. second_nationality_id: nur mit gesetzter nationality_id und nicht derselbe Staat (CHECK). denomination_id/congregation: Art.-9-Daten, geschützt per Spalten-GRANT, rollenspezifisch (auch auf guardians, nicht auf persons).'
+  Note: 'children.child_id = persons.person_id (Kind IST eine Person). provisional_grade_level_id UND class_id schließen sich per CHECK gegenseitig aus (keine Redundanz, die auseinanderlaufen könnte) — ist eine Klasse zugeteilt, kommt die aktuelle Klassenstufe per Join aus classes.grade_level_id. second_nationality_id: nur mit gesetzter nationality_id und nicht derselbe Staat (CHECK). denomination_id/congregation: Art.-9-Daten, geschützt per Spalten-GRANT, rollenspezifisch (auch auf guardians, nicht auf persons).'
 }
 
 Table guardians {
-  id              uuid    [pk, default: `gen_random_uuid()`]
-  person_id       uuid    [unique]
-  organization_id uuid    [unique]
+  guardian_id     uuid    [pk]
   occupation      text
-  denomination_id integer
-  congregation    text
   created_at      timestamptz [not null, default: `now()`]
   created_by      text    [not null]
   updated_at      timestamptz [not null, default: `now()`]
   updated_by      text    [not null]
 
-  Note: 'Entweder natürliche Person ODER Organisation (CHECK in SQL). Bewusst kein is_employee-Flag — die Mitarbeitereigenschaft steht an employees und ist von dort ableitbar; die Putzdienst-Befreiung fragt „aktuell beschäftigt", nicht „war mal". denomination_id/congregation nur bei natürlicher Person (CHECK).'
+  Note: 'IST eine Person, teilt sich den Schlüssel mit persons. Keine Organisation als Erziehungsberechtigte: Kinder kommen nur über den Anmeldeprozess, und dessen Formular fragt Mutter/Vater/Pflegeeltern — nie eine Institution. Eine Amtsvormundin ist deshalb eine ganz normale Person; für welche Institution sie handelt, trägt family_guardians.acting_for, die Befreiung von der Elternmitarbeit guardian_categories.exempt_from_parent_duties. Bewusst kein is_employee-Flag — die Putzdienst-Befreiung eigener Mitarbeiter fragt employees.employment_end IS NULL.'
 }
 
 Table family_guardians {
@@ -274,7 +258,7 @@ Table family_guardians {
   guardian_id          uuid    [not null]
   guardian_category_id integer
   include_in_correspondence boolean [not null, default: true, note: '„In Briefe miteinbeziehen" — steht auf allen vier Anmeldetag-Checklisten neben „Sorgeberechtigt"']
-  contact_person       text
+  acting_for           text
   created_at           timestamptz [not null, default: `now()`]
   created_by           text    [not null]
   updated_at           timestamptz [not null, default: `now()`]
@@ -284,7 +268,7 @@ Table family_guardians {
     (family_id, guardian_id) [pk]
     guardian_id
   }
-  Note: 'M:N Guardian↔Familie (Patchwork). Grundlage des OTP-Ownership-Checks. contact_person nur bei Organisation als Guardian, durchgesetzt per Trigger (kein CHECK möglich, cross-table).'
+  Note: 'M:N Guardian↔Familie (Patchwork). Grundlage des OTP-Ownership-Checks. acting_for: für welche Institution diese Person in diesem Fall handelt („Jugendamt Musterkreis") — nur für die Briefanschrift, trägt keine Regel.'
 }
 
 // ---------------------------------------------------------------------------
@@ -292,7 +276,7 @@ Table family_guardians {
 // ---------------------------------------------------------------------------
 
 Table employees {
-  id               uuid        [pk]
+  employee_id uuid        [pk]
   work_email       citext      [unique]
   entra_object_id  text        [unique, note: 'CHECK <> \'\'']
   employment_start date
@@ -301,7 +285,7 @@ Table employees {
   created_by       text        [not null]
   updated_at       timestamptz [not null, default: `now()`]
   updated_by       text        [not null]
-  Note: 'Rolle auf persons (id = persons.id), immer natürliche Person. work_email getrennt von persons.email: Letztere ist privat und zugleich OTP-Identität — ein Mitarbeiter, der auch Elternteil ist, verlöre sonst beim Offboarding seinen Elternzugang. Hier UNIQUE, weil die Schule diese Postfächer selbst vergibt. entra_object_id verbindet den Audit-Verursacher "entra:<oid>" mit der Person und trägt die Zugriffsentscheidung "ist Klassenlehrer:in dieser Klasse". employment_end gesetzt = ausgeschieden; die Putzdienst-Befreiung fragt employment_end IS NULL. Bereichs-/Vorgesetztenstruktur bewusst noch nicht enthalten (erst mit der Rechnungsfreigabe).'
+  Note: 'Rolle auf persons (id = persons.person_id), immer natürliche Person. work_email getrennt von persons.email: Letztere ist privat und zugleich OTP-Identität — ein Mitarbeiter, der auch Elternteil ist, verlöre sonst beim Offboarding seinen Elternzugang. Hier UNIQUE, weil die Schule diese Postfächer selbst vergibt. entra_object_id verbindet den Audit-Verursacher "entra:<oid>" mit der Person und trägt die Zugriffsentscheidung "ist Klassenlehrer:in dieser Klasse". employment_end gesetzt = ausgeschieden; die Putzdienst-Befreiung fragt employment_end IS NULL. Bereichs-/Vorgesetztenstruktur bewusst noch nicht enthalten (erst mit der Rechnungsfreigabe).'
 }
 
 // ---------------------------------------------------------------------------
@@ -309,14 +293,13 @@ Table employees {
 // ---------------------------------------------------------------------------
 
 Table contacts {
-  id         uuid [pk]
-  note       text
+  contact_id uuid [pk]
   created_at timestamptz [not null, default: `now()`]
   created_by text [not null]
   updated_at timestamptz [not null, default: `now()`]
   updated_by text [not null]
 
-  Note: 'contacts.id = persons.id. Notfallkontakt/Abholberechtigt ohne Rechtsstellung, kein Login.'
+  Note: 'contacts.contact_id = persons.person_id. Notfallkontakt/Abholberechtigt ohne Rechtsstellung, kein Login.'
 }
 
 Table child_contacts {
@@ -338,9 +321,7 @@ Table child_contacts {
 }
 
 Table payers {
-  id                 uuid    [pk, default: `gen_random_uuid()`]
-  person_id          uuid    [unique]
-  organization_id    uuid    [unique]
+  payer_id           uuid    [pk]
   billing_address_id uuid
   iban               text
   bic                text
@@ -358,73 +339,50 @@ Table payers {
   Note: 'Entweder natürliche Person ODER Organisation (CHECK in SQL, wie guardians). billing_address_id nullable: NULL = Anschrift der zahlenden Person/Organisation gilt. iban/bic: Struktur-CHECK nach ISO 13616 bzw. ISO 9362 (international, nicht auf deutsche Längen festgelegt); gespeichert nur normalisiert, ohne Leerzeichen. SEPA-Mandat: ein Mandat je Zahler, nicht je Zweck; mandate_reference und mandate_signed_at nur gemeinsam und nie ohne iban (CHECKs in SQL). Kein Kreditinstitut (folgt aus der BIC), keine Mandatshistorie; das signierte PDF liegt in der Schulvertrags-Fachdomäne und trägt kein eigenes Datum.'
 }
 
-Table child_payers {
-  child_id   uuid    [not null]
-  payer_id   uuid    [not null]
-  is_primary boolean [not null, default: false]
-  created_at timestamptz [not null, default: `now()`]
-  created_by text [not null]
-  updated_at timestamptz [not null, default: `now()`]
-  updated_by text [not null]
-
-  indexes {
-    (child_id, payer_id) [pk]
-    payer_id
-    (child_id) [unique, name: 'one_primary_payer_per_child']
-  }
-  Note: 'M:N, mehrere Zahler je Kind (Bezuschussung). is_primary: Hauptzahler:in, analog phone_numbers.is_primary.'
-}
-
 // ---------------------------------------------------------------------------
 // Beziehungen
 // ---------------------------------------------------------------------------
 
-Ref: grade_levels.school_branch_id > school_branches.id [delete: restrict]
-Ref: classes.school_branch_id > school_branches.id [delete: restrict]
-Ref: classes.(grade_level_id, school_branch_id) > grade_levels.(id, school_branch_id)
+Ref: grade_levels.school_branch_id > school_branches.school_branch_id [delete: restrict]
+Ref: classes.school_branch_id > school_branches.school_branch_id [delete: restrict]
+Ref: classes.(grade_level_id, school_branch_id) > grade_levels.(grade_level_id, school_branch_id)
 
-Ref: persons.salutation_id > salutations.id [delete: restrict]
-Ref: persons.academic_title_id > academic_titles.id [delete: restrict]
-Ref: persons.gender_id > genders.id [delete: restrict]
-Ref: persons.address_id > addresses.id [delete: restrict]
+Ref: persons.salutation_id > salutations.salutation_id [delete: restrict]
+Ref: persons.academic_title_id > academic_titles.academic_title_id [delete: restrict]
+Ref: persons.gender_id > genders.gender_id [delete: restrict]
+Ref: persons.address_id > addresses.address_id [delete: restrict]
 
-Ref: addresses.country_id > countries.id [delete: restrict]
+Ref: addresses.country_id > countries.country_id [delete: restrict]
 
-Ref: organizations.address_id > addresses.id [delete: restrict]
 
-Ref: phone_numbers.person_id > persons.id [delete: cascade]
-Ref: phone_numbers.organization_id > organizations.id [delete: cascade]
-Ref: phone_numbers.phone_type_id > phone_types.id [delete: restrict]
+Ref: phone_numbers.person_id > persons.person_id [delete: cascade]
+Ref: phone_numbers.phone_type_id > phone_types.phone_type_id [delete: restrict]
 
-Ref: children.id - persons.id [delete: cascade]
-Ref: children.family_id > families.id [delete: restrict]
-Ref: children.denomination_id > denominations.id [delete: restrict]
-Ref: children.home_language_id > languages.id [delete: restrict]
-Ref: children.birth_country_id > countries.id [delete: restrict]
-Ref: children.nationality_id > countries.id [delete: restrict]
-Ref: children.second_nationality_id > countries.id [delete: restrict]
-Ref: children.provisional_grade_level_id > grade_levels.id [delete: restrict]
-Ref: children.previous_school_id > previous_schools.id [delete: restrict]
-Ref: children.class_id > classes.id [delete: restrict]
+Ref: children.child_id - persons.person_id [delete: cascade]
+Ref: children.family_id > families.family_id [delete: restrict]
+Ref: children.denomination_id > denominations.denomination_id [delete: restrict]
+Ref: children.home_language_id > languages.language_id [delete: restrict]
+Ref: children.birth_country_id > countries.country_id [delete: restrict]
+Ref: children.nationality_id > countries.country_id [delete: restrict]
+Ref: children.second_nationality_id > countries.country_id [delete: restrict]
+Ref: children.provisional_grade_level_id > grade_levels.grade_level_id [delete: restrict]
+Ref: children.previous_school_id > previous_schools.previous_school_id [delete: restrict]
+Ref: children.payer_id > payers.payer_id [delete: restrict]
+Ref: children.class_id > classes.class_id [delete: restrict]
 
-Ref: guardians.person_id - persons.id [delete: restrict]
-Ref: guardians.organization_id - organizations.id [delete: restrict]
-Ref: guardians.denomination_id > denominations.id [delete: restrict]
+Ref: guardians.person_id - persons.person_id [delete: restrict]
 
-Ref: family_guardians.family_id > families.id [delete: cascade]
-Ref: family_guardians.guardian_id > guardians.id [delete: cascade]
-Ref: family_guardians.guardian_category_id > guardian_categories.id [delete: restrict]
+Ref: family_guardians.family_id > families.family_id [delete: cascade]
+Ref: family_guardians.guardian_id > guardians.guardian_id [delete: cascade]
+Ref: family_guardians.guardian_category_id > guardian_categories.guardian_category_id [delete: restrict]
 
-Ref: contacts.id - persons.id [delete: cascade]
+Ref: contacts.contact_id - persons.person_id [delete: cascade]
 
-Ref: child_contacts.child_id > children.id [delete: cascade]
-Ref: child_contacts.contact_id > contacts.id [delete: cascade]
+Ref: child_contacts.child_id > children.child_id [delete: cascade]
+Ref: child_contacts.contact_id > contacts.contact_id [delete: cascade]
 
-Ref: payers.person_id - persons.id [delete: restrict]
-Ref: payers.organization_id - organizations.id [delete: restrict]
-Ref: payers.billing_address_id > addresses.id [delete: restrict]
+Ref: payers.person_id - persons.person_id [delete: restrict]
+Ref: payers.billing_address_id > addresses.address_id [delete: restrict]
 
-Ref: child_payers.child_id > children.id [delete: restrict]
-Ref: child_payers.payer_id > payers.id [delete: cascade]
-Ref: employees.id - persons.id [delete: cascade]
-Ref: classes.class_teacher_id > employees.id [delete: restrict]
+Ref: employees.employee_id - persons.person_id [delete: cascade]
+Ref: classes.class_teacher_id > employees.employee_id [delete: restrict]

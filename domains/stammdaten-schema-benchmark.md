@@ -16,7 +16,6 @@ Beide Durchläufe auf derselben Hetzner-Cloud-VPS (Falkenstein), 4 vCPU, 7,6 GB 
 | phone_numbers | 959 |
 | children | 500 |
 | addresses | 500 |
-| child_payers | 500 |
 | child_contacts | 500 |
 | guardians | 459 |
 | family_guardians | 459 |
@@ -26,6 +25,8 @@ Beide Durchläufe auf derselben Hetzner-Cloud-VPS (Falkenstein), 4 vCPU, 7,6 GB 
 | classes | 20 |
 
 Jede Query fünfmal per `EXPLAIN (ANALYZE)` gemessen; Tabellen/Filter je Query stehen in der Stresstest-Tabelle unten (identische Queries, nur die Datenmenge unterscheidet sich).
+
+**Die Messwerte stammen von vor der Schema-Vereinfachung und wurden auf Postgres 16 erhoben, produktiv läuft mindestens 18** (Wegfall von `organizations` und der Verknüpfungstabelle `child_payers`, Rollenzeilen teilen sich den Schlüssel mit `persons`). Sie sind damit eine **obere Schranke**: jede betroffene Abfrage braucht seither strikt weniger Joins, keine mehr. Zeilenzahlen und Query-Beschreibungen sind dagegen auf dem aktuellen Stand, und die Suite läuft wieder vollständig durch (23 von 23 Abfragen). Eine Neumessung ist ein eigener Lauf und steht aus; die Aussage des Benchmarks — bei dieser Datenmenge ist jede Normalisierungsentscheidung performance-neutral — wird davon nur bestätigt, nicht berührt.
 
 | Kategorie | Query | min ms | avg ms | max ms |
 |---|---|---:|---:|---:|
@@ -73,7 +74,6 @@ Bei realer Größe bleibt selbst der ungefilterte Worst-Case-Export unter parall
 | phone_numbers | 972.209 |
 | children | 500.000 |
 | addresses | 500.000 |
-| child_payers | 500.000 |
 | child_contacts | 500.000 |
 | guardians | 472.209 |
 | family_guardians | 472.209 |
@@ -96,7 +96,7 @@ Jede Query fünfmal per `EXPLAIN (ANALYZE)` gemessen (serverseitige Ausführungs
 | C. Adresssuche | PLZ+Straße+Hausnummer exakt (Eingabemaske-Duplikatprüfung) | `addresses`, WHERE `(postal_code, street, house_number)` = | 2,00 | 2,45 | 3,22 |
 | D. Mittlerer JOIN | Kind + Familie | `children` → `families` | 0,55 | 0,65 | 0,73 |
 | D. Mittlerer JOIN | Kind + Hauptnummer | `children` → `persons` → `phone_numbers` (is_primary) | 0,58 | 0,76 | 1,02 |
-| D. Mittlerer JOIN | Hauptzahler:in eines Kindes | `children` → `child_payers` (is_primary) → `payers` → `persons`/`organizations` | 0,78 | 1,09 | 1,71 |
+| D. Mittlerer JOIN | Zahler:in eines Kindes | `children` → `payers` → `persons` | 0,78 | 1,09 | 1,71 |
 | D. Mittlerer JOIN | Notfallkontakte eines Kindes, nach Priorität | `children` → `child_contacts` → `contacts` → `persons`, ORDER BY `priority` | 0,76 | 1,10 | 1,72 |
 | D. Mittlerer JOIN | Dublettenprüfung beim Import (Nachname+Geburtsdatum) | `children` → `persons`, Selbstvergleich `last_name`+`date_of_birth` | 7,93 | 9,17 | 10,70 |
 | E. Schwerer JOIN | OTP-Request-Pfad (Familie+Kinder+Erziehungsberechtigte+Telefon) | `families` → `children` → `persons` → `family_guardians` → `guardians` → `persons` → `phone_numbers` (7 Tabellen/Aliase), WHERE `family_id` = | 1,32 | 1,48 | 1,69 |

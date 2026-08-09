@@ -23,7 +23,7 @@ docker rm -f wbstress >/dev/null 2>&1
 # Worker unter gleichzeitiger Last (pgbench zeigte "No space left on device"
 # fuer Shared-Memory-Segmente bei Standardgroesse) — relevant auch fuer das
 # spaetere wb-backend-docker-compose.yml, nicht nur fuer diesen Test.
-docker run --rm -d --name wbstress --shm-size=1024m -e POSTGRES_PASSWORD=$(openssl rand -hex 20) postgres:16 >/dev/null
+docker run --rm -d --name wbstress --shm-size=1024m -e POSTGRES_PASSWORD=$(openssl rand -hex 20) postgres:18 >/dev/null
 sleep 5
 docker exec wbstress pg_isready -U postgres
 
