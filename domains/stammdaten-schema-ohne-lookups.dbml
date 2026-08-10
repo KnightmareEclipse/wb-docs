@@ -1,84 +1,9 @@
-// Stammdaten-Kernschema — DBML-Ansicht von stammdaten-schema.sql, nur für die
-// Visualisierung (z. B. dbdiagram.io). Quelle der Wahrheit ist die .sql-Datei;
-// bei Abweichung gewinnt die SQL. Kommentare hier stark gekürzt gegenüber dort.
-//
-// Diese Datei ist die einzige von Hand gepflegte Zweitdarstellung des Schemas und
-// damit die, die still danebenlaufen kann. Nach jeder Schemaänderung den
-// Spaltensatz gegenprüfen — schweigt bei Deckungsgleichheit, listet sonst die
-// Abweichung und liefert Exit-Code 1:
-//   diff <(awk '/^CREATE TABLE/{t=$3; next} /^\);/{t=""} t && /^    [a-z_]+ /{print t"."$1}' \
-//              domains/stammdaten-schema-plain.sql | sort) \
-//        <(awk '/^Table /{t=$2; next} /^}/{t=""} t && /^  [a-z_]+ /{if ($1!="indexes") print t"."$1}' \
-//              domains/stammdaten-schema.dbml | sort)
-// Prüft Tabellen und Spalten, nicht die Note:-Texte — Prosa-Drift ist hier
-// verkraftbar, eine fehlende Spalte nicht.
-//
-// Daneben liegt stammdaten-schema-ohne-lookups.dbml: dieselbe Struktur ohne die
-// acht reinen Wertelisten, damit im Diagramm die Beziehungen zwischen den
-// Entitäten sichtbar bleiben statt unter den Lookup-Kanten zu verschwinden
-// (countries allein hängt an vier Spalten). Sie ist ABGELEITET wie
-// stammdaten-schema-plain.sql, wird nie von Hand gepflegt und nach jeder
-// Änderung an dieser Datei neu erzeugt:
-//   awk -f domains/dbml-ohne-lookups.awk domains/stammdaten-schema.dbml \
-//       > domains/stammdaten-schema-ohne-lookups.dbml
-// Welche Tabellen als Werteliste gelten, steht als Liste im Kopf des
-// awk-Skripts — Schulzweig, Klassenstufe und Klasse bleiben bewusst drin, sie
-// tragen echte Beziehungen samt dem zusammengesetzten Fremdschlüssel.
+// ABGELEITET aus stammdaten-schema.dbml — nie von Hand pflegen.
+// Regenerieren: awk -f domains/dbml-ohne-lookups.awk domains/stammdaten-schema.dbml > domains/stammdaten-schema-ohne-lookups.dbml
+// Reine Wertelisten und ihre Ref:-Zeilen sind entfernt; die verweisenden Spalten bleiben.
 
 Project stammdaten {
   database_type: 'PostgreSQL'
-}
-
-// ---------------------------------------------------------------------------
-// Lookup-Tabellen
-// ---------------------------------------------------------------------------
-
-Table genders {
-  gender_id integer [pk, increment]
-  label text    [not null, unique]
-  code  text    [not null, unique]
-  Note: 'Amtliches Merkmal für ASV-BW/Statistik, deshalb stabiler code neben dem umbenennbaren label. ISO 5218 geprüft und verworfen — die Norm (0/1/2/9) kann "divers" nicht ausdrücken (§22 Abs. 3 PStG); Werte stammen aus der ASV-BW-Werteliste.'
-}
-
-Table salutations {
-  salutation_id integer [pk, increment]
-  label text    [not null, unique]
-  Note: 'Anrede — bewusst getrennt vom Geschlecht, nicht daraus abgeleitet.'
-}
-
-Table guardian_categories {
-  guardian_category_id      integer     [pk, increment]
-  label                     text        [not null, unique]
-  exempt_from_parent_duties boolean     [not null, default: false]
-  created_at                timestamptz [not null, default: `now()`]
-  created_by                text        [not null]
-  updated_at                timestamptz [not null, default: `now()`]
-  updated_by                text        [not null]
-  Note: 'Mutter/Vater/Pflegeeltern/Jugendamt/Vereinsvormund — hängt an family_guardians, nicht am Guardian. exempt_from_parent_duties ist keine Bezeichnung, sondern eine strukturelle Tatsache: diese Art begründet keine Elternmitarbeit und trägt damit die Putzdienst-Befreiung der Amts- und Vereinsvormundschaft. Fehlt die Kategorie, gilt pflichtig.'
-}
-
-Table denominations {
-  denomination_id integer [pk, increment]
-  label text    [not null, unique]
-}
-
-Table languages {
-  language_id integer [pk, increment]
-  label text    [not null, unique]
-  code  text    [not null, unique]
-  Note: 'Verkehrssprache. Lookup statt Freitext: speist den ASV-BW-Export, dort zählt ein konsistenter Wert. code = BCP 47, CHECK auf Grundform mit kanonisch kleingeschriebenem Primär-Subtag. Liste wird geseedet, label bleibt frei änderbar, code nicht (externer Standard).'
-}
-
-Table countries {
-  country_id integer [pk, increment]
-  label text    [not null, unique]
-  code  text    [not null, unique]
-  Note: 'Land für Anschrift/Geburtsland/Staatsangehörigkeit. Lookup statt ISO-Code-Freitext: der Weg nach ASV-BW läuft über einen CSV-Export mit manueller Nacharbeit — der label trägt die Sichtprüfung, der code die maschinelle Seite (ein Export auf Basis der umbenennbaren Bezeichnung bricht still). ASV-BW führt die Werte selbst als Werteliste, nicht als ISO-Code. code = ISO 3166-1 alpha-3 (nicht alpha-2: das wird neu vergeben und kollidiert optisch mit languages.code), mit Format-CHECK. Liste wird aus ISO 3166-1 geseedet, label bleibt frei änderbar, code nicht (externer Standard).'
-}
-
-Table phone_types {
-  phone_type_id integer [pk, increment]
-  label text    [not null, unique]
 }
 
 Table school_branches {
@@ -127,16 +52,6 @@ Table classes {
   Note: 'Kohorte, nicht Klassenstufen-Slot: Zeile = ein Zug eines Jahrgangs im Zweig (Zweig/Eintrittsjahr/Zug). Stabil ist die Zeile, nicht ihre Besetzung — Quereinsteiger kommen dazu, Abgänger fallen weg, Wiederholer wechseln die Kohorte. entry_year ist das Startjahr der Kohorte, der Eintritt des Kindes steht als children.entry_date. grade_level_id ist die AKTUELLE Klassenstufe, wandert beim Jahreslauf auf derselben Zeile weiter, bei einer durchgelaufenen Kohorte bleibt sie auf der Abschlussstufe stehen und is_active wird false. Anzeigename ("5a") und Kohorten-Kennung ("RS25a") werden berechnet, nicht gespeichert.'
 }
 
-Table previous_schools {
-  previous_school_id integer [pk, increment]
-  label text    [not null, unique]
-  Note: 'Abgebende Schule; steht auf dem Grundschul- wie dem Realschul-Voranmeldeformular.'
-}
-
-// ---------------------------------------------------------------------------
-// Anschrift
-// ---------------------------------------------------------------------------
-
 Table addresses {
   address_id uuid        [pk, default: `gen_random_uuid()`]
   street       text        [not null, note: 'CHECK <> \'\'']
@@ -155,10 +70,6 @@ Table addresses {
   }
   Note: 'Eigene Tabelle statt Spalten je Person: Kind + Eltern teilen sich im Regelfall eine Zeile. Suchindex nötig, damit die Eingabemaske bestehende Zeilen findet — sonst verwaist das Konzept in der Praxis. Straße/PLZ/Ort sind Pflicht: eine Zeile mit nur einem Land darin wäre eine unauffindbare Karteileiche. „Keine Anschrift bekannt" drückt persons.address_id IS NULL aus. Hausnummer und Teilort dürfen fehlen (Hofname, Postfach, Ort ohne Teilorte).'
 }
-
-// ---------------------------------------------------------------------------
-// Personen und Organisationen
-// ---------------------------------------------------------------------------
 
 Table persons {
   person_id uuid        [pk, default: `gen_random_uuid()`]
@@ -199,10 +110,6 @@ Table phone_numbers {
   }
   Note: 'Gehört immer zu einer Person — eine Behördennummer gibt es nicht als eigenen Fall (Begründung an guardians). is_primary: die von der Person benannte Rufnummer, genutzt für O365-Kontakte; one_primary_per_person ist in echt partiell (WHERE is_primary). Dieselbe Nummer nur einmal je Person — der Typ ist eine Eigenschaft der Nummer, nicht ihre Identität; dieser Unique-Index trägt zugleich den Zugriff über person_id allein.'
 }
-
-// ---------------------------------------------------------------------------
-// Familie, Kind, Erziehungsberechtigte
-// ---------------------------------------------------------------------------
 
 Table families {
   family_id  uuid        [pk, default: `gen_random_uuid()`]
@@ -278,10 +185,6 @@ Table family_guardians {
   Note: 'M:N Guardian↔Familie (Patchwork). Grundlage des OTP-Ownership-Checks. acting_for: für welche Institution diese Person in diesem Fall handelt („Jugendamt Musterkreis") — nur für die Briefanschrift, trägt keine Regel.'
 }
 
-// ---------------------------------------------------------------------------
-// Mitarbeiter
-// ---------------------------------------------------------------------------
-
 Table employees {
   employee_id uuid        [pk]
   work_email       citext      [unique]
@@ -294,10 +197,6 @@ Table employees {
   updated_by       text        [not null]
   Note: 'Rolle auf persons (id = persons.person_id), immer natürliche Person. work_email getrennt von persons.email: Letztere ist privat und zugleich OTP-Identität — ein Mitarbeiter, der auch Elternteil ist, verlöre sonst beim Offboarding seinen Elternzugang. Hier UNIQUE, weil die Schule diese Postfächer selbst vergibt. entra_object_id verbindet den Audit-Verursacher "entra:<oid>" mit der Person und trägt die Zugriffsentscheidung "ist Klassenlehrer:in dieser Klasse". employment_end gesetzt = ausgeschieden; die Putzdienst-Befreiung fragt employment_end IS NULL. Bereichs-/Vorgesetztenstruktur bewusst noch nicht enthalten (erst mit der Rechnungsfreigabe).'
 }
-
-// ---------------------------------------------------------------------------
-// Kontakte (nicht-rechtliche Bezugspersonen)
-// ---------------------------------------------------------------------------
 
 Table child_contacts {
   child_id     uuid [not null]
@@ -337,33 +236,17 @@ Table payers {
   Note: 'IST eine Person, teilt sich den Schlüssel mit persons — eigene Tabelle wegen der Nutzlast (Bankverbindung, Mandat), anders als die Kontaktrolle. billing_address_id nullable: NULL = Anschrift der zahlenden Person gilt. iban/bic: Struktur-CHECK nach ISO 13616 bzw. ISO 9362 (international, nicht auf deutsche Längen festgelegt); gespeichert nur normalisiert, ohne Leerzeichen. bic vermutlich entbehrlich (SEPA IBAN-only seit 2016, folgt aus der IBAN) — bleibt, bis das Optigem-Importformat geklärt ist. SEPA-Mandat: ein Mandat je Zahler, nicht je Zweck; mandate_reference und mandate_signed_at nur gemeinsam und nie ohne iban (CHECKs in SQL). Kein Kreditinstitut (folgt aus der BIC), keine Mandatshistorie; das signierte PDF liegt in der Schulvertrags-Fachdomäne und trägt kein eigenes Datum.'
 }
 
-// ---------------------------------------------------------------------------
-// Beziehungen
-// ---------------------------------------------------------------------------
-
 Ref: grade_levels.school_branch_id > school_branches.school_branch_id [delete: restrict]
 Ref: classes.school_branch_id > school_branches.school_branch_id [delete: restrict]
 Ref: classes.(grade_level_id, school_branch_id) > grade_levels.(grade_level_id, school_branch_id)
 
-Ref: persons.salutation_id > salutations.salutation_id [delete: restrict]
-Ref: persons.gender_id > genders.gender_id [delete: restrict]
 Ref: persons.address_id > addresses.address_id [delete: restrict]
 
-Ref: addresses.country_id > countries.country_id [delete: restrict]
-
-
 Ref: phone_numbers.person_id > persons.person_id [delete: cascade]
-Ref: phone_numbers.phone_type_id > phone_types.phone_type_id [delete: restrict]
 
 Ref: children.child_id - persons.person_id [delete: cascade]
 Ref: children.family_id > families.family_id [delete: restrict]
-Ref: children.denomination_id > denominations.denomination_id [delete: restrict]
-Ref: children.home_language_id > languages.language_id [delete: restrict]
-Ref: children.birth_country_id > countries.country_id [delete: restrict]
-Ref: children.nationality_id > countries.country_id [delete: restrict]
-Ref: children.second_nationality_id > countries.country_id [delete: restrict]
 Ref: children.provisional_grade_level_id > grade_levels.grade_level_id [delete: restrict]
-Ref: children.previous_school_id > previous_schools.previous_school_id [delete: restrict]
 Ref: children.payer_id > payers.payer_id [delete: restrict]
 Ref: children.class_id > classes.class_id [delete: restrict]
 
@@ -371,8 +254,6 @@ Ref: guardians.guardian_id - persons.person_id [delete: restrict]
 
 Ref: family_guardians.family_id > families.family_id [delete: cascade]
 Ref: family_guardians.guardian_id > guardians.guardian_id [delete: cascade]
-Ref: family_guardians.guardian_category_id > guardian_categories.guardian_category_id [delete: restrict]
-
 
 Ref: child_contacts.child_id > children.child_id [delete: cascade]
 Ref: child_contacts.contact_id > persons.person_id [delete: cascade]
