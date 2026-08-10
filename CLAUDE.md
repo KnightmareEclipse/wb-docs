@@ -38,7 +38,7 @@ Diese Datei wird automatisch geladen — verlinkt werden muss nichts, es genügt
 - **Übertragung nach `wb-backend`:** `TODO-SESSIONS.md`, `project-parts.md`, `idea/04-identitaet-zugriff.md`.
 - **Infrastruktur:** `pipeline/runbook.md`, `idea/03-container-anwendung.md`, `idea/05-backup-recovery.md`, `TODO.md`.
 
-Die Begründungen des Datenmodells stehen als **Kommentare in der `.sql`**, nicht in der Prosa — wer nur `domains/stammdaten-schema-plain.sql` liest, sieht dieselbe Struktur ohne jedes „warum" und schlägt zuverlässig vor, was bereits verworfen wurde. Die `-plain.sql` ist abgeleitet und nie die Lesefassung; die `.dbml` nur relevant, wenn es ums Diagramm geht — daneben liegt `-ohne-lookups.dbml`, dieselbe Struktur ohne die reinen Wertelisten, wenn es um die Beziehungen zwischen den Entitäten geht. Auch sie ist abgeleitet.
+Die Begründungen des Datenmodells stehen als **Kommentare in der `.sql`**, nicht in der Prosa — wer nur `domains/stammdaten-schema-plain.sql` liest, sieht dieselbe Struktur ohne jedes „warum" und schlägt zuverlässig vor, was bereits verworfen wurde. Die `-plain.sql` ist abgeleitet und nie die Lesefassung; die `.dbml` je Domäne nur relevant, wenn es ums Diagramm geht. Zum Laden gibt es die beiden abgeleiteten Gesamtansichten `domains/schema-gesamt.dbml` (alles) und `domains/schema-gesamt-ohne-lookups.dbml` (dieselbe Struktur ohne die reinen Wertelisten, wenn es um die Beziehungen zwischen den Entitäten geht).
 
 **Grenze zwischen `.sql` und `.md`** — sie entscheidet, wo eine Begründung hingehört, und verhindert, dass dieselbe zweimal dasteht:
 
@@ -53,7 +53,7 @@ Zieldatenbank ist **PostgreSQL 18** (19 erscheint erst um September/Oktober 2026
 
 Eine Schemaänderung ist erst fertig, wenn alle abhängigen Dateien mitgezogen sind — diese Liste steht nur hier, und eine vergessene Datei fällt sonst monatelang nicht auf:
 
-`…-schema.sql` → `.dbml` → `-plain.sql` und `-ohne-lookups.dbml` (beide regenerieren, nie von Hand — Befehle im Kopf der jeweiligen Quelldatei) → Prüfskript **samt Sollstand** → `domains/stammdaten-schema-benchmark.md` und die Dateien in `domains/stammdaten-benchmark/` → die betroffenen `.md` → `domains/grenzkarte.md`.
+`…-schema.sql` → `…-schema.dbml` → `-plain.sql` sowie `schema-gesamt.dbml` und `schema-gesamt-ohne-lookups.dbml` (alle drei regenerieren, nie von Hand — Befehle im Kopf der jeweiligen Quelldatei bzw. in `domains/dbml-ansicht.awk`) → Prüfskript **samt Sollstand** → `domains/stammdaten-schema-benchmark.md` und die Dateien in `domains/stammdaten-benchmark/` → die betroffenen `.md` → `domains/grenzkarte.md`.
 
 Danach **einmal** validieren, nicht nach jedem Einzelpunkt: beide Prüfskripte (Aufruf und Sollstand im jeweiligen Kopfkommentar), der Spaltenabgleich `.sql` gegen `.dbml` (Aufruf im Kopf der `.dbml`, Exit-Code 1 bei Drift), und bei Spaltenänderungen der Benchmark-Generator mit `n_children=500`/`n_classes=20` — die Zeilenzahlen müssen denen aus `domains/stammdaten-schema-benchmark.md` (Durchlauf 1) entsprechen.
 

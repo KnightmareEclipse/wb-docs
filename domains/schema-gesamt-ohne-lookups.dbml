@@ -1,90 +1,9 @@
-// Stammdaten-Kernschema — DBML-Ansicht von stammdaten-schema.sql, nur für die
-// Visualisierung (z. B. dbdiagram.io). Quelle der Wahrheit ist die .sql-Datei;
-// bei Abweichung gewinnt die SQL. Kommentare hier stark gekürzt gegenüber dort.
-//
-// Diese Datei ist die einzige von Hand gepflegte Zweitdarstellung des Schemas und
-// damit die, die still danebenlaufen kann. Nach jeder Schemaänderung den
-// Spaltensatz gegenprüfen — schweigt bei Deckungsgleichheit, listet sonst die
-// Abweichung und liefert Exit-Code 1:
-//   diff <(awk '/^CREATE TABLE/{t=$3; next} /^\);/{t=""} t && /^    [a-z_]+ /{print t"."$1}' \
-//              domains/stammdaten-schema-plain.sql | sort) \
-//        <(awk '/^Table /{t=$2; next} /^}/{t=""} t && /^  [a-z_]+ /{if ($1!="indexes") print t"."$1}' \
-//              domains/stammdaten-schema.dbml | sort)
-// Prüft Tabellen und Spalten, nicht die Note:-Texte — Prosa-Drift ist hier
-// verkraftbar, eine fehlende Spalte nicht.
-//
-// Diese Datei deckt nur die Stammdaten ab; der Putzdienst hat sein eigenes
-// Gegenstück (putzdienst-schema.dbml), das auf families hier zeigt. Zum Laden
-// in dbdiagram.io gibt es daneben zwei ABGELEITETE Gesamtansichten über beide
-// Domänen, die wie stammdaten-schema-plain.sql nie von Hand gepflegt und nach
-// jeder Änderung an dieser Datei neu erzeugt werden:
-//   awk -v lookups=1 -f domains/dbml-ansicht.awk \
-//       domains/stammdaten-schema.dbml domains/putzdienst-schema.dbml \
-//       > domains/schema-gesamt.dbml
-//   awk -f domains/dbml-ansicht.awk \
-//       domains/stammdaten-schema.dbml domains/putzdienst-schema.dbml \
-//       > domains/schema-gesamt-ohne-lookups.dbml
-// Die zweite lässt die reinen Wertelisten weg, damit im Diagramm die
-// Beziehungen zwischen den Entitäten sichtbar bleiben statt unter den
-// Lookup-Kanten zu verschwinden (countries allein hängt an vier Spalten).
-// Welche Tabellen als Werteliste gelten, steht als Liste im Kopf des
-// awk-Skripts — Schulzweig, Klassenstufe und Klasse bleiben bewusst drin, sie
-// tragen echte Beziehungen samt dem zusammengesetzten Fremdschlüssel.
+// ABGELEITET aus stammdaten-schema.dbml + putzdienst-schema.dbml — nie von Hand pflegen.
+// Regenerieren: siehe Kopf von domains/dbml-ansicht.awk.
+// Reine Wertelisten und ihre Ref:-Zeilen sind entfernt; die verweisenden Spalten bleiben.
 
 Project stammdaten {
   database_type: 'PostgreSQL'
-}
-
-// ---------------------------------------------------------------------------
-// Lookup-Tabellen
-// ---------------------------------------------------------------------------
-
-Table genders {
-  gender_id integer [pk, increment]
-  label text    [not null, unique]
-  code  text    [not null, unique]
-  Note: 'Amtliches Merkmal für ASV-BW/Statistik, deshalb stabiler code neben dem umbenennbaren label. ISO 5218 geprüft und verworfen — die Norm (0/1/2/9) kann "divers" nicht ausdrücken (§22 Abs. 3 PStG); Werte stammen aus der ASV-BW-Werteliste.'
-}
-
-Table salutations {
-  salutation_id integer [pk, increment]
-  label text    [not null, unique]
-  Note: 'Anrede — bewusst getrennt vom Geschlecht, nicht daraus abgeleitet.'
-}
-
-Table guardian_categories {
-  guardian_category_id      integer     [pk, increment]
-  label                     text        [not null, unique]
-  exempt_from_parent_duties boolean     [not null, default: false]
-  created_at                timestamptz [not null, default: `now()`]
-  created_by                text        [not null]
-  updated_at                timestamptz [not null, default: `now()`]
-  updated_by                text        [not null]
-  Note: 'Mutter/Vater/Pflegeeltern/Jugendamt/Vereinsvormund — hängt an family_guardians, nicht am Guardian. exempt_from_parent_duties ist keine Bezeichnung, sondern eine strukturelle Tatsache: diese Art begründet keine Elternmitarbeit und trägt damit die Putzdienst-Befreiung der Amts- und Vereinsvormundschaft. Fehlt die Kategorie, gilt pflichtig.'
-}
-
-Table denominations {
-  denomination_id integer [pk, increment]
-  label text    [not null, unique]
-}
-
-Table languages {
-  language_id integer [pk, increment]
-  label text    [not null, unique]
-  code  text    [not null, unique]
-  Note: 'Verkehrssprache. Lookup statt Freitext: speist den ASV-BW-Export, dort zählt ein konsistenter Wert. code = BCP 47, CHECK auf Grundform mit kanonisch kleingeschriebenem Primär-Subtag. Liste wird geseedet, label bleibt frei änderbar, code nicht (externer Standard).'
-}
-
-Table countries {
-  country_id integer [pk, increment]
-  label text    [not null, unique]
-  code  text    [not null, unique]
-  Note: 'Land für Anschrift/Geburtsland/Staatsangehörigkeit. Lookup statt ISO-Code-Freitext: der Weg nach ASV-BW läuft über einen CSV-Export mit manueller Nacharbeit — der label trägt die Sichtprüfung, der code die maschinelle Seite (ein Export auf Basis der umbenennbaren Bezeichnung bricht still). ASV-BW führt die Werte selbst als Werteliste, nicht als ISO-Code. code = ISO 3166-1 alpha-3 (nicht alpha-2: das wird neu vergeben und kollidiert optisch mit languages.code), mit Format-CHECK. Liste wird aus ISO 3166-1 geseedet, label bleibt frei änderbar, code nicht (externer Standard).'
-}
-
-Table phone_types {
-  phone_type_id integer [pk, increment]
-  label text    [not null, unique]
 }
 
 Table school_branches {
@@ -133,16 +52,6 @@ Table classes {
   Note: 'Kohorte, nicht Klassenstufen-Slot: Zeile = ein Zug eines Jahrgangs im Zweig (Zweig/Eintrittsjahr/Zug). Stabil ist die Zeile, nicht ihre Besetzung — Quereinsteiger kommen dazu, Abgänger fallen weg, Wiederholer wechseln die Kohorte. entry_year ist das Startjahr der Kohorte, der Eintritt des Kindes steht als children.entry_date. grade_level_id ist die AKTUELLE Klassenstufe, wandert beim Jahreslauf auf derselben Zeile weiter, bei einer durchgelaufenen Kohorte bleibt sie auf der Abschlussstufe stehen und is_active wird false. Anzeigename ("5a") und Kohorten-Kennung ("RS25a") werden berechnet, nicht gespeichert.'
 }
 
-Table previous_schools {
-  previous_school_id integer [pk, increment]
-  label text    [not null, unique]
-  Note: 'Abgebende Schule; steht auf dem Grundschul- wie dem Realschul-Voranmeldeformular.'
-}
-
-// ---------------------------------------------------------------------------
-// Anschrift
-// ---------------------------------------------------------------------------
-
 Table addresses {
   address_id uuid        [pk, default: `gen_random_uuid()`]
   street       text        [not null, note: 'CHECK <> \'\'']
@@ -161,10 +70,6 @@ Table addresses {
   }
   Note: 'Eigene Tabelle statt Spalten je Person: Kind + Eltern teilen sich im Regelfall eine Zeile. Suchindex nötig, damit die Eingabemaske bestehende Zeilen findet — sonst verwaist das Konzept in der Praxis. Straße/PLZ/Ort sind Pflicht: eine Zeile mit nur einem Land darin wäre eine unauffindbare Karteileiche. „Keine Anschrift bekannt" drückt persons.address_id IS NULL aus. Hausnummer und Teilort dürfen fehlen (Hofname, Postfach, Ort ohne Teilorte).'
 }
-
-// ---------------------------------------------------------------------------
-// Personen und Organisationen
-// ---------------------------------------------------------------------------
 
 Table persons {
   person_id uuid        [pk, default: `gen_random_uuid()`]
@@ -205,10 +110,6 @@ Table phone_numbers {
   }
   Note: 'Gehört immer zu einer Person — eine Behördennummer gibt es nicht als eigenen Fall (Begründung an guardians). is_primary: die von der Person benannte Rufnummer, genutzt für O365-Kontakte; one_primary_per_person ist in echt partiell (WHERE is_primary). Dieselbe Nummer nur einmal je Person — der Typ ist eine Eigenschaft der Nummer, nicht ihre Identität; dieser Unique-Index trägt zugleich den Zugriff über person_id allein.'
 }
-
-// ---------------------------------------------------------------------------
-// Familie, Kind, Erziehungsberechtigte
-// ---------------------------------------------------------------------------
 
 Table families {
   family_id  uuid        [pk, default: `gen_random_uuid()`]
@@ -284,10 +185,6 @@ Table family_guardians {
   Note: 'M:N Guardian↔Familie (Patchwork). Grundlage des OTP-Ownership-Checks. acting_for: für welche Institution diese Person in diesem Fall handelt („Jugendamt Musterkreis") — nur für die Briefanschrift, trägt keine Regel.'
 }
 
-// ---------------------------------------------------------------------------
-// Mitarbeiter
-// ---------------------------------------------------------------------------
-
 Table employees {
   employee_id uuid        [pk]
   work_email       citext      [unique]
@@ -300,10 +197,6 @@ Table employees {
   updated_by       text        [not null]
   Note: 'Rolle auf persons (id = persons.person_id), immer natürliche Person. work_email getrennt von persons.email: Letztere ist privat und zugleich OTP-Identität — ein Mitarbeiter, der auch Elternteil ist, verlöre sonst beim Offboarding seinen Elternzugang. Hier UNIQUE, weil die Schule diese Postfächer selbst vergibt. entra_object_id verbindet den Audit-Verursacher "entra:<oid>" mit der Person und trägt die Zugriffsentscheidung "ist Klassenlehrer:in dieser Klasse". employment_end gesetzt = ausgeschieden; die Putzdienst-Befreiung fragt employment_end IS NULL. Bereichs-/Vorgesetztenstruktur bewusst noch nicht enthalten (erst mit der Rechnungsfreigabe).'
 }
-
-// ---------------------------------------------------------------------------
-// Kontakte (nicht-rechtliche Bezugspersonen)
-// ---------------------------------------------------------------------------
 
 Table child_contacts {
   child_id     uuid [not null]
@@ -343,33 +236,17 @@ Table payers {
   Note: 'IST eine Person, teilt sich den Schlüssel mit persons — eigene Tabelle wegen der Nutzlast (Bankverbindung, Mandat), anders als die Kontaktrolle. billing_address_id nullable: NULL = Anschrift der zahlenden Person gilt. iban/bic: Struktur-CHECK nach ISO 13616 bzw. ISO 9362 (international, nicht auf deutsche Längen festgelegt); gespeichert nur normalisiert, ohne Leerzeichen. bic vermutlich entbehrlich (SEPA IBAN-only seit 2016, folgt aus der IBAN) — bleibt, bis das Optigem-Importformat geklärt ist. SEPA-Mandat: ein Mandat je Zahler, nicht je Zweck; mandate_reference und mandate_signed_at nur gemeinsam und nie ohne iban (CHECKs in SQL). Kein Kreditinstitut (folgt aus der BIC), keine Mandatshistorie; das signierte PDF liegt in der Schulvertrags-Fachdomäne und trägt kein eigenes Datum.'
 }
 
-// ---------------------------------------------------------------------------
-// Beziehungen
-// ---------------------------------------------------------------------------
-
 Ref: grade_levels.school_branch_id > school_branches.school_branch_id [delete: restrict]
 Ref: classes.school_branch_id > school_branches.school_branch_id [delete: restrict]
 Ref: classes.(grade_level_id, school_branch_id) > grade_levels.(grade_level_id, school_branch_id)
 
-Ref: persons.salutation_id > salutations.salutation_id [delete: restrict]
-Ref: persons.gender_id > genders.gender_id [delete: restrict]
 Ref: persons.address_id > addresses.address_id [delete: restrict]
 
-Ref: addresses.country_id > countries.country_id [delete: restrict]
-
-
 Ref: phone_numbers.person_id > persons.person_id [delete: cascade]
-Ref: phone_numbers.phone_type_id > phone_types.phone_type_id [delete: restrict]
 
 Ref: children.child_id - persons.person_id [delete: cascade]
 Ref: children.family_id > families.family_id [delete: restrict]
-Ref: children.denomination_id > denominations.denomination_id [delete: restrict]
-Ref: children.home_language_id > languages.language_id [delete: restrict]
-Ref: children.birth_country_id > countries.country_id [delete: restrict]
-Ref: children.nationality_id > countries.country_id [delete: restrict]
-Ref: children.second_nationality_id > countries.country_id [delete: restrict]
 Ref: children.provisional_grade_level_id > grade_levels.grade_level_id [delete: restrict]
-Ref: children.previous_school_id > previous_schools.previous_school_id [delete: restrict]
 Ref: children.payer_id > payers.payer_id [delete: restrict]
 Ref: children.class_id > classes.class_id [delete: restrict]
 
@@ -377,8 +254,6 @@ Ref: guardians.guardian_id - persons.person_id [delete: restrict]
 
 Ref: family_guardians.family_id > families.family_id [delete: cascade]
 Ref: family_guardians.guardian_id > guardians.guardian_id [delete: cascade]
-Ref: family_guardians.guardian_category_id > guardian_categories.guardian_category_id [delete: restrict]
-
 
 Ref: child_contacts.child_id > children.child_id [delete: cascade]
 Ref: child_contacts.contact_id > persons.person_id [delete: cascade]
@@ -388,3 +263,138 @@ Ref: payers.billing_address_id > addresses.address_id [delete: restrict]
 
 Ref: employees.employee_id - persons.person_id [delete: cascade]
 Ref: classes.class_teacher_id > employees.employee_id [delete: restrict]
+
+Table cleaning_cycles {
+  cycle_id integer     [pk, increment]
+  label               text        [not null, unique, note: 'CHECK <> \'\', z. B. "2026/27"']
+  starts_on           date        [not null]
+  ends_on             date        [not null]
+  booking_opens_at    timestamptz [not null]
+  booking_closes_at   timestamptz [not null]
+  required_regular    smallint    [not null, note: 'heute 5']
+  required_major      smallint    [not null, note: 'heute 1 (Großputz)']
+  buyout_amount       "numeric(8,2)" [not null]
+  no_show_penalty     "numeric(8,2)" [not null]
+  capacity_buffer     smallint    [not null]
+  proration_cutoff_on date        [note: 'ab hier keine Pflicht mehr für Quereinsteiger; nullable = bis zum Schluss prorationieren']
+  created_at          timestamptz [not null, default: `now()`]
+  created_by          text        [not null]
+  updated_at          timestamptz [not null, default: `now()`]
+  updated_by          text        [not null]
+
+  Note: 'Ein Zyklus je Schuljahr (Oktober–September). Alle zyklisch änderbaren organisatorischen Werte stehen als Daten hier, nicht im Code — eine Beitrags- oder Pflichtänderung ist eine Eingabe, kein Redeploy. required_regular und required_major werden getrennt gezählt und sind NICHT gegeneinander verrechenbar; deshalb zwei Spalten statt einer Gesamtzahl. Das Buchungsfenster liegt bewusst VOR dem Zyklus (September), es gibt deshalb keinen CHECK, der es hineinzwingt. Zwei Zyklen dürfen sich nicht überlappen — als EXCLUDE USING gist über daterange, nicht als Anwendungsprüfung. no_show_penalty ist reiner Konfigurationswert fürs Anschreiben: die Forderung zieht Optigem, sie entsteht hier nie als Zahlung. Keine Kapazität am Termin — sie wird zweistufig berechnet und wäre ein veraltender zweiter Ort.'
+}
+
+Table cleaning_reminder_stages {
+  cycle_id    integer     [not null]
+  days_before smallint    [not null, note: 'CHECK > 0; heute 7 und 1']
+  created_at  timestamptz [not null, default: `now()`]
+  created_by  text        [not null]
+  updated_at  timestamptz [not null, default: `now()`]
+  updated_by  text        [not null]
+
+  indexes {
+    (cycle_id, days_before) [pk]
+  }
+  Note: 'Erinnerungsstufen als Zeilen statt fester Spalten: eine dritte Stufe ist ein Datensatz, keine Migration. Der Primärschlüssel verhindert nebenbei die doppelte Stufe. Kein Bezeichnungsfeld — die Stufe IST die Zahl. Mit Audit-Spalten, anders als eine reine Werteliste: eine unbemerkt gelöschte Stufe verschickt keine Erinnerung, und ein stiller Fehlschlag zählt als nicht vorhanden.'
+}
+
+Table cleaning_slots {
+  slot_id      integer     [pk, increment]
+  cycle_id     integer     [not null]
+  duty_type_id integer     [not null]
+  slot_date    date        [not null]
+  hours        "numeric(3,1)" [not null, note: 'CHECK > 0; trägt den Stundennachweis (hours × wahrgenommene Termine), der deshalb nirgends gespeichert wird']
+  created_at   timestamptz [not null, default: `now()`]
+  created_by   text        [not null]
+  updated_at   timestamptz [not null, default: `now()`]
+  updated_by   text        [not null]
+
+  indexes {
+    (cycle_id, slot_date)
+    duty_type_id
+  }
+  Note: 'Konkreter Putztermin. Bewusst KEIN UNIQUE auf (cycle_id, slot_date): am selben Tag können ein Großputz und ein regulärer Termin liegen — die Solver-Regel, die eine Familie nicht beiden zuordnet, ist genau deshalb nötig. Dass slot_date in den Zeitraum seines Zyklus fällt, sichert die Eingabemaske: schemaseitig wäre es ein Nachschlag in einer anderen Tabelle und damit ein Trigger.'
+}
+
+Table cleaning_family_duties {
+  cycle_id         integer     [not null]
+  family_id        uuid        [not null]
+  required_regular smallint    [note: 'NULL = Standard des Zyklus, nicht null Termine']
+  required_major   smallint    [note: 'NULL = Standard des Zyklus, nicht null Termine']
+  reason           text        [note: 'Freitext: "Quereinstieg 02/2027", "Vereinbarung Schulträger"']
+  created_at       timestamptz [not null, default: `now()`]
+  created_by       text        [not null]
+  updated_at       timestamptz [not null, default: `now()`]
+  updated_by       text        [not null]
+
+  indexes {
+    (cycle_id, family_id) [pk]
+    family_id
+  }
+  Note: 'Abweichende Pflichtmenge je Familie und Zyklus; keine Zeile heißt Standard. Der Schulvertrag sieht die Abweichung ausdrücklich vor. Dasselbe Feld nimmt die Quereinsteiger-Proration auf — es gibt für Sonderfälle keinen zweiten Mechanismus; gespeichert wird nur das Ergebnis der Rechnung, nicht die Formel. Zwei nullable Spalten statt einer Gesamtzahl, damit "3 regulär, Großputz wie Standard" ausdrückbar ist. 0 ist ein eigener gültiger Wert (Eintritt nach dem Stichtag). CHECK: mindestens eine der beiden Spalten gesetzt, sonst sagt die Zeile nichts und verdeckt nur den Standard.'
+}
+
+Table cleaning_assignments {
+  slot_id    integer     [not null]
+  family_id  uuid        [not null]
+  no_show    boolean     [not null, default: false]
+  created_at timestamptz [not null, default: `now()`]
+  created_by text        [not null]
+  updated_at timestamptz [not null, default: `now()`]
+  updated_by text        [not null]
+
+  indexes {
+    (slot_id, family_id) [pk]
+    family_id
+  }
+  Note: 'Familie ↔ Putztermin. Der Primärschlüssel trägt zugleich die erste Solver-Nebenbedingung ("eine Familie höchstens einmal pro Termin") — im Schema statt nur im Modell, damit auch die manuelle Verschiebung durchs Sekretariat sie nicht verletzen kann. no_show ist ein Attribut der Zuteilung, keine eigene Anwesenheits-Entität: erfasst wird nur das Nichterscheinen, weil es eine Strafzahlung auslöst. Der Index auf family_id trägt die häufigste Abfrage der Domäne ("wie viele Termine hat diese Familie"), der Primärschlüssel hilft ihr nicht.'
+}
+
+Table cleaning_buyouts {
+  buyout_id  uuid        [pk, default: `gen_random_uuid()`]
+  cycle_id   integer     [not null]
+  family_id  uuid        [not null]
+  created_at timestamptz [not null, default: `now()`]
+  created_by text        [not null]
+  updated_at timestamptz [not null, default: `now()`]
+  updated_by text        [not null]
+
+  indexes {
+    (cycle_id, family_id) [unique]
+    family_id
+  }
+  Note: 'Freikauf der GESAMTEN Jahrespflicht einer Familie (regulär + Großputz zusammen) — kein Teil-Freikauf, deshalb höchstens eine Zeile je Familie und Zyklus und kein Betrag hier: der steht am Zyklus. Eigene Entität statt eines Kennzeichens an cleaning_family_duties, weil der Freikauf der Vorgang ist, auf den die Zahlung zeigt, und unabhängig davon entsteht, ob die Familie eine abweichende Pflichtmenge hat. uuid neben dem fachlichen UNIQUE: die Zeile taucht in einer Eltern-URL auf (Stripe-Rücksprung), über eine fortlaufende Zahl ließe sich der Freikauf einer anderen Familie erraten.'
+}
+
+Table payments {
+  payment_id         uuid        [pk, default: `gen_random_uuid()`]
+  cleaning_buyout_id uuid        [not null, unique]
+  amount             "numeric(8,2)" [not null, note: 'CHECK > 0']
+  reference          text        [note: 'Stripe PaymentIntent; CHECK <> \'\'. Nullable, weil Überweisung und Bargeld über die manuelle Bestätigung der Buchhaltung laufen und keine Referenz haben']
+  settled_at         timestamptz [note: 'NULL = offen']
+  created_at         timestamptz [not null, default: `now()`]
+  created_by         text        [not null]
+  updated_at         timestamptz [not null, default: `now()`]
+  updated_by         text        [not null]
+
+  indexes {
+    settled_at [name: 'payments_open_idx']
+  }
+  Note: 'Querschnitts-Entität Q3, hier zum ersten Mal gebaut. KEINE Buchhaltung, keine Forderungsverwaltung, keine Fälligkeiten — Optigem bleibt führend; Weltenbaum berührt Geld nur, wo ein Elternteil im Selbstservice zahlt und der Prozess erst danach weiterläuft. Q3 deckt drei Anlässe ab, gebaut ist nur der Putzdienst-Freikauf; die beiden anderen (Voranmeldung, Ferienprogramm) kommen als je eine weitere nullable Vorgangs-Spalte samt erweitertem Entweder-oder-CHECK dazu, nicht als zweite Zahlungstabelle. cleaning_buyout_id ist UNIQUE: zwei Zahlungen zu einem Freikauf wären eine Doppelbelastung, kein Randfall — ein fehlgeschlagener Stripe-Versuch bleibt dieselbe Zeile. amount ist eine eigene Tatsache und keine Kopie: was gezahlt wurde, muss auch dann noch stimmen, wenn der Freikauf-Betrag des Zyklus später korrigiert wird. settled_at statt Status-Lookup, weil offen/bestätigt zwei Zustände sind und keine Auswahl aus benannten Alternativen. Der Index ist in echt partiell (WHERE settled_at IS NULL) — "welche Freikäufe sind noch offen" ist die Abfrage der Buchhaltung vor Buchungsschluss. Kein Zahler hier: payers trägt das Einzugsmittel und ist von Q3 unabhängig, wer gezahlt hat folgt aus dem Vorgang.'
+}
+
+Ref: cleaning_reminder_stages.cycle_id > cleaning_cycles.cycle_id [delete: cascade]
+
+Ref: cleaning_slots.cycle_id > cleaning_cycles.cycle_id [delete: restrict]
+
+Ref: cleaning_family_duties.cycle_id > cleaning_cycles.cycle_id [delete: cascade]
+Ref: cleaning_family_duties.family_id > families.family_id [delete: restrict]
+
+Ref: cleaning_assignments.slot_id > cleaning_slots.slot_id [delete: restrict]
+Ref: cleaning_assignments.family_id > families.family_id [delete: restrict]
+
+Ref: cleaning_buyouts.cycle_id > cleaning_cycles.cycle_id [delete: restrict]
+Ref: cleaning_buyouts.family_id > families.family_id [delete: restrict]
+
+Ref: payments.cleaning_buyout_id - cleaning_buyouts.buyout_id [delete: restrict]
