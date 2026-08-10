@@ -23,7 +23,7 @@
 --   * Pro Lauf eine frische Datenbank.
 --   * stdout und stderr im Container zusammenführen (`sh -c '… 2>&1'`), sonst
 --     reordert podman die Ströme und die Paarung sieht wie ein Befund aus.
---   * Sollstand: 16 Ankündigungen zu 16 ERROR-Zeilen, jeweils unmittelbar
+--   * Sollstand: 17 Ankündigungen zu 17 ERROR-Zeilen, jeweils unmittelbar
 --     gepaart. Verankert und auf der AUSGABE zählen, nicht auf dieser Datei —
 --     deren Kopfkommentar enthält die Zeichenkette selbst:
 --       grep -cE '^--- erwartet: FEHLER'  gegen  grep -cE '^psql:.*: ERROR:'
@@ -38,10 +38,10 @@ INSERT INTO families (family_id) VALUES
     ('f0000000-0000-0000-0000-000000000002'),   -- kauft sich frei
     ('f0000000-0000-0000-0000-000000000003');   -- Standardfall, nur eine Zuteilung
 
-INSERT INTO cleaning_duty_types (duty_type_id, label, is_major) VALUES
-    (1, 'Regulär', false),
-    (2, 'Großputz', true),
-    (3, 'Gartenarbeit', false);   -- zählt als regulär, siehe domains/putzdienst.md
+INSERT INTO cleaning_duty_types (duty_type_id, label, is_major, hours) VALUES
+    (1, 'Regulär', false, 3.0),
+    (2, 'Großputz', true, 5.0),
+    (3, 'Gartenarbeit', false, 3.0);   -- zählt als regulär, siehe domains/putzdienst.md
 
 INSERT INTO cleaning_cycles
     (cycle_id, label, starts_on, ends_on, booking_opens_at, booking_closes_at,
@@ -52,11 +52,11 @@ VALUES
      '2026-09-01 00:00+02', '2026-09-20 23:59+02',
      5, 1, 150.00, 75.00, 2, '2027-05-20');
 
-INSERT INTO cleaning_slots (slot_id, cycle_id, duty_type_id, slot_date, hours) VALUES
-    (10, 1, 1, '2026-10-17', 3.0),
-    (11, 1, 2, '2027-04-24', 5.0),
-    (12, 1, 3, '2027-05-08', 3.0),   -- Gartenarbeit
-    (13, 1, 1, '2027-09-18', 3.0);   -- letzter Monat: Abschlussklassen-Regel
+INSERT INTO cleaning_slots (slot_id, cycle_id, duty_type_id, slot_date) VALUES
+    (10, 1, 1, '2026-10-17'),
+    (11, 1, 2, '2027-04-24'),
+    (12, 1, 3, '2027-05-08'),   -- Gartenarbeit
+    (13, 1, 1, '2027-09-18');   -- letzter Monat: Abschlussklassen-Regel
 
 -- ---------------------------------------------------------------------------
 -- Audit-Trigger hängt auch an den neuen Tabellen (die Funktion selbst ist in
@@ -122,12 +122,16 @@ INSERT INTO cleaning_reminder_stages (cycle_id, days_before) VALUES (1, 0);
 
 -- Großputz und regulärer Termin am selben Tag müssen möglich bleiben — genau
 -- deshalb gibt es die Solver-Regel, die eine Familie nicht beiden zuordnet.
-INSERT INTO cleaning_slots (slot_id, cycle_id, duty_type_id, slot_date, hours)
-    VALUES (14, 1, 2, '2026-10-17', 5.0);
+INSERT INTO cleaning_slots (slot_id, cycle_id, duty_type_id, slot_date)
+    VALUES (14, 1, 2, '2026-10-17');
 
-\echo '--- erwartet: FEHLER (Termin ohne Stundenzahl trägt den Stundennachweis nicht)'
-INSERT INTO cleaning_slots (cycle_id, duty_type_id, slot_date, hours)
-    VALUES (1, 1, '2027-01-16', 0);
+-- Die Stundenzahl hängt an der Terminart, nicht am Termin: eine Terminart ohne
+-- Dauer trägt den Stundennachweis nicht (Begründung an cleaning_duty_types).
+\echo '--- erwartet: FEHLER (Terminart ohne Stundenzahl)'
+INSERT INTO cleaning_duty_types (label, is_major) VALUES ('Ohne Dauer', false);
+
+\echo '--- erwartet: FEHLER (Terminart mit Dauer null)'
+INSERT INTO cleaning_duty_types (label, is_major, hours) VALUES ('Null Stunden', false, 0);
 
 -- ---------------------------------------------------------------------------
 -- Pflichtmenge je Familie
@@ -185,9 +189,12 @@ SELECT 'pflichterfuellung' AS pruefung,
   JOIN cleaning_duty_types t ON t.duty_type_id = s.duty_type_id
  WHERE a.family_id = 'f0000000-0000-0000-0000-000000000001' AND s.cycle_id = 1;
 
--- Stundennachweis ist abgeleitet, kein Feld
-SELECT 'stundennachweis' AS pruefung, coalesce(sum(s.hours), 0) AS stunden
-  FROM cleaning_assignments a JOIN cleaning_slots s ON s.slot_id = a.slot_id
+-- Stundennachweis ist abgeleitet, kein Feld — seit die Dauer an der Terminart
+-- hängt, ist er ein Join über cleaning_duty_types statt eine Summe am Termin.
+SELECT 'stundennachweis' AS pruefung, coalesce(sum(t.hours), 0) AS stunden
+  FROM cleaning_assignments a
+  JOIN cleaning_slots s      ON s.slot_id = a.slot_id
+  JOIN cleaning_duty_types t ON t.duty_type_id = s.duty_type_id
  WHERE a.family_id = 'f0000000-0000-0000-0000-000000000001'
    AND s.cycle_id = 1 AND NOT a.no_show;
 

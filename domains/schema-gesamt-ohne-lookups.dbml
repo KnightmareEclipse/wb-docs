@@ -304,7 +304,6 @@ Table cleaning_slots {
   cycle_id     integer     [not null]
   duty_type_id integer     [not null]
   slot_date    date        [not null]
-  hours        "numeric(3,1)" [not null, note: 'CHECK > 0; trägt den Stundennachweis (hours × wahrgenommene Termine), der deshalb nirgends gespeichert wird']
   created_at   timestamptz [not null, default: `now()`]
   created_by   text        [not null]
   updated_at   timestamptz [not null, default: `now()`]
@@ -314,7 +313,7 @@ Table cleaning_slots {
     (cycle_id, slot_date)
     duty_type_id
   }
-  Note: 'Konkreter Putztermin. Bewusst KEIN UNIQUE auf (cycle_id, slot_date): am selben Tag können ein Großputz und ein regulärer Termin liegen — die Solver-Regel, die eine Familie nicht beiden zuordnet, ist genau deshalb nötig. Dass slot_date in den Zeitraum seines Zyklus fällt, sichert die Eingabemaske: schemaseitig wäre es ein Nachschlag in einer anderen Tabelle und damit ein Trigger.'
+  Note: 'Konkreter Putztermin, ohne eigene Stundenzahl — die steht an der Terminart. Bewusst KEIN UNIQUE auf (cycle_id, slot_date): am selben Tag können ein Großputz und ein regulärer Termin liegen — die Solver-Regel, die eine Familie nicht beiden zuordnet, ist genau deshalb nötig. Dass slot_date in den Zeitraum seines Zyklus fällt, sichert die Eingabemaske: schemaseitig wäre es ein Nachschlag in einer anderen Tabelle und damit ein Trigger.'
 }
 
 Table cleaning_family_duties {

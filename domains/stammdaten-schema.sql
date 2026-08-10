@@ -445,6 +445,23 @@ CREATE TABLE previous_schools (
 -- baden-württembergische Ausnahme und nicht die Regel ist. Beide bekommen
 -- trotzdem <> '': sie stehen im Dedup-Index, und dort sind NULL und '' zwei
 -- verschiedene Zeilen für dieselbe Anschrift.
+--
+-- BEWUSSTE 3NF-ABWEICHUNG, hier festgehalten, damit sie bei der Abnahme nicht
+-- als Versehen gilt: postal_code → city und district → city sind reale
+-- Abhängigkeiten (ein Teilort gehört zu genau einer Gemeinde, eine PLZ meist
+-- auch), city gehört zu keinem Schlüssel, und damit ist die Tabelle streng
+-- genommen nicht in dritter Normalform. Drei Gründe, es so zu lassen:
+--   * Der Katalog dafür ist bereits geprüft und verworfen (SVWS K_Ort/
+--     K_Ortsteil, domains/stammdaten.md) — Pflegeaufwand ohne Nutzen, solange
+--     nichts nach Gemeinde ausgewertet wird.
+--   * Die Abhängigkeit gilt nicht exakt: eine PLZ kann mehrere Gemeinden
+--     umfassen, und im Ausland trägt die Regel gar nicht. Eine Normalisierung
+--     würde also eine Genauigkeit behaupten, die es nicht gibt.
+--   * „Ein Ort pro Sachverhalt" (rules.md Abschnitt 1) ist davon NICHT berührt:
+--     die Regel verbietet, einen aus dem Bestand ableitbaren Wert zusätzlich zu
+--     speichern. Hier gibt es die bestimmende Tabelle bewusst nicht, city ist
+--     also aus nichts ableitbar und steht an genau einer Stelle. Die Abweichung
+--     ist eine der Normalform-Theorie, keine der Pflegbarkeit.
 CREATE TABLE addresses (
     address_id   uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     street       text NOT NULL CHECK (street <> ''),
@@ -1128,17 +1145,26 @@ CREATE TABLE payers (
     -- CHECK: Rechnen im Constraint wäre schwer lesbar und bei einer künftigen
     -- Regeländerung nur per Migration korrigierbar.
     iban               text CHECK (iban ~ '^[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}$'),
-    -- Die BIC ist für den Einzug selbst vermutlich entbehrlich und bleibt
-    -- vorerst nur deshalb stehen: für SEPA-Zahlungen innerhalb der Union darf
-    -- sie seit dem 1.2.2016 nicht mehr verlangt werden (VO 260/2012,
-    -- „IBAN-only"), und sie folgt aus der IBAN — dieselbe Ableitungskette, mit
-    -- der das Kreditinstitut vom Formular gar nicht erst übernommen wird
-    -- (unten). Offen ist allein, ob das Optigem-Importformat eine BIC-Spalte
-    -- verlangt; solange das ungeklärt ist, ist die Spalte mitzuführen billiger
-    -- als sie beim ersten Übertrag zu vermissen. Klärt sich das mit „nein",
-    -- ist sie ersatzlos streichbar — sie trägt kein Constraint und kein
-    -- anderes Feld hängt an ihr. Der Freeze steht dem nicht entgegen: bis
-    -- dahin ist es ein Texteingriff in einen Entwurf.
+    -- Die BIC ist vermutlich entbehrlich und bleibt nur bis zur Klärung stehen.
+    -- Zwei unabhängige Gründe sprechen gegen sie:
+    --   * Datensparsamkeit (rules.md Abschnitt 7): für SEPA-Zahlungen innerhalb
+    --     der Union darf sie seit dem 1.2.2016 nicht mehr verlangt werden
+    --     (VO 260/2012, „IBAN-only").
+    --   * Normalform: sie folgt aus der IBAN, die das Institut identifiziert.
+    --     Das ist die transitive Abhängigkeit payer_id → iban → bic und damit
+    --     ein 3NF-Verstoß — dieselbe Ableitungskette, mit der das
+    --     Kreditinstitut vom Formular gar nicht erst übernommen wird (unten),
+    --     nur eine Stufe früher angesetzt.
+    -- Offen ist allein der Abnehmer. ASV-BW führt in svp_kontoverbindung neben
+    -- iban eine swift-Spalte, beide nullable, ohne Statistikpflichtfeld-Marker,
+    -- und die Bankverbindung hängt dort als eigene Entität über
+    -- svp_schueler_stamm_kto_verbind am Schüler — die Spalte existiert also,
+    -- verlangt wird sie nicht. Zu prüfen bleibt, ob der reale ASV-Arbeitsablauf
+    -- der Schule sie befüllt und ob das Optigem-Importformat sie erwartet
+    -- (TODO.md). Fällt beides mit „nein" aus, ist die Spalte ersatzlos
+    -- streichbar: sie trägt kein Constraint und kein anderes Feld hängt an ihr.
+    -- Der Freeze steht dem nicht entgegen, bis dahin ist es ein Texteingriff
+    -- in einen Entwurf.
     bic                text CHECK (bic ~ '^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$'),
     account_holder     text,               -- Kontoinhaber, falls abweichend vom Namen der Person/Organisation
     -- SEPA-Lastschriftmandat. EIN Mandat je Zahler, nicht je Zweck: Schulgeld,
