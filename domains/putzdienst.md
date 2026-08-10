@@ -7,7 +7,7 @@ Erste Fachdomäne (`fachdomaenen.md` Abschnitt 7), Ziel: produktiv bis Schulanfa
 - **Pflicht:** pro Familie 5 reguläre + 1 Großputz-Termin/Jahr (Werte konfigurierbar, siehe Zyklus-Konfiguration unten) — unabhängig von Kinderzahl und Schulzweig (Grund-/Realschule). Eltern, die gleichzeitig Mitarbeiter sind, sind komplett befreit.
 - **Buchungsphase** (September, innerhalb des Buchungsfensters des Zyklus): Eltern wählen ihre Pflichttermine aus den verfügbaren Slots oder kaufen sich komplett frei. Absenden → Prüfung → Bestätigungsmail. Setzt voraus, dass der Jahreslauf (`domains/stammdaten.md`) vorher durchgelaufen ist — sonst tragen fortbestehende Klassen noch die Vorjahresstufe und die Abschlussklassen-Regel unten greift bei den falschen Familien. Er liegt Ende Juli und damit gut einen Monat davor; eng wird es nur bei den Einzelfällen daneben (Wiederholer, Quereinsteiger, Zugwechsler), die ein Mensch entscheidet und die bis zur Freigabe gesetzt sein müssen.
 - **Buchungsschluss:** Restplätze pro Termin werden automatisch an Familien mit noch offenem Bedarf verteilt (siehe „Restplatz-Zuordnung" unten), danach Rundmail an alle. Ab hier ist die Buchungsphase abgeschlossen, der Prozess geht in den laufenden Betrieb über.
-- **Laufender Betrieb** (Okt–Sept): Erinnerungsmail vor jedem zugeteilten Termin (Vorlaufzeiten konfigurierbar, aktuell 1 Woche + 1 Tag). Anwesenheit läuft über eine Papier-Unterschriftenliste vor Ort — bewusst nicht digital erfasst (siehe v1-Scope-Abgrenzung). Nichterscheinen zieht eine Strafzahlung nach sich (Betrag im Zyklus konfiguriert) und wird dafür ohnehin erfasst. Eltern können Termine tauschen oder sich nachträglich noch freikaufen.
+- **Laufender Betrieb** (Okt–Sept): Erinnerungsmail vor jedem zugeteilten Termin (Vorlaufzeiten konfigurierbar, aktuell 1 Woche + 1 Tag). Anwesenheit läuft über eine Papier-Unterschriftenliste vor Ort — bewusst nicht digital erfasst (siehe v1-Scope-Abgrenzung). Nichterscheinen zieht eine Strafzahlung nach sich (Betrag im Zyklus konfiguriert) und wird dafür ohnehin erfasst. Eltern können Termine tauschen oder sich nachträglich noch freikaufen; die Tauschanfrage kommt dabei regelmäßig als Antwort auf die Erinnerungsmail, deren `Reply-To` deshalb auf das Sekretariat zeigt (`idea/04-identitaet-zugriff.md`).
 - **Stundennachweis:** Der Schulvertrag verlangt ihn schriftlich. Er ergibt sich aus der Stundenzahl je Termin (siehe „Zyklus-Konfiguration") mal den wahrgenommenen Terminen — abgeleitet, kein eigenes Feld. Die **Pflichtmenge** bleibt trotzdem in Terminen bemessen (5+1), nicht in Stunden: regulär und Großputz werden getrennt gezählt und sind nicht gegeneinander verrechenbar, ein Stundenkonto hätte also keinen Abnehmer.
 - **Verantwortlich:** Sekretariat verwaltet den gesamten Prozess, inklusive Tausch-Abwicklung zwischen Eltern.
 
@@ -90,7 +90,6 @@ Bewusst nicht in der ersten Version, um bis September fertig zu werden:
 ## Offene Punkte
 
 - Anfang September zu bestätigen: gilt die Großputz/regulär-selber-Tag-Ausschluss-Regel wirklich (siehe „Restplatz-Zuordnung")
-- Application-Access-Policy-Scoping für Microsoft-Graph-`Mail.Send` (Bestätigung, Rundmail, Erinnerungen laufen alle darüber) — bisher nirgends entschieden, welches Postfach senden darf (`idea/04-identitaet-zugriff.md`)
 
 ## Technischer Punkt
 

@@ -183,7 +183,7 @@ Kritischer Pfad bis dahin:
 - Redirect-URI der bestehenden Entra-ID-App-Registrierung nachtragen (`pipeline/runbook.md` Schritt 7, `TODO.md`) — steht erst mit der Frontend-/Domain-Struktur fest, wie die CORS-Policy (`idea/04-identitaet-zugriff.md`). Der interne Login wird zwingend gebraucht: die Verwaltung startet den Prozess und pflegt die Putztermine intern, kein reiner Eltern-Self-Service
 
 *Auth/Zugriff für Eltern:*
-- OTP-Fallback tatsächlich implementieren (E-Mail-Check mit Enumeration-Schutz, Code-Speicherung/Ablauf/Rate-Limiting) — dazu das offene Graph-Scoping aus `domains/putzdienst.md`, „Offene Punkte"
+- OTP-Fallback tatsächlich implementieren (E-Mail-Check mit Enumeration-Schutz, Code-Speicherung/Ablauf/Rate-Limiting) — dazu die Application Access Policy auf das Absenderpostfach setzen (`idea/04-identitaet-zugriff.md`, `TODO.md`), sonst sendet die Anwendung tenantweit
 - Externes Frontend (Azure Static Web App + Function, `project-parts.md` Abschnitt 9) erstmals aufsetzen — CORS-Policy wird dadurch jetzt konkret
 
 *Fachlich:*

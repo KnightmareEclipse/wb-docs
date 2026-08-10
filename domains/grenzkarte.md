@@ -53,7 +53,7 @@ Zwei Folgen dieser Entscheidung:
 
 - **Das Backup bleibt wie es ist.** Es streamt ausschließlich einen `pg_dump` zum NAS (`idea/05-backup-recovery.md`) und deckt damit weiterhin den vollständigen Weltenbaum-Datenbestand ab. Wären die Dateien hier, bräuchte es eine zweite Sicherungsquelle samt eigenem Wiederherstellungstest.
 - **Die Löschmechanik wird zweiteilig.** Läuft eine Aufbewahrungsfrist ab, muss der Lösch-Job die Datei in SharePoint mitentfernen, nicht nur die Referenzzeile (`idea/06-dsgvo-organisatorisch.md`). Eine verwaiste Datei in SharePoint ist genauso ein DSGVO-Verstoß wie eine verwaiste Zeile — und sie fällt niemandem auf.
-- **Zusätzliche Graph-Berechtigung nötig,** über `Mail.Send` hinaus, mit derselben Frage nach engem Scoping (`putzdienst.md`, „Offene Punkte"): auf welche Site darf die Anwendung zugreifen, und nur lesend oder auch schreibend.
+- **Zusätzliche Graph-Berechtigung nötig,** über `Mail.Send` hinaus, mit derselben Frage nach engem Scoping wie dort beim Absenderpostfach (`idea/04-identitaet-zugriff.md`): auf welche Site darf die Anwendung zugreifen, und nur lesend oder auch schreibend.
 
 ### Q3 — Zahlungsvorgang
 
