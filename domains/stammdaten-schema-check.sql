@@ -20,7 +20,7 @@
 --   * stdout und stderr im Container zusammenführen — das `sh -c '… 2>&1'`
 --     oben. Sonst reordert podman die beiden Ströme und die Paarung
 --     Ankündigung/ERROR sieht wie ein Befund aus.
---   * Sollstand: 53 Ankündigungen zu 53 ERROR-Zeilen. Verankert zählen, und auf
+--   * Sollstand: 64 Ankündigungen zu 64 ERROR-Zeilen. Verankert zählen, und auf
 --     der AUSGABE statt auf dieser Datei — deren Kopfkommentar enthält die
 --     Zeichenkette selbst und verfälscht die Zahl:
 --       grep -cE '^--- erwartet: FEHLER'  gegen  grep -cE '^psql:.*: ERROR:'
@@ -48,8 +48,8 @@ INSERT INTO phone_types (phone_type_id, label) VALUES (1, 'Festnetz'), (2, 'Mobi
 INSERT INTO denominations (denomination_id, label) VALUES (1, 'evangelisch');
 INSERT INTO countries (country_id, label, code) VALUES (1, 'Deutschland', 'DEU'), (2, 'Türkei', 'TUR');
 INSERT INTO genders (gender_id, label, code) VALUES (1, 'weiblich', 'w'), (2, 'divers', 'd');
-INSERT INTO addresses (address_id, street, city, country_id)
-    VALUES ('11111111-1111-1111-1111-111111111111', 'Hauptstr. 1', 'Musterdorf', 1);
+INSERT INTO addresses (address_id, street, house_number, postal_code, city, country_id)
+    VALUES ('11111111-1111-1111-1111-111111111111', 'Hauptstr.', '1', '71234', 'Musterdorf', 1);
 -- Kind und Elternteil unter derselben Anschrift
 INSERT INTO persons (person_id, last_name, address_id) VALUES
     ('22222222-2222-2222-2222-222222222222', 'Müller', '11111111-1111-1111-1111-111111111111'),
@@ -159,6 +159,37 @@ INSERT INTO phone_numbers (person_id, phone_type_id, number)
 
 \echo '--- erwartet: FEHLER (Klasse ohne Zug — Kohorten-Kennung wäre mehrdeutig)'
 INSERT INTO classes (school_branch_id, grade_level_id, entry_year, stream) VALUES (2, 5, 2027, '');
+
+\echo '--- erwartet: FEHLER (Vorname als Leerstring — nicht unterscheidbar vom Einzelname-Fall)'
+INSERT INTO persons (person_id, last_name, first_name) VALUES ('e2e2e2e2-2222-2222-2222-222222222222', 'Leervorname', '');
+
+-- Der Einzelname-Fall selbst bleibt erlaubt, und genau dafür ist NULL reserviert.
+INSERT INTO persons (person_id, last_name, first_name) VALUES ('e3e3e3e3-2222-2222-2222-222222222222', 'Einzelname', NULL);
+SELECT 'Person ohne Vornamen (Einzelname) akzeptiert' AS pruefung;
+
+-- ---------------------------------------------------------------------------
+-- Anschrift: eine Zeile ist vollständig oder sie existiert nicht. „Keine
+-- Anschrift bekannt" drückt persons.address_id IS NULL aus, nicht eine
+-- Adresszeile mit nur einem Land darin (Begründung an der Tabelle).
+-- ---------------------------------------------------------------------------
+\echo '--- erwartet: FEHLER (Anschrift ohne Straße)'
+INSERT INTO addresses (postal_code, city, country_id) VALUES ('71234', 'Musterdorf', 1);
+
+\echo '--- erwartet: FEHLER (Anschrift ohne PLZ)'
+INSERT INTO addresses (street, city, country_id) VALUES ('Hauptstr.', 'Musterdorf', 1);
+
+\echo '--- erwartet: FEHLER (Anschrift ohne Ort)'
+INSERT INTO addresses (street, postal_code, country_id) VALUES ('Hauptstr.', '71234', 1);
+
+\echo '--- erwartet: FEHLER (Ort als Leerstring statt NULL)'
+INSERT INTO addresses (street, postal_code, city, country_id) VALUES ('Hauptstr.', '71234', '', 1);
+
+\echo '--- erwartet: FEHLER (Teilort als Leerstring — im Dedup-Index eine zweite Zeile für dieselbe Anschrift)'
+INSERT INTO addresses (street, postal_code, city, district, country_id) VALUES ('Hauptstr.', '71234', 'Musterdorf', '', 1);
+
+-- Hausnummer und Teilort dürfen fehlen (Hofname, Postfach, Ort ohne Teilorte).
+INSERT INTO addresses (street, postal_code, city, country_id) VALUES ('Zum Sonnenhof', '71234', 'Musterdorf', 1);
+SELECT 'Anschrift ohne Hausnummer und Teilort akzeptiert' AS pruefung;
 
 -- ---------------------------------------------------------------------------
 -- Höchstens eine Abschlussklasse je Zweig — is_final_grade steuert die
@@ -364,8 +395,6 @@ SELECT 'Klassenlehrer:in und Raum an der Kohorte gesetzt' AS pruefung, class_tea
 \echo '--- erwartet: FEHLER (Löschung einer Person, die noch Klassenlehrer:in ist)'
 DELETE FROM persons WHERE person_id = '7e7e7e7e-1111-1111-1111-111111111111';
 
--- family_guardians.contact_person nur bei Organisation als Guardian (per Trigger,
--- kein CHECK möglich — Organisations-Status steht auf guardians, nicht hier)
 INSERT INTO families (family_id) VALUES ('99999999-1111-1111-1111-111111111111');
 
 -- Anmeldedatum: angemeldet wird vor dem Eintritt, nie danach
@@ -378,9 +407,40 @@ SELECT 'Anmeldung/Eintritt/Austritt am Kind' AS pruefung, registration_date, ent
 UPDATE children SET registration_date = '2025-10-01'
     WHERE child_id = '22222222-2222-2222-2222-222222222222';
 
--- family_guardians: „In Briefe miteinbeziehen" ist per Default gesetzt
-SELECT 'include_in_correspondence per Default true' AS pruefung, include_in_correspondence
-    FROM family_guardians LIMIT 1;
+-- Geburtsdatum: geboren wird vor Anmeldung und Eintritt. Ohne diese Regel liefe
+-- eine vertauschte Importspalte still durch (Begründung am Constraint).
+\echo '--- erwartet: FEHLER (Geburtsdatum nach dem Anmeldedatum)'
+UPDATE children SET date_of_birth = '2025-01-01'
+    WHERE child_id = '22222222-2222-2222-2222-222222222222';
+
+\echo '--- erwartet: FEHLER (Geburtsdatum nach dem Eintrittsdatum)'
+UPDATE children SET registration_date = NULL, date_of_birth = '2026-01-01'
+    WHERE child_id = '22222222-2222-2222-2222-222222222222';
+
+-- Ein Kind ohne Anmelde- und Eintrittsdatum (reines Ferienprogramm-Kind) hat
+-- keinen Bezugspunkt und bleibt deshalb ungeprüft.
+INSERT INTO persons (person_id, last_name) VALUES ('fe12fe12-1111-1111-1111-111111111111', 'Ferienkind');
+INSERT INTO children (child_id, date_of_birth) VALUES ('fe12fe12-1111-1111-1111-111111111111', '2018-07-14');
+SELECT 'Ferienprogramm-Kind ohne Anmelde-/Eintrittsdatum akzeptiert' AS pruefung;
+
+-- ---------------------------------------------------------------------------
+-- Schulpostfach an der Kind-Rolle, nicht an persons.email: UNIQUE (die Schule
+-- vergibt es selbst), verschwindet mit der Rolle, wird nie OTP-Identität
+-- (Begründung an children.school_email)
+-- ---------------------------------------------------------------------------
+UPDATE children SET school_email = 'anna.mueller@c-schule.de'
+    WHERE child_id = '22222222-2222-2222-2222-222222222222';
+SELECT 'Schulpostfach am Kind, private E-Mail bleibt leer' AS pruefung,
+       (SELECT school_email FROM children WHERE child_id = '22222222-2222-2222-2222-222222222222') AS schule,
+       (SELECT email FROM persons WHERE person_id = '22222222-2222-2222-2222-222222222222') AS privat;
+
+\echo '--- erwartet: FEHLER (Schulpostfach doppelt vergeben, hier in abweichender Schreibweise)'
+UPDATE children SET school_email = 'Anna.Mueller@C-Schule.de'
+    WHERE child_id = 'aaaaaaaa-1111-1111-1111-111111111111';
+
+\echo '--- erwartet: FEHLER (Schulpostfach ohne Struktur)'
+UPDATE children SET school_email = 'noch keins'
+    WHERE child_id = 'aaaaaaaa-1111-1111-1111-111111111111';
 
 -- acting_for trägt die Institution, für die diese Person in diesem Fall
 -- handelt — nur für die Briefanschrift, ohne Regelwirkung.
@@ -391,6 +451,12 @@ SELECT 'Amtsvormundschaft: befreit, aber mit Briefanschrift' AS pruefung,
     FROM family_guardians fg JOIN guardian_categories gc
       ON gc.guardian_category_id = fg.guardian_category_id
     WHERE fg.family_id = '99999999-1111-1111-1111-111111111111';
+
+-- „In Briefe miteinbeziehen" ist per Default gesetzt — die Abfrage steht
+-- bewusst NACH dem INSERT oben: gegen eine leere Tabelle liefert sie null
+-- Zeilen und belegt nichts.
+SELECT 'include_in_correspondence per Default true' AS pruefung, include_in_correspondence
+    FROM family_guardians LIMIT 1;
 
 -- ---------------------------------------------------------------------------
 -- Familie: Außenbezeichnung darf kollidieren, die interne Unterscheidung nicht
@@ -419,16 +485,15 @@ SELECT 'Familien ohne Bezeichnung akzeptiert' AS pruefung, count(*) AS anzahl
     FROM families WHERE label IS NULL AND alias IS NULL;
 
 -- ---------------------------------------------------------------------------
--- Kontakte: Notfallkontakt-Reihenfolge höchstens einmal je Kind belegt
+-- Kontakte: keine eigene Rollentabelle, sondern die Menge der in
+-- child_contacts verknüpften Personen. Notfallkontakt-Reihenfolge höchstens
+-- einmal je Kind belegt, Abholberechtigung als eigene Aussage neben ihr.
 -- ---------------------------------------------------------------------------
 INSERT INTO persons (person_id, last_name) VALUES
     ('eeeeeeee-3333-3333-3333-333333333333', 'Oma'),
     ('ffffffff-3333-3333-3333-333333333333', 'Nachbarin');
-INSERT INTO contacts (contact_id) VALUES
-    ('eeeeeeee-3333-3333-3333-333333333333'),
-    ('ffffffff-3333-3333-3333-333333333333');
-INSERT INTO child_contacts (child_id, contact_id, relationship, priority) VALUES
-    ('22222222-2222-2222-2222-222222222222', 'eeeeeeee-3333-3333-3333-333333333333', 'Großmutter', 1);
+INSERT INTO child_contacts (child_id, contact_id, relationship, priority, pickup_authorized) VALUES
+    ('22222222-2222-2222-2222-222222222222', 'eeeeeeee-3333-3333-3333-333333333333', 'Großmutter', 1, true);
 
 \echo '--- erwartet: FEHLER (Priorität 1 beim selben Kind schon vergeben)'
 INSERT INTO child_contacts (child_id, contact_id, relationship, priority) VALUES
@@ -438,6 +503,28 @@ INSERT INTO child_contacts (child_id, contact_id, relationship, priority) VALUES
 INSERT INTO child_contacts (child_id, contact_id, relationship) VALUES
     ('22222222-2222-2222-2222-222222222222', 'ffffffff-3333-3333-3333-333333333333', 'Nachbarin');
 SELECT 'Kontakt ohne Priorität erlaubt' AS pruefung;
+
+-- Die beiden Aussagen sind unabhängig: Rang 2 als Notfallkontakt, aber NICHT
+-- abholberechtigt — der Fall, den eine Kodierung über priority allein nicht
+-- ausdrücken könnte. Und die Erlaubnis ist per Default aus, nicht an.
+UPDATE child_contacts SET priority = 2
+    WHERE child_id = '22222222-2222-2222-2222-222222222222'
+      AND contact_id = 'ffffffff-3333-3333-3333-333333333333';
+SELECT 'Notfallrang und Abholberechtigung unabhängig, Default false' AS pruefung,
+       p.last_name, cc.priority, cc.pickup_authorized
+    FROM child_contacts cc JOIN persons p ON p.person_id = cc.contact_id
+    WHERE cc.child_id = '22222222-2222-2222-2222-222222222222'
+    ORDER BY cc.priority;
+
+\echo '--- erwartet: FEHLER (Kind als eigener Notfallkontakt — doppelt gemappte Importspalte)'
+INSERT INTO child_contacts (child_id, contact_id) VALUES
+    ('22222222-2222-2222-2222-222222222222', '22222222-2222-2222-2222-222222222222');
+
+-- Kontaktverknüpfungen hängen an der Person und verschwinden mit ihr — ohne
+-- Rollentabelle dazwischen, die verwaisen könnte.
+DELETE FROM persons WHERE person_id = 'ffffffff-3333-3333-3333-333333333333';
+SELECT 'Kontaktperson gelöscht, Verknüpfung mit ihr' AS pruefung, count(*) AS verbleibende
+    FROM child_contacts WHERE contact_id = 'ffffffff-3333-3333-3333-333333333333';
 
 -- ---------------------------------------------------------------------------
 -- Geteilte Anschrift: ein UPDATE wirkt auf alle, die daran hängen — genau das

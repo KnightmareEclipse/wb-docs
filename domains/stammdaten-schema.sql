@@ -21,9 +21,15 @@
 -- sonst wird bei einer Änderung eine der beiden Stellen vergessen. Deshalb:
 --   * persons trägt, was JEDE natürliche Person hat (Identität, Erreichbarkeit,
 --     Anschrift) — Demografie steht am Kind, Beruf am Erziehungsberechtigten.
---   * Kind, Erziehungsberechtigte, Kontakt und Zahlungsverantwortliche/r sind
---     Rollen AUF persons, keine parallelen Personentabellen mit je eigenen
---     Namens-/Telefonspalten.
+--     Die private E-Mail steht dort, das Schulpostfach an children und die
+--     Dienstadresse an employees: drei Postfächer mit drei Lebensdauern, jedes
+--     an der Rolle, die es vergibt und wieder einzieht (Begründung an
+--     children.school_email).
+--   * Kind, Erziehungsberechtigte und Zahlungsverantwortliche/r sind Rollen AUF
+--     persons, keine parallelen Personentabellen mit je eigenen
+--     Namens-/Telefonspalten. Die Rolle „Kontakt" hat bewusst keine eigene
+--     Tabelle mehr — sie ist die Menge der in child_contacts verknüpften
+--     Personen (Begründung dort).
 --   * Jede Rolle ist eine natürliche Person. Es gibt bewusst KEINE Organisation
 --     als eigene Partei — Begründung an guardians.
 --   * Kein abgeleitetes/redundantes Feld — auch nicht Klassenstufe und Klasse am
@@ -36,8 +42,8 @@
 -- führen Erziehungsberechtigte kein Geburtsdatum und keine Demografie.
 --
 -- Für FREITEXT gilt das doppelt, und deshalb gibt es hier kein allgemeines
--- Kommentar- oder Notizfeld — weder an persons noch an children, guardians,
--- contacts oder families. Erfahrungswert des Betreibers: das Sekretariat füllt
+-- Kommentar- oder Notizfeld — weder an persons noch an children, guardians
+-- oder families. Erfahrungswert des Betreibers: das Sekretariat füllt
 -- jedes leicht befüllbare Feld mit allem Möglichen. Ein Freitextfeld ohne
 -- benannten Abnehmer sammelt damit Personendaten ohne Rechtsgrundlage, ohne
 -- Zweckbindung und ohne Löschregel — und ist als Einziges hinterher nicht
@@ -80,7 +86,7 @@
 -- Anlegen unveränderlich, durchgesetzt per Spaltenrecht der Laufzeit-Rolle
 -- (wb-backend/db/init-roles.sh) — kein Trigger nötig, keine Laufzeitkosten,
 -- derselbe Mechanismus wie beim Art.-9-Spaltenschutz unten. Bei den Rollen-
--- tabellen (children, guardians, payers, contacts, employees) ist das zugleich
+-- tabellen (children, guardians, payers, employees) ist das zugleich
 -- der Fremdschlüssel auf persons: eine Rollenzeile lässt sich damit nicht auf
 -- einen anderen Menschen umbiegen, was sämtliche Familienzugehörigkeiten und
 -- damit den OTP-Ownership-Check (idea/04) stillschweigend mitverschöbe.
@@ -424,13 +430,28 @@ CREATE TABLE previous_schools (
 --
 -- Getrennte Personen bekommen dadurch je ihre eigene Adresszeile; es gibt
 -- weiterhin keine mehrdeutige "Familienadresse".
+-- Vollständigkeit ist Pflicht, nicht Kür: Straße, PLZ und Ort sind NOT NULL mit
+-- <> '' (Begründung der Leerstring-Prüfung an persons.last_name). Eine
+-- Adresszeile, die nur „Deutschland" enthält, wäre eine Karteileiche — sie ist
+-- über den Dedup-Index unten nicht auffindbar, wird deshalb nie
+-- wiederverwendet, und niemand sieht ihr an, ob die Anschrift fehlt oder der
+-- Import sie verloren hat. „Keine Anschrift bekannt" bleibt trotzdem
+-- ausdrückbar: persons.address_id ist nullable. Die Pflicht sagt also nicht
+-- „jede Person hat eine Anschrift", sondern „wenn eine Zeile existiert, ist sie
+-- benutzbar".
+--
+-- Hausnummer und Teilort bleiben nullable — die Hausnummer, weil es Anschriften
+-- ohne sie gibt (Hofname, Postfach, Auslandsadresse), der Teilort, weil er die
+-- baden-württembergische Ausnahme und nicht die Regel ist. Beide bekommen
+-- trotzdem <> '': sie stehen im Dedup-Index, und dort sind NULL und '' zwei
+-- verschiedene Zeilen für dieselbe Anschrift.
 CREATE TABLE addresses (
     address_id   uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    street       text,
-    house_number text,               -- text statt Zahl wegen "12a", "12-14"
-    district     text,               -- Teilort (baden-württembergische Besonderheit, ASV: ortsteil)
-    postal_code  text,
-    city         text,
+    street       text NOT NULL CHECK (street <> ''),
+    house_number text CHECK (house_number <> ''),      -- text statt Zahl wegen "12a", "12-14"
+    district     text CHECK (district <> ''),          -- Teilort (baden-württembergische Besonderheit, ASV: ortsteil)
+    postal_code  text NOT NULL CHECK (postal_code <> ''),
+    city         text NOT NULL CHECK (city <> ''),
     -- Kein DB-DEFAULT auf Deutschland: das wäre eine fest verdrahtete Lookup-ID
     -- im Schema. Die Eingabemaske wählt Deutschland vor, der Import liefert den
     -- Wert mit.
@@ -472,7 +493,12 @@ CREATE TABLE persons (
     -- Grad darin vorkommen, ist das ein benannter Prozess und der Weg zurück
     -- billig: eine Lookup-Tabelle plus eine nullable Spalte (Kopfkommentar,
     -- "Nachrüsten").
-    first_name        text,            -- nullable: seltene Einzelname-Fälle
+    -- Nullable für die seltenen Einzelname-Fälle — und deshalb mit <> '', obwohl
+    -- die übrigen nullable Freitextspalten ungeprüft bleiben: hier trägt NULL
+    -- eine Aussage („diese Person hat nur einen Namen"), und der Leerstring aus
+    -- dem CSV-Import sähe genauso aus. Ohne den CHECK wäre der Einzelname vom
+    -- verlorenen Vornamen nicht mehr zu unterscheiden.
+    first_name        text CHECK (first_name <> ''),
     -- CHECK <> '': NOT NULL allein lässt den Leerstring durch — beim Vollimport
     -- aus CSV/Excel der häufigste Artefakt (wie bei email unten), und auf einer
     -- identitätstragenden Pflichtspalte fällt er hinterher nur als "leeres Feld"
@@ -482,7 +508,15 @@ CREATE TABLE persons (
     last_name         text NOT NULL CHECK (last_name <> ''),
     gender_id         integer REFERENCES genders(gender_id) ON DELETE RESTRICT,
     address_id        uuid REFERENCES addresses(address_id) ON DELETE RESTRICT,
-    -- E-Mail der Person. Bei Erziehungsberechtigten zugleich die Identität für
+    -- Die PRIVATE E-Mail der Person, und nur die. Von der Schule vergebene
+    -- Postfächer stehen an der Rolle, die sie vergibt: das Schulpostfach des
+    -- Kindes an children.school_email, die Dienstadresse an
+    -- employees.work_email (beide dort begründet). Diese Spalte überlebt jede
+    -- Rolle, jene enden mit ihr — ein ehemaliger Schüler, dessen Kind später
+    -- hier ist, behält seinen OTP-Zugang, und die Schule kann sein altes
+    -- c-schule.de-Postfach löschen und neu vergeben, ohne dass hier etwas
+    -- Falsches stehenbleibt.
+    -- Bei Erziehungsberechtigten zugleich die Identität für
     -- den OTP-Login (idea/04) — und bewusst NICHT UNIQUE: an der Schule teilen
     -- sich real 1–2 Elternpaare je Klasse eine Mailbox, und die Voranmeldung
     -- erzeugt den Fall aktiv (die Mutter trägt ihre Adresse für beide ein). Ein
@@ -506,15 +540,15 @@ CREATE TABLE persons (
     -- Login-Identität zu verlassen — mit festgehaltener Zustelladresse ist
     -- hinterher auswertbar, ob zwei Zustimmungen über dasselbe Postfach kamen.
     --
-    -- Beim Kind bleibt die Mail beim Import leer; befüllt wird sie erst durch
-    -- die spätere M365-Kontenverwaltung (Schulpostfach, fachdomaenen.md
-    -- Abschnitt 6). Die private Adresse, an die das Fotoeinverständnis ab
-    -- 14 Jahren den Signaturlink schickt, gehört NICHT hierher, sondern als
-    -- Zustelladresse an die Zustimmungszeile selbst (Anmeldeprozess-
-    -- Fachdomäne): sie belegt, wohin dieser eine Vorgang ging, und wird von der
-    -- späteren Schulmail überschrieben statt ergänzt. Ein Login-Ziel wird das
-    -- Kind so oder so nicht — die OTP-Eintrittsbedingung verlangt zusätzlich
-    -- mindestens eine family_guardians-Zeile (idea/04).
+    -- Beim Kind bleibt diese Spalte im Regelfall leer: es hat keine private
+    -- Adresse im System, und sein Schulpostfach steht an children.school_email.
+    -- Die eine Ausnahme ist die private Adresse, an die das Fotoeinverständnis
+    -- ab 14 Jahren den Signaturlink schickt — und die gehört ebenfalls nicht
+    -- hierher, sondern als Zustelladresse an die Zustimmungszeile selbst
+    -- (Anmeldeprozess-Fachdomäne): sie belegt, wohin dieser eine Vorgang ging.
+    -- Ein Login-Ziel wird das Kind so oder so nicht — die
+    -- OTP-Eintrittsbedingung verlangt zusätzlich mindestens eine
+    -- family_guardians-Zeile (idea/04).
     email             citext,
     created_at        timestamptz NOT NULL DEFAULT now(),
     created_by        text NOT NULL,
@@ -545,9 +579,12 @@ CREATE INDEX ON persons (lower(last_name) text_pattern_ops);
 
 -- Telefonnummern als Zeilen statt als feste Spalten (Festnetz/Arbeit/Mobil):
 -- eine weitere Art ist damit eine Datenzeile, keine Migration. is_primary
--- kennzeichnet die von der Person benannte Hauptnummer — für O365-Kontakte und
--- den telefonischen Erstkontakt braucht es eine eindeutige Auswahl statt
--- Zufall. Muster von SVWS-NRW (SchuelerTelefone + K_TelefonArt) und ASV-BW
+-- kennzeichnet die von der Person benannte Hauptnummer. Abnehmer ist der
+-- telefonische Erstkontakt des Sekretariats — ein Kind steht im Sekretariat und
+-- jemand muss JETZT die Eltern erreichen, ohne aus drei Nummern zu raten.
+-- Bewusst NICHT der Vis365-/M365-Export: der liest den Typ „Mobil" (siehe
+-- phone_types), nicht dieses Flag, und begründet es deshalb auch nicht.
+-- Muster von SVWS-NRW (SchuelerTelefone + K_TelefonArt) und ASV-BW
 -- (svp_kommunikation); Gibbon nimmt stattdessen vier feste Slots phone1..phone4
 -- und kann deshalb keine fünfte Nummer.
 --
@@ -673,6 +710,18 @@ CREATE TABLE children (
     -- definiert wird (Reihenfolge, siehe dort).
     payer_id                   uuid,
     nickname                   text,               -- Rufname, falls abweichend vom Vornamen — Schulalltag (Lehrer), nicht amtlicher Schriftverkehr; ASV-BW bleibt für die amtliche Rufname/Vorname-Unterscheidung führend
+    -- Schulpostfach (c-schule.de), vergeben und wieder eingezogen von der
+    -- M365-Kontenverwaltung (fachdomaenen.md Abschnitt 6). An der Kind-Rolle
+    -- statt an persons.email, aus demselben Grund wie employees.work_email und
+    -- mit denselben drei Folgen: es ist UNIQUE (die Schule vergibt es selbst,
+    -- geteilte gibt es nicht — anders als bei den Elternpostfächern, wo genau
+    -- das der Regelfall ist); es verschwindet beim Abgang mit der Rolle, statt
+    -- als tote oder inzwischen neu vergebene Adresse in der Personenzeile
+    -- stehenzubleiben; und es kann deshalb nie eine OTP-Identität werden
+    -- (idea/04), auch nicht versehentlich für einen ehemaligen Schüler, der
+    -- Jahre später als Elternteil zurückkommt.
+    -- Struktur-CHECK identisch zu persons.email und dort begründet.
+    school_email               citext UNIQUE,
     date_of_birth              date NOT NULL,
     -- Freitext, anders als das direkt benachbarte birth_country_id: ein
     -- Geburtsort ist keine wiederholte Auswahl aus einem gepflegten Satz (jede
@@ -689,7 +738,7 @@ CREATE TABLE children (
     -- Konfession/Kirchengemeinde: Art.-9-DSGVO-Daten (besondere Kategorie,
     -- Religionszugehörigkeit, Voranmeldeformular). NUR hier am Kind, nicht an
     -- der gemeinsamen Basistabelle persons — dieselbe Feld-pro-Rolle-Regel wie
-    -- occupation bei guardians: guardians, contacts und payers können die
+    -- occupation bei guardians: guardians und payers können die
     -- Spalte damit strukturell gar nicht erst befüllen, nicht nur per
     -- Konvention. Dass Erziehungsberechtigte sie bewusst NICHT bekommen, obwohl
     -- beide Voranmeldeformulare danach fragen, steht an guardians.
@@ -731,6 +780,7 @@ CREATE TABLE children (
     created_by                 text NOT NULL,
     updated_at                 timestamptz NOT NULL DEFAULT now(),
     updated_by                 text NOT NULL,
+    CHECK (school_email ~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$'),
     CONSTRAINT children_second_nationality_requires_first_check
         CHECK (second_nationality_id IS NULL OR nationality_id IS NOT NULL),
     -- Zweimal derselbe Staat ist keine doppelte Staatsangehörigkeit, sondern das
@@ -746,6 +796,19 @@ CREATE TABLE children (
     -- beim Import — die beiden Daten liegen dort nebeneinander.
     CONSTRAINT children_entry_after_registration_check
         CHECK (entry_date IS NULL OR registration_date IS NULL OR entry_date >= registration_date),
+    -- Geboren wird vor Anmeldung und Eintritt. Das Geburtsdatum ist die einzige
+    -- NOT-NULL-Datumsspalte hier und trägt die halbe Dublettenerkennung
+    -- (Nachname + Geburtsdatum, domains/stammdaten.md) — ohne Plausibilitätsregel
+    -- wäre es die einzige Datumsspalte ganz ohne. Auf dem Voranmeldeformular
+    -- stehen kindGeburtsdatum und Anmeldedatum in derselben Feldliste; eine
+    -- vertauschte Zuordnung beim Import liefe sonst still durch und fiele erst
+    -- Jahre später als unauffindbare Dublette auf. Ein Kind ohne beide
+    -- Bezugsdaten (reines Ferienprogramm-Kind) bleibt ungeprüft — dort gibt es
+    -- keinen Bezugspunkt.
+    CONSTRAINT children_born_before_registration_check
+        CHECK (registration_date IS NULL OR date_of_birth < registration_date),
+    CONSTRAINT children_born_before_entry_check
+        CHECK (entry_date IS NULL OR date_of_birth < entry_date),
     CONSTRAINT children_previous_school_consent_check
         CHECK (previous_school_consent_at IS NULL OR previous_school_id IS NOT NULL),
     CONSTRAINT children_class_excludes_provisional_grade_check
@@ -766,7 +829,7 @@ CREATE INDEX ON children (payer_id);
 -- Fremdschlüssel hängt daran.
 
 -- Erziehungsberechtigte: IST eine Person — deshalb teilt sich guardians.id
--- direkt mit persons.id, wie bei children, contacts und employees. Kein
+-- direkt mit persons.id, wie bei children, payers und employees. Kein
 -- Surrogatschlüssel und keine zusätzliche person_id daneben.
 --
 -- Es gibt bewusst KEINE Organisation als Erziehungsberechtigte, obwohl das
@@ -792,7 +855,7 @@ CREATE INDEX ON children (payer_id);
 -- Anrede2/Name2/Vorname2 in EINE Zeile am Schüler (SchuelerErzAdr) und kann damit
 -- weder Patchwork noch einen dritten Sorgeberechtigten abbilden.
 --
--- ON DELETE RESTRICT statt CASCADE wie bei children/contacts: einen
+-- ON DELETE RESTRICT statt CASCADE wie bei children: einen
 -- Erziehungsberechtigten zu löschen ist eine echte Entscheidung des Lösch-Jobs
 -- (domains/stammdaten.md, „Löschmechanik").
 CREATE TABLE guardians (
@@ -828,7 +891,7 @@ CREATE TABLE guardians (
 -- ---------------------------------------------------------------------------
 
 -- Mitarbeiter: IST eine Person (immer natürlich) — deshalb teilt sich
--- employees.id direkt mit persons.id, wie bei children und contacts.
+-- employees.id direkt mit persons.id, wie bei children und guardians.
 --
 -- Steht schon jetzt, obwohl keine der Domänen gebaut ist, die sie braucht —
 -- warum vorgezogen und was bewusst noch fehlt (Bereichs-/Vorgesetztenstruktur),
@@ -841,6 +904,9 @@ CREATE TABLE employees (
     -- Elternzugang, obwohl er Elternteil bleibt. Anders als persons.email hier
     -- UNIQUE: die Schule vergibt diese Postfächer selbst, geteilte gibt es
     -- nicht. Struktur-CHECK identisch zu persons.email und dort begründet.
+    -- Dieselbe Bauform trägt children.school_email; wer eine dritte Rolle mit
+    -- eigenem Postfach anlegt, folgt ihr ebenfalls, statt persons.email zu
+    -- überladen.
     work_email       citext UNIQUE,
     -- Entra-ID Object-ID. Verbindet den Audit-Verursacher „entra:<oid>"
     -- (Kopfkommentar) mit einer Person und trägt die Zugriffsentscheidung der
@@ -915,48 +981,50 @@ CREATE INDEX ON family_guardians (guardian_id);
 -- ---------------------------------------------------------------------------
 
 -- Notfallkontakt/Abholberechtigt ohne Rechtsstellung — nie Datenzugriff, kein
--- Ownership-Check nötig, kein Login (domains/stammdaten.md). Rolle auf persons
--- wie children und guardians: dieselbe Großmutter, die für ein Enkelkind
--- Pflegeelternteil und für ein anderes nur Notfallkontakt ist, steht damit
--- einmal in der Datenbank statt zweimal, und Name/Telefon/Anschrift folgen
--- derselben Mechanik wie überall sonst. ASV-BW hängt an svp_kontakt ebenfalls
--- eine Anschrift — dort allerdings an Institutions-Kontakte (laut
+-- Ownership-Check nötig, kein Login (domains/stammdaten.md). Kontaktpersonen
+-- sind persons-Zeilen wie alle anderen: dieselbe Großmutter, die für ein
+-- Enkelkind Pflegeelternteil und für ein anderes nur Notfallkontakt ist, steht
+-- damit einmal in der Datenbank statt zweimal, und Name/Telefon/Anschrift
+-- folgen derselben Mechanik wie überall sonst. ASV-BW hängt an svp_kontakt
+-- ebenfalls eine Anschrift — dort allerdings an Institutions-Kontakte (laut
 -- wl_kontakttyp_id Heim, Sponsor, Förderkreis, Lieferant), nicht an
 -- Bezugspersonen; Gibbon legt Notfallkontakte dagegen als feste Spaltenpaare
 -- (emergency1Name … emergency2Relationship) auf die Person des Kindes und
 -- kann deshalb keinen dritten Kontakt und keine geteilte Nummer.
 --
--- Reine Rollenzeile ohne eigene Nutzlast. Das frühere Notizfeld ist entfallen:
--- sein einziges dokumentiertes Beispiel („nur nachmittags erreichbar") trägt
--- phone_numbers.note bereits je Nummer und damit genauer.
+-- Es gibt bewusst KEINE Rollentabelle contacts neben dieser Verknüpfung, anders
+-- als bei children, guardians, payers und employees. Der Unterschied ist die
+-- Nutzlast: jene vier tragen rollenspezifische Spalten (Demografie, Beruf,
+-- Bankverbindung, Beschäftigungszeitraum), eine contacts-Zeile trüge nur ihren
+-- Primärschlüssel und vier Audit-Spalten. Sie sagte damit exakt das, was diese
+-- Tabelle ohnehin sagt — „diese Person ist Kontakt eines Kindes" — und wäre ein
+-- zweiter Ort für dieselbe Tatsache (rules.md Abschnitt 1), pflegbar bis zur
+-- verwaisten Rollenzeile ohne einzige Verknüpfung. Die Rolle ist hier das, was
+-- sie überall ist: eine Menge, kein Datensatz (domains/stammdaten.md, „Felder").
+-- Preis, bewusst getragen: der Fremdschlüssel bezeugt nicht, dass jemand die
+-- Person ausdrücklich als Kontakt vorgemerkt hat — jede persons-Zeile ist
+-- eintragbar. Eine Rollentabelle leistete das aber auch nicht, denn sie stünde
+-- jeder Person offen; sie verlangte nur einen Schreibschritt mehr.
 --
--- Preis dieser Vereinheitlichung: Anschrift und E-Mail sind für Kontakte
--- technisch befüllbar. Datensparsamkeit ist hier also nur noch eine Regel der
--- Eingabemaske, nicht mehr strukturell erzwungen — anders als bei Demografie
--- (nur children) und Beruf (nur guardians), die weiterhin an der Rollentabelle
--- hängen und für andere Rollen gar nicht existieren.
-CREATE TABLE contacts (
-    contact_id uuid PRIMARY KEY REFERENCES persons(person_id) ON DELETE CASCADE,
-    created_at timestamptz NOT NULL DEFAULT now(),
-    created_by text NOT NULL,
-    updated_at timestamptz NOT NULL DEFAULT now(),
-    updated_by text NOT NULL
-);
-
--- relationship steht an der Verknüpfung, nicht am Kontakt: „Großmutter" gilt
--- relativ zum Kind, nicht absolut zur Person. Verknüpfung an das Kind und nicht
+-- Kein Notizfeld: sein einziges dokumentiertes Beispiel („nur nachmittags
+-- erreichbar") trägt phone_numbers.note bereits je Nummer und damit genauer.
+-- Anschrift und E-Mail sind für Kontaktpersonen technisch befüllbar —
+-- Datensparsamkeit ist dort nur eine Regel der Eingabemaske, nicht strukturell
+-- erzwungen wie bei Demografie (nur children) und Beruf (nur guardians).
+--
+-- relationship steht an der Verknüpfung, nicht an der Person: „Großmutter" gilt
+-- relativ zum Kind, nicht absolut. Verknüpfung an das Kind und nicht
 -- an die Familie, weil ein Kind vor der manuellen Familienzuordnung noch keine
 -- Familie hat.
 --
 -- priority: Reihenfolge „Notfallkontakt 1/2/3", ein realer Prozess an dieser
 -- Schule — anders als die bewusst nicht übernommene Gibbon-contactPriority bei
 -- Erziehungsberechtigten (domains/stammdaten.md). Nullable, weil nicht jede
--- Verknüpfung eine Reihenfolge braucht (z. B. reine Abholberechtigung ohne
--- Notfall-Rolle); wo gesetzt, höchstens einmal je Kind (UNIQUE unten) — keine
--- zwei Kontakte mit demselben Rang.
+-- Verknüpfung eine Reihenfolge braucht; wo gesetzt, höchstens einmal je Kind
+-- (UNIQUE unten) — keine zwei Kontakte mit demselben Rang.
 CREATE TABLE child_contacts (
     child_id     uuid NOT NULL REFERENCES children(child_id) ON DELETE CASCADE,
-    contact_id   uuid NOT NULL REFERENCES contacts(contact_id) ON DELETE CASCADE,
+    contact_id   uuid NOT NULL REFERENCES persons(person_id) ON DELETE CASCADE,
     -- Freitext, bewusst anders als guardian_categories an family_guardians —
     -- dort steht dieselbe Art Frage („wie steht diese Person zum Kind?") als
     -- Lookup. Unterschied: dort ist der Satz klein, rechtlich relevant und
@@ -966,11 +1034,35 @@ CREATE TABLE child_contacts (
     -- anzulegen — Pflegeaufwand ohne Nutzen (rules.md Abschnitt 3).
     relationship text,
     priority     smallint,
+    -- Darf dieses Kind an diese Person herausgegeben werden. Eigene Spalte und
+    -- nicht in priority hineingelesen (gesetzt = Notfallkontakt, leer = „nur
+    -- abholberechtigt"): diese Lesart kann den Fall „anrufbar, aber NICHT
+    -- abholberechtigt" nicht ausdrücken — den geschiedenen Onkel, die entfernte
+    -- Verwandte. Genau der ist der haftungsrelevante. Zwei unabhängige
+    -- Ja/Nein-Aussagen brauchen zwei Spalten.
+    --
+    -- DEFAULT false, anders als family_guardians.include_in_correspondence
+    -- (dort true): die Risikorichtung ist umgekehrt. Wer versehentlich keinen
+    -- Elternbrief bekommt, fragt nach; wem versehentlich ein Kind mitgegeben
+    -- wird, den holt niemand zurück. Die Erlaubnis muss deshalb aktiv gesetzt
+    -- werden, nicht abgewählt.
+    --
+    -- Nur für Kontaktpersonen. Erziehungsberechtigte brauchen kein solches
+    -- Kennzeichen — das Abholrecht folgt aus dem Sorgerecht und damit aus der
+    -- family_guardians-Zeile selbst; eine gerichtliche Einschränkung ist ein
+    -- Einzelfall ohne aktuellen Vertreter (rules.md Abschnitt 1,
+    -- domains/stammdaten.md „Offene Punkte").
+    pickup_authorized boolean NOT NULL DEFAULT false,
     created_at   timestamptz NOT NULL DEFAULT now(),
     created_by   text NOT NULL,
     updated_at   timestamptz NOT NULL DEFAULT now(),
     updated_by   text NOT NULL,
-    PRIMARY KEY (child_id, contact_id)
+    PRIMARY KEY (child_id, contact_id),
+    -- Ein Kind ist nicht sein eigener Notfallkontakt. Seit contact_id direkt auf
+    -- persons zeigt, wäre das eintragbar — und eine doppelt gemappte
+    -- Importspalte ist der reale Weg dorthin, wie bei
+    -- children_second_nationality_differs_check.
+    CONSTRAINT child_contacts_not_self_check CHECK (child_id <> contact_id)
 );
 CREATE INDEX ON child_contacts (contact_id);
 CREATE UNIQUE INDEX child_contacts_one_contact_per_priority ON child_contacts (child_id, priority) WHERE priority IS NOT NULL;
@@ -982,8 +1074,10 @@ CREATE UNIQUE INDEX child_contacts_one_contact_per_priority ON child_contacts (c
 -- Zahlungsverantwortlich für ein Kind ist nicht dasselbe wie sorgeberechtigt
 -- (domains/stammdaten.md) — Großeltern zahlen mit oder allein, ohne
 -- Erziehungsberechtigte zu sein. Deshalb eine eigene Rolle statt
--- Wiederverwendung von guardians/contacts; wie diese IST sie eine Person und
--- teilt sich den Schlüssel mit persons.
+-- Wiederverwendung von guardians; wie diese IST sie eine Person und
+-- teilt sich den Schlüssel mit persons. Dass sie überhaupt eine eigene Tabelle
+-- bekommt und die Kontaktrolle nicht, entscheidet die Nutzlast: hier stehen
+-- Bankverbindung und Mandat, dort stünde nichts (Begründung an child_contacts).
 --
 -- Auch eine Kostenübernahme durch das Jugendamt (z. B. Ferienprogramm) läuft
 -- über eine Person — die handelnde Sachbearbeiterin, Begründung an guardians.
@@ -1034,6 +1128,17 @@ CREATE TABLE payers (
     -- CHECK: Rechnen im Constraint wäre schwer lesbar und bei einer künftigen
     -- Regeländerung nur per Migration korrigierbar.
     iban               text CHECK (iban ~ '^[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}$'),
+    -- Die BIC ist für den Einzug selbst vermutlich entbehrlich und bleibt
+    -- vorerst nur deshalb stehen: für SEPA-Zahlungen innerhalb der Union darf
+    -- sie seit dem 1.2.2016 nicht mehr verlangt werden (VO 260/2012,
+    -- „IBAN-only"), und sie folgt aus der IBAN — dieselbe Ableitungskette, mit
+    -- der das Kreditinstitut vom Formular gar nicht erst übernommen wird
+    -- (unten). Offen ist allein, ob das Optigem-Importformat eine BIC-Spalte
+    -- verlangt; solange das ungeklärt ist, ist die Spalte mitzuführen billiger
+    -- als sie beim ersten Übertrag zu vermissen. Klärt sich das mit „nein",
+    -- ist sie ersatzlos streichbar — sie trägt kein Constraint und kein
+    -- anderes Feld hängt an ihr. Der Freeze steht dem nicht entgegen: bis
+    -- dahin ist es ein Texteingriff in einen Entwurf.
     bic                text CHECK (bic ~ '^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$'),
     account_holder     text,               -- Kontoinhaber, falls abweichend vom Namen der Person/Organisation
     -- SEPA-Lastschriftmandat. EIN Mandat je Zahler, nicht je Zweck: Schulgeld,
@@ -1150,8 +1255,6 @@ CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON guardians
 CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON employees
     FOR EACH ROW EXECUTE FUNCTION set_row_audit();
 CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON family_guardians
-    FOR EACH ROW EXECUTE FUNCTION set_row_audit();
-CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON contacts
     FOR EACH ROW EXECUTE FUNCTION set_row_audit();
 CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON child_contacts
     FOR EACH ROW EXECUTE FUNCTION set_row_audit();

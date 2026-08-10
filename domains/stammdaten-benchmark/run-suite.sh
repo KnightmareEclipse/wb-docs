@@ -79,7 +79,7 @@ run_query "Hauptzahler:in eines Kindes" "D. Mittlerer JOIN" \
   "SELECT c.child_id, py.iban, pp.last_name FROM children c JOIN payers py ON py.payer_id = c.payer_id JOIN persons pp ON pp.person_id = py.payer_id WHERE c.child_id = (SELECT child_id FROM bench_pool_children ORDER BY n LIMIT 1 OFFSET floor(random()*(SELECT count(*) FROM bench_pool_children))::int);"
 
 run_query "Notfallkontakte eines Kindes, nach Prioritaet" "D. Mittlerer JOIN" \
-  "SELECT c.child_id, pc.first_name, pc.last_name, cc.priority FROM children c JOIN child_contacts cc ON cc.child_id = c.child_id JOIN contacts ct ON ct.contact_id = cc.contact_id JOIN persons pc ON pc.person_id = ct.contact_id WHERE c.child_id = (SELECT child_id FROM bench_pool_children ORDER BY n LIMIT 1 OFFSET floor(random()*(SELECT count(*) FROM bench_pool_children))::int) ORDER BY cc.priority NULLS LAST;"
+  "SELECT c.child_id, pc.first_name, pc.last_name, cc.priority, cc.pickup_authorized FROM children c JOIN child_contacts cc ON cc.child_id = c.child_id JOIN persons pc ON pc.person_id = cc.contact_id WHERE c.child_id = (SELECT child_id FROM bench_pool_children ORDER BY n LIMIT 1 OFFSET floor(random()*(SELECT count(*) FROM bench_pool_children))::int) ORDER BY cc.priority NULLS LAST;"
 
 run_query "Dublettenpruefung beim Import (Nachname+Geburtsdatum)" "D. Mittlerer JOIN" \
   "SELECT count(*) FROM children c2 JOIN persons p2 ON p2.person_id = c2.child_id WHERE (p2.last_name, c2.date_of_birth) = (SELECT p.last_name, c.date_of_birth FROM children c JOIN persons p ON p.person_id = c.child_id WHERE c.child_id = (SELECT child_id FROM bench_pool_children ORDER BY n LIMIT 1 OFFSET floor(random()*(SELECT count(*) FROM bench_pool_children))::int));"

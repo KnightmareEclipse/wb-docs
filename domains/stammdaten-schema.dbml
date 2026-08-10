@@ -127,11 +127,11 @@ Table previous_schools {
 
 Table addresses {
   address_id uuid        [pk, default: `gen_random_uuid()`]
-  street       text
-  house_number text
-  district     text
-  postal_code  text
-  city         text
+  street       text        [not null, note: 'CHECK <> \'\'']
+  house_number text        [note: 'CHECK <> \'\'']
+  district     text        [note: 'CHECK <> \'\'']
+  postal_code  text        [not null, note: 'CHECK <> \'\'']
+  city         text        [not null, note: 'CHECK <> \'\'']
   country_id   integer     [not null]
   created_at   timestamptz [not null, default: `now()`]
   created_by   text        [not null]
@@ -141,7 +141,7 @@ Table addresses {
   indexes {
     (postal_code, street, house_number)
   }
-  Note: 'Eigene Tabelle statt Spalten je Person: Kind + Eltern teilen sich im Regelfall eine Zeile. Suchindex nötig, damit die Eingabemaske bestehende Zeilen findet — sonst verwaist das Konzept in der Praxis.'
+  Note: 'Eigene Tabelle statt Spalten je Person: Kind + Eltern teilen sich im Regelfall eine Zeile. Suchindex nötig, damit die Eingabemaske bestehende Zeilen findet — sonst verwaist das Konzept in der Praxis. Straße/PLZ/Ort sind Pflicht: eine Zeile mit nur einem Land darin wäre eine unauffindbare Karteileiche. „Keine Anschrift bekannt" drückt persons.address_id IS NULL aus. Hausnummer und Teilort dürfen fehlen (Hofname, Postfach, Ort ohne Teilorte).'
 }
 
 // ---------------------------------------------------------------------------
@@ -151,7 +151,7 @@ Table addresses {
 Table persons {
   person_id uuid        [pk, default: `gen_random_uuid()`]
   salutation_id     integer
-  first_name        text
+  first_name        text        [note: 'CHECK <> \'\'']
   last_name         text        [not null, note: 'CHECK <> \'\'']
   gender_id         integer
   address_id        uuid
@@ -166,7 +166,7 @@ Table persons {
     email
     `lower(last_name)` [name: 'persons_last_name_pattern_idx']
   }
-  Note: 'Gemeinsame Basis jeder natürlichen Person. Kind/Guardian/Kontakt/Zahler sind Rollen darauf, keine eigenen Personentabellen. email: Struktur-CHECK (genau ein @, kein Leerzeichen, Punkt in der Domain — fängt Leerstring und Import-Artefakte), bewusst NICHT unique — zwei Erziehungsberechtigte dürfen sich eine Mailbox teilen, ein OTP-Treffer (idea/04) liefert dann die Vereinigung ihrer Familien. Eigener Index, da kein Constraint ihn mehr anlegt. last_name-Index in echt text_pattern_ops für Präfixsuche, hier nur als Ausdrucksindex angenähert.'
+  Note: 'Gemeinsame Basis jeder natürlichen Person. Kind/Guardian/Kontakt/Zahler sind Rollen darauf, keine eigenen Personentabellen. email ist die PRIVATE Adresse — Schulpostfach steht an children.school_email, Dienstadresse an employees.work_email, beide enden mit ihrer Rolle. Struktur-CHECK (genau ein @, kein Leerzeichen, Punkt in der Domain — fängt Leerstring und Import-Artefakte), bewusst NICHT unique — zwei Erziehungsberechtigte dürfen sich eine Mailbox teilen, ein OTP-Treffer (idea/04) liefert dann die Vereinigung ihrer Familien. Eigener Index, da kein Constraint ihn mehr anlegt. last_name-Index in echt text_pattern_ops für Präfixsuche, hier nur als Ausdrucksindex angenähert.'
 }
 
 Table phone_numbers {
@@ -208,6 +208,7 @@ Table children {
   family_id                   uuid
   payer_id                    uuid    [note: 'Genau eine/r je Kind — geteilte Beiträge gibt es nicht. FK in SQL per ALTER TABLE nachgezogen (Definitionsreihenfolge).']
   nickname                    text
+  school_email                citext  [unique, note: 'Schulpostfach, vergeben von der M365-Kontenverwaltung']
   date_of_birth               date    [not null]
   birthplace                  text
   birth_country_id            integer
@@ -233,7 +234,7 @@ Table children {
     class_id
     provisional_grade_level_id
   }
-  Note: 'children.child_id = persons.person_id (Kind IST eine Person). provisional_grade_level_id UND class_id schließen sich per CHECK gegenseitig aus (keine Redundanz, die auseinanderlaufen könnte) — ist eine Klasse zugeteilt, kommt die aktuelle Klassenstufe per Join aus classes.grade_level_id. second_nationality_id: nur mit gesetzter nationality_id und nicht derselbe Staat (CHECK). denomination_id/congregation: Art.-9-Daten, geschützt per Spalten-GRANT, rollenspezifisch (nur hier am Kind, nicht auf persons und nicht auf guardians).'
+  Note: 'children.child_id = persons.person_id (Kind IST eine Person). provisional_grade_level_id UND class_id schließen sich per CHECK gegenseitig aus (keine Redundanz, die auseinanderlaufen könnte) — ist eine Klasse zugeteilt, kommt die aktuelle Klassenstufe per Join aus classes.grade_level_id. second_nationality_id: nur mit gesetzter nationality_id und nicht derselbe Staat (CHECK). date_of_birth liegt per CHECK vor registration_date und entry_date (fängt vertauschte Importspalten). school_email: Schulpostfach an der Rolle statt in persons.email — UNIQUE, endet mit der Rolle, wird nie OTP-Identität; gleiche Bauform wie employees.work_email. denomination_id/congregation: Art.-9-Daten, geschützt per Spalten-GRANT, rollenspezifisch (nur hier am Kind, nicht auf persons und nicht auf guardians).'
 }
 
 Table guardians {
@@ -286,21 +287,12 @@ Table employees {
 // Kontakte (nicht-rechtliche Bezugspersonen)
 // ---------------------------------------------------------------------------
 
-Table contacts {
-  contact_id uuid [pk]
-  created_at timestamptz [not null, default: `now()`]
-  created_by text [not null]
-  updated_at timestamptz [not null, default: `now()`]
-  updated_by text [not null]
-
-  Note: 'contacts.contact_id = persons.person_id. Notfallkontakt/Abholberechtigt ohne Rechtsstellung, kein Login.'
-}
-
 Table child_contacts {
   child_id     uuid [not null]
   contact_id   uuid [not null]
   relationship text
   priority     smallint
+  pickup_authorized boolean [not null, default: false]
   created_at   timestamptz [not null, default: `now()`]
   created_by   text [not null]
   updated_at   timestamptz [not null, default: `now()`]
@@ -311,7 +303,7 @@ Table child_contacts {
     contact_id
     (child_id, priority) [unique, name: 'one_priority_rank_per_child']
   }
-  Note: 'relationship ("Großmutter") relativ zum Kind, nicht absolut zur Kontaktperson — Freitext, anders als guardian_categories: langer Wertevorrat-Schwanz, niemand wertet danach aus. priority: Notfallkontakt-Reihenfolge, nullable, höchstens einmal je Kind belegt.'
+  Note: 'Keine Rollentabelle contacts daneben: contact_id zeigt direkt auf persons. Anders als children/guardians/payers/employees trüge eine solche Zeile keine eigene Nutzlast und wäre ein zweiter Ort für dieselbe Tatsache — die Kontaktrolle IST die Menge der hier verknüpften Personen. relationship ("Großmutter") relativ zum Kind, nicht absolut zur Kontaktperson — Freitext, anders als guardian_categories: langer Wertevorrat-Schwanz, niemand wertet danach aus. priority: Notfallkontakt-Reihenfolge, nullable, höchstens einmal je Kind belegt. pickup_authorized ist davon unabhängig (anrufbar ≠ abholberechtigt) und per Default AUS — die Erlaubnis wird gesetzt, nicht abgewählt. CHECK child_id <> contact_id.'
 }
 
 Table payers {
@@ -330,7 +322,7 @@ Table payers {
   indexes {
     billing_address_id
   }
-  Note: 'Entweder natürliche Person ODER Organisation (CHECK in SQL, wie guardians). billing_address_id nullable: NULL = Anschrift der zahlenden Person/Organisation gilt. iban/bic: Struktur-CHECK nach ISO 13616 bzw. ISO 9362 (international, nicht auf deutsche Längen festgelegt); gespeichert nur normalisiert, ohne Leerzeichen. SEPA-Mandat: ein Mandat je Zahler, nicht je Zweck; mandate_reference und mandate_signed_at nur gemeinsam und nie ohne iban (CHECKs in SQL). Kein Kreditinstitut (folgt aus der BIC), keine Mandatshistorie; das signierte PDF liegt in der Schulvertrags-Fachdomäne und trägt kein eigenes Datum.'
+  Note: 'IST eine Person, teilt sich den Schlüssel mit persons — eigene Tabelle wegen der Nutzlast (Bankverbindung, Mandat), anders als die Kontaktrolle. billing_address_id nullable: NULL = Anschrift der zahlenden Person gilt. iban/bic: Struktur-CHECK nach ISO 13616 bzw. ISO 9362 (international, nicht auf deutsche Längen festgelegt); gespeichert nur normalisiert, ohne Leerzeichen. bic vermutlich entbehrlich (SEPA IBAN-only seit 2016, folgt aus der IBAN) — bleibt, bis das Optigem-Importformat geklärt ist. SEPA-Mandat: ein Mandat je Zahler, nicht je Zweck; mandate_reference und mandate_signed_at nur gemeinsam und nie ohne iban (CHECKs in SQL). Kein Kreditinstitut (folgt aus der BIC), keine Mandatshistorie; das signierte PDF liegt in der Schulvertrags-Fachdomäne und trägt kein eigenes Datum.'
 }
 
 // ---------------------------------------------------------------------------
@@ -363,18 +355,17 @@ Ref: children.previous_school_id > previous_schools.previous_school_id [delete: 
 Ref: children.payer_id > payers.payer_id [delete: restrict]
 Ref: children.class_id > classes.class_id [delete: restrict]
 
-Ref: guardians.person_id - persons.person_id [delete: restrict]
+Ref: guardians.guardian_id - persons.person_id [delete: restrict]
 
 Ref: family_guardians.family_id > families.family_id [delete: cascade]
 Ref: family_guardians.guardian_id > guardians.guardian_id [delete: cascade]
 Ref: family_guardians.guardian_category_id > guardian_categories.guardian_category_id [delete: restrict]
 
-Ref: contacts.contact_id - persons.person_id [delete: cascade]
 
 Ref: child_contacts.child_id > children.child_id [delete: cascade]
-Ref: child_contacts.contact_id > contacts.contact_id [delete: cascade]
+Ref: child_contacts.contact_id > persons.person_id [delete: cascade]
 
-Ref: payers.person_id - persons.person_id [delete: restrict]
+Ref: payers.payer_id - persons.person_id [delete: restrict]
 Ref: payers.billing_address_id > addresses.address_id [delete: restrict]
 
 Ref: employees.employee_id - persons.person_id [delete: cascade]

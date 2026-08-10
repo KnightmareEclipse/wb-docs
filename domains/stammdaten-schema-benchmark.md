@@ -21,12 +21,11 @@ Beide Durchläufe auf derselben Hetzner-Cloud-VPS (Falkenstein), 4 vCPU, 7,6 GB 
 | family_guardians | 459 |
 | families | 270 |
 | payers | 270 |
-| contacts | 166 |
 | classes | 20 |
 
 Jede Query fünfmal per `EXPLAIN (ANALYZE)` gemessen; Tabellen/Filter je Query stehen in der Stresstest-Tabelle unten (identische Queries, nur die Datenmenge unterscheidet sich).
 
-**Die Messwerte stammen von vor der Schema-Vereinfachung und wurden auf Postgres 16 erhoben, produktiv läuft mindestens 18** (Wegfall von `organizations` und der Verknüpfungstabelle `child_payers`, Rollenzeilen teilen sich den Schlüssel mit `persons`). Sie sind damit eine **obere Schranke**: jede betroffene Abfrage braucht seither strikt weniger Joins, keine mehr. Zeilenzahlen und Query-Beschreibungen sind dagegen auf dem aktuellen Stand, und die Suite läuft wieder vollständig durch (23 von 23 Abfragen). Eine Neumessung ist ein eigener Lauf und steht aus; die Aussage des Benchmarks — bei dieser Datenmenge ist jede Normalisierungsentscheidung performance-neutral — wird davon nur bestätigt, nicht berührt.
+**Die Messwerte stammen von vor der Schema-Vereinfachung und wurden auf Postgres 16 erhoben, produktiv läuft mindestens 18** (Wegfall von `organizations`, der Verknüpfungstabelle `child_payers` und der Rollentabelle `contacts`, Rollenzeilen teilen sich den Schlüssel mit `persons`). Sie sind damit eine **obere Schranke**: jede betroffene Abfrage braucht seither strikt weniger Joins, keine mehr. Zeilenzahlen und Query-Beschreibungen sind dagegen auf dem aktuellen Stand, und die Suite läuft wieder vollständig durch (23 von 23 Abfragen). Eine Neumessung ist ein eigener Lauf und steht aus; die Aussage des Benchmarks — bei dieser Datenmenge ist jede Normalisierungsentscheidung performance-neutral — wird davon nur bestätigt, nicht berührt.
 
 | Kategorie | Query | min ms | avg ms | max ms |
 |---|---|---:|---:|---:|
@@ -79,7 +78,6 @@ Bei realer Größe bleibt selbst der ungefilterte Worst-Case-Export unter parall
 | family_guardians | 472.209 |
 | families | 277.770 |
 | payers | 277.770 |
-| contacts | 166.666 |
 | classes | 20.000 |
 
 Jede Query fünfmal per `EXPLAIN (ANALYZE)` gemessen (serverseitige Ausführungszeit, ohne Client-/Netzwerk-Overhead). Spalte „Tabellen/Filter" zeigt die JOIN-Kette in Zugriffsreihenfolge sowie die filternde Bedingung; volle Statements stehen in `domains/stammdaten-benchmark/run-suite.sh`.
@@ -97,7 +95,7 @@ Jede Query fünfmal per `EXPLAIN (ANALYZE)` gemessen (serverseitige Ausführungs
 | D. Mittlerer JOIN | Kind + Familie | `children` → `families` | 0,55 | 0,65 | 0,73 |
 | D. Mittlerer JOIN | Kind + Hauptnummer | `children` → `persons` → `phone_numbers` (is_primary) | 0,58 | 0,76 | 1,02 |
 | D. Mittlerer JOIN | Zahler:in eines Kindes | `children` → `payers` → `persons` | 0,78 | 1,09 | 1,71 |
-| D. Mittlerer JOIN | Notfallkontakte eines Kindes, nach Priorität | `children` → `child_contacts` → `contacts` → `persons`, ORDER BY `priority` | 0,76 | 1,10 | 1,72 |
+| D. Mittlerer JOIN | Notfallkontakte eines Kindes, nach Priorität | `children` → `child_contacts` → `persons`, ORDER BY `priority` | 0,76 | 1,10 | 1,72 |
 | D. Mittlerer JOIN | Dublettenprüfung beim Import (Nachname+Geburtsdatum) | `children` → `persons`, Selbstvergleich `last_name`+`date_of_birth` | 7,93 | 9,17 | 10,70 |
 | E. Schwerer JOIN | OTP-Request-Pfad (Familie+Kinder+Erziehungsberechtigte+Telefon) | `families` → `children` → `persons` → `family_guardians` → `guardians` → `persons` → `phone_numbers` (7 Tabellen/Aliase), WHERE `family_id` = | 1,32 | 1,48 | 1,69 |
 | E. Schwerer JOIN | Sekretariats-Vollansicht (Kind komplett) | wie OTP-Pfad, zusätzlich `addresses` je Kind und je Erziehungsberechtigtem (9), `SELECT *` | 1,48 | 1,60 | 1,73 |

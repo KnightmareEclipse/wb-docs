@@ -92,7 +92,7 @@ Nummerierung wie `fachdomaenen.md` Abschnitt 6.
 
 | Domäne | Eigene Entitäten | Nutzt Querschnitt | Schreibt Stammdaten |
 |---|---|---|---|
-| **Stammdaten** | Person, Anschrift, Telefon, Familie, Familienzugehörigkeit, Kind, Erziehungsberechtigte, Kontakt, Zahler, **Mitarbeiter**, Klasse/Klassenstufe/Zweig, 11 Lookups | — | besitzt sie |
+| **Stammdaten** | Person, Anschrift, Telefon, Familie, Familienzugehörigkeit, Kind, Erziehungsberechtigte, Kontaktverknüpfung, Zahler, **Mitarbeiter**, Klasse/Klassenstufe/Zweig, 11 Lookups | — | besitzt sie |
 | **1 Putzdienst** (gebaut) | Zyklus, Erinnerungsstufe, Terminart, Putztermin, Zuteilung, abweichende Pflichtmenge, Freikauf | Q3 | nein |
 | **2 Voranmeldung** / **4 Anmeldeprozess und Anmeldegespräch** (eine Domäne, drei Phasen: Voranmeldung → Gespräch → Schulvertrag) | Bewerbung, Gesprächstermin, Vertragsvorgang, Betreuungsmodul (inkl. Hortvertrag) | Q1, Q2, Q3 | ja (viel) |
 | **3 Ferienanmeldung** (Ferienprogramm, Kochwerkstatt) | Programm, Angebotstag, Buchung | Q1, Q3 | ja (legt schulfremde Kinder samt Familie, Erziehungsberechtigten und Notfallkontakt an) |
@@ -100,12 +100,12 @@ Nummerierung wie `fachdomaenen.md` Abschnitt 6.
 | **6 AGs** | unbekannt | unbekannt | vermutlich nein |
 | **9 Gesundheitsdaten** | Gesundheitsmerkmal je Kind | Q1, Q2 | nein |
 | **5 Rechnungsfreigabe** | Beleg, Freigabeschritt, Aufteilung | Q2, Q4 | nein |
-| **7 M365-Kontenverwaltung** | Kontostatus, Offboarding-Schritt | Q4 | ja (`persons.email` beim Kind) |
+| **7 M365-Kontenverwaltung** | Kontostatus, Offboarding-Schritt | Q4 | ja (`children.school_email`) |
 | **8 Eltern-Selfservice** | keine | — | ja (eigene Daten) |
 | **10 Krankmeldung** | Abwesenheit je Kind und Tag | — | nein |
 | **11 Bonussystem** | unbekannt | unbekannt | nein |
 | **12 Klassenbildung** | **keine** — alle Eingaben sind vorhanden oder ableitbar (siehe unten) | — | ja (`children.class_id`) |
-| **13 Klassenorganisation** (neu) | Elternvertretung je Klasse | — | ja, falls Klassenlehrer/Raum an `classes` gehen |
+| **13 Klassenorganisation** (neu) | Elternvertretung je Klasse | — | nein (Klassenlehrer:in und Raum stehen bereits an `classes`) |
 
 **Die Hort-Buchung gehört dazu, der Hort-Alltag nicht.** Alle vier Anmeldetag-Checklisten erheben „Betreuungsbedarf: Kernzeit / Nachmittag / Ganztags", beim Quereinsteiger zusätzlich Lernbetreuung und Mittagessen für Realschüler, und es gibt einen eigenen **Hortvertrag** mit eigener Akte und eigenem Welcome-Brief. Eingezogen wird er über dasselbe SEPA-Mandat wie das Schulgeld — ein Mandat je Zahler, nicht je Zweck (`stammdaten.md`, „Zahlungsverantwortliche"); alle vier Checklisten haken genau eines ab. Das Betreuungsmodul ist damit Teil des Anmeldevorgangs (Domäne 2/4) und nicht abtrennbar. Out of scope bleibt allein der laufende **Hort-Alltag** — wer war wann da, Mittagessen je Tag —, für den der Hort eigene, sehr umfangreiche Excel-Dateien führt; sich dort einzuarbeiten lohnt den Aufwand derzeit nicht. Ebenfalls draußen: **Leihgeräte/iPads** (extern begleitet) und **Wahlpflichtfächer** (Schulalltag, Untis).
 
@@ -150,7 +150,7 @@ Zwei Nachweise daneben, die keine Merkmale sind — und die trotz ähnlicher For
 
 Die Domäne ist damit **eine Oberfläche, keine Datendomäne**: eine Ansicht über alle Kinder einer künftigen Klassenstufe mit Geschlecht, Wohnort, Geschwistern und Wunschnotiz, aus der ein Mensch `children.class_id` setzt. Verwandt mit der Restplatz-Zuordnung des Putzdiensts — ein Zuordnungsproblem mit Nebenbedingungen, aber bei rund 50 Kindern und drei Wünschen eines, das ein Mensch am Tisch löst und kein Solver.
 
-**Elternvertretung (13).** Je Klasse gibt es Elternvertreter:in und Stellvertretung — eine Verknüpfung Person↔Klasse, kein Stammdatum der Person. Ohne Schuljahres-Historie (`stammdaten.md`) trägt sie immer nur den aktuellen Stand, was hier genügt. Auf derselben Liste stehen **Klassenlehrer:in und Klassenzimmer**, die heute in `classes` keinen Platz haben — siehe „Weiße Flecken".
+**Elternvertretung (13).** Je Klasse gibt es Elternvertreter:in und Stellvertretung — eine Verknüpfung Person↔Klasse, kein Stammdatum der Person. Ohne Schuljahres-Historie (`stammdaten.md`) trägt sie immer nur den aktuellen Stand, was hier genügt. Die beiden übrigen Angaben derselben Liste, **Klassenlehrer:in und Klassenzimmer**, stehen bereits als `classes.class_teacher_id` und `classes.room` — die Domäne bringt also nur die Elternvertretung mit.
 
 ## Bewusst nicht zusammengelegt
 

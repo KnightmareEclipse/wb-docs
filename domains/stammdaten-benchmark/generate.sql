@@ -152,7 +152,9 @@ UPDATE children c SET payer_id = fg.guardian_id
 FROM first_guardian_per_family fg
 WHERE fg.family_id = c.family_id;
 
--- Kontakte: eine Kontaktperson auf ca. drei Kinder, Notfallkontakt-Priorität 1
+-- Kontakte: eine Kontaktperson auf ca. drei Kinder, Notfallkontakt-Priorität 1,
+-- abholberechtigt. Ohne Rollentabelle dazwischen — die Kontaktrolle ist die
+-- Menge der hier verknüpften Personen (Begründung an child_contacts).
 WITH new_contact_persons AS (
     SELECT gen_random_uuid() AS id, n FROM generate_series(1, greatest(:n_children / 3, 1)) n
 ),
@@ -161,19 +163,14 @@ inserted_persons AS (
     SELECT id, 'Kontakt' || n, 'Vorname' || n FROM new_contact_persons
     RETURNING person_id
 ),
-new_contacts AS (
-    INSERT INTO contacts (contact_id)
-    SELECT person_id FROM inserted_persons
-    RETURNING contact_id
-),
 contact_pool AS (
-    SELECT contact_id AS id, row_number() OVER () AS rn FROM new_contacts
+    SELECT person_id AS id, row_number() OVER () AS rn FROM inserted_persons
 ),
 kids AS (
     SELECT child_id AS id, row_number() OVER () AS rn FROM children
 )
-INSERT INTO child_contacts (child_id, contact_id, relationship, priority)
-SELECT k.id, cp.id, 'Großmutter', 1
+INSERT INTO child_contacts (child_id, contact_id, relationship, priority, pickup_authorized)
+SELECT k.id, cp.id, 'Großmutter', 1, true
 FROM kids k
 JOIN contact_pool cp ON cp.rn = 1 + (k.rn % (SELECT count(*) FROM new_contact_persons));
 
@@ -189,5 +186,4 @@ UNION ALL SELECT 'family_guardians', count(*) FROM family_guardians
 UNION ALL SELECT 'phone_numbers', count(*) FROM phone_numbers
 UNION ALL SELECT 'classes', count(*) FROM classes
 UNION ALL SELECT 'payers', count(*) FROM payers
-UNION ALL SELECT 'contacts', count(*) FROM contacts
 UNION ALL SELECT 'child_contacts', count(*) FROM child_contacts;

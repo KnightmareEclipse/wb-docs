@@ -90,11 +90,11 @@ CREATE TABLE previous_schools (
 
 CREATE TABLE addresses (
     address_id   uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    street       text,
-    house_number text,
-    district     text,
-    postal_code  text,
-    city         text,
+    street       text NOT NULL CHECK (street <> ''),
+    house_number text CHECK (house_number <> ''),
+    district     text CHECK (district <> ''),
+    postal_code  text NOT NULL CHECK (postal_code <> ''),
+    city         text NOT NULL CHECK (city <> ''),
     country_id   integer NOT NULL REFERENCES countries(country_id) ON DELETE RESTRICT,
     created_at   timestamptz NOT NULL DEFAULT now(),
     created_by   text NOT NULL,
@@ -107,7 +107,7 @@ CREATE INDEX ON addresses (postal_code, street, house_number);
 CREATE TABLE persons (
     person_id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     salutation_id     integer REFERENCES salutations(salutation_id) ON DELETE RESTRICT,
-    first_name        text,
+    first_name        text CHECK (first_name <> ''),
     last_name         text NOT NULL CHECK (last_name <> ''),
     gender_id         integer REFERENCES genders(gender_id) ON DELETE RESTRICT,
     address_id        uuid REFERENCES addresses(address_id) ON DELETE RESTRICT,
@@ -156,6 +156,7 @@ CREATE TABLE children (
     family_id                  uuid REFERENCES families(family_id) ON DELETE RESTRICT,
     payer_id                   uuid,
     nickname                   text,
+    school_email               citext UNIQUE,
     date_of_birth              date NOT NULL,
     birthplace                 text,
     birth_country_id           integer REFERENCES countries(country_id) ON DELETE RESTRICT,
@@ -175,6 +176,7 @@ CREATE TABLE children (
     created_by                 text NOT NULL,
     updated_at                 timestamptz NOT NULL DEFAULT now(),
     updated_by                 text NOT NULL,
+    CHECK (school_email ~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$'),
     CONSTRAINT children_second_nationality_requires_first_check
         CHECK (second_nationality_id IS NULL OR nationality_id IS NOT NULL),
     CONSTRAINT children_second_nationality_differs_check
@@ -183,6 +185,10 @@ CREATE TABLE children (
         CHECK (exit_date IS NULL OR entry_date IS NULL OR exit_date >= entry_date),
     CONSTRAINT children_entry_after_registration_check
         CHECK (entry_date IS NULL OR registration_date IS NULL OR entry_date >= registration_date),
+    CONSTRAINT children_born_before_registration_check
+        CHECK (registration_date IS NULL OR date_of_birth < registration_date),
+    CONSTRAINT children_born_before_entry_check
+        CHECK (entry_date IS NULL OR date_of_birth < entry_date),
     CONSTRAINT children_previous_school_consent_check
         CHECK (previous_school_consent_at IS NULL OR previous_school_id IS NOT NULL),
     CONSTRAINT children_class_excludes_provisional_grade_check
@@ -239,24 +245,18 @@ CREATE TABLE family_guardians (
 
 CREATE INDEX ON family_guardians (guardian_id);
 
-CREATE TABLE contacts (
-    contact_id uuid PRIMARY KEY REFERENCES persons(person_id) ON DELETE CASCADE,
-    created_at timestamptz NOT NULL DEFAULT now(),
-    created_by text NOT NULL,
-    updated_at timestamptz NOT NULL DEFAULT now(),
-    updated_by text NOT NULL
-);
-
 CREATE TABLE child_contacts (
     child_id     uuid NOT NULL REFERENCES children(child_id) ON DELETE CASCADE,
-    contact_id   uuid NOT NULL REFERENCES contacts(contact_id) ON DELETE CASCADE,
+    contact_id   uuid NOT NULL REFERENCES persons(person_id) ON DELETE CASCADE,
     relationship text,
     priority     smallint,
+    pickup_authorized boolean NOT NULL DEFAULT false,
     created_at   timestamptz NOT NULL DEFAULT now(),
     created_by   text NOT NULL,
     updated_at   timestamptz NOT NULL DEFAULT now(),
     updated_by   text NOT NULL,
-    PRIMARY KEY (child_id, contact_id)
+    PRIMARY KEY (child_id, contact_id),
+    CONSTRAINT child_contacts_not_self_check CHECK (child_id <> contact_id)
 );
 
 CREATE INDEX ON child_contacts (contact_id);
@@ -338,9 +338,6 @@ CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON employees
     FOR EACH ROW EXECUTE FUNCTION set_row_audit();
 
 CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON family_guardians
-    FOR EACH ROW EXECUTE FUNCTION set_row_audit();
-
-CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON contacts
     FOR EACH ROW EXECUTE FUNCTION set_row_audit();
 
 CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON child_contacts
