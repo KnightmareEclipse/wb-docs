@@ -22,6 +22,7 @@ Aufgaben, die reale Konten/Zugänge brauchen und die reine Konzept-Doku (`idea/`
 ## Unabhängig vom Putzdienst-Termin
 
 - [ ] `wb-backend`-Grundgerüst (Compose-Skeleton, FastAPI-Grundgerüst) ist nicht selbst geschrieben und noch nicht gegen `wb-backend/CLAUDE.md` durchgesehen
+- [ ] Mit dem Sekretariat klären, wer den Dublettenhinweis an einer eingehenden Anmeldung tatsächlich abarbeitet („Verdacht auf vorhandenes Kind", `TODO-SESSIONS.md`). Der Hinweis hängt bewusst an der Bewerbung/Buchung, die ohnehin gesichtet wird, und nicht an einer eigenen Liste — trotzdem bleibt es ein menschlicher Schritt, und ohne benannte Zuständigkeit entstehen doppelte Kinder, die niemandem auffallen. Vor dem Entwurf der Anmeldeprozess-Domäne zu beantworten, weil davon abhängt, ob der Verdachtsfall den Vorgang nur begleitet oder ihn anhält
 - [ ] Aufbewahrungsfristen für Schülerunterlagen nach baden-württembergischem Schulrecht klären (Schulleitung bzw. Datenschutzbeauftragte:r) — bestimmt, wie lange Stammdaten nach dem Abgang **behalten** werden müssen, bevor die Löschfrist überhaupt greifen darf (`idea/06-dsgvo-organisatorisch.md`). Muss stehen, bevor der Lösch-Job gebaut wird
 
 ## Wiederkehrend / Ablauf-Termine
