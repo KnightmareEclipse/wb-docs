@@ -384,6 +384,23 @@ INSERT INTO employees (employee_id, work_email) VALUES ('7e7e7e7e-2222-2222-2222
 \echo '--- erwartet: FEHLER (Austritt vor Eintritt)'
 UPDATE employees SET employment_end = '2019-01-01' WHERE employee_id = '7e7e7e7e-1111-1111-1111-111111111111';
 
+-- „Aktuell beschäftigt" ist der Zeitraum, nicht das leere Ende: eine Zeile für
+-- einen erst künftig eintretenden Mitarbeiter darf weder Zugriff noch die
+-- Putzdienst-Befreiung auslösen, eine früh eingetragene Kündigung zum
+-- Schuljahresende darf beides nicht sofort entziehen. Ein CHECK kann das nicht
+-- prüfen (current_date ist dort unzulässig), deshalb hier als Abfrage belegt.
+INSERT INTO persons (person_id, last_name) VALUES ('7e7e7e7e-3333-3333-3333-333333333333', 'Neuzugang');
+INSERT INTO employees (employee_id, employment_start)
+    VALUES ('7e7e7e7e-3333-3333-3333-333333333333', current_date + 60);
+INSERT INTO persons (person_id, last_name) VALUES ('7e7e7e7e-4444-4444-4444-444444444444', 'Gekuendigt');
+INSERT INTO employees (employee_id, employment_start, employment_end)
+    VALUES ('7e7e7e7e-4444-4444-4444-444444444444', current_date - 400, current_date + 90);
+SELECT 'aktuell beschaeftigt' AS pruefung, p.last_name,
+       (e.employment_start IS NULL OR e.employment_start <= current_date)
+   AND (e.employment_end   IS NULL OR e.employment_end   >= current_date) AS aktuell
+  FROM employees e JOIN persons p ON p.person_id = e.employee_id
+ ORDER BY p.last_name;
+
 \echo '--- erwartet: FEHLER (Mitarbeiter ohne Personenzeile)'
 INSERT INTO employees (employee_id) VALUES ('7e7e7e7e-9999-9999-9999-999999999999');
 

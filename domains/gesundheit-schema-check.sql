@@ -26,7 +26,7 @@
 -- Fallstricke beim Auswerten — identisch zu den anderen Prüfskripten:
 --   * Pro Lauf eine frische Datenbank.
 --   * stdout und stderr im Container zusammenführen (`sh -c '… 2>&1'`).
---   * Sollstand: 11 Ankündigungen zu 11 ERROR-Zeilen, jeweils unmittelbar
+--   * Sollstand: 9 Ankündigungen zu 9 ERROR-Zeilen, jeweils unmittelbar
 --     gepaart. Verankert und auf der AUSGABE zählen, nicht auf dieser Datei.
 --
 -- WAS DIESES SKRIPT NICHT BELEGEN KANN: den zweistufigen Zugriff. Es läuft als
@@ -97,13 +97,12 @@ SELECT 'merkmal mit attest und verabreichungserlaubnis' AS pruefung,
   FROM health_traits
  WHERE child_id = '11111111-1111-1111-1111-111111111111' AND health_trait_type_id = 5;
 
--- Therapeutische Maßnahme mit Behandlungsgrund und -zeitraum
-INSERT INTO health_traits (child_id, health_trait_type_id, description,
-                           treatment_reason, treatment_from, treatment_until)
+-- Therapeutische Maßnahme mit Behandlungsgrund — ohne Zeitraum: was hier steht,
+-- gilt; ein beendetes Merkmal wird gelöscht statt datiert.
+INSERT INTO health_traits (child_id, health_trait_type_id, description, treatment_reason)
     VALUES ('11111111-1111-1111-1111-111111111111', 8, 'Logopädie',
-            'Sprachentwicklungsverzögerung', '2026-09-01', '2027-07-31');
-SELECT 'therapeutische maßnahme mit grund und zeitraum' AS pruefung,
-       treatment_from, treatment_until
+            'Sprachentwicklungsverzögerung');
+SELECT 'therapeutische maßnahme mit grund, ohne zeitraum' AS pruefung, treatment_reason
   FROM health_traits
  WHERE child_id = '11111111-1111-1111-1111-111111111111' AND health_trait_type_id = 8;
 
@@ -115,15 +114,15 @@ INSERT INTO health_traits (child_id, health_trait_type_id, description)
 INSERT INTO health_traits (child_id, description)
     VALUES ('11111111-1111-1111-1111-111111111111', 'irgendwas');
 
-\echo '--- erwartet: FEHLER (Behandlungsende ohne Beginn)'
-INSERT INTO health_traits (child_id, health_trait_type_id, description, treatment_until)
-    VALUES ('11111111-1111-1111-1111-111111111111', 8, 'Ergotherapie', '2027-07-31');
-
-\echo '--- erwartet: FEHLER (Behandlung endet vor ihrem Beginn)'
-INSERT INTO health_traits (child_id, health_trait_type_id, description,
-                           treatment_from, treatment_until)
-    VALUES ('11111111-1111-1111-1111-111111111111', 8, 'Ergotherapie',
-            '2027-07-31', '2026-09-01');
+-- Zurückgenommene Erlaubnis: auf NULL setzen, kein Widerrufsfeld — dieselbe
+-- Regel wie beim entfallenen Merkmal, das gelöscht statt datiert wird.
+UPDATE health_traits SET permission_granted_at = NULL
+    WHERE child_id = '11111111-1111-1111-1111-111111111111' AND health_trait_type_id = 5;
+SELECT 'erlaubnis zurueckgenommen' AS pruefung, permission_granted_at IS NULL AS keine_erlaubnis
+  FROM health_traits
+ WHERE child_id = '11111111-1111-1111-1111-111111111111' AND health_trait_type_id = 5;
+UPDATE health_traits SET permission_granted_at = now()
+    WHERE child_id = '11111111-1111-1111-1111-111111111111' AND health_trait_type_id = 5;
 
 \echo '--- erwartet: FEHLER (leerer Handlungshinweis statt NULL)'
 UPDATE health_traits SET action_note = ''

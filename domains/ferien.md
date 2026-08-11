@@ -1,6 +1,6 @@
 # Ferienanmeldung — Fachdomäne (Ferienprogramm, Kochwerkstatt)
 
-Domäne 3 aus `fachdomaenen.md` Abschnitt 6. Tabellenschema: `domains/ferien-schema.sql`, belegt durch `domains/ferien-schema-check.sql` (Sollstand 9/9). Der heutige Ablauf samt Excel-Spalten steht in `prozesse.md` Abschnitt 10.
+Domäne 3 aus `fachdomaenen.md` Abschnitt 6. Tabellenschema: `domains/ferien-schema.sql`, belegt durch `domains/ferien-schema-check.sql` (Sollstand 11/11). Der heutige Ablauf samt Excel-Spalten steht in `prozesse.md` Abschnitt 10.
 
 Die kleinste der drei gebauten Prozessdomänen — und die mit der unangenehmsten Eigenschaft: **sie legt Personen an, die mit der Schule sonst nichts zu tun haben.**
 
@@ -16,16 +16,21 @@ Daraus folgt das Löschproblem: **`children.exit_date` bleibt bei ihnen dauerhaf
 
 - Ein **Programm** ist ein konkretes Angebot in einem konkreten Zeitraum — die Herbstferien 2026, nicht „das Ferienprogramm" allgemein. Kochwerkstatt und Ferienprogramm teilen sich die Tabelle, weil sie sich in nichts unterscheiden, was das Schema sieht.
 - **Der Anmeldeschluss ist Pflicht**, nicht optional: die Anmeldung wird ausdrücklich vor Programmbeginn geschlossen, weil vorab eingekauft und geplant werden muss — auch dann, wenn rechnerisch noch Platz wäre. Ein Programm ohne Anmeldeschluss gibt es nicht, und das Schema lässt keines zu.
-- **Die Kapazität hängt am Tag, nicht am Programm.** Genau so ist sie real formuliert; eine Programmsumme ließe zu, dass alle Kinder am selben Tag erscheinen. Anders als beim Putzdienst ist sie eine harte Obergrenze und kein berechneter Richtwert: es geht um Aufsicht und eingekauftes Material, nicht um gleichmäßige Verteilung.
+- **Die Kapazität hängt am Tag, nicht am Programm.** Genau so ist sie real formuliert; eine Programmsumme ließe zu, dass alle Kinder am selben Tag erscheinen. Anders als beim Putzdienst ist sie eine harte Obergrenze und kein berechneter Richtwert: es geht um Aufsicht und eingekauftes Material, nicht um gleichmäßige Verteilung. **Hart heißt nicht schemaseitig** — eine Summe über mehrere Zeilen ist kein CHECK. Die Grenze gehört in dieselbe Backend-Stelle, die die Buchung anlegt, in derselben Transaktion mit einer Sperre auf der Tageszeile: sonst prüfen zwei gleichzeitige Elternbuchungen gegen denselben Stand und der letzte Platz wird zweimal vergeben.
+- **Der Tag trägt sein Zeitfenster selbst** (Beginn und spätestes Betreuungsende). Ohne das bezöge sich das gewählte Betreuungsende auf nichts — es stünde nur in der Eingabemaske, und ein Ende um 03:00 liefe widerspruchsfrei durch.
 - Der **Preis je Tag** steht am Programm, die gezahlte Summe an der Zahlung — dieselbe Trennung wie beim Putzdienst: was gezahlt wurde, muss auch dann noch stimmen, wenn der Preis später korrigiert wird.
 
 ## Ein Vorgang, mehrere Kinder, mehrere Tage
 
 Der **Anmeldevorgang** ist eine eigene Entität, weil die Zahlung an ihm hängt: bei drei Kindern füllt niemand drei Formulare aus und bezahlt dreimal. Ohne ihn müsste jede einzelne Tagesbuchung ihre eigene Zahlung tragen, und Q3 verlangt genau einen Vorgang je Zahlung.
 
-Die **Buchung** ist dann Kind × Angebotstag × Betreuungsende. Das Betreuungsende (real 14:00 oder 16:00) ist eine Uhrzeit und keine Werteliste — das sind Zeitpunkte, keine benannten Kategorien, und welche Enden ein Tag anbietet, ist Bedienführung.
+Die **Buchung** ist dann Kind × Angebotstag × Betreuungsende. Das Betreuungsende (real 14:00 oder 16:00) ist eine Uhrzeit und keine Werteliste — das sind Zeitpunkte, keine benannten Kategorien. Welche Enden ein Tag konkret anbietet, leitet die Oberfläche aus dessen Zeitfenster ab; dass der gewählte Wert hineinfällt, prüft das Backend, weil die Bedingung über zwei Tabellen greift.
 
-**Storno setzt einen Zeitpunkt, statt die Zeile zu löschen.** Zwei Gründe: dasselbe Kind darf an einem Tag nur einmal gebucht sein, und eine gelöschte Zeile würde die Wiederanmeldung gegen diese Regel laufen lassen; und die Tageskapazität muss ehrlich rechnen — eine stornierte Buchung darf keinen Platz mehr belegen. Das Prüfskript zeigt genau diese Zählung.
+**Storno setzt einen Zeitpunkt, statt die Zeile zu löschen:** die stornierte Buchung bleibt als Beleg stehen, und die Tageskapazität zählt sie nicht mehr mit.
+
+**Eindeutig ist deshalb nur die aktive Buchung** — ein partieller Unique-Index über die Zeilen ohne Storno-Zeitpunkt, dasselbe Muster wie die Hauptnummer je Person in Stammdaten. Ein tabellenweites UNIQUE hätte die Wiederanmeldung nach einem Storno blockiert, und der naheliegende Ausweg wäre falsch gewesen: die stornierte Zeile wiederzubeleben hängt sie an den **alten** Anmeldevorgang samt dessen Zahlung — der neue Vorgang stünde ohne Buchung da, der stornierte hätte wieder aktive. Mit dem partiellen Index entsteht schlicht eine zweite Zeile im neuen Vorgang.
+
+**Storniert wird immer die Buchung, nie der Vorgang.** Der Vorgang gilt als storniert, sobald keine aktive Buchung mehr an ihm hängt — ableitbar und deshalb ohne eigene Spalte. Zwei Storno-Felder wären nicht nur Redundanz, sondern eine Falle: die Tageskapazität zählt Buchungen, ein Storno allein am Vorgang ließe die Plätze weiter belegt aussehen.
 
 Stornos laufen heute per Mail an den Hort, der seine Excel-Liste von Hand nachzieht. Was daraus finanziell folgt, entscheidet die Buchhaltung außerhalb von Weltenbaum — es gibt hier weder Stornogebühr noch Rückerstattung.
 

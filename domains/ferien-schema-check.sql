@@ -24,7 +24,7 @@
 -- Fallstricke beim Auswerten — identisch zu den anderen Prüfskripten:
 --   * Pro Lauf eine frische Datenbank.
 --   * stdout und stderr im Container zusammenführen (`sh -c '… 2>&1'`).
---   * Sollstand: 9 Ankündigungen zu 9 ERROR-Zeilen, jeweils unmittelbar
+--   * Sollstand: 11 Ankündigungen zu 11 ERROR-Zeilen, jeweils unmittelbar
 --     gepaart. Verankert und auf der AUSGABE zählen, nicht auf dieser Datei.
 
 SET app.actor = 'system:test';
@@ -57,15 +57,23 @@ INSERT INTO programs (label, starts_on, ends_on, booking_closes_at, fee_per_day)
 INSERT INTO programs (label, starts_on, ends_on, booking_closes_at, fee_per_day)
     VALUES ('kaputt2', '2026-10-26', '2026-10-30', '2026-10-28 23:59+02', 18.00);
 
-INSERT INTO program_days (program_day_id, program_id, day_on, capacity) VALUES
-    (1, 1, '2026-10-26', 20),
-    (2, 1, '2026-10-27', 20);
+INSERT INTO program_days (program_day_id, program_id, day_on, starts_at, ends_at, capacity) VALUES
+    (1, 1, '2026-10-26', '08:00', '16:00', 20),
+    (2, 1, '2026-10-27', '08:00', '16:00', 20);
 
 \echo '--- erwartet: FEHLER (Angebotstag ohne Kapazität)'
-INSERT INTO program_days (program_id, day_on, capacity) VALUES (1, '2026-10-28', 0);
+INSERT INTO program_days (program_id, day_on, starts_at, ends_at, capacity)
+    VALUES (1, '2026-10-28', '08:00', '16:00', 0);
 
 \echo '--- erwartet: FEHLER (derselbe Tag zweimal im selben Programm)'
-INSERT INTO program_days (program_id, day_on, capacity) VALUES (1, '2026-10-26', 20);
+INSERT INTO program_days (program_id, day_on, starts_at, ends_at, capacity)
+    VALUES (1, '2026-10-26', '08:00', '16:00', 20);
+
+-- Der Tag trägt sein Zeitfenster selbst; ohne es bezöge sich das gewählte
+-- Betreuungsende auf nichts.
+\echo '--- erwartet: FEHLER (Angebotstag endet vor seinem Beginn)'
+INSERT INTO program_days (program_id, day_on, starts_at, ends_at, capacity)
+    VALUES (1, '2026-10-29', '16:00', '08:00', 20);
 
 -- ---------------------------------------------------------------------------
 -- Ein Vorgang, mehrere Kinder, mehrere Tage
@@ -118,6 +126,37 @@ SELECT 'tageskapazität zählt stornos nicht mit' AS pruefung,
  WHERE d.program_day_id = 2
  GROUP BY d.capacity;
 
+-- Wiederanmeldung nach Storno: eine NEUE Zeile in einem NEUEN Vorgang. Die
+-- stornierte bleibt stehen und blockiert nicht — genau dafür ist der
+-- Unique-Index partiell. Die alte Zeile wiederzubeleben wäre falsch, sie hinge
+-- am alten Vorgang samt dessen Zahlung.
+INSERT INTO program_registrations (program_registration_id, program_id, registered_by_person_id)
+    VALUES ('a0000000-0000-0000-0000-000000000003', 1,
+            '33333333-3333-3333-3333-333333333333');
+INSERT INTO program_bookings (program_registration_id, child_id, program_day_id, care_until)
+    VALUES ('a0000000-0000-0000-0000-000000000003',
+            '11111111-1111-1111-1111-111111111111', 2, '14:00');
+SELECT 'wiederanmeldung nach storno' AS pruefung,
+       count(*) FILTER (WHERE cancelled_at IS NULL)     AS aktiv,
+       count(*) FILTER (WHERE cancelled_at IS NOT NULL) AS storniert
+  FROM program_bookings
+ WHERE child_id = '11111111-1111-1111-1111-111111111111' AND program_day_id = 2;
+
+-- Ein zweites Mal geht nicht: die aktive Buchung ist eindeutig.
+\echo '--- erwartet: FEHLER (zweite aktive Buchung desselben Kindes am selben Tag)'
+INSERT INTO program_bookings (program_registration_id, child_id, program_day_id, care_until)
+    VALUES ('a0000000-0000-0000-0000-000000000003',
+            '11111111-1111-1111-1111-111111111111', 2, '16:00');
+
+-- Der Anmeldeschluss-CHECK ist zeitzonenfest: dieselbe Zeile muss unter jeder
+-- Sitzungszeitzone gleich ausgehen.
+SET TimeZone = 'Pacific/Kiritimati';
+INSERT INTO programs (program_id, label, starts_on, ends_on, booking_closes_at, fee_per_day)
+    VALUES (3, 'Kochwerkstatt Winter 2027', '2027-01-11', '2027-01-12',
+            '2027-01-11 23:00+01', 18.00);
+RESET TimeZone;
+SELECT 'anmeldeschluss-check zeitzonenfest' AS pruefung, label FROM programs WHERE program_id = 3;
+
 -- ---------------------------------------------------------------------------
 -- Q3: vierter und letzter Zahlungsanlass
 -- ---------------------------------------------------------------------------
@@ -158,8 +197,8 @@ SELECT 'laufendes programm: schulfremdes kind bleibt' AS pruefung,
 INSERT INTO programs (program_id, label, starts_on, ends_on, booking_closes_at, fee_per_day)
     VALUES (2, 'Ferienprogramm Ostern 2026', '2026-03-30', '2026-04-02',
             '2026-03-20 23:59+02', 18.00);
-INSERT INTO program_days (program_day_id, program_id, day_on, capacity)
-    VALUES (3, 2, '2026-03-30', 20);
+INSERT INTO program_days (program_day_id, program_id, day_on, starts_at, ends_at, capacity)
+    VALUES (3, 2, '2026-03-30', '08:00', '16:00', 20);
 INSERT INTO program_registrations (program_registration_id, program_id, registered_by_person_id)
     VALUES ('a0000000-0000-0000-0000-000000000002', 2,
             '33333333-3333-3333-3333-333333333333');

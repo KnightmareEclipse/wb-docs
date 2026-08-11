@@ -26,7 +26,7 @@
 --   * Pro Lauf eine frische Datenbank.
 --   * stdout und stderr im Container zusammenführen (`sh -c '… 2>&1'`), sonst
 --     reordert podman die Ströme und die Paarung sieht wie ein Befund aus.
---   * Sollstand: 31 Ankündigungen zu 31 ERROR-Zeilen, jeweils unmittelbar
+--   * Sollstand: 37 Ankündigungen zu 37 ERROR-Zeilen, jeweils unmittelbar
 --     gepaart. Verankert und auf der AUSGABE zählen, nicht auf dieser Datei —
 --     deren Kopfkommentar enthält die Zeichenkette selbst:
 --       grep -cE '^--- erwartet: FEHLER'  gegen  grep -cE '^psql:.*: ERROR:'
@@ -88,7 +88,10 @@ INSERT INTO application_statuses (application_status_id, label, is_waitlist, is_
     (1, 'in Bearbeitung', false, false),
     (2, 'auf Warteliste',  true,  false),
     (3, 'Zusage',          false, false),
-    (4, 'abgesagt',        false, true);
+    (4, 'abgesagt',        false, true),
+    -- Ein ausgeschlagener Wartelistenplatz zaehlt wie eine Absage: eigener
+    -- Endstatus, gleiche Loeschung zum 01.08. (domains/anmeldung.md).
+    (5, 'Platz abgelehnt', false, true);
 SELECT 'status verdrahtet' AS pruefung, created_by FROM application_statuses WHERE application_status_id = 1;
 
 \echo '--- erwartet: FEHLER (Status kann nicht zugleich Warteliste und Endstatus sein)'
@@ -108,6 +111,12 @@ INSERT INTO enrollment_cutoffs (school_year, cutoff_on, compulsory_age)
 \echo '--- erwartet: FEHLER (unplausibles Einschulungsalter)'
 INSERT INTO enrollment_cutoffs (school_year, cutoff_on, compulsory_age)
     VALUES ('2028/29', '2028-06-30', 42);
+
+-- Das Schuljahr ist ein tragender Verbindungswert (Bewerbung → Stichtag), kein
+-- Anzeigetext: eine zweite Schreibweise fände beim Vergleich still nichts.
+\echo '--- erwartet: FEHLER (Schuljahr in abweichender Schreibweise)'
+INSERT INTO enrollment_cutoffs (school_year, cutoff_on, compulsory_age)
+    VALUES ('2028/2029', '2028-06-30', 6);
 
 -- ---------------------------------------------------------------------------
 -- Gesprächstermine: Raster und Slot
@@ -134,20 +143,27 @@ INSERT INTO interview_days (school_branch_id, school_year, day_on, starts_at, en
 INSERT INTO interview_days (school_branch_id, school_year, day_on, starts_at, ends_at)
     VALUES (1, '2027/28', '2027-02-06', '08:00', '16:00');
 
-INSERT INTO interview_slots (interview_slot_id, interview_day_id, starts_at, capacity)
-    VALUES (1, 1, '08:00', 5), (2, 1, '09:00', 4);
+INSERT INTO interview_slots (interview_slot_id, interview_day_id, school_branch_id, starts_at, capacity)
+    VALUES (1, 1, 1, '08:00', 5), (2, 1, 1, '09:00', 4);
 
 \echo '--- erwartet: FEHLER (Slot ohne Kapazität ist nicht buchbar)'
-INSERT INTO interview_slots (interview_day_id, starts_at, capacity) VALUES (1, '10:00', 0);
+INSERT INTO interview_slots (interview_day_id, school_branch_id, starts_at, capacity)
+    VALUES (1, 1, '10:00', 0);
 
 \echo '--- erwartet: FEHLER (derselbe Slot zweimal am selben Tag)'
-INSERT INTO interview_slots (interview_day_id, starts_at, capacity) VALUES (1, '08:00', 5);
+INSERT INTO interview_slots (interview_day_id, school_branch_id, starts_at, capacity)
+    VALUES (1, 1, '08:00', 5);
+
+-- Ein Slot gehört zum Zweig seines Tages und kann nicht umgehängt werden.
+\echo '--- erwartet: FEHLER (Slot mit fremdem Zweig an einem Anmeldetag)'
+INSERT INTO interview_slots (interview_day_id, school_branch_id, starts_at, capacity)
+    VALUES (1, 2, '11:00', 4);
 
 -- ---------------------------------------------------------------------------
 -- Bewerbung
 -- ---------------------------------------------------------------------------
 INSERT INTO applications (application_id, child_id, application_status_id,
-                          target_school_year, target_grade_level_id,
+                          target_school_year, target_grade_level_id, school_branch_id,
                           submitted_on, filled_by_person_id, other_parent_informed,
                           siblings_at_school, sibling_count, interested_in_care,
                           kindergarten_id, kindergarten_consent_at,
@@ -155,7 +171,7 @@ INSERT INTO applications (application_id, child_id, application_status_id,
                           interview_slot_id)
 VALUES ('a0000000-0000-0000-0000-000000000001',
         '11111111-1111-1111-1111-111111111111', 1,
-        '2027/28', 1, '2026-10-20', '22222222-2222-2222-2222-222222222222', true,
+        '2027/28', 1, 1, '2026-10-20', '22222222-2222-2222-2222-222222222222', true,
         true, 2, true, 1, now(), 1, 1, 1);
 SELECT 'bewerbung zeigt auf das kind, kopiert keine personendaten' AS pruefung,
        p.last_name, p.first_name, c.date_of_birth
@@ -175,28 +191,40 @@ INSERT INTO application_programs (application_id, school_program_id)
     VALUES ('a0000000-0000-0000-0000-000000000001', 1);
 
 \echo '--- erwartet: FEHLER (zweite Bewerbung desselben Kindes fürs selbe Zielschuljahr)'
-INSERT INTO applications (child_id, application_status_id, target_school_year, target_grade_level_id)
-    VALUES ('11111111-1111-1111-1111-111111111111', 1, '2027/28', 1);
+INSERT INTO applications (child_id, application_status_id, target_school_year, target_grade_level_id, school_branch_id)
+    VALUES ('11111111-1111-1111-1111-111111111111', 1, '2027/28', 1, 1);
 
 -- Eine zweite Bewerbung für ein ANDERES Zielschuljahr ist dagegen der Normalfall
 -- (Wechsel von der eigenen Grundschule in die eigene Realschule, Wiederholung
 -- nach Absage).
 INSERT INTO applications (application_id, child_id, application_status_id,
-                          target_school_year, target_grade_level_id)
+                          target_school_year, target_grade_level_id, school_branch_id)
     VALUES ('a0000000-0000-0000-0000-000000000002',
-            '11111111-1111-1111-1111-111111111111', 2, '2031/32', 5);
+            '11111111-1111-1111-1111-111111111111', 2, '2031/32', 5, 2);
 SELECT 'zwei bewerbungen desselben kindes in verschiedenen jahren' AS pruefung, count(*) AS bewerbungen
   FROM applications WHERE child_id = '11111111-1111-1111-1111-111111111111';
 
 \echo '--- erwartet: FEHLER (Geschwister an der Schule, aber Geschwisterzahl 0)'
 INSERT INTO applications (child_id, application_status_id, target_school_year,
-                          target_grade_level_id, siblings_at_school, sibling_count)
-    VALUES ('44444444-4444-4444-4444-444444444444', 1, '2027/28', 1, true, 0);
+                          target_grade_level_id, school_branch_id, siblings_at_school, sibling_count)
+    VALUES ('44444444-4444-4444-4444-444444444444', 1, '2027/28', 1, 1, true, 0);
 
 \echo '--- erwartet: FEHLER (Rücksprache-Erlaubnis ohne Kindergarten)'
 INSERT INTO applications (child_id, application_status_id, target_school_year,
-                          target_grade_level_id, kindergarten_consent_at)
-    VALUES ('44444444-4444-4444-4444-444444444444', 1, '2028/29', 1, now());
+                          target_grade_level_id, school_branch_id, kindergarten_consent_at)
+    VALUES ('44444444-4444-4444-4444-444444444444', 1, '2028/29', 1, 1, now());
+
+-- Zweig der Zielklassenstufe und Zweig des gebuchten Slots müssen
+-- zusammenpassen — sonst säße ein Grundschulkind im Realschul-Anmeldetag.
+\echo '--- erwartet: FEHLER (Zweig passt nicht zur Zielklassenstufe)'
+INSERT INTO applications (child_id, application_status_id, target_school_year,
+                          target_grade_level_id, school_branch_id)
+    VALUES ('44444444-4444-4444-4444-444444444444', 1, '2029/30', 1, 2);
+
+\echo '--- erwartet: FEHLER (Gesprächsslot eines anderen Zweigs gebucht)'
+INSERT INTO applications (child_id, application_status_id, target_school_year,
+                          target_grade_level_id, school_branch_id, interview_slot_id)
+    VALUES ('44444444-4444-4444-4444-444444444444', 1, '2030/31', 5, 2, 1);
 
 \echo '--- erwartet: FEHLER (Rangnummer 0 statt leer)'
 UPDATE applications SET rank_number = 0
@@ -209,7 +237,7 @@ UPDATE applications SET processing_note = ''
 -- Die Warteliste ist ein Status samt fortgeschriebener Zielklassenstufe, keine
 -- eigene Entität: die jährliche Fortschreibung ist ein UPDATE.
 UPDATE applications
-   SET target_school_year = '2032/33', target_grade_level_id = 6
+   SET target_school_year = '2032/33', target_grade_level_id = 6, school_branch_id = 2
  WHERE application_id = 'a0000000-0000-0000-0000-000000000002';
 SELECT 'warteliste jährlich fortgeschrieben' AS pruefung, s.label, s.is_waitlist,
        g.label AS zielstufe
@@ -256,6 +284,25 @@ INSERT INTO payments (cleaning_buyout_id, amount)
     VALUES ('b0000000-0000-0000-0000-000000000001', 150.00);
 SELECT 'putzdienst-freikauf nach der q3-erweiterung unverändert' AS pruefung, amount
   FROM payments WHERE cleaning_buyout_id = 'b0000000-0000-0000-0000-000000000001';
+
+-- Löschung einer abgelehnten Bewerbung zum 01.08. (domains/anmeldung.md):
+-- der Lösch-Job räumt von außen nach innen, und die Fremdschlüssel erzwingen
+-- die Reihenfolge — die Zahlung geht mit, weil Optigem führend ist.
+INSERT INTO applications (application_id, child_id, application_status_id,
+                          target_school_year, target_grade_level_id, school_branch_id)
+    VALUES ('a0000000-0000-0000-0000-000000000009',
+            '44444444-4444-4444-4444-444444444444', 4, '2033/34', 1, 1);
+INSERT INTO payments (application_id, amount, reference)
+    VALUES ('a0000000-0000-0000-0000-000000000009', 50.00, 'pi_3QexampleAbgelehnt');
+
+\echo '--- erwartet: FEHLER (Bewerbung löschen, solange ihre Zahlung noch steht)'
+DELETE FROM applications WHERE application_id = 'a0000000-0000-0000-0000-000000000009';
+
+DELETE FROM payments WHERE application_id = 'a0000000-0000-0000-0000-000000000009';
+DELETE FROM applications WHERE application_id = 'a0000000-0000-0000-0000-000000000009';
+SELECT 'abgelehnte bewerbung samt zahlung geräumt' AS pruefung,
+       (SELECT count(*) FROM applications WHERE application_id = 'a0000000-0000-0000-0000-000000000009') AS bewerbungen,
+       (SELECT count(*) FROM payments WHERE reference = 'pi_3QexampleAbgelehnt') AS zahlungen;
 
 -- ---------------------------------------------------------------------------
 -- Schulvertrag
@@ -333,6 +380,11 @@ SELECT 'ein dokument, zwei unterschriften' AS pruefung, count(*) AS signaturen
 INSERT INTO signatures (document_id, person_id)
     VALUES ('d0000000-0000-0000-0000-000000000001',
             '22222222-2222-2222-2222-222222222222');
+
+-- „ees" wäre sonst lautlos eine zweite Signaturstufe neben „EES".
+\echo '--- erwartet: FEHLER (Signaturstufe in abweichender Schreibweise)'
+UPDATE signatures SET signature_level = 'ees'
+    WHERE signature_id = '50000000-0000-0000-0000-000000000001';
 
 -- Zustimmung mit festgehaltener Zustelladresse, belegt durch eine Signatur
 INSERT INTO consents (person_id, child_id, consent_purpose_id, delivery_email, signature_id)

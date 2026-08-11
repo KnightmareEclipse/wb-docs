@@ -23,7 +23,7 @@
 --   * Pro Lauf eine frische Datenbank.
 --   * stdout und stderr im Container zusammenführen (`sh -c '… 2>&1'`), sonst
 --     reordert podman die Ströme und die Paarung sieht wie ein Befund aus.
---   * Sollstand: 19 Ankündigungen zu 19 ERROR-Zeilen, jeweils unmittelbar
+--   * Sollstand: 22 Ankündigungen zu 22 ERROR-Zeilen, jeweils unmittelbar
 --     gepaart. Verankert und auf der AUSGABE zählen, nicht auf dieser Datei —
 --     deren Kopfkommentar enthält die Zeichenkette selbst:
 --       grep -cE '^--- erwartet: FEHLER'  gegen  grep -cE '^psql:.*: ERROR:'
@@ -52,11 +52,12 @@ VALUES
      '2026-09-01 00:00+02', '2026-09-20 23:59+02',
      5, 1, 150.00, 25.00, 75.00, 2, '2027-05-20');
 
-INSERT INTO cleaning_slots (slot_id, cycle_id, duty_type_id, slot_date) VALUES
-    (10, 1, 1, '2026-10-17'),
-    (11, 1, 2, '2027-04-24'),
-    (12, 1, 3, '2027-05-08'),   -- Gartenarbeit
-    (13, 1, 1, '2027-09-18');   -- letzter Monat: Abschlussklassen-Regel
+-- Anfangszeiten bewusst verschieden — die Termine starten nicht alle gleich.
+INSERT INTO cleaning_slots (slot_id, cycle_id, duty_type_id, slot_date, starts_at) VALUES
+    (10, 1, 1, '2026-10-17', '15:00'),
+    (11, 1, 2, '2027-04-24', '09:00'),
+    (12, 1, 3, '2027-05-08', '14:30'),   -- Gartenarbeit
+    (13, 1, 1, '2027-09-18', NULL);      -- letzter Monat, Zeit noch offen
 
 -- ---------------------------------------------------------------------------
 -- Audit-Trigger hängt auch an den neuen Tabellen (die Funktion selbst ist in
@@ -105,6 +106,15 @@ INSERT INTO cleaning_cycles (cycle_id, label, starts_on, ends_on, booking_opens_
 VALUES (2, '2027/28', '2027-10-01', '2028-09-30', '2027-09-01 00:00+02', '2027-09-20 00:00+02',
         5, 1, 150.00, 25.00, 75.00, 2);
 
+-- Der Zyklus-Zeitraum liegt hier bewusst frei — sonst schlüge der Constraint
+-- darüber zu und das Buchungsfenster bliebe ungeprüft. Zwei überlappende
+-- Fenster machen mehrdeutig, wofür gerade gebucht wird.
+\echo '--- erwartet: FEHLER (überlappendes Buchungsfenster bei freiem Zyklus-Zeitraum)'
+INSERT INTO cleaning_cycles (label, starts_on, ends_on, booking_opens_at, booking_closes_at,
+    required_regular, required_major, buyout_amount, slot_buyout_amount, no_show_penalty, capacity_buffer)
+VALUES ('fenster überlappt', '2029-10-01', '2030-09-30', '2027-09-10 00:00+02', '2027-09-15 00:00+02',
+        5, 1, 150.00, 25.00, 75.00, 2);
+
 -- ---------------------------------------------------------------------------
 -- Erinnerungsstufen
 -- ---------------------------------------------------------------------------
@@ -122,8 +132,8 @@ INSERT INTO cleaning_reminder_stages (cycle_id, days_before) VALUES (1, 0);
 
 -- Großputz und regulärer Termin am selben Tag müssen möglich bleiben — genau
 -- deshalb gibt es die Solver-Regel, die eine Familie nicht beiden zuordnet.
-INSERT INTO cleaning_slots (slot_id, cycle_id, duty_type_id, slot_date)
-    VALUES (14, 1, 2, '2026-10-17');
+INSERT INTO cleaning_slots (slot_id, cycle_id, duty_type_id, slot_date, starts_at)
+    VALUES (14, 1, 2, '2026-10-17', '09:00');
 
 -- ---------------------------------------------------------------------------
 -- Pflichtmenge je Familie
@@ -145,6 +155,15 @@ INSERT INTO cleaning_family_duties (cycle_id, family_id, reason)
 INSERT INTO cleaning_family_duties (cycle_id, family_id, required_regular)
     VALUES (2, 'f0000000-0000-0000-0000-000000000002', -1);
 
+-- Vereinbarte Sonderregelung in einem Zyklus ganz ohne Termine: nur so belegt
+-- der Löschversuch unten den Fremdschlüssel dieser Tabelle und nicht den von
+-- cleaning_slots.
+INSERT INTO cleaning_family_duties (cycle_id, family_id, required_regular, reason)
+    VALUES (2, 'f0000000-0000-0000-0000-000000000002', 3, 'Vereinbarung Schulträger');
+
+\echo '--- erwartet: FEHLER (Zyklus löschen nimmt eine vereinbarte Sonderregelung nicht mit)'
+DELETE FROM cleaning_cycles WHERE cycle_id = 2;
+
 -- ---------------------------------------------------------------------------
 -- Zuteilung
 -- ---------------------------------------------------------------------------
@@ -158,9 +177,23 @@ INSERT INTO cleaning_assignments (slot_id, family_id) VALUES
 INSERT INTO cleaning_assignments (slot_id, family_id)
     VALUES (10, 'f0000000-0000-0000-0000-000000000001');
 
+-- Die Papier-Unterschriftenliste dieses Termins ist übertragen — erst ab hier
+-- sagen seine no_show-Werte etwas. Am Termin, nicht je Familie.
+UPDATE cleaning_slots SET attendance_recorded_at = now() WHERE slot_id = 12;
+
 -- Nichterscheinen als Attribut der Zuteilung, keine eigene Entität
 UPDATE cleaning_assignments SET no_show = true
     WHERE slot_id = 12 AND family_id = 'f0000000-0000-0000-0000-000000000001';
+
+-- „no_show = false" allein ist keine Anwesenheit: Termin 10 ist schlicht noch
+-- nicht erfasst. Ohne diese Trennung sähe eine vergessene Übertragung aus wie
+-- lauter erschienene Familien.
+SELECT 'anwesenheit erfasst vs. offen' AS pruefung,
+       count(*) FILTER (WHERE s.attendance_recorded_at IS NOT NULL)                  AS erfasst,
+       count(*) FILTER (WHERE s.attendance_recorded_at IS NULL AND NOT a.no_show)    AS ohne_aussage
+  FROM cleaning_assignments a
+  JOIN cleaning_slots s ON s.slot_id = a.slot_id
+ WHERE s.cycle_id = 1;
 
 -- Straf-Aussetzung: die Strafe entsteht immer, wer die Berechtigung hat, setzt
 -- sie danach aus — ein festgehaltener Gegenvorgang, keine unterlassene
@@ -240,6 +273,13 @@ INSERT INTO cleaning_slot_buyouts (assignment_id)
 \echo '--- erwartet: FEHLER (Zahlung auf zwei Anlässe gleichzeitig)'
 INSERT INTO payments (cleaning_buyout_id, cleaning_slot_buyout_id, amount)
     VALUES ('b0000000-0000-0000-0000-000000000001', 'bb000000-0000-0000-0000-000000000001', 25.00);
+
+-- Als UPDATE geprüft und nicht als zweiter INSERT: eine dritte Zahlungszeile
+-- scheiterte schon am UNIQUE ihrer Vorgangs-Spalte, und die Referenz bliebe
+-- unbelegt. Realer Weg dorthin ist ein zweimal zugestellter Stripe-Webhook.
+\echo '--- erwartet: FEHLER (dieselbe Zahlungsreferenz an zwei Zahlungen)'
+UPDATE payments SET reference = 'pi_3QexampleStripeIntent'
+    WHERE cleaning_slot_buyout_id = 'bb000000-0000-0000-0000-000000000001';
 
 -- Offen, bis die Buchhaltung bzw. Stripe bestätigt
 SELECT 'zahlung offen' AS pruefung, settled_at IS NULL AS offen, reference IS NOT NULL AS hat_referenz

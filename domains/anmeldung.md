@@ -1,6 +1,6 @@
 # Anmeldung — Fachdomäne (Voranmeldung, Anmeldegespräch, Schulvertrag)
 
-Domäne 2/4 aus `fachdomaenen.md` Abschnitt 6 — **eine** Domäne in drei Phasen, weil dieselbe Bewerbung sie alle durchläuft. Tabellenschema: `domains/anmeldung-schema.sql`, belegt durch `domains/anmeldung-schema-check.sql` (Sollstand 31/31). Der heutige Ablauf samt Formularfeldern steht in `prozesse.md` Abschnitt 3–7; hier steht, was daraus im Datenmodell folgt.
+Domäne 2/4 aus `fachdomaenen.md` Abschnitt 6 — **eine** Domäne in drei Phasen, weil dieselbe Bewerbung sie alle durchläuft. Tabellenschema: `domains/anmeldung-schema.sql`, belegt durch `domains/anmeldung-schema-check.sql` (Sollstand 37/37). Der heutige Ablauf samt Formularfeldern steht in `prozesse.md` Abschnitt 3–7; hier steht, was daraus im Datenmodell folgt.
 
 Sie bringt außerdem die beiden Querschnitts-Entitäten **Zustimmung (Q1)** und **Dokument/Signatur (Q2)** mit und erweitert den **Zahlungsvorgang (Q3)** um die Anmeldegebühr — alle drei einmal gebaut, von allen späteren Domänen mitbenutzt (`domains/grenzkarte.md`).
 
@@ -102,6 +102,20 @@ Zustimmungen ohne Kind (Werbe-Einwilligung an den anmeldenden Elternteil) sind e
 
 Die Anmeldegebühr ist der dritte Stripe-Anlass und kommt als weitere Vorgangs-Spalte samt erweitertem Entweder-oder-CHECK an die bestehende `payments`-Tabelle — nicht als zweite Zahlungstabelle. Das Prüfskript belegt beides: die neue Zahlung entsteht, und der Putzdienst-Freikauf funktioniert unverändert weiter.
 
+## Löschung
+
+**Der Anker ist ein fester Kalendertag, kein Fristablauf je Zeile:** gelöscht wird zum **01.08. des Jahres, in dem das Zielschuljahr beginnt** — also kurz bevor es losgeht. Betroffen ist jede Bewerbung in einem **Endstatus** (`application_statuses.is_final`), und das sind zwei Fälle: die Absage der Schule und der **abgelehnte Platz**. Einen angebotenen Wartelistenplatz auszuschlagen zählt wie eine Absage und ist ein eigener Endstatus; wird er angenommen, bleibt die Familie im System.
+
+Die Warteliste selbst wird **nicht** gelöscht: wer weiter wartet, steht in einem Wartelisten-Status (`is_waitlist`) und wird jährlich fortgeschrieben — genau dafür gibt es das Kennzeichen. Ein Endstatus tritt erst ein, wenn tatsächlich entschieden wurde.
+
+Weil der Anker der Kalender ist und kein Ereignis, braucht `applications` **keinen** Zeitpunkt „final geworden am". Der einzige Ersatz wäre `updated_at` gewesen, und der springt bei jeder späteren Änderung weiter — die Aufbewahrungsuhr würde sich still zurücksetzen.
+
+**Gelöscht wird alles, nicht nur die Bewerbung.** Kind, Erziehungsberechtigte und Familie gehen mit, sofern kein Geschwisterkind an der Schule bleibt; ist eines da, fällt nur die Kindzeile und Eltern samt Familie bleiben. Das ist derselbe Lauf und dieselbe Mechanik wie in `domains/stammdaten.md`, „Löschmechanik" — verwaiste Zeilen ohne verbleibende Verknüpfung haben keinen Verarbeitungszweck mehr.
+
+Die Fremdschlüssel geben die **Reihenfolge** vor, statt sie dem Job zu überlassen: Dokumente (samt der Datei in SharePoint) und Vertragsvorgang blockieren die Bewerbung, die Bewerbung blockiert das Kind. Der Job arbeitet also von außen nach innen.
+
+**Die Zahlung geht mit.** Der Beleg der Anmeldegebühr bleibt nicht als vorgangslose Zeile stehen: Optigem ist für die Buchhaltung führend und zieht die Zahlung selbst aus Stripe (`fachdomaenen.md` Abschnitt 4) — Weltenbaum braucht sie nach dem Verfahren nicht mehr. Das hält den Entweder-oder-CHECK an `payments` unangetastet: eine Zahlung ohne Anlass gibt es nie, eine leere Vorgangsspalte ist immer ein Fehler und nie ein Zustand.
+
 ## Was diese Domäne nicht enthält
 
 - **Gesundheitsdaten.** Der Schulvertrag erhebt den Satz, geführt wird er in Domäne 9 mit eigenem Zugriffsprofil. Hier stehen nur die Zustimmung (Q1) und das signierte Blatt (Q2).
@@ -112,4 +126,4 @@ Die Anmeldegebühr ist der dritte Stripe-Anlass und kommt als weitere Vorgangs-S
 
 - Mit Sekretariat und Realschulleitung zu bestätigen: sind Grundschulempfehlung und eigenes Niveau zwei Angaben oder zwei Namen für dieselbe (siehe „Bewertung")?
 - Ist der „Einschulungsuntersuchungsbericht" der Anmeldetag-Checkliste das interne Lehrerformular (`prozesse.md` Abschnitt 22)?
-- Löschfristen je Entität stehen aus (`TODO.md`). Die Bewerbung braucht eine eigene, kürzere als Stammdaten — und die mit ihr angelegten Personenzeilen dieselbe.
+- Löschfristen der übrigen Entitäten stehen aus (`TODO.md`).
