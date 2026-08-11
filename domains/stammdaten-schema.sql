@@ -103,7 +103,7 @@
 
 -- Benannte Constraints: Postgres leitet einen brauchbaren Namen selbst ab,
 -- solange eine Regel an genau einer Spalte hängt (persons_email_check,
--- children_family_id_fkey, payers_mandate_reference_key, und ab Postgres 18 auch
+-- children_family_id_fkey, children_mandate_reference_key, und ab Postgres 18 auch
 -- persons_last_name_not_null). Nur bei MEHRSPALTIGEN Regeln fehlt ihm der Anker,
 -- dann zählt er durch: "children_check3" sagt weder im Log noch in der
 -- API-Antwort, welche Zusage gebrochen wurde. Genau diese bekommen deshalb einen
@@ -726,6 +726,36 @@ CREATE TABLE children (
     -- Fremdschlüssel per ALTER TABLE unten, weil payers erst nach children
     -- definiert wird (Reihenfolge, siehe dort).
     payer_id                   uuid,
+    -- SEPA-Lastschriftmandat. Steht am KIND und nicht am Zahler: die Schule
+    -- sammelt ausdrücklich je Kind ein eigenes Mandat ein. Der Grund ist kein
+    -- technischer, sondern der reale Verfall — verlässt das erste Kind die
+    -- Schule, trägt sein Mandat die Geschwister nicht weiter, und ohne eigenes
+    -- Mandat wäre für sie nichts mehr einziehbar (prozesse.md Abschnitt 7.4).
+    -- Ein Mandat je Zahler hätte genau diesen Fall still falsch abgebildet.
+    --
+    -- Zwei Spalten hier statt einer eigenen Mandatstabelle: die Beziehung ist
+    -- 1:1 zum Kind, und wer zahlt, steht mit payer_id bereits daneben — eine
+    -- Tabelle dafür trüge nichts, was diese Zeile nicht schon trägt. Die
+    -- Bankverbindung bleibt dagegen an payers: sie gehört der Person, nicht dem
+    -- Kind, und Geschwister teilen sie sich (Begründung dort).
+    --
+    -- Die Referenz vergibt die Schule (das Formular fragt sie nicht ab) und sie
+    -- muss je Gläubiger-ID eindeutig sein — daher UNIQUE, jetzt über alle
+    -- Kinder statt über alle Zahler.
+    --
+    -- Keine Mandatshistorie: Optigem führt die Lastschrift aus
+    -- (fachdomaenen.md Abschnitt 4), Weltenbaum hält nur den aktuellen Stand.
+    --
+    -- Das unterschriebene Mandat wird zusätzlich digital abgelegt (PDF samt
+    -- Signatur). Dieses Artefakt gehört NICHT hierher, sondern in die
+    -- Schulvertrags-/Anmeldeprozess-Fachdomäne, die dieselbe Struktur schon für
+    -- Schulvertrag, Gesundheitsdatenblatt und Fotoeinverständnis braucht; es
+    -- zeigt seit dieser Änderung auf das Kind, nicht mehr auf payers.id
+    -- (domains/grenzkarte.md, Q2). Wichtig dabei: das Dokument trägt KEIN
+    -- eigenes Unterschriftsdatum — das steht hier, einmal. Der Nachweis ist das
+    -- Artefakt, der Datenwert für den Einzug ist diese Spalte.
+    mandate_reference          text UNIQUE CHECK (mandate_reference <> ''),
+    mandate_signed_at          date,
     nickname                   text,               -- Rufname, falls abweichend vom Vornamen — Schulalltag (Lehrer), nicht amtlicher Schriftverkehr; ASV-BW bleibt für die amtliche Rufname/Vorname-Unterscheidung führend
     -- Schulpostfach (c-schule.de), vergeben und wieder eingezogen von der
     -- M365-Kontenverwaltung (fachdomaenen.md Abschnitt 6). An der Kind-Rolle
@@ -829,7 +859,24 @@ CREATE TABLE children (
     CONSTRAINT children_previous_school_consent_check
         CHECK (previous_school_consent_at IS NULL OR previous_school_id IS NOT NULL),
     CONSTRAINT children_class_excludes_provisional_grade_check
-        CHECK (class_id IS NULL OR provisional_grade_level_id IS NULL)
+        CHECK (class_id IS NULL OR provisional_grade_level_id IS NULL),
+    -- Referenz ohne Datum ist kein gültiges Mandat und umgekehrt — beide oder
+    -- keines.
+    CONSTRAINT children_mandate_complete_check
+        CHECK ((mandate_reference IS NULL) = (mandate_signed_at IS NULL)),
+    -- Ein Mandat ohne Zahler ist nicht einziehbar. Umgekehrt gilt das nicht:
+    -- ein Kind darf eine/n Zahler/in ohne Mandat haben (Erfassung vor
+    -- Vertragsabschluss).
+    --
+    -- Diese Prüfung ist schwächer als die frühere „Mandat nur mit IBAN", und
+    -- das ist der Preis der Verlagerung: die IBAN steht an payers, ein CHECK
+    -- kann nicht über zwei Tabellen greifen. Bewusst kein Trigger dafür — der
+    -- Schulvertragsprozess erhebt Bankverbindung und Mandat in einem Schritt
+    -- (prozesse.md Abschnitt 7.4), die Lücke ist also kein realer Ablauf. Was
+    -- die Datenbank hier noch garantiert, ist die Kette Mandat → Zahler → Zeile
+    -- in payers, in der die IBAN dann stehen kann.
+    CONSTRAINT children_mandate_requires_payer_check
+        CHECK (mandate_reference IS NULL OR payer_id IS NOT NULL)
 );
 CREATE INDEX ON children (family_id);
 CREATE INDEX ON children (class_id);
@@ -1145,68 +1192,38 @@ CREATE TABLE payers (
     -- CHECK: Rechnen im Constraint wäre schwer lesbar und bei einer künftigen
     -- Regeländerung nur per Migration korrigierbar.
     iban               text CHECK (iban ~ '^[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}$'),
-    -- Die BIC ist vermutlich entbehrlich und bleibt nur bis zur Klärung stehen.
-    -- Zwei unabhängige Gründe sprechen gegen sie:
-    --   * Datensparsamkeit (rules.md Abschnitt 7): für SEPA-Zahlungen innerhalb
-    --     der Union darf sie seit dem 1.2.2016 nicht mehr verlangt werden
-    --     (VO 260/2012, „IBAN-only").
-    --   * Normalform: sie folgt aus der IBAN, die das Institut identifiziert.
-    --     Das ist die transitive Abhängigkeit payer_id → iban → bic und damit
-    --     ein 3NF-Verstoß — dieselbe Ableitungskette, mit der das
-    --     Kreditinstitut vom Formular gar nicht erst übernommen wird (unten),
-    --     nur eine Stufe früher angesetzt.
-    -- Offen ist allein der Abnehmer. ASV-BW führt in svp_kontoverbindung neben
-    -- iban eine swift-Spalte, beide nullable, ohne Statistikpflichtfeld-Marker,
+    -- Die BIC bleibt, obwohl zwei Gründe gegen sie sprechen: Datensparsamkeit
+    -- (rules.md Abschnitt 7) — für SEPA-Zahlungen innerhalb der Union darf sie
+    -- seit dem 1.2.2016 nicht mehr verlangt werden (VO 260/2012, „IBAN-only")
+    -- — und Normalform: sie folgt aus der IBAN, die das Institut
+    -- identifiziert, also die transitive Abhängigkeit payer_id → iban → bic
+    -- und damit ein 3NF-Verstoß. Dieselbe Ableitungskette, mit der das
+    -- Kreditinstitut vom Formular gar nicht erst übernommen wird (unten), nur
+    -- eine Stufe früher angesetzt.
+    -- Beides tritt zurück, weil der Abnehmer feststeht: Optigem verlangt die
+    -- BIC für Konten außerhalb Deutschlands (prozesse.md Abschnitt 7.4). Für
+    -- inländische Konten bleibt sie leer — deshalb nullable und bewusst kein
+    -- CHECK, der sie an das Länderpräfix der IBAN koppelt: welche Konten
+    -- Optigem als „nicht deutsch" behandelt, entscheidet dessen Importformat
+    -- und nicht diese Tabelle. ASV-BW führt daneben in svp_kontoverbindung
+    -- ebenfalls eine swift-Spalte, nullable, ohne Statistikpflichtfeld-Marker,
     -- und die Bankverbindung hängt dort als eigene Entität über
-    -- svp_schueler_stamm_kto_verbind am Schüler — die Spalte existiert also,
-    -- verlangt wird sie nicht. Zu prüfen bleibt, ob der reale ASV-Arbeitsablauf
-    -- der Schule sie befüllt und ob das Optigem-Importformat sie erwartet
-    -- (TODO.md). Fällt beides mit „nein" aus, ist die Spalte ersatzlos
-    -- streichbar: sie trägt kein Constraint und kein anderes Feld hängt an ihr.
-    -- Der Freeze steht dem nicht entgegen, bis dahin ist es ein Texteingriff
-    -- in einen Entwurf.
+    -- svp_schueler_stamm_kto_verbind am Schüler — sie existiert also auch
+    -- dort, verlangt wird sie nicht.
     bic                text CHECK (bic ~ '^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$'),
     account_holder     text,               -- Kontoinhaber, falls abweichend vom Namen der Person/Organisation
-    -- SEPA-Lastschriftmandat. EIN Mandat je Zahler, nicht je Zweck: Schulgeld,
-    -- Mensa, Putzdienst-Freikauf und Ferienprogramm ziehen alle über dasselbe
-    -- Mandat ein (fachdomaenen.md Abschnitt 6) — deshalb Spalten hier und keine
-    -- eigene Tabelle. Ohne beide Felder ist eine gespeicherte IBAN nicht
-    -- einziehbar, sie gehören in den SEPA-Datensatz.
-    --
-    -- Die Referenz vergibt die Schule (das Formular fragt sie nicht ab) und sie
-    -- muss je Gläubiger-ID eindeutig sein — daher UNIQUE.
-    --
     -- Kreditinstitut steht bewusst NICHT daneben, obwohl das Formular es
     -- abfragt: es folgt aus der BIC und wäre ein zweiter Ort für denselben
     -- Sachverhalt (rules.md Abschnitt 1).
     --
-    -- Keine Mandatshistorie: Optigem führt die Lastschrift aus
-    -- (fachdomaenen.md Abschnitt 4), Weltenbaum hält nur den aktuellen Stand —
-    -- wie überall sonst in diesem Schema (domains/stammdaten.md,
-    -- „Schuljahreswechsel").
-    --
-    -- Das unterschriebene Mandat wird zusätzlich digital abgelegt (PDF samt
-    -- Signatur). Dieses Artefakt gehört NICHT hierher, sondern in die
-    -- Schulvertrags-/Anmeldeprozess-Fachdomäne, die dieselbe Struktur schon für
-    -- Schulvertrag, Gesundheitsdatenblatt und Fotoeinverständnis braucht; es
-    -- zeigt auf payers.id. Wichtig dabei: das Dokument trägt KEIN eigenes
-    -- Unterschriftsdatum — das steht hier, einmal. Der Nachweis ist das
-    -- Artefakt, der Datenwert für den Einzug ist diese Spalte.
-    mandate_reference  text UNIQUE CHECK (mandate_reference <> ''),
-    mandate_signed_at  date,
+    -- Das SEPA-Mandat steht ebenfalls NICHT hier, sondern an children: die
+    -- Schule sammelt je Kind eines ein, nicht je Zahler (Begründung dort). Was
+    -- hier bleibt, ist das Einzugs*mittel* — die Bankverbindung gehört der
+    -- Person und wird von Geschwistern geteilt, das Mandat nicht.
     created_at         timestamptz NOT NULL DEFAULT now(),
     created_by         text NOT NULL,
     updated_at         timestamptz NOT NULL DEFAULT now(),
-    updated_by         text NOT NULL,
-    -- Referenz ohne Datum ist kein gültiges Mandat und umgekehrt — beide oder
-    -- keines.
-    CONSTRAINT payers_mandate_complete_check
-        CHECK ((mandate_reference IS NULL) = (mandate_signed_at IS NULL)),
-    -- Mandat ohne Konto ist sinnlos. Umgekehrt gilt das nicht: eine IBAN darf
-    -- vor der Unterschrift dastehen (Import aus Optigem, Erfassung vor
-    -- Vertragsabschluss).
-    CONSTRAINT payers_mandate_requires_iban_check
-        CHECK (mandate_reference IS NULL OR iban IS NOT NULL)
+    updated_by         text NOT NULL
 );
 CREATE INDEX ON payers (billing_address_id);
 

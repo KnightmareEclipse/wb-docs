@@ -20,7 +20,7 @@
 --   * stdout und stderr im Container zusammenführen — das `sh -c '… 2>&1'`
 --     oben. Sonst reordert podman die beiden Ströme und die Paarung
 --     Ankündigung/ERROR sieht wie ein Befund aus.
---   * Sollstand: 64 Ankündigungen zu 64 ERROR-Zeilen. Verankert zählen, und auf
+--   * Sollstand: 65 Ankündigungen zu 65 ERROR-Zeilen. Verankert zählen, und auf
 --     der AUSGABE statt auf dieser Datei — deren Kopfkommentar enthält die
 --     Zeichenkette selbst und verfälscht die Zahl:
 --       grep -cE '^--- erwartet: FEHLER'  gegen  grep -cE '^psql:.*: ERROR:'
@@ -574,33 +574,8 @@ UPDATE payers SET iban = 'NO938601111' WHERE payer_id = '77777777-7777-7777-7777
 \echo '--- erwartet: FEHLER (BIC mit 9 Stellen — erlaubt sind nur 8 oder 11)'
 UPDATE payers SET bic = 'DEUTDEFF5' WHERE payer_id = '77777777-7777-7777-7777-777777777777';
 
--- SEPA-Mandat: Referenz und Unterschriftsdatum nur gemeinsam, nie ohne IBAN,
--- Referenz je Gläubiger-ID eindeutig (Begründung am Feld).
-UPDATE payers SET mandate_reference = 'WB-2026-0001', mandate_signed_at = '2026-03-01'
-    WHERE payer_id = '77777777-7777-7777-7777-777777777777';
-SELECT 'SEPA-Mandat: Referenz + Datum auf Zahler mit IBAN akzeptiert' AS pruefung;
-
-\echo '--- erwartet: FEHLER (Mandatsreferenz ohne Unterschriftsdatum)'
-UPDATE payers SET mandate_reference = 'WB-2026-0002', mandate_signed_at = NULL
-    WHERE payer_id = '77777777-7777-7777-7777-777777777777';
-
-\echo '--- erwartet: FEHLER (Unterschriftsdatum ohne Mandatsreferenz)'
-UPDATE payers SET mandate_reference = NULL, mandate_signed_at = '2026-03-01'
-    WHERE payer_id = '77777777-7777-7777-7777-777777777777';
-
-\echo '--- erwartet: FEHLER (leere Mandatsreferenz statt NULL)'
-UPDATE payers SET mandate_reference = '', mandate_signed_at = '2026-03-01'
-    WHERE payer_id = '77777777-7777-7777-7777-777777777777';
-
-\echo '--- erwartet: FEHLER (Mandat auf einem Zahler ohne IBAN)'
-UPDATE payers SET mandate_reference = 'WB-2026-0003', mandate_signed_at = '2026-03-01'
-    WHERE payer_id = '66666666-6666-6666-6666-666666666666';
-
-\echo '--- erwartet: FEHLER (Mandatsreferenz doppelt vergeben)'
-UPDATE payers SET iban = 'DE89370400440532013000', mandate_reference = 'WB-2026-0001', mandate_signed_at = '2026-04-01'
-    WHERE payer_id = '66666666-6666-6666-6666-666666666666';
-
--- Umgekehrt erlaubt: IBAN ohne Mandat (Import aus Optigem, Erfassung vor
+-- Erlaubt: IBAN ohne Mandat — das Mandat steht gar nicht mehr an dieser
+-- Tabelle, sondern je Kind an children (Import aus Optigem, Erfassung vor
 -- Vertragsabschluss).
 UPDATE payers SET iban = 'DE89370400440532013000' WHERE payer_id = '66666666-6666-6666-6666-666666666666';
 SELECT 'IBAN ohne Mandat akzeptiert' AS pruefung;
@@ -611,14 +586,62 @@ UPDATE children SET payer_id = '77777777-7777-7777-7777-777777777777'
 SELECT 'eine Zahlerin trägt mehrere Kinder' AS pruefung, count(*) AS kinder
     FROM children WHERE payer_id = '77777777-7777-7777-7777-777777777777';
 
+-- ---------------------------------------------------------------------------
+-- SEPA-Mandat am KIND, nicht am Zahler: je Kind ein eigenes Mandat, Referenz
+-- und Unterschriftsdatum nur gemeinsam, nie ohne Zahler:in, Referenz je
+-- Gläubiger-ID eindeutig (Begründung an children.mandate_reference).
+-- ---------------------------------------------------------------------------
+UPDATE children SET mandate_reference = 'WB-2026-0001', mandate_signed_at = '2026-03-01'
+    WHERE child_id = '22222222-2222-2222-2222-222222222222';
+SELECT 'SEPA-Mandat: Referenz + Datum am Kind mit Zahler:in akzeptiert' AS pruefung;
+
+-- Der eigentliche Grund für die Verlagerung: Geschwister derselben Zahlerin
+-- bekommen JE EIN eigenes Mandat. Am Zahler wäre hier nur eines möglich.
+UPDATE children SET mandate_reference = 'WB-2026-0002', mandate_signed_at = '2026-03-01'
+    WHERE child_id = 'aaaaaaaa-1111-1111-1111-111111111111';
+SELECT 'zwei Geschwister, eine Zahlerin, zwei Mandate' AS pruefung, count(*) AS mandate
+    FROM children WHERE payer_id = '77777777-7777-7777-7777-777777777777'
+      AND mandate_reference IS NOT NULL;
+
+\echo '--- erwartet: FEHLER (Mandatsreferenz ohne Unterschriftsdatum)'
+UPDATE children SET mandate_reference = 'WB-2026-0003', mandate_signed_at = NULL
+    WHERE child_id = '22222222-2222-2222-2222-222222222222';
+
+\echo '--- erwartet: FEHLER (Unterschriftsdatum ohne Mandatsreferenz)'
+UPDATE children SET mandate_reference = NULL, mandate_signed_at = '2026-03-01'
+    WHERE child_id = '22222222-2222-2222-2222-222222222222';
+
+\echo '--- erwartet: FEHLER (leere Mandatsreferenz statt NULL)'
+UPDATE children SET mandate_reference = '', mandate_signed_at = '2026-03-01'
+    WHERE child_id = '22222222-2222-2222-2222-222222222222';
+
+\echo '--- erwartet: FEHLER (Mandat an einem Kind ohne Zahler:in)'
+UPDATE children SET mandate_reference = 'WB-2026-0004', mandate_signed_at = '2026-03-01'
+    WHERE child_id = 'fe12fe12-1111-1111-1111-111111111111';
+
+\echo '--- erwartet: FEHLER (Mandatsreferenz doppelt vergeben)'
+UPDATE children SET mandate_reference = 'WB-2026-0001', mandate_signed_at = '2026-04-01'
+    WHERE child_id = 'aaaaaaaa-1111-1111-1111-111111111111';
+
 \echo '--- erwartet: FEHLER (Zahler:in löschen, solange ein Kind auf sie zeigt)'
 DELETE FROM payers WHERE payer_id = '77777777-7777-7777-7777-777777777777';
+
+-- Seit das Mandat am Kind steht, hängt auch die Zahler-Zuordnung daran: ein
+-- Mandat ohne Zahler:in ist nicht einziehbar, also lässt sich die Zuordnung
+-- nicht einzeln herauslösen.
+\echo '--- erwartet: FEHLER (Zahler:in entfernen, solange am Kind ein Mandat steht)'
+UPDATE children SET payer_id = NULL WHERE child_id = '22222222-2222-2222-2222-222222222222';
+
+-- Richtig ist, beides gemeinsam zu räumen — das Mandat gilt für genau diese
+-- Zahlerin und überlebt sie nicht.
+UPDATE children SET payer_id = NULL, mandate_reference = NULL, mandate_signed_at = NULL
+    WHERE child_id = '22222222-2222-2222-2222-222222222222';
+SELECT 'Zahler:in und Mandat gemeinsam entfernt' AS pruefung;
 
 -- Anders als früher blockiert die Zahlungsverantwortung das Löschen des KINDES
 -- nicht mehr: die Zuordnung ist eine Spalte an der Kindzeile und verschwindet
 -- mit ihr. Die payers-Zeile bleibt stehen und fällt als verwaist im selben Lauf
 -- (domains/stammdaten.md, „Löschmechanik").
-UPDATE children SET payer_id = NULL WHERE child_id = '22222222-2222-2222-2222-222222222222';
 
 -- ---------------------------------------------------------------------------
 -- Löschmechanik (domains/stammdaten.md): blockiert, wo die Löschung eine

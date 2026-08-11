@@ -155,6 +155,8 @@ CREATE TABLE children (
     child_id                   uuid PRIMARY KEY REFERENCES persons(person_id) ON DELETE CASCADE,
     family_id                  uuid REFERENCES families(family_id) ON DELETE RESTRICT,
     payer_id                   uuid,
+    mandate_reference          text UNIQUE CHECK (mandate_reference <> ''),
+    mandate_signed_at          date,
     nickname                   text,
     school_email               citext UNIQUE,
     date_of_birth              date NOT NULL,
@@ -192,7 +194,11 @@ CREATE TABLE children (
     CONSTRAINT children_previous_school_consent_check
         CHECK (previous_school_consent_at IS NULL OR previous_school_id IS NOT NULL),
     CONSTRAINT children_class_excludes_provisional_grade_check
-        CHECK (class_id IS NULL OR provisional_grade_level_id IS NULL)
+        CHECK (class_id IS NULL OR provisional_grade_level_id IS NULL),
+    CONSTRAINT children_mandate_complete_check
+        CHECK ((mandate_reference IS NULL) = (mandate_signed_at IS NULL)),
+    CONSTRAINT children_mandate_requires_payer_check
+        CHECK (mandate_reference IS NULL OR payer_id IS NOT NULL)
 );
 
 CREATE INDEX ON children (family_id);
@@ -269,16 +275,10 @@ CREATE TABLE payers (
     iban               text CHECK (iban ~ '^[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}$'),
     bic                text CHECK (bic ~ '^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$'),
     account_holder     text,
-    mandate_reference  text UNIQUE CHECK (mandate_reference <> ''),
-    mandate_signed_at  date,
     created_at         timestamptz NOT NULL DEFAULT now(),
     created_by         text NOT NULL,
     updated_at         timestamptz NOT NULL DEFAULT now(),
-    updated_by         text NOT NULL,
-    CONSTRAINT payers_mandate_complete_check
-        CHECK ((mandate_reference IS NULL) = (mandate_signed_at IS NULL)),
-    CONSTRAINT payers_mandate_requires_iban_check
-        CHECK (mandate_reference IS NULL OR iban IS NOT NULL)
+    updated_by         text NOT NULL
 );
 
 CREATE INDEX ON payers (billing_address_id);
