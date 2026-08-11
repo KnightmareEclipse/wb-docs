@@ -7,8 +7,8 @@ Erste Fachdomäne (`fachdomaenen.md` Abschnitt 7), Ziel: produktiv bis Schulanfa
 - **Pflicht:** pro Familie 5 reguläre + 1 Großputz-Termin/Jahr (Werte konfigurierbar, siehe Zyklus-Konfiguration unten) — unabhängig von Kinderzahl und Schulzweig (Grund-/Realschule). Eltern, die gleichzeitig Mitarbeiter sind, sind komplett befreit.
 - **Buchungsphase** (September, innerhalb des Buchungsfensters des Zyklus): Eltern wählen ihre Pflichttermine aus den verfügbaren Slots oder kaufen sich komplett frei. Absenden → Prüfung → Bestätigungsmail. Setzt voraus, dass der Jahreslauf (`domains/stammdaten.md`) vorher durchgelaufen ist — sonst tragen fortbestehende Klassen noch die Vorjahresstufe und die Abschlussklassen-Regel unten greift bei den falschen Familien. Er liegt Ende Juli und damit gut einen Monat davor; eng wird es nur bei den Einzelfällen daneben (Wiederholer, Quereinsteiger, Zugwechsler), die ein Mensch entscheidet und die bis zur Freigabe gesetzt sein müssen.
 - **Buchungsschluss:** Restplätze pro Termin werden automatisch an Familien mit noch offenem Bedarf verteilt (siehe „Restplatz-Zuordnung" unten), danach Rundmail an alle. Ab hier ist die Buchungsphase abgeschlossen, der Prozess geht in den laufenden Betrieb über.
-- **Laufender Betrieb** (Okt–Sept): Erinnerungsmail vor jedem zugeteilten Termin (Vorlaufzeiten konfigurierbar, aktuell 1 Woche + 1 Tag). Anwesenheit läuft über eine Papier-Unterschriftenliste vor Ort — bewusst nicht digital erfasst (siehe v1-Scope-Abgrenzung). Nichterscheinen zieht eine Strafzahlung nach sich (Betrag im Zyklus konfiguriert) und wird dafür ohnehin erfasst. Eltern können Termine tauschen oder sich nachträglich noch freikaufen; die Tauschanfrage kommt dabei regelmäßig als Antwort auf die Erinnerungsmail, deren `Reply-To` deshalb auf das Sekretariat zeigt (`idea/04-identitaet-zugriff.md`).
-- **Stundennachweis:** Der Schulvertrag verlangt ihn schriftlich. Er ergibt sich aus der Stundenzahl **je Terminart** mal den wahrgenommenen Terminen — abgeleitet, kein eigenes Feld. Die Dauer hängt an der Terminart und nicht am einzelnen Termin: ein Großputz dauert immer gleich lang, ein regulärer Putzdienst ebenso. Eine abweichende Dauer ist deshalb eine neue Terminart, keine Änderung der bestehenden — sonst verschöbe sie rückwirkend jeden schon geleisteten Termin. Die **Pflichtmenge** bleibt trotzdem in Terminen bemessen (5+1), nicht in Stunden: regulär und Großputz werden getrennt gezählt und sind nicht gegeneinander verrechenbar, ein Stundenkonto hätte also keinen Abnehmer.
+- **Laufender Betrieb** (Okt–Sept): Erinnerungsmail vor jedem zugeteilten Termin (Vorlaufzeiten konfigurierbar, aktuell 1 Woche + 1 Tag). Anwesenheit läuft über eine Papier-Unterschriftenliste vor Ort — bewusst nicht digital erfasst (siehe v1-Scope-Abgrenzung). Nichterscheinen zieht **immer** eine Strafzahlung nach sich (Betrag im Zyklus konfiguriert) und wird dafür ohnehin erfasst; aussetzen kann sie nur, wer die Berechtigung dazu hat (siehe „Erlass und Straf-Ausnahme"). Eltern können Termine tauschen oder einen zugeteilten Termin **vor seinem Datum** einzeln freikaufen (siehe „Freikauf & Zahlung"); die Tauschanfrage kommt dabei regelmäßig als Antwort auf die Erinnerungsmail, deren `Reply-To` deshalb auf das Sekretariat zeigt (`idea/04-identitaet-zugriff.md`).
+- **Kein Stundennachweis.** Der Putzdienst erfasst ausschließlich, ob eine Familie zu ihrem Termin erschienen ist oder nicht. Gezählt wird in **Terminen** (5+1), getrennt nach regulär und Großputz und nicht gegeneinander verrechenbar — ein Stundenkonto hätte keinen Abnehmer, und Stunden werden auch nirgends ausgewiesen. Der Stundenzettel, den es an der Schule gibt, gehört zum Bonussystem Elternmitarbeit und nicht hierher (siehe „Abgrenzung zum Elternbonus").
 - **Verantwortlich:** Sekretariat verwaltet den gesamten Prozess, inklusive Tausch-Abwicklung zwischen Eltern.
 
 ## Restplatz-Zuordnung nach Buchungsschluss
@@ -29,14 +29,46 @@ Kein reines Transportproblem, sondern ein Scheduling-Problem mit Nebenbedingunge
 
 ## Freikauf & Zahlung
 
-- Freikauf gilt für die **gesamte** Jahrespflicht (regulär + Großputz zusammen) — kein Teil-Freikauf einzelner Termine oder Terminarten.
-- **Bezahlt wird über Stripe**, wie die beiden anderen Selbstservice-Anlässe (`domains/grenzkarte.md`, Q3). Der Freikauf ist damit der erste gebaute Q3-Vorgang.
+**Zwei Freikäufe, verschiedene Zeitpunkte und verschiedene Bezugsobjekte** — nicht zwei Varianten desselben Vorgangs:
+
+- **Komplett-Freikauf in der Buchungsphase** (aktuell 210 €): gilt für die **gesamte** Jahrespflicht, regulär + Großputz zusammen. Ein Teil-Freikauf ist hier nicht wählbar — wer bucht, bucht seine Pflichttermine oder kauft sich ganz frei. Bezug: Familie × Zyklus.
+- **Einzel-Freikauf im laufenden Betrieb** (aktuell 35 €): für einen bereits zugeteilten Termin, den die Familie doch nicht wahrnehmen kann. **Nur vor dem Termindatum möglich** — danach ist es ein Nichterscheinen und damit ein Straffall. Bezug: die einzelne Zuteilung.
+
+- **Bezahlt wird über Stripe**, wie die beiden anderen Selbstservice-Anlässe (`domains/grenzkarte.md`, Q3). Der Komplett-Freikauf ist der erste gebaute Q3-Vorgang.
 - Die **manuelle Bestätigung durch die Buchhaltung** bleibt daneben bestehen — für Überweisung oder Bargeld. Nicht als Notnagel, sondern als der benannte legitime Ausweg, ohne den eine harte Sperre an dieser Schule umgangen statt eingehalten wird (`fachdomaenen.md` Abschnitt 3). Im Schema ist das dieselbe Zahlungszeile ohne Zahlungsreferenz.
 - Zahlungsstatus deshalb zahlungswegneutral: `payments.settled_at` leer heißt offen, gesetzt heißt bestätigt — ein Zeitpunkt statt eines Status-Lookups, gleiche Bauform wie `children.previous_school_consent_at`.
 
+Der Einzel-Freikauf ist der **benannte legitime Ausweg vor der Strafe**: wer rechtzeitig merkt, dass er nicht kann, zahlt den Einzelbetrag statt der Strafzahlung. Genau das hält die harte Strafregel unten durchsetzbar, statt sie umgehbar zu machen. Dass 6 × 35 € gerade die 210 € ergibt, ist der gemeinsame Preis je Einsatz und kein Hinweis darauf, dass beide derselbe Vorgang wären.
+
+Im Schema sind es zwei Tabellen: `cleaning_buyouts` (Familie × Zyklus, höchstens eine Zeile) und `cleaning_slot_buyouts` (je Zuteilung höchstens eine). Beide zeigen von `payments` aus über je eine eigene Vorgangs-Spalte, zusammengehalten von einem Entweder-oder-CHECK, der genau einen Anlass je Zahlung erzwingt — dieselbe Bauform, in der später Voranmeldung und Ferienprogramm dazukommen. `cleaning_assignments` hat dafür einen Surrogatschlüssel bekommen; das fachliche Paar (Termin, Familie) bleibt als UNIQUE daneben bestehen und trägt die Solver-Nebenbedingung weiter.
+
+**Die Frist ist bewusst nicht im Schema.** „Nur vor dem Termindatum" lässt sich als CHECK nicht ausdrücken, weil das Datum an `cleaning_slots` hängt, und bekommt auch keinen Trigger: die Prüfung gehört in dieselbe Backend-Stelle, die die Zahlung auslöst. Läge sie woanders, entstünde ein bezahlter Freikauf für einen bereits gelaufenen Termin.
+
+## Erlass und Straf-Ausnahme — enger Kreis, nach außen unsichtbar
+
+Zwei reale Ausnahmen, die dieselbe Anforderung tragen und deshalb zusammen stehen (`prozesse.md` Abschnitt 11):
+
+- **Erlass der Pflicht** unter besonderen Umständen (schwere Schicksalsschläge), im Einzelfall geregelt. Datenseitig ist das die abweichende Pflichtmenge 0 (siehe „Familie") — kein eigener Mechanismus.
+- **Aussetzen der Strafzahlung** bei Nichterscheinen. **Die Strafe selbst wird immer verhängt** — das System kennt keine Bedingung, unter der sie gar nicht erst entsteht, und die Regel bleibt damit für alle gleich. Wer die Berechtigung hat, kann sie danach **aussetzen bzw. überschreiben**; das ist ein eigener, festgehaltener Vorgang an der Zuteilung und keine stillschweigend unterlassene Forderung. Bewusst so herum: entsteht die Strafe nur manchmal, ist hinterher nicht unterscheidbar, ob jemand entschieden oder jemand vergessen hat.
+
+Im Schema sind das zwei Spalten an der Zuteilung: `no_show` sagt, dass jemand nicht erschienen ist, `penalty_waived_at`, dass die Strafe ausgesetzt wurde — ein Zeitpunkt, dieselbe Bauform wie `payments.settled_at`; wer sie gesetzt hat, trägt die ohnehin vorhandene Audit-Spalte. Ein CHECK verhindert die Aussetzung dort, wo gar keine Strafe entstanden ist. Die Forderung selbst zieht weiterhin die Buchhaltung (`domains/grenzkarte.md`, Q3) — Weltenbaum sagt ihr nur, was gilt.
+
+Beide dürfen **nur von einem sehr kleinen Personenkreis** ausgelöst werden und **nach außen nicht sichtbar** sein. Das ist keine Verfeinerung der Verwaltungsrolle, sondern der erste konkret benannte Fall der bisher offenen Differenzierung innerhalb des internen Personals (`domains/stammdaten.md`, „Datensichtbarkeit") — umzusetzen wie dort festgelegt über Rollen und Spalten-GRANTs, nicht über API-Filterung. „Nach außen unsichtbar" heißt dabei mindestens: der Grund steht nirgends in einer Ansicht, die Eltern oder andere Familien erreichen, und die abweichende Pflichtmenge erscheint gegenüber der Familie als ihre Pflichtmenge, nicht als Abweichung.
+
 ## Anteilige Pflicht bei unterjährigem Eintritt (Quereinsteiger)
 
-Sekretariat prorationiert nach verbleibendem Schuljahresanteil, Ferien fließen dabei mit ein. Ergebnis landet in der abweichenden Pflichtmenge je Familie und Zyklus (siehe „Familie"), nicht in einem eigenen Feld. Berechnungsgrundlage: die ohnehin gepflegte Putztermin-Liste des Zyklus statt ein separater Ferienkalender — *anteilige Termine = (Anzahl noch bevorstehender Putztermine ab Eintrittsdatum / Gesamtzahl Putztermine im Zyklus) × Pflichtanzahl*, aufgerundet auf ganze Termine. Rechnet Ferien automatisch mit ein, da die Termin-Liste sie schon ausspart. Die Formel trifft damit die geübte Praxis: bei Eintritt zum Halbjahr ergibt sie 3 + 1.
+Sekretariat prorationiert nach verbleibendem Schuljahresanteil, Ferien fließen dabei mit ein. Ergebnis landet in der abweichenden Pflichtmenge je Familie und Zyklus (siehe „Familie"), nicht in einem eigenen Feld. Berechnungsgrundlage: die ohnehin gepflegte Putztermin-Liste des Zyklus statt ein separater Ferienkalender — **je Terminart** gerechnet, weil die Pflichtmenge ohnehin zwei getrennte Werte sind:
+
+> *anteilige Termine = (noch bevorstehende Termine dieser Art ab Eintrittsdatum / Gesamtzahl der Termine dieser Art im Zyklus) × Pflichtanzahl dieser Art*, **abgerundet** auf ganze Termine — **mindestens 1, solange von dieser Art überhaupt noch ein Termin bevorsteht.**
+
+Rechnet Ferien automatisch mit ein, da die Termin-Liste sie schon ausspart. Bei Eintritt zum Halbjahr ergibt sie **2 + 1**, und das ist der bestätigte reale Wert: die Hälfte von 5 + 1 ist 2 + 1, nicht 3 + 1.
+
+Beide Teile der Rundungsregel werden gebraucht, und zwar an verschiedenen Stellen:
+
+- **Abrunden** trägt die reguläre Menge: 5 × 0,5 = 2,5 → 2. Aufrunden ergäbe 3 und verlangte einem halbjährigen Quereinsteiger mehr ab als die halbe Jahrespflicht.
+- **Die Untergrenze 1** trägt den Großputz: 1 × 0,5 = 0,5 → abgerundet 0, obwohl ein Großputz noch bevorsteht. Ein einzelner Termin lässt sich nicht anteilig leisten — er liegt voraus oder nicht. Ist der Großputz zum Eintritt bereits gelaufen, greift die Untergrenze nicht (es steht keiner mehr bevor) und es bleibt bei 0.
+
+Für die reguläre Menge feuert die Untergrenze praktisch nie: sie käme erst unter einem Zehntel Restjahr, und dort greift bereits der Stichtag.
 
 Dazu ein **Stichtag** (`cleaning_cycles.proration_cutoff_on`, real um die Pfingstferien): wer ab diesem Tag eintritt, bekommt für den laufenden Zyklus gar keine Pflicht mehr. Ohne ihn ergäbe die Formel bis zum letzten Termin immer noch aufgerundet einen Termin, und für die verbleibenden Schulwochen teilt die Schule niemanden mehr ein. Beides zusammen ist die ganze Regel — weitere Staffelungen gibt es nicht.
 
@@ -73,10 +105,10 @@ Befreit ist, wer **aktuell** beschäftigt ist: eine `employees`-Zeile zu dieser 
 Pro Schuljahr, als Daten in der DB, gepflegt über die Verwaltungsoberfläche — keine Code-Änderung/Redeploy für reine Werteänderungen (`rules.md` Abschnitt 3):
 - Zeitraum (Okt–Sept) und Buchungsfenster (Start/Ende im September)
 - Pflichtanzahl regulär + Großputz (aktuell 5+1, aber änderbar)
-- Freikauf-Betrag
-- Strafe-Betrag bei Nichterscheinen
+- Komplett-Freikauf-Betrag (aktuell 210 €) und Einzel-Freikauf-Betrag je Termin (aktuell 35 €)
+- Strafe-Betrag bei Nichterscheinen (aktuell 45 €, eingezogen über die Schulgeldabrechnung)
 - Stichtag der Quereinsteiger-Proration (siehe „Anteilige Pflicht bei unterjährigem Eintritt")
-- Konkrete Putztermine: Datum und Terminart — die Stundenzahl steht an der Terminart (trägt den Stundennachweis, siehe „Prozess"), die Kapazität wird gar nicht eingetragen, sondern in zwei Stufen berechnet (siehe „Restplatz-Zuordnung")
+- Konkrete Putztermine: Datum und Terminart — die Kapazität wird gar nicht eingetragen, sondern in zwei Stufen berechnet (siehe „Restplatz-Zuordnung")
 - **Terminarten als Werteliste**, nicht als festes Begriffspaar: es gab bereits einen Termin, an dem nur Gartenarbeit anstand und der trotzdem als regulärer Putzdienst zählte. Eine weitere Art ist damit eine Zeile statt einer Migration. Woran die Art nichts ändern darf, ist die Zählung — deshalb trägt jede Zeile zusätzlich ein nicht umbenennbares Kennzeichen, ob sie gegen die Großputz- oder gegen die reguläre Pflicht zählt (`cleaning_duty_types.is_major`; „Gartenarbeit" und „Regulär" tragen dasselbe)
 - Puffer für die Live-Obergrenze pro Termin während der Buchungsphase (siehe „Restplatz-Zuordnung")
 - Erinnerungsstufen als Liste („X Tage vorher") statt fester Felder — erweiterbar ohne Schema-Änderung
@@ -87,9 +119,14 @@ Bewusst nicht in der ersten Version, um bis September fertig zu werden:
 - Digitales Anwesenheits-Tracking — bleibt Papier-Unterschriftenliste
 - Self-Service-Terminaustausch für Eltern — bleibt Sekretariat-vermittelt
 
+## Abgrenzung zum Elternbonus
+
+Der Putzdienst **zählt nicht** in das Bonussystem Elternmitarbeit (`fachdomaenen.md` Abschnitt 6, Domäne 11). Beide sind Anlagen desselben Schulvertrags, messen aber Verschiedenes: hier **Termine**, dort **Stunden**. Der Stundenzettel und die anteilige Rückzahlung gehören ausschließlich zum Bonussystem; wahrgenommene Putztermine tragen nichts dazu bei, und aufgerufene Mitarbeitsstunden zählen umgekehrt nicht gegen die 5+1. Wo in der Schule von einem „Stundennachweis" die Rede ist, ist immer der des Bonussystems gemeint.
+
 ## Offene Punkte
 
 - Anfang September zu bestätigen: gilt die Großputz/regulär-selber-Tag-Ausschluss-Regel wirklich (siehe „Restplatz-Zuordnung")
+- Wer Erlass und Straf-Aussetzung auslösen darf, ist als Personenkreis noch nicht benannt (`TODO.md`) — dass es ein sehr kleiner ist, steht fest
 
 ## Technischer Punkt
 

@@ -23,7 +23,7 @@
 --   * Pro Lauf eine frische Datenbank.
 --   * stdout und stderr im Container zusammenführen (`sh -c '… 2>&1'`), sonst
 --     reordert podman die Ströme und die Paarung sieht wie ein Befund aus.
---   * Sollstand: 17 Ankündigungen zu 17 ERROR-Zeilen, jeweils unmittelbar
+--   * Sollstand: 19 Ankündigungen zu 19 ERROR-Zeilen, jeweils unmittelbar
 --     gepaart. Verankert und auf der AUSGABE zählen, nicht auf dieser Datei —
 --     deren Kopfkommentar enthält die Zeichenkette selbst:
 --       grep -cE '^--- erwartet: FEHLER'  gegen  grep -cE '^psql:.*: ERROR:'
@@ -38,19 +38,19 @@ INSERT INTO families (family_id) VALUES
     ('f0000000-0000-0000-0000-000000000002'),   -- kauft sich frei
     ('f0000000-0000-0000-0000-000000000003');   -- Standardfall, nur eine Zuteilung
 
-INSERT INTO cleaning_duty_types (duty_type_id, label, is_major, hours) VALUES
-    (1, 'Regulär', false, 3.0),
-    (2, 'Großputz', true, 5.0),
-    (3, 'Gartenarbeit', false, 3.0);   -- zählt als regulär, siehe domains/putzdienst.md
+INSERT INTO cleaning_duty_types (duty_type_id, label, is_major) VALUES
+    (1, 'Regulär', false),
+    (2, 'Großputz', true),
+    (3, 'Gartenarbeit', false);   -- zählt als regulär, siehe domains/putzdienst.md
 
 INSERT INTO cleaning_cycles
     (cycle_id, label, starts_on, ends_on, booking_opens_at, booking_closes_at,
-     required_regular, required_major, buyout_amount, no_show_penalty,
-     capacity_buffer, proration_cutoff_on)
+     required_regular, required_major, buyout_amount, slot_buyout_amount,
+     no_show_penalty, capacity_buffer, proration_cutoff_on)
 VALUES
     (1, '2026/27', '2026-10-01', '2027-09-30',
      '2026-09-01 00:00+02', '2026-09-20 23:59+02',
-     5, 1, 150.00, 75.00, 2, '2027-05-20');
+     5, 1, 150.00, 25.00, 75.00, 2, '2027-05-20');
 
 INSERT INTO cleaning_slots (slot_id, cycle_id, duty_type_id, slot_date) VALUES
     (10, 1, 1, '2026-10-17'),
@@ -76,34 +76,34 @@ SELECT 'buchungsfenster vor zyklusbeginn erlaubt' AS pruefung,
 
 \echo '--- erwartet: FEHLER (Zyklus endet vor seinem Beginn)'
 INSERT INTO cleaning_cycles (label, starts_on, ends_on, booking_opens_at, booking_closes_at,
-    required_regular, required_major, buyout_amount, no_show_penalty, capacity_buffer)
+    required_regular, required_major, buyout_amount, slot_buyout_amount, no_show_penalty, capacity_buffer)
 VALUES ('kaputt', '2028-10-01', '2028-09-30', '2028-09-01 00:00+02', '2028-09-20 00:00+02',
-        5, 1, 150.00, 75.00, 2);
+        5, 1, 150.00, 25.00, 75.00, 2);
 
 \echo '--- erwartet: FEHLER (Buchungsfenster schließt vor dem Öffnen)'
 INSERT INTO cleaning_cycles (label, starts_on, ends_on, booking_opens_at, booking_closes_at,
-    required_regular, required_major, buyout_amount, no_show_penalty, capacity_buffer)
+    required_regular, required_major, buyout_amount, slot_buyout_amount, no_show_penalty, capacity_buffer)
 VALUES ('kaputt2', '2028-10-01', '2029-09-30', '2028-09-20 00:00+02', '2028-09-01 00:00+02',
-        5, 1, 150.00, 75.00, 2);
+        5, 1, 150.00, 25.00, 75.00, 2);
 
 \echo '--- erwartet: FEHLER (Proration-Stichtag liegt außerhalb des Zyklus)'
 INSERT INTO cleaning_cycles (label, starts_on, ends_on, booking_opens_at, booking_closes_at,
-    required_regular, required_major, buyout_amount, no_show_penalty, capacity_buffer,
+    required_regular, required_major, buyout_amount, slot_buyout_amount, no_show_penalty, capacity_buffer,
     proration_cutoff_on)
 VALUES ('kaputt3', '2028-10-01', '2029-09-30', '2028-09-01 00:00+02', '2028-09-20 00:00+02',
-        5, 1, 150.00, 75.00, 2, '2030-01-01');
+        5, 1, 150.00, 25.00, 75.00, 2, '2030-01-01');
 
 \echo '--- erwartet: FEHLER (überlappender Zyklus — sonst ist jeder Termin mehrdeutig)'
 INSERT INTO cleaning_cycles (label, starts_on, ends_on, booking_opens_at, booking_closes_at,
-    required_regular, required_major, buyout_amount, no_show_penalty, capacity_buffer)
+    required_regular, required_major, buyout_amount, slot_buyout_amount, no_show_penalty, capacity_buffer)
 VALUES ('überlappt', '2027-09-01', '2028-08-31', '2027-09-01 00:00+02', '2027-09-20 00:00+02',
-        5, 1, 150.00, 75.00, 2);
+        5, 1, 150.00, 25.00, 75.00, 2);
 
 -- Lückenlos anschließender Zyklus ist dagegen erlaubt
 INSERT INTO cleaning_cycles (cycle_id, label, starts_on, ends_on, booking_opens_at, booking_closes_at,
-    required_regular, required_major, buyout_amount, no_show_penalty, capacity_buffer)
+    required_regular, required_major, buyout_amount, slot_buyout_amount, no_show_penalty, capacity_buffer)
 VALUES (2, '2027/28', '2027-10-01', '2028-09-30', '2027-09-01 00:00+02', '2027-09-20 00:00+02',
-        5, 1, 150.00, 75.00, 2);
+        5, 1, 150.00, 25.00, 75.00, 2);
 
 -- ---------------------------------------------------------------------------
 -- Erinnerungsstufen
@@ -125,21 +125,13 @@ INSERT INTO cleaning_reminder_stages (cycle_id, days_before) VALUES (1, 0);
 INSERT INTO cleaning_slots (slot_id, cycle_id, duty_type_id, slot_date)
     VALUES (14, 1, 2, '2026-10-17');
 
--- Die Stundenzahl hängt an der Terminart, nicht am Termin: eine Terminart ohne
--- Dauer trägt den Stundennachweis nicht (Begründung an cleaning_duty_types).
-\echo '--- erwartet: FEHLER (Terminart ohne Stundenzahl)'
-INSERT INTO cleaning_duty_types (label, is_major) VALUES ('Ohne Dauer', false);
-
-\echo '--- erwartet: FEHLER (Terminart mit Dauer null)'
-INSERT INTO cleaning_duty_types (label, is_major, hours) VALUES ('Null Stunden', false, 0);
-
 -- ---------------------------------------------------------------------------
 -- Pflichtmenge je Familie
 -- ---------------------------------------------------------------------------
 
--- Quereinstieg zum Halbjahr: die Proration ergibt 3 + 1
+-- Quereinstieg zum Halbjahr: die Proration ergibt 2 + 1 (die Hälfte von 5 + 1)
 INSERT INTO cleaning_family_duties (cycle_id, family_id, required_regular, required_major, reason)
-    VALUES (1, 'f0000000-0000-0000-0000-000000000001', 3, 1, 'Quereinstieg 02/2027');
+    VALUES (1, 'f0000000-0000-0000-0000-000000000001', 2, 1, 'Quereinstieg 02/2027');
 
 -- Eintritt nach dem Stichtag: 0 + 0 ist ein gültiger Wert, nicht „Standard"
 INSERT INTO cleaning_family_duties (cycle_id, family_id, required_regular, required_major, reason)
@@ -170,6 +162,19 @@ INSERT INTO cleaning_assignments (slot_id, family_id)
 UPDATE cleaning_assignments SET no_show = true
     WHERE slot_id = 12 AND family_id = 'f0000000-0000-0000-0000-000000000001';
 
+-- Straf-Aussetzung: die Strafe entsteht immer, wer die Berechtigung hat, setzt
+-- sie danach aus — ein festgehaltener Gegenvorgang, keine unterlassene
+-- Forderung (domains/putzdienst.md, „Erlass und Straf-Ausnahme").
+UPDATE cleaning_assignments SET penalty_waived_at = now()
+    WHERE slot_id = 12 AND family_id = 'f0000000-0000-0000-0000-000000000001';
+SELECT 'strafe ausgesetzt, nichterscheinen bleibt stehen' AS pruefung, no_show, penalty_waived_at IS NOT NULL AS ausgesetzt
+  FROM cleaning_assignments
+ WHERE slot_id = 12 AND family_id = 'f0000000-0000-0000-0000-000000000001';
+
+\echo '--- erwartet: FEHLER (Strafe aussetzen, wo gar keine entstanden ist)'
+UPDATE cleaning_assignments SET penalty_waived_at = now()
+    WHERE slot_id = 10 AND family_id = 'f0000000-0000-0000-0000-000000000001';
+
 \echo '--- erwartet: FEHLER (Termin mit Zuteilungen löschen ist eine echte Entscheidung)'
 DELETE FROM cleaning_slots WHERE slot_id = 10;
 
@@ -188,15 +193,6 @@ SELECT 'pflichterfuellung' AS pruefung,
   JOIN cleaning_slots s      ON s.slot_id = a.slot_id
   JOIN cleaning_duty_types t ON t.duty_type_id = s.duty_type_id
  WHERE a.family_id = 'f0000000-0000-0000-0000-000000000001' AND s.cycle_id = 1;
-
--- Stundennachweis ist abgeleitet, kein Feld — seit die Dauer an der Terminart
--- hängt, ist er ein Join über cleaning_duty_types statt eine Summe am Termin.
-SELECT 'stundennachweis' AS pruefung, coalesce(sum(t.hours), 0) AS stunden
-  FROM cleaning_assignments a
-  JOIN cleaning_slots s      ON s.slot_id = a.slot_id
-  JOIN cleaning_duty_types t ON t.duty_type_id = s.duty_type_id
- WHERE a.family_id = 'f0000000-0000-0000-0000-000000000001'
-   AND s.cycle_id = 1 AND NOT a.no_show;
 
 -- ---------------------------------------------------------------------------
 -- Freikauf und Zahlung
@@ -221,6 +217,29 @@ INSERT INTO payments (cleaning_buyout_id, amount)
 
 \echo '--- erwartet: FEHLER (Freikauf mit Zahlung löschen)'
 DELETE FROM cleaning_buyouts WHERE buyout_id = 'b0000000-0000-0000-0000-000000000001';
+
+\echo '--- erwartet: FEHLER (Zahlung ohne jeden Anlass)'
+INSERT INTO payments (amount) VALUES (150.00);
+
+-- Einzel-Freikauf eines zugeteilten Termins: der Ausweg vor der Strafe für
+-- eine Familie, die doch nicht kann (domains/putzdienst.md). Eigener Vorgang
+-- mit eigenem Betrag, Bezug ist die Zuteilung statt Familie × Zyklus.
+INSERT INTO cleaning_slot_buyouts (slot_buyout_id, assignment_id)
+    SELECT 'bb000000-0000-0000-0000-000000000001', assignment_id FROM cleaning_assignments
+     WHERE slot_id = 13 AND family_id = 'f0000000-0000-0000-0000-000000000003';
+INSERT INTO payments (cleaning_slot_buyout_id, amount, reference)
+    VALUES ('bb000000-0000-0000-0000-000000000001', 25.00, 'pi_3QexampleSlotBuyout');
+SELECT 'einzel-freikauf mit eigener zahlung' AS pruefung, amount FROM payments
+ WHERE cleaning_slot_buyout_id = 'bb000000-0000-0000-0000-000000000001';
+
+\echo '--- erwartet: FEHLER (derselbe Termin zweimal freigekauft)'
+INSERT INTO cleaning_slot_buyouts (assignment_id)
+    SELECT assignment_id FROM cleaning_assignments
+     WHERE slot_id = 13 AND family_id = 'f0000000-0000-0000-0000-000000000003';
+
+\echo '--- erwartet: FEHLER (Zahlung auf zwei Anlässe gleichzeitig)'
+INSERT INTO payments (cleaning_buyout_id, cleaning_slot_buyout_id, amount)
+    VALUES ('b0000000-0000-0000-0000-000000000001', 'bb000000-0000-0000-0000-000000000001', 25.00);
 
 -- Offen, bis die Buchhaltung bzw. Stripe bestätigt
 SELECT 'zahlung offen' AS pruefung, settled_at IS NULL AS offen, reference IS NOT NULL AS hat_referenz
