@@ -1,0 +1,149 @@
+// Stammdaten — nur Beziehungen
+//
+// Erzeugt von domains/dbml/generate.sh aus domains/stammdaten-schema.sql.
+// ABGELEITET — nicht von Hand pflegen. Quelle ist die geladene Datenbank,
+// nicht diese Datei; Spalten, Typen und Constraints stehen in der .sql.
+//
+// Je Tabelle stehen ausschließlich Primär- und Fremdschlüssel, damit die
+// Kanten lesbar bleiben. Tabellen anderer Domänen sind Stubs und tragen
+// ihre Herkunft als Notiz.
+
+Table addresses {
+  address_id uuid [pk]
+  country_id integer
+}
+
+Table child_contacts {
+  child_id uuid [pk]
+  contact_id uuid [pk]
+}
+
+Table children {
+  child_id uuid [pk]
+  birth_country_id integer
+  class_id integer
+  denomination_id integer
+  family_id uuid
+  home_language_id integer
+  nationality_id integer
+  payer_id uuid
+  previous_school_id integer
+  provisional_grade_level_id integer
+  second_nationality_id integer
+}
+
+Table classes {
+  class_id integer [pk]
+  class_teacher_id uuid
+  grade_level_id integer
+  school_branch_id integer
+}
+
+Table countries {
+  country_id integer [pk]
+}
+
+Table denominations {
+  denomination_id integer [pk]
+}
+
+Table employees {
+  employee_id uuid [pk]
+}
+
+Table families {
+  family_id uuid [pk]
+}
+
+Table family_guardians {
+  family_id uuid [pk]
+  guardian_id uuid [pk]
+  guardian_category_id integer
+}
+
+Table genders {
+  gender_id integer [pk]
+}
+
+Table grade_levels {
+  grade_level_id integer [pk]
+  school_branch_id integer
+}
+
+Table guardian_categories {
+  guardian_category_id integer [pk]
+}
+
+Table guardians {
+  guardian_id uuid [pk]
+}
+
+Table languages {
+  language_id integer [pk]
+}
+
+Table payers {
+  payer_id uuid [pk]
+  billing_address_id uuid
+}
+
+Table persons {
+  person_id uuid [pk]
+  address_id uuid
+  gender_id integer
+  salutation_id integer
+}
+
+Table phone_numbers {
+  phone_number_id uuid [pk]
+  person_id uuid
+  phone_type_id integer
+}
+
+Table phone_types {
+  phone_type_id integer [pk]
+}
+
+Table previous_schools {
+  previous_school_id integer [pk]
+}
+
+Table salutations {
+  salutation_id integer [pk]
+}
+
+Table school_branches {
+  school_branch_id integer [pk]
+}
+
+Ref: addresses.country_id > countries.country_id
+Ref: child_contacts.child_id > children.child_id
+Ref: child_contacts.contact_id > persons.person_id
+Ref: children.birth_country_id > countries.country_id
+Ref: children.child_id > persons.person_id
+Ref: children.class_id > classes.class_id
+Ref: children.denomination_id > denominations.denomination_id
+Ref: children.family_id > families.family_id
+Ref: children.home_language_id > languages.language_id
+Ref: children.nationality_id > countries.country_id
+Ref: children.payer_id > payers.payer_id
+Ref: children.previous_school_id > previous_schools.previous_school_id
+Ref: children.provisional_grade_level_id > grade_levels.grade_level_id
+Ref: children.second_nationality_id > countries.country_id
+Ref: classes.class_teacher_id > employees.employee_id
+Ref: classes.grade_level_id > grade_levels.grade_level_id
+Ref: classes.school_branch_id > grade_levels.school_branch_id
+Ref: classes.school_branch_id > school_branches.school_branch_id
+Ref: employees.employee_id > persons.person_id
+Ref: family_guardians.family_id > families.family_id
+Ref: family_guardians.guardian_category_id > guardian_categories.guardian_category_id
+Ref: family_guardians.guardian_id > guardians.guardian_id
+Ref: grade_levels.school_branch_id > school_branches.school_branch_id
+Ref: guardians.guardian_id > persons.person_id
+Ref: payers.billing_address_id > addresses.address_id
+Ref: payers.payer_id > persons.person_id
+Ref: persons.address_id > addresses.address_id
+Ref: persons.gender_id > genders.gender_id
+Ref: persons.salutation_id > salutations.salutation_id
+Ref: phone_numbers.person_id > persons.person_id
+Ref: phone_numbers.phone_type_id > phone_types.phone_type_id

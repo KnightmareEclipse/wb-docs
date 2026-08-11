@@ -39,7 +39,7 @@ Diese Datei wird automatisch geladen — verlinkt werden muss nichts, es genügt
 - **Übertragung nach `wb-backend`:** `TODO-SESSIONS.md`, `project-parts.md`, `idea/04-identitaet-zugriff.md`.
 - **Infrastruktur:** `pipeline/runbook.md`, `idea/03-container-anwendung.md`, `idea/05-backup-recovery.md`, `TODO.md`.
 
-Die Begründungen des Datenmodells stehen als **Kommentare in der `.sql`**, nicht in der Prosa — wer nur `domains/stammdaten-schema-plain.sql` liest, sieht dieselbe Struktur ohne jedes „warum" und schlägt zuverlässig vor, was bereits verworfen wurde. Die `-plain.sql` ist abgeleitet und nie die Lesefassung. Eine zweite Darstellung des Schemas wird nicht gepflegt: fürs Diagramm lädt pgModeler die Schemata in eine Wegwerf-Datenbank und leitet die Ansicht daraus ab (Befehle im Kopf der Prüfskripte), sodass nichts still neben der `.sql` herlaufen kann.
+Die Begründungen des Datenmodells stehen als **Kommentare in der `.sql`**, nicht in der Prosa — wer nur `domains/stammdaten-schema-plain.sql` liest, sieht dieselbe Struktur ohne jedes „warum" und schlägt zuverlässig vor, was bereits verworfen wurde. Die `-plain.sql` ist abgeleitet und nie die Lesefassung. Eine zweite Darstellung des Schemas wird nicht **gepflegt** — abgeleitet werden darf sie. Beide Wege gehen gegen eine Wegwerf-Datenbank und nie gegen eine Handfassung: fürs vollständige Diagramm lädt pgModeler die Schemata dort hinein (Befehle im Kopf der Prüfskripte), und für die reine Beziehungsansicht je Domäne erzeugt `domains/dbml/generate.sh` die `.dbml`-Dateien in `domains/dbml/`. Die tragen bewusst nur Primär- und Fremdschlüssel, keine Spaltenwahrheit, und werden wie `-plain.sql` neu erzeugt statt von Hand geändert. Nach jeder Schemaänderung einmal laufen lassen.
 
 **Grenze zwischen `.sql` und `.md`** — sie entscheidet, wo eine Begründung hingehört, und verhindert, dass dieselbe zweimal dasteht:
 
@@ -54,7 +54,7 @@ Zieldatenbank ist **PostgreSQL 18** (19 erscheint erst um September/Oktober 2026
 
 Eine Schemaänderung ist erst fertig, wenn alle abhängigen Dateien mitgezogen sind — diese Liste steht nur hier, und eine vergessene Datei fällt sonst monatelang nicht auf:
 
-`…-schema.sql` → `-plain.sql` (regenerieren, nie von Hand — `sed`-Befehl in `domains/stammdaten.md`) → Prüfskript **samt Sollstand** → `domains/stammdaten-schema-benchmark.md` und die Dateien in `domains/stammdaten-benchmark/` → die betroffenen `.md` → `domains/grenzkarte.md`.
+`…-schema.sql` → `-plain.sql` (regenerieren, nie von Hand — `sed`-Befehl in `domains/stammdaten.md`) → `domains/dbml/generate.sh` → Prüfskript **samt Sollstand** → `domains/stammdaten-schema-benchmark.md` und die Dateien in `domains/stammdaten-benchmark/` → die betroffenen `.md` → `domains/grenzkarte.md`.
 
 Danach **einmal** validieren, nicht nach jedem Einzelpunkt: alle fünf Prüfskripte in Ladereihenfolge — Stammdaten (65/65), Putzdienst (19/19), Anmeldung (31/31), Ferien (9/9), Gesundheit (11/11); Aufruf und Sollstand stehen im jeweiligen Kopfkommentar. Bei Spaltenänderungen an Stammdaten zusätzlich der Benchmark-Generator mit `n_children=500`/`n_classes=20` — die Zeilenzahlen müssen denen aus `domains/stammdaten-schema-benchmark.md` (Durchlauf 1) entsprechen.
 

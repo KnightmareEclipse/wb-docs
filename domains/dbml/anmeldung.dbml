@@ -1,0 +1,189 @@
+// Anmeldung — nur Beziehungen
+//
+// Erzeugt von domains/dbml/generate.sh aus domains/anmeldung-schema.sql.
+// ABGELEITET — nicht von Hand pflegen. Quelle ist die geladene Datenbank,
+// nicht diese Datei; Spalten, Typen und Constraints stehen in der .sql.
+//
+// Je Tabelle stehen ausschließlich Primär- und Fremdschlüssel, damit die
+// Kanten lesbar bleiben. Tabellen anderer Domänen sind Stubs und tragen
+// ihre Herkunft als Notiz.
+
+Table application_programs {
+  application_id uuid [pk]
+  school_program_id integer [pk]
+}
+
+Table application_statuses {
+  application_status_id integer [pk]
+}
+
+Table applications {
+  application_id uuid [pk]
+  application_status_id integer
+  child_id uuid
+  enrollment_category_id integer
+  filled_by_person_id uuid
+  fit_assessment_id integer
+  interview_slot_id integer
+  kindergarten_id integer
+  kindergarten_recommendation_id integer
+  own_recommendation_id integer
+  primary_school_recommendation_id integer
+  target_grade_level_id integer
+}
+
+Table care_module_booking_days {
+  care_module_booking_id uuid [pk]
+  weekday smallint [pk]
+}
+
+Table care_module_bookings {
+  care_module_booking_id uuid [pk]
+  care_module_id integer
+  child_id uuid
+  contract_id uuid
+}
+
+Table care_modules {
+  care_module_id integer [pk]
+  school_branch_id integer
+}
+
+Table consent_purposes {
+  consent_purpose_id integer [pk]
+}
+
+Table consents {
+  consent_id uuid [pk]
+  child_id uuid
+  consent_purpose_id integer
+  person_id uuid
+  signature_id uuid
+}
+
+Table contract_responses {
+  contract_id uuid [pk]
+  person_id uuid [pk]
+}
+
+Table contracts {
+  contract_id uuid [pk]
+  application_id uuid
+}
+
+Table document_types {
+  document_type_id integer [pk]
+}
+
+Table documents {
+  document_id uuid [pk]
+  application_id uuid
+  child_id uuid
+  document_type_id integer
+}
+
+Table enrollment_categories {
+  enrollment_category_id integer [pk]
+}
+
+Table enrollment_cutoffs {
+  enrollment_cutoff_id integer [pk]
+}
+
+Table fit_assessments {
+  fit_assessment_id integer [pk]
+}
+
+Table interview_days {
+  interview_day_id integer [pk]
+  school_branch_id integer
+}
+
+Table interview_slots {
+  interview_slot_id integer [pk]
+  interview_day_id integer
+}
+
+Table kindergarten_recommendations {
+  kindergarten_recommendation_id integer [pk]
+}
+
+Table kindergartens {
+  kindergarten_id integer [pk]
+}
+
+Table school_programs {
+  school_program_id integer [pk]
+}
+
+Table school_recommendations {
+  school_recommendation_id integer [pk]
+}
+
+Table signatures {
+  signature_id uuid [pk]
+  document_id uuid
+  person_id uuid
+}
+
+Table children [note: 'aus Stammdaten'] {
+  child_id uuid
+}
+
+Table grade_levels [note: 'aus Stammdaten'] {
+  grade_level_id uuid
+}
+
+Table payments [note: 'aus Putzdienst'] {
+  application_id uuid
+}
+
+Table persons [note: 'aus Stammdaten'] {
+  person_id uuid
+}
+
+Table school_branches [note: 'aus Stammdaten'] {
+  school_branch_id uuid
+}
+
+Ref: application_programs.application_id > applications.application_id
+Ref: application_programs.school_program_id > school_programs.school_program_id
+Ref: applications.application_status_id > application_statuses.application_status_id
+Ref: applications.child_id > children.child_id
+Ref: applications.enrollment_category_id > enrollment_categories.enrollment_category_id
+Ref: applications.filled_by_person_id > persons.person_id
+Ref: applications.fit_assessment_id > fit_assessments.fit_assessment_id
+Ref: applications.interview_slot_id > interview_slots.interview_slot_id
+Ref: applications.kindergarten_id > kindergartens.kindergarten_id
+Ref: applications.kindergarten_recommendation_id > kindergarten_recommendations.kindergarten_recommendation_id
+Ref: applications.own_recommendation_id > school_recommendations.school_recommendation_id
+Ref: applications.primary_school_recommendation_id > school_recommendations.school_recommendation_id
+Ref: applications.target_grade_level_id > grade_levels.grade_level_id
+Ref: care_module_booking_days.care_module_booking_id > care_module_bookings.care_module_booking_id
+Ref: care_module_bookings.care_module_id > care_modules.care_module_id
+Ref: care_module_bookings.child_id > children.child_id
+Ref: care_module_bookings.contract_id > contracts.contract_id
+Ref: care_modules.school_branch_id > school_branches.school_branch_id
+Ref: consents.child_id > children.child_id
+Ref: consents.consent_purpose_id > consent_purposes.consent_purpose_id
+Ref: consents.person_id > persons.person_id
+Ref: consents.signature_id > signatures.signature_id
+Ref: contract_responses.contract_id > contracts.contract_id
+Ref: contract_responses.person_id > persons.person_id
+Ref: contracts.application_id > applications.application_id
+Ref: documents.application_id > applications.application_id
+Ref: documents.child_id > children.child_id
+Ref: documents.document_type_id > document_types.document_type_id
+Ref: interview_days.school_branch_id > school_branches.school_branch_id
+Ref: interview_slots.interview_day_id > interview_days.interview_day_id
+Ref: payments.application_id > applications.application_id
+Ref: signatures.document_id > documents.document_id
+Ref: signatures.person_id > persons.person_id
+
+TableGroup "Fremde Domänen" {
+  children
+  grade_levels
+  payments
+  persons
+  school_branches
+}
