@@ -1,6 +1,6 @@
 # yggdrasil
 
-Konzept- und Architektur-Doku für einen selbstverwalteten, DSGVO-konformen Datenbank-/API-VPS (Hetzner) für Schulprozesse — Docker-Netzwerk-Isolation, externer OIDC-Identitätsanbieter, verschlüsselte Backups. Das VPS/Host-Setup (Firewall, Docker-Engine) ist fertig umgesetzt. Die App-Stack-Ebene darüber ist architektonisch fixiert (Datenbank: PostgreSQL, Backend: FastAPI, Reverse-Proxy: Caddy, Backup: `pg_dump`+`age`, Identitätsanbieter: M365/Entra-ID, kein externes CI/CD — Git-Push-Auslöser direkt auf der VPS) und wird im App-Stack-Repo (`wb-backend`) umgesetzt: Compose-Skeleton und Backend-Grundgerüst stehen, VPS-seitiger Deploy-Auslöser noch offen. Details in `idea/`, `pipeline/`, `project-parts.md`, `fachdomaenen.md`, `domains/`. Die Planungsprinzipien, denen alle drei folgen, stehen in `rules.md` — jede neue Entscheidung in diesem Repo hält sich daran, insbesondere die dort explizit benannte Vertrauensgrenze (Abschnitt 2): Root-Admins und Hetzner selbst gelten als vertrauenswürdig, das Bedrohungsmodell zielt auf externe Angreifer.
+Konzept- und Architektur-Doku für einen selbstverwalteten, DSGVO-konformen Datenbank-/API-VPS (Hetzner) für Schulprozesse — Docker-Netzwerk-Isolation, externer OIDC-Identitätsanbieter, verschlüsselte Backups. Das VPS/Host-Setup (Firewall, Docker-Engine) ist fertig umgesetzt. Die App-Stack-Ebene darüber ist architektonisch fixiert (Datenbank: PostgreSQL, Backend: FastAPI, Reverse-Proxy: Caddy, Backup: `pg_dump`+`age`, Identitätsanbieter: M365/Entra-ID, kein externes CI/CD — Git-Push-Auslöser direkt auf der VPS) und wird im App-Stack-Repo (`wb-backend`) umgesetzt: Compose-Skeleton und Backend-Grundgerüst stehen, VPS-seitiger Deploy-Auslöser noch offen. Details in `idea/`, `pipeline/`, `project-parts.md`, `fachdomaenen.md`, `prozesse.md`, `domains/`. Die Planungsprinzipien, denen alle drei folgen, stehen in `rules.md` — jede neue Entscheidung in diesem Repo hält sich daran, insbesondere die dort explizit benannte Vertrauensgrenze (Abschnitt 2): Root-Admins und Hetzner selbst gelten als vertrauenswürdig, das Bedrohungsmodell zielt auf externe Angreifer.
 
 Umsetzung erfolgt in getrennten Repos (VPS-Repo, App-Stack-Repo, Teams-Apps-Repo, Static-Web-App-Repos) — siehe „Repo-Struktur" in `project-parts.md`.
 
@@ -23,9 +23,9 @@ Das VPS-Repo (Phasen 1–3 in `pipeline/`: Provisioning, Firewall/SSH-Härtung, 
 
 Die App-Stack-Architektur ist fixiert (`project-parts.md`) und wird im App-Stack-Repo (`wb-backend`) umgesetzt: Compose-Skeleton (DB/Backend/Caddy) und FastAPI-Grundgerüst (Health-Endpoint, JWT-Validierung, Alembic) stehen und laufen lokal Ende-zu-Ende. Noch nicht implementiert ist der OTP-Fallback-Pfad für externe Nutzer; offen bleiben die CORS-Policy und alles unter Teams-Apps-Repo (`project-parts.md` Abschnitt 10).
 
-Gebaut sind die Schemata **Stammdaten** und **Putzdienst**, jeweils samt Prüfskript, dazu ein Performance-Benchmark (`domains/`). Die Entitäten- und Zuständigkeitsgrenzen **aller** Fachdomänen stehen vorab in `domains/grenzkarte.md` — bewusst ohne Spalten: eine Spalte lässt sich nachtragen, eine falsch gezogene Grenze nicht, und ohne diese Karte modellieren mehrere Domänen denselben Sachverhalt je einmal. Jedes neue Domänenschema entsteht gegen sie; Stammdaten sind ab dem Vollimport Ende August 2026 eingefroren (Definition dort).
+Gebaut sind die Schemata **Stammdaten**, **Putzdienst**, **Anmeldung** (Voranmeldung/Anmeldegespräch/Schulvertrag samt den Querschnitts-Entitäten Zustimmung und Dokument/Signatur), **Ferienanmeldung** und **Gesundheitsdaten**, jeweils samt Prüfskript, dazu ein Performance-Benchmark (`domains/`). Die Entitäten- und Zuständigkeitsgrenzen **aller** Fachdomänen stehen vorab in `domains/grenzkarte.md` — bewusst ohne Spalten: eine Spalte lässt sich nachtragen, eine falsch gezogene Grenze nicht, und ohne diese Karte modellieren mehrere Domänen denselben Sachverhalt je einmal. Jedes neue Domänenschema entsteht gegen sie; Stammdaten sind ab dem Vollimport Ende August 2026 eingefroren (Definition dort).
 
-**Nächster Schritt:** Übertragung der beiden Schemata nach SQLAlchemy/Alembic in `wb-backend` (`TODO-SESSIONS.md`) — der engere Pfad bis September 2026, nicht der Entwurf. Was daneben bis dahin stehen muss, steht als kritischer Pfad in `fachdomaenen.md` Abschnitt 7 und in `TODO.md`; der Datenmodell-Entwurf blockiert nicht darauf, da lokale Entwicklung gegen Docker Compose läuft (`rules.md` Abschnitt 9).
+**Nächster Schritt:** Übertragung der fünf Schemata nach SQLAlchemy/Alembic in `wb-backend` (`TODO-SESSIONS.md`) — der engere Pfad bis September 2026, nicht der Entwurf. Was daneben bis dahin stehen muss, steht als kritischer Pfad in `fachdomaenen.md` Abschnitt 7 und in `TODO.md`; der Datenmodell-Entwurf blockiert nicht darauf, da lokale Entwicklung gegen Docker Compose läuft (`rules.md` Abschnitt 9).
 
 ## Einstieg in eine Session
 
@@ -33,8 +33,9 @@ Diese Datei wird automatisch geladen — verlinkt werden muss nichts, es genügt
 
 - **Immer bei Schema- oder Domänenarbeit:** `rules.md` (die Maßstäbe, besonders die Ladder aus §1 **samt der ausdrücklichen Ausnahme für DB-Schema-Design**), `domains/grenzkarte.md` (wem welche Tatsache gehört, Freeze-Definition, weiße Flecken), `domains/stammdaten-schema.sql`, `domains/stammdaten.md`.
 - **Begriffe:** `glossar.md` — Rollen (Infra-Admin vs. Admin vs. Verwaltung) und Kernbegriffe, repo-übergreifend gültig. Kurz, aber die einzige Quelle für das Rollen-Vokabular.
-- **Neue Fachdomäne:** dazu `fachdomaenen.md` (Scope und Stammdaten-Berührung je Domäne), `PROZESSE-ROH.md` (die realen Formularfeldlisten) und die vier Anmeldetag-Checklisten in `~/Downloads/CHECKLISTEN/`.
+- **Neue Fachdomäne:** dazu `fachdomaenen.md` (Scope und Stammdaten-Berührung je Domäne), `prozesse.md` (Ist-Ablauf und die realen Formularfeldlisten je Prozess) und die vier Anmeldetag-Checklisten in `~/Downloads/CHECKLISTEN/`.
 - **Putzdienst:** `domains/putzdienst.md`, `domains/putzdienst-schema.sql`.
+- **Anmeldung/Ferien/Gesundheit:** `domains/anmeldung.md`, `domains/anmeldung-schema.sql`, `domains/ferien.md`, `domains/ferien-schema.sql`, `domains/gesundheit.md`, `domains/gesundheit-schema.sql`. Beide setzen Stammdaten und Putzdienst voraus und werden nach ihnen geladen — Ladereihenfolge im Kopf der jeweiligen Prüfskripte.
 - **Übertragung nach `wb-backend`:** `TODO-SESSIONS.md`, `project-parts.md`, `idea/04-identitaet-zugriff.md`.
 - **Infrastruktur:** `pipeline/runbook.md`, `idea/03-container-anwendung.md`, `idea/05-backup-recovery.md`, `TODO.md`.
 
@@ -55,7 +56,7 @@ Eine Schemaänderung ist erst fertig, wenn alle abhängigen Dateien mitgezogen s
 
 `…-schema.sql` → `-plain.sql` (regenerieren, nie von Hand — `sed`-Befehl in `domains/stammdaten.md`) → Prüfskript **samt Sollstand** → `domains/stammdaten-schema-benchmark.md` und die Dateien in `domains/stammdaten-benchmark/` → die betroffenen `.md` → `domains/grenzkarte.md`.
 
-Danach **einmal** validieren, nicht nach jedem Einzelpunkt: beide Prüfskripte (Aufruf und Sollstand im jeweiligen Kopfkommentar) und bei Spaltenänderungen der Benchmark-Generator mit `n_children=500`/`n_classes=20` — die Zeilenzahlen müssen denen aus `domains/stammdaten-schema-benchmark.md` (Durchlauf 1) entsprechen.
+Danach **einmal** validieren, nicht nach jedem Einzelpunkt: alle fünf Prüfskripte in Ladereihenfolge — Stammdaten (65/65), Putzdienst (19/19), Anmeldung (31/31), Ferien (9/9), Gesundheit (11/11); Aufruf und Sollstand stehen im jeweiligen Kopfkommentar. Bei Spaltenänderungen an Stammdaten zusätzlich der Benchmark-Generator mit `n_children=500`/`n_classes=20` — die Zeilenzahlen müssen denen aus `domains/stammdaten-schema-benchmark.md` (Durchlauf 1) entsprechen.
 
 ## Dokumentationsstil
 

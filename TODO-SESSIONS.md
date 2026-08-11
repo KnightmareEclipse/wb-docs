@@ -4,17 +4,13 @@ Fachliche/technische Punkte, die eine Session in diesem Repo oder in `wb-backend
 
 ## Vor dem ersten Import echter Daten
 
-### Nächste Fachdomäne: Voranmeldung / Anmeldeprozess (2/4)
+### Was an Domänenschemata noch offen ist
 
-Als drittes Domänenschema zu bauen, nach Stammdaten und Putzdienst — Entitäten und Grenzen stehen bereits in `domains/grenzkarte.md` („Bewerbung (2/4)" bis „Zwei Bemerkungen"), es fehlen nur die Spalten. Ergebnis wie bei den beiden gebauten: `…-schema.sql` samt Prüfskript und `.md`, danach `grenzkarte.md` nachziehen.
+Gebaut sind Stammdaten, Putzdienst, Anmeldung (samt Q1/Q2/Q3), Ferienanmeldung und Gesundheitsdaten — damit alle Domänen, die vor dem Freeze gegen Stammdaten geprüft wurden, und der gesamte Art.-9-Bestand.
 
-**Sie erweitert Stammdaten nicht, sie hängt sich an.** „Schreibt Stammdaten: ja (viel)" in der Grenzkarte meint Datenverkehr — Zeilen anlegen und ändern —, nicht neue Spalten: die Bewerbung *zeigt* auf `children` und `families`, statt Personendaten zu kopieren, und was sie darüber hinaus braucht (Kindergarten, Geschwister-Selbstauskunft, Betreuungsmodul, Bewertung), sind eigene Entitäten der Domäne. Auch die eine offene Zuschnitt-Frage — ob externe Bewerber ihre Personenzeile schon bei der Voranmeldung bekommen oder erst bei der Aufnahme — ist ohne Rückwirkung auf Stammdaten (`domains/stammdaten.md`).
+Offen sind nur noch die nicht terminlich getriebenen Domänen: **5 Rechnungsfreigabe** (braucht zuerst die Bereichs- und Vorgesetztenstruktur an `employees`, Zuschnitt unbekannt — `domains/grenzkarte.md`, „Weiße Flecken"), **6 Mensa/AGs** (Mensa-Formular liegt nicht vor), **8 Eltern-Selfservice** (schreibt nur eigene Personendaten, keine eigenen Entitäten), **11 Bonussystem**, **12 Klassenbildung** (braucht keine eigene Tabelle) und **13 Klassenorganisation** (nur die Elternvertretung).
 
-Der Freeze Ende August 2026 ist damit **kein** Termin für diese Domäne. Was tatsächlich davon abhängt, ist die Schema-Durchsicht des Betreibers: sie läuft erst, wenn die Voranmeldung im Schema steht, damit derselbe Stammdatensatz nicht zweimal geprüft wird.
-
-Drei Berührungen mit Gebautem sind vorab bekannt: **Q3 öffnen** — die Voranmeldegebühr ist der zweite Stripe-Anlass und kommt als weitere Vorgangs-Spalte samt erweitertem Entweder-oder-CHECK an `payments` dazu, nicht als zweite Zahlungstabelle. **Kindergarten** bekommt eine eigene Werteliste in dieser Domäne, nicht in `previous_schools` — die trägt die staatlichen Überweisungspartner, ein Kindergarten darin verschöbe die Bedeutung einer bestehenden Spalte. **Q1 und Q2** (Zustimmung, Dokument/Signatur) hängen am Schulvertrag der dritten Phase; ob sie mit dieser Domäne entstehen oder danach, ist zu entscheiden, bevor die Vertragsphase modelliert wird.
-
-Vor dem Entwurf mit dem Sekretariat zu bestätigen (`domains/grenzkarte.md`): ob Grundschulempfehlung und Niveau zwei Angaben sind oder zwei Namen für dieselbe.
+Keine davon ist vor dem Vollimport fällig, und keine verlangt eine Änderung an einer bestehenden Stammdaten-Spalte.
 
 ### Wie die Anmeldeformulare Kinder nicht doppelt anlegen
 
@@ -38,6 +34,15 @@ Was bleibt, ist eine Anforderung an die Import-Prozedur selbst, nicht ans Schema
 
 Dublettenerkennung beim Import: Nachname + Geburtsdatum beim Kind, Vor- + Nachname bei Erziehungsberechtigten. Die E-Mail trägt dort nicht mehr (`domains/stammdaten.md`, „Geteilte Mailbox").
 
+**Eine Quelle ist beim Import ausdrücklich nicht belastbar: die Warteliste.** Sie wird vom Sekretariat heute faktisch nicht gepflegt (`prozesse.md` Abschnitt 6) — Einträge können längst erledigt, abgesagt oder eingeschult sein. Sie ungeprüft zu übernehmen erzeugt einen Bestand, dem man den Verfall nicht ansieht, und die jährliche Fortschreibung zöge ihn danach still weiter. Vor dem Import einmal durch das Sekretariat bestätigen zu lassen oder mit Status „ungeprüft" zu übernehmen.
+
+### Was am Putzdienst noch im Backend fehlt, nicht im Schema
+
+Das Schema trägt Einzel-Freikauf und Straf-Aussetzung (`domains/putzdienst.md`). Zwei Dinge daneben sind bewusst nicht als Constraint gebaut und dürfen deshalb beim Implementieren nicht untergehen:
+
+- **Die Frist des Einzel-Freikaufs** („nur vor dem Termindatum") ist eine Backend-Prüfung, weil das Datum an `cleaning_slots` hängt. Sie muss an derselben Stelle sitzen, die die Zahlung auslöst — sonst entsteht ein bezahlter Freikauf für einen bereits gelaufenen Termin.
+- **Die enge Berechtigung** für Straf-Aussetzung und Pflicht-Erlass ist ein Spalten-GRANT plus Rollenwahl, kein Anwendungs-`if`. Der Personenkreis ist noch zu benennen (`TODO.md`).
+
 ## Für `wb-backend`
 
 ### Übertragung nach SQLAlchemy/Alembic: was Modelle nicht können
@@ -46,7 +51,7 @@ Tabellen, Spalten, PK/FK/UNIQUE, CHECKs, partielle Indizes und der Ausschluss-Co
 
 Das ist kein Tipparbeits-, sondern ein Sicherheitsproblem: Alembics `--autogenerate` **sieht diese drei gar nicht**. Es meldet nicht, dass sie fehlen, und würde sie bei einem späteren Regenerieren stillschweigend aus der Migration lassen. Damit fiele genau das weg, worauf das Schema am stärksten baut — Audit-Trail und Art.-9-Schutz — ohne eine einzige Fehlermeldung.
 
-Die Doppelung ist dafür überprüfbar statt riskant: `domains/stammdaten-schema-check.sql` und `domains/putzdienst-schema-check.sql` laufen gegen **jede** Datenbank, auch gegen die von Alembic gebaute. Kommen dort 64/64 bzw. 17/17 heraus, ist die Übertragung nachweislich treu. Das gehört als fester Schritt hinter die Initial-Migration, nicht als einmalige Sichtprüfung.
+Die Doppelung ist dafür überprüfbar statt riskant: `domains/stammdaten-schema-check.sql` und `domains/putzdienst-schema-check.sql` laufen gegen **jede** Datenbank, auch gegen die von Alembic gebaute. Kommen dort 65/65 bzw. 19/19 heraus, ist die Übertragung nachweislich treu. Das gehört als fester Schritt hinter die Initial-Migration, nicht als einmalige Sichtprüfung.
 
 Danach führt `wb-backend` das Schema; die `.sql` in diesem Repo bleibt der Entwurf samt Begründungen und ist nicht mehr die Quelle der Wahrheit.
 
