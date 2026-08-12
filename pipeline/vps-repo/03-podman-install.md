@@ -7,7 +7,14 @@ Rootless Podman, installiert und betrieben unter dem `deploy`-User — macht „
 **Podman statt Docker**, entgegen der sonst überall geltenden Boring-Technology-Regel zugunsten des Verbreiteteren (`rules.md` Abschnitt 4) — die Regel zielt auf Debugbarkeit durch einen Nachfolger, und die bleibt hier erhalten: Podmans CLI ist docker-kompatibel (`alias docker=podman` deckt den Alltag ab), es liest dieselben Compose-Dateien, und es ist die Standard-Runtime der gesamten RHEL-Familie, kein Nischenwerkzeug. Ausschlaggebend sind drei Punkte, die sich alle auf Rootless-Betrieb zurückführen lassen — Docker ist rootful gebaut und wird rootless nachgerüstet, Podman ist daemonlos und läuft rootless als Normalfall:
 
 *   **Kein Daemon, der nebenher als Root laufen könnte.** Unter Docker musste die Installation den system-weiten Root-Daemon (`docker.service`, `docker.socket`, `containerd.service`) erst wieder abschalten und vorab eine `/etc/docker/daemon.json` schreiben, damit dessen kurzer Auto-Start während `apt-get install` keine `docker0`-Bridge und keine `DOCKER`/`DOCKER-USER`-Chains dauerhaft ins Kernel-Netfilter des Hosts schreibt. Beides entfällt ersatzlos: Podman startet keinen Hintergrunddienst und legt beim Installieren nichts am Host-Netz an.
-*   **Quell-IP bleibt erhalten.** Rootless Docker forwardet Ports per Default über rootlesskits `builtin`-Driver und ersetzt dabei die Absenderadresse durch `127.0.0.1` — Caddys Access-Log hätte für jeden Request dieselbe Adresse gezeigt, was die für Art. 33 nötige Nachvollziehbarkeit (`idea/03-container-anwendung.md`, Zentrales Logging) entwertet und jedes IP-bezogene Rate-Limiting aushebelt. Podman 5 nutzt `pasta` und reicht die echte Adresse durch. Live gegen `db-prod-fsn-01` geprüft: ein Request von außen erschien im Container-Log mit der tatsächlichen öffentlichen Absender-IP.
+*   **Quell-IP im Standard-Netz.** Rootless Docker forwardet Ports per Default über rootlesskits `builtin`-Driver und ersetzt die Absenderadresse durch `127.0.0.1`. Podman 5 nutzt `pasta` und reicht sie durch. **Gilt allerdings nur für das Standard-Netz** — sobald ein Container in einem benannten Netz liegt, übernimmt netavark, und die Adresse wird durch das Bridge-Gateway ersetzt. Live gegen `db-prod-fsn-01` gemessen, gleicher Container, gleicher Port, ein Request von derselben externen Adresse:
+
+    | Netzwerk des Containers | gesehene Quell-IP |
+    | --- | --- |
+    | Standard-Netz (`pasta`) | echte öffentliche Adresse |
+    | benanntes Netz (`netavark`) | Gateway, z. B. `10.89.0.2` |
+
+    Die Netzsegmentierung aus `idea/03-container-anwendung.md` verlangt benannte Netze, **also greift der Vorteil in der Produktionstopologie nicht**. Er bleibt trotzdem als Unterschied vermerkt, weil er die Wahl zwischen den beiden Runtimes nicht dreht: rootless Docker verliert die Adresse an derselben Stelle und im Standard-Fall zusätzlich. Welche Folgen das für die Nachvollziehbarkeit nach Art. 33 hat, steht als offene Frage in `idea/03-container-anwendung.md`.
 *   **Aus Debian main statt aus einem Fremd-Repo.** Podman, `netavark`, `aardvark-dns`, `passt` und `crun` liegen in Debians eigenen Quellen und fallen damit unter die Debian-Standard-Origins, die `unattended-upgrades` ohnehin patcht. Der Eintrag für die Docker-APT-Repo-Origin in [Phase 2](02-hardening.md) entfällt, ebenso das Einrichten von Keyring und Repo-Datei.
 
 Kein Sicherheitsgewinn an der Vertrauensgrenze selbst: Rootless Docker hätte dieselbe User-Namespace-Isolation gegen einen kompromittierten Deploy-Key geliefert (`rules.md` Abschnitt 2). Der Unterschied liegt darin, dass diese Eigenschaft bei Podman der Auslieferungszustand ist und bei Docker aus mehreren Konfigurationsschritten entsteht, die alle korrekt bleiben müssen.
@@ -46,8 +53,17 @@ Installierte Pakete: `podman passt uidmap` — nur was der Rootless-Betrieb selb
 
 ## Offen
 
-*   **Compose gegen Podman ist noch nicht verifiziert.** Geprüft sind die Primitive über die Podman-CLI: Cgroup-Limits, Secrets als Datei unter `/run/secrets/`, ein `--internal`-Netz ohne Egress und die Quell-IP — alle vier live gegen `db-prod-fsn-01` und über einen Reboot hinweg. Ob `wb-backend/docker-compose.yml` unverändert über Podmans docker-kompatiblen Socket läuft — insbesondere `depends_on: condition: service_healthy`, `profiles` und die Secret-Definitionen — muss vor Phase 4 einmal gegen den echten Stack laufen.
-*   Beim Entfernen eines Containers an einem internen Netz meldet netavark einen aardvark-Cleanup-Fehler (`remove aardvark entries: IO error`). Folgenlos für Funktion und Isolation, taucht aber in Logs auf.
+*   Beim Entfernen eines Containers an einem internen Netz meldet netavark gelegentlich einen aardvark-Cleanup-Fehler (`remove aardvark entries: IO error`). Folgenlos für Funktion und Isolation, taucht aber in Logs auf.
+
+## Verifiziert
+
+Der vollständige App-Stack (`wb-backend/docker-compose.yml`) lief gegen `db-prod-fsn-01`: `db` healthy, Migration und Testlauf über `--profile tools`, `/health` von außen durch Hetzner-Firewall und UFW. Die Isolation hält — Egress aus dem internen Netz scheitert auch gegen eine rohe IP, aus dem externen gelingt er (die Gegenprobe, ohne die der erste Test nichts aussagt).
+
+Drei Dinge mussten dafür stimmen, die alle stillschweigend fehlschlagen:
+
+*   **`aardvark-dns` gehört ausdrücklich in die Paketliste.** Podman hängt hart an `netavark` fürs Netz, zieht aber für die Namensauflösung weder ein Depends noch ein Recommends nach. Fehlt es, meldet Podman das einmal als Warnung und läuft weiter: der Stack kommt „healthy" hoch, während jede Verbindung zwischen zwei Diensten am Namen scheitert.
+*   **Image-Namen müssen vollqualifiziert sein** (`docker.io/library/postgres:18-alpine`). Debian liefert keine `unqualified-search-registries`, ein Kurzname löst dort nicht auf. Auf Fedora tut er es — der Fehler tritt also erst auf dem Server auf, wenn lokal alles lief.
+*   **Compose-Werkzeug ist `podman-compose` aus Debian main.** Damit ist die in [Phase 4](../app-stack-repo/04-app-stack-deploy.md) offene Wahl entschieden: das echte `docker compose` bräuchte Dockers Fremd-Repo und liefe der Begründung oben zuwider. Installiert wird es erst mit Phase 4, nicht hier.
 
 Bleibt im VPS-Repo, da es eine System-Paket-Installation ist, keine Anwendungslogik — ändert sich mit dem Host, nicht mit jedem App-Deploy.
 
