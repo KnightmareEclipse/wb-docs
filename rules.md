@@ -12,7 +12,9 @@ Vor jeder neuen Komponente, jedem neuen Dienst, jeder neuen Abstraktion diese Le
 4. **Ist es schon im Stack vorhanden?** Kein zweites Tool für das, was ein bestehendes bereits kann.
 5. **Erst dann:** neuer Dienst/eigener Code — minimal gehalten, mit klar benanntem Zweck.
 
-Beispiele für bereits angewandte Entscheidungen nach dieser Leiter: kein Terraform/OpenTofu (ein IaC-State-File widerspricht der Neuaufsetzbarkeit aus Abschnitt 6 — Begründung in `pipeline/vps-repo/01-provisioning.md`), kein Ansible (ein Host mit statischer IP reicht für ein idempotentes Shell-Skript), kein zusätzlicher Log-Stack, wenn ein bereits vorhandener Mechanismus für die Log-Menge reicht. Neue Entscheidungen folgen demselben Muster.
+Beispiele für bereits angewandte Entscheidungen nach dieser Leiter: kein Terraform/OpenTofu (ein IaC-State-File widerspricht der Neuaufsetzbarkeit aus Abschnitt 6 — Begründung in `pipeline/vps-repo/01-provisioning.md`), kein zusätzlicher Log-Stack, wenn ein bereits vorhandener Mechanismus für die Log-Menge reicht. Neue Entscheidungen folgen demselben Muster.
+
+Die Host-Konfiguration (Phase 2/3) läuft nach Punkt 3 der Leiter über **Ansible**: Idempotenz, Änderungserkennung und Datei-Templating kommen dort aus Standardsoftware statt aus selbst geschriebenen Existenzprüfungen. Die Hetzner-API-Ebene (Phase 1) bleibt davon getrennt beim `hcloud`-CLI — die beiden Werkzeuge lösen verschiedene Probleme, und nur das zweite bräuchte einen State.
 
 Keine Hochverfügbarkeits-Infrastruktur (Multi-Server, Load-Balancer, Multi-Region) ohne konkreten Bedarf — eine VPS mit getesteten Backups und vollständiger Neuaufsetzbarkeit (Abschnitt 6) ist für diese Schulgröße ausreichend. Eine Wiederherstellungszeit von Stunden ist ein bewusst akzeptierter Trade-off gegen Komplexität, kein Mangel.
 
