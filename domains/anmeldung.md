@@ -1,8 +1,8 @@
 # Anmeldung — Fachdomäne (Voranmeldung, Anmeldegespräch, Schulvertrag)
 
-Domäne 2/4 aus `fachdomaenen.md` Abschnitt 6 — **eine** Domäne in drei Phasen, weil dieselbe Bewerbung sie alle durchläuft. Tabellenschema: `domains/anmeldung-schema.sql`, belegt durch `domains/anmeldung-schema-check.sql` (Sollstand 37/37). Der heutige Ablauf samt Formularfeldern steht in `prozesse.md` Abschnitt 3–7; hier steht, was daraus im Datenmodell folgt.
+Domäne 2/4 aus `fachdomaenen.md` Abschnitt 6 — **eine** Domäne in drei Phasen, weil dieselbe Bewerbung sie alle durchläuft. Tabellenschema: `domains/anmeldung-schema.sql`, belegt durch `domains/anmeldung-schema-check.sql` (Sollstand 46/46). Der heutige Ablauf samt Formularfeldern steht in `prozesse.md` Abschnitt 3–7; hier steht, was daraus im Datenmodell folgt.
 
-Sie bringt außerdem die beiden Querschnitts-Entitäten **Zustimmung (Q1)** und **Dokument/Signatur (Q2)** mit und erweitert den **Zahlungsvorgang (Q3)** um die Anmeldegebühr — alle drei einmal gebaut, von allen späteren Domänen mitbenutzt (`domains/grenzkarte.md`).
+Sie bringt außerdem die Querschnitts-Entitäten **Zustimmung (Q1)**, **Dokument/Signatur (Q2)** und **Nachzieh-Aufgabe (Q5)** mit und erweitert den **Zahlungsvorgang (Q3)** um die Anmeldegebühr — alle einmal gebaut, von allen späteren Domänen mitbenutzt (`domains/grenzkarte.md`).
 
 ## Die zwei Entscheidungen, aus denen der Rest folgt
 
@@ -16,14 +16,19 @@ Der Preis ist real: Bewerbungen, die nie zur Aufnahme führen, hinterlassen Pers
 
 **Die Zeilen entstehen beim Absenden, nicht nach der Zahlungsbestätigung.** Die Alternative hieße, den Formularinhalt bis zur Bestätigung zwischenzuparken — dieselben Personendaten an einem zweiten Ort mit eigener Aufbewahrung und eigenem Leserkreis. Ein abgebrochener Zahlungsvorgang hinterlässt stattdessen eine Bewerbung mit offener Zahlung, die derselbe Lösch-Job aufräumt.
 
+## Anmeldefenster und Anmeldegebühr
+
+Öffnung, Schließung und Gebühr der Voranmeldung sind Daten je Zweig × Schuljahr (`application_windows`), keine Konstanten — die Anmeldung wird real je Schule dynamisch geschlossen, teils blieb sie bis Juni offen, und Beträge gehören nach `rules.md` Abschnitt 3 in die Datenbank. Das Fenster trägt die gewünschte **harte Sperre** (`prozesse.md` Abschnitt 3.4): offen/zu prüft das Backend gegen diese Zeile, und der benannte legitime Ausweg ist der einzelne **Nachmeldelink des Sekretariats** in die reguläre Voranmeldung — ein Vorgang, kein Datenzustand. Der **Quereinstieg** läuft ganzjährig am Fenster vorbei und liest nur die Gebühr seines Zieljahrs.
+
 ## Bewerbung
 
 - **Sie zeigt auf Kind und Familie**, statt Personendaten zu tragen. Was sie selbst trägt: Zielschuljahr und Zielklassenstufe, Anmeldedatum, ausfüllende Person, Bestätigung dass der andere Elternteil informiert ist, Teilnahme am Infoabend, wahrgenommene Angebote, Interesse an Betreuung, Status.
-- **Mehrere Bewerbungen je Kind sind der Normalfall.** Der Wechsel von der eigenen Grundschule in die eigene Realschule ist eine zweite Bewerbung desselben Kindes, und eine abgelehnte Bewerbung kann im Folgejahr wiederholt werden. Eindeutig ist deshalb nur Kind × Zielschuljahr.
+- **Mehrere Bewerbungen je Kind sind der Normalfall.** Der Wechsel von der eigenen Grundschule in die eigene Realschule ist eine zweite Bewerbung desselben Kindes, und eine abgelehnte Bewerbung kann im Folgejahr wiederholt werden. Eindeutig ist deshalb nur Kind × Zielschuljahr. Ein neuer Anlauf im **selben** Zieljahr ist keine zweite Zeile: das Sekretariat öffnet die bestehende per Status wieder — der benannte Ausweg; eine zweite Anmeldegebühr entsteht dabei nicht, und nach dem Lösch-Lauf zum 01.08. ist die Zeile für einen späten Quereinstieg ohnehin frei.
+- **Die Schülerüberweisung ist ein Vorgangsschritt der Bewerbung** (erhalten, zurückgesendet — zwei Datumsfelder), keine Q5-Nachzieh-Aufgabe: sie zieht keine Weltenbaum-Änderung in ein Fremdsystem nach, und an zwei Orten geführt wäre derselbe Erledigt-Haken zweimal pflegbar (`domains/grenzkarte.md`, Q5).
 - **Der Status trägt den gesamten Lebenslauf** und ersetzt drei naheliegende Zusatzentitäten: Warteliste, Absage und der Rücktritt vor dem ersten Schultag sind Ausprägungen desselben Feldes. Zwei nicht umbenennbare Kennzeichen hängen daran — `is_waitlist` steuert die jährliche Fortschreibung, `is_final` beendet das Verfahren und startet die Löschfrist. Beide dürfen sich nicht ändern, wenn jemand ein Label umbenennt; dieselbe Bauform wie `cleaning_duty_types.is_major`.
 - **Die Warteliste hat keine Rangfolge.** Bei einem frei werdenden Platz entscheidet ein Mensch neu, und die Zahl der Wartenden ist klein. Die jährliche Fortschreibung ist ein UPDATE auf Zielschuljahr und Zielklassenstufe, kein neuer Datensatz.
 - **Geschwister als Selbstauskunft**, ohne Namensliste: gebraucht werden nur, ob Geschwister an der Schule sind und wie viele es insgesamt sind. Bei externen Bewerbern gibt es noch keine Familie, aus der das folgen könnte; bei der Aufnahme löst es sich gegen `families` auf.
-- **Quereinstieg ist ein Kennzeichen und keine Ableitung.** Er ist ein eigener Ablauf (ganzjährig, Platzprüfung vor dem Gespräch). Ableitbar wäre er nur über ein Merkmal „Eingangsklassenstufe" an `grade_levels` — dafür wird eine eingefrorene Stammdaten-Tabelle nicht aufgemacht.
+- **Quereinstieg ist ein Kennzeichen und keine Ableitung.** Er ist ein eigener Ablauf (ganzjährig, Platzprüfung vor dem Gespräch). Ableitbar wäre er nur über ein Merkmal „Eingangsklassenstufe" an `grade_levels` — dafür wird eine eingefrorene Stammdaten-Tabelle nicht aufgemacht. Sein **Hospitationszeitraum** (Quereinsteiger-Checkliste) steht als Von-bis-Datumspaar an der Bewerbung.
 
 ## Zwei Schulen und ein Kindergarten
 
@@ -80,12 +85,16 @@ Die **14-Tage-Frist** ist ein Datum und keine Dauer, weil das Sekretariat sie im
 
 - **Die Buchungseinheit ist Modul × Wochentag**, nicht das Modul allein: je Modul werden die einzelnen Tage gewählt. Deshalb eine Zeile je Tag statt sieben Boolean-Spalten.
 - **Die Buchung hängt am Kind, nicht am Vertragsvorgang.** Der Hort nimmt auch Kinder auf, die weder Grund- noch Realschüler sind — für sie gibt es keine Bewerbung, aber eine Buchung. Der Vertragsbezug bleibt nullable und sagt nur, aus welchem Anmeldevorgang die Buchung entstanden ist.
-- **Der Gültigkeitszeitraum trägt die automatische Kündigung:** bis Ende Klasse 4, ein Vertrag für Klasse 5 gilt nur für Klasse 5, mit Klasse 5 endet das Angebot. Als Datum und nicht als Regel im Code, weil die Schule die Grenzen verschiebt.
-- Der Modulkatalog ist eine Werteliste (aktuell sechs Module). Die Zeitangabe steht als Text darin, weil der reale Katalog überwiegend bei „Schulende" beginnt und nicht zu einer Uhrzeit — und weil keine Abfrage sie auswertet.
+- **Der Gültigkeitszeitraum trägt Laufzeit, Kündigung und Angebotsende:** der reale Vertrag läuft ein Schuljahr und verlängert sich stillschweigend (`prozesse.md` Abschnitt 8); `valid_until` bleibt leer, solange nichts endet, und wird bei Kündigung oder Angebotsende gesetzt (das Hortangebot endet mit Klasse 5). Als Datum und nicht als Regel im Code, weil die Schule Fristen und Grenzen verschiebt.
+- **Das Mittagessen ist ebenfalls eine Eigenschaft des Moduls** (`includes_lunch`): der Vertrag berechnet es für alle, die länger als 13 Uhr betreut werden — keine eigene Buchung. Das RS-Mensa-Abo bucht dieselbe Struktur als Katalogzeile „Mittagessen"; Küchenprofil und Tagesliste stehen in Domäne 6 (`domains/mensa.md`).
+- Der Modulkatalog ist eine Werteliste (die sechs Betreuungsmodule plus die Katalogzeile „Mittagessen" der Mensa, `domains/mensa.md`). Die Zeitangabe steht als Text darin, weil der reale Katalog überwiegend bei „Schulende" beginnt und nicht zu einer Uhrzeit — und weil keine Abfrage sie auswertet.
+- **Die Hausaufgabenbetreuung ist Bestandteil des Moduls** (`includes_homework`): die Nachmittagsbetreuungen 2–4 enthalten sie, Modul 1 (bis 13:00) nicht. Wer sie bekommt, entscheidet allein die Modulwahl — es gibt deshalb kein eigenes Interesse- oder Buchungsfeld dafür, und die Grobabfrage „Kernzeit / Nachmittag / Ganztags" der Anmeldetag-Checklisten wird digital durch die konkrete Modulbuchung ersetzt (bewusste Abweichung vom Papierablauf).
 
 ## Zustimmung (Q1) und Dokument/Signatur (Q2)
 
-**Zustimmung** ist *Person × (optional) Kind × Zweck × Zeitpunkt × Zustelladresse × Widerruf*. Zwei Punkte, die leicht verloren gehen:
+**Zustimmung** ist *Person × (optional) Kind × Zweck × Antwort (erteilt oder abgelehnt) × Zeitpunkt × Zustelladresse × Widerruf*. Drei Punkte, die leicht verloren gehen:
+
+- **Die Ablehnung ist eine eigene Antwort, keine fehlende Zeile.** Das Fotoeinverständnis kann ausdrücklich abgelehnt werden (`prozesse.md` Abschnitt 7.1), und ohne Zeile wäre „abgelehnt" nicht von „noch nicht beantwortet" zu unterscheiden — für die Vollständigkeitsprüfung des Sekretariats dieselbe Unterscheidung zwischen entschieden und vergessen wie bei der Anwesenheitsliste des Putzdiensts. Widerrufen wird nur eine Erteilung; eine spätere Erteilung überschreibt die Ablehnung in derselben Zeile.
 
 - **Die Zustelladresse gehört zwingend dazu** und ist nicht aus `persons.email` ableitbar: zwei Erziehungsberechtigte dürfen sich eine Mailbox teilen, und nur mit festgehaltener Adresse ist hinterher auswertbar, ob zwei Zustimmungen über dasselbe Postfach kamen. Das Prüfskript zeigt genau diesen Fall: zwei Personen, ein Postfach.
 - **Die zustimmende Person ist nicht auf Erziehungsberechtigte eingeschränkt** — ab 14 Jahren muss das Kind beim Fotoeinverständnis selbst zustimmen.
@@ -102,9 +111,13 @@ Zustimmungen ohne Kind (Werbe-Einwilligung an den anmeldenden Elternteil) sind e
 
 Die Anmeldegebühr ist der dritte Stripe-Anlass und kommt als weitere Vorgangs-Spalte samt erweitertem Entweder-oder-CHECK an die bestehende `payments`-Tabelle — nicht als zweite Zahlungstabelle. Das Prüfskript belegt beides: die neue Zahlung entsteht, und der Putzdienst-Freikauf funktioniert unverändert weiter.
 
+## Nachzieh-Aufgabe (Q5)
+
+ASV-BW und Optigem haben keine Update-Schnittstelle — jede Weltenbaum-Änderung muss ein Mensch dort nachziehen, heute über Zuruf und Gedächtnis. `sync_targets`/`sync_tasks` machen daraus eine benannte Aufgabe mit Erledigt-Zeitpunkt; gespeichert wird nur, was sich nicht ableiten lässt (`domains/grenzkarte.md`, Q5). Hier gebaut, weil der erste reale Abnehmer die **Neuanlage in ASV-BW nach Vertragsabschluss** ist; die alltägliche Stammdaten-Änderung erzeugt später dieselben Aufgaben. Erzeugung und Abarbeitung sind Backend-Arbeit in `wb-backend` und ausdrücklich nicht Teil dieses Entwurfs.
+
 ## Löschung
 
-**Der Anker ist ein fester Kalendertag, kein Fristablauf je Zeile:** gelöscht wird zum **01.08. des Jahres, in dem das Zielschuljahr beginnt** — also kurz bevor es losgeht. Betroffen ist jede Bewerbung in einem **Endstatus** (`application_statuses.is_final`), und das sind zwei Fälle: die Absage der Schule und der **abgelehnte Platz**. Einen angebotenen Wartelistenplatz auszuschlagen zählt wie eine Absage und ist ein eigener Endstatus; wird er angenommen, bleibt die Familie im System.
+**Der Anker ist ein fester Kalendertag, kein Fristablauf je Zeile:** gelöscht wird zum **01.08. des Jahres, in dem das Zielschuljahr beginnt** — also kurz bevor es losgeht. Gelöscht wird ausschließlich durch diesen Lauf: von Hand löscht niemand eine Bewerbung, frühestens die automatische Löschung räumt sie. Betroffen ist jede Bewerbung in einem **Endstatus** (`application_statuses.is_final`), und das sind zwei Fälle: die Absage der Schule und der **abgelehnte Platz**. Einen angebotenen Wartelistenplatz auszuschlagen zählt wie eine Absage und ist ein eigener Endstatus; wird er angenommen, bleibt die Familie im System.
 
 Die Warteliste selbst wird **nicht** gelöscht: wer weiter wartet, steht in einem Wartelisten-Status (`is_waitlist`) und wird jährlich fortgeschrieben — genau dafür gibt es das Kennzeichen. Ein Endstatus tritt erst ein, wenn tatsächlich entschieden wurde.
 

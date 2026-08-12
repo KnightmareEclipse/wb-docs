@@ -1,6 +1,6 @@
 # Gesundheitsdaten — Fachdomäne
 
-Domäne 9 aus `fachdomaenen.md` Abschnitt 6. Tabellenschema: `domains/gesundheit-schema.sql`, belegt durch `domains/gesundheit-schema-check.sql` (Sollstand 9/9). Die realen Feldlisten stehen in `prozesse.md` Abschnitt 7.2 (Schulvertrag) und 5.2 (Anmeldetag-Checklisten).
+Domäne 9 aus `fachdomaenen.md` Abschnitt 6. Tabellenschema: `domains/gesundheit-schema.sql`, belegt durch `domains/gesundheit-schema-check.sql` (Sollstand 10/10). Die realen Feldlisten stehen in `prozesse.md` Abschnitt 7.2 (Schulvertrag) und 5.2 (Anmeldetag-Checklisten).
 
 Besondere Kategorien nach Art. 9 DSGVO — der Datenbestand mit dem engsten Zugriffsprofil im System. Heute liegt er in einer Excel-Liste beim Sekretariat.
 
@@ -50,16 +50,18 @@ Die GRANTs selbst stehen wie bei den Konfessionsspalten nicht im Schema, sondern
 
 ## Masernschutznachweis
 
-Gesetzlich verpflichtend (§20 IfSG), auf allen vier Checklisten geprüft — und **nie als Kopie**. Festgehalten werden nur Vorlagedatum und Vorlageart; „hier gehen viele Wege". Es entsteht also gar kein Dokument, und der Nachweis braucht keinen Verweis nach Q2: **die Zeile ist der Nachweis**.
+Gesetzlich verpflichtend (§20 IfSG), auf allen vier Checklisten geprüft — und **nie als Kopie**. Festgehalten wird der Nachweis-**Status**; „hier gehen viele Wege". Es entsteht kein Dokument, und der Nachweis braucht keinen Verweis nach Q2: **die Zeile ist der Nachweis**.
 
-Eigene Tabelle statt einer Merkmalszeile, weil er kein „was liegt vor" und keine Handlungsanweisung hat. Das Kind ist zugleich Primärschlüssel — ein Kind hat genau einen Nachweis oder keinen, ein zweiter wäre eine Dublette. Damit ist die Alltagsabfrage („liegt er vor?") ein Punkt-Lookup, und genau das verlangt die Anforderung, ihn schnell nachprüfen zu können.
+Die Zeile trägt zwei Tatsachen, einzeln oder zusammen: **vorgelegt** (Vorlagedatum samt Vorlageart, nur gemeinsam) und **gemeldet** (`reported_to_health_office_on`). Die Infektionsschutz-Anlage des Betreuungsvertrags hält ausdrücklich fest, dass ein fehlender Masern-Immunitätsnachweis dem Gesundheitsamt gemeldet wird — „geprüft, nicht vorgelegt, gemeldet" ist damit ein realer Zustand und von „nie geprüft" (keine Zeile) unterscheidbar. Wird der Nachweis nachgereicht, kommt die Vorlage in dieselbe Zeile, das Meldedatum bleibt als Beleg.
+
+Eigene Tabelle statt einer Merkmalszeile, weil er kein „was liegt vor" und keine Handlungsanweisung hat. Das Kind ist zugleich Primärschlüssel — ein Kind hat genau einen Nachweis-Status oder keinen, ein zweiter wäre eine Dublette. Damit ist die Alltagsabfrage („liegt er vor?") ein Punkt-Lookup, und genau das verlangt die Anforderung, ihn schnell nachprüfen zu können.
 
 ## Was hier nicht steht
 
 - **Einwilligung und Unterschrift** des Gesundheitsdatenblatts sind Q1 und Q2 aus dem Anmelde-Schema. Hier stünden sie ein zweites Mal.
 - **Die Zeckenentfernung** ist keine Eigenschaft des Kindes, sondern eine Erlaubnis — eine Zustimmung (Q1) mit eigenem Zweck, widerrufbar wie jede andere.
 - **Ein Behandlungszeitraum** (siehe „Was hier steht, gilt").
-- **Ein Vermerk „Masernnachweis liegt nicht vor"** — noch nicht entschieden, siehe „Offene Punkte". Das Fehlen einer Zeile sagt heute nicht, ob niemand geprüft hat oder ob geprüft und nichts vorgelegt wurde.
+- **Das Küchenprofil** (Essensvariante, Vegetarier-Frage des Betreuungsvertrags): eine Handlungsanweisung an die Küche, keine Diagnose — es lebt in Domäne 6 mit eigenem Leserkreis (`domains/mensa.md`), das medizinische Merkmal bleibt hier.
 - **Die Geburtsurkunde** ist kein Gesundheitsdatum und bleibt eine reine Q2-Zeile mit Bezug Kind; hier hätte sie das falsche Zugriffsprofil.
 - **Diagnose-Codes** (ICD o. ä.). Niemand fragt danach, und ein Code verleitet zu Auswertungen, für die es keine Rechtsgrundlage gibt.
 - **Historie.** Ein beendetes Merkmal trägt ein Behandlungsende, ein entfallenes wird gelöscht.
@@ -76,7 +78,6 @@ Das **Attest** zeigt auf die Q2-Dokumentzeile im Anmelde-Schema, statt einen zwe
 
 ## Offene Punkte
 
-- Aufbewahrungs- und Löschfristen stehen aus (`TODO.md`). Gesundheitsdaten dürften die kürzeste Frist im System haben, und sie hängt nicht am selben Anker wie die Stammdaten.
-- **Verlangt §20 Abs. 9 IfSG eine Meldung ans Gesundheitsamt, wenn kein Masernnachweis vorgelegt wird?** Wenn ja, braucht der Fall „geprüft, liegt nicht vor" einen Datenanker samt Meldedatum — heute sagt das Fehlen einer Zeile beides zugleich. Zu klären mit Schulleitung bzw. Datenschutzbeauftragte:r, vor dem ersten Anmeldetag mit Weltenbaum.
+- Aufbewahrungs- und Löschfristen stehen aus (`TODO.md`). Gesundheitsdaten dürften die kürzeste Frist im System haben, und sie hängt nicht am selben Anker wie die Stammdaten. Für **externe Hortkinder** sagt der Betreuungsvertrag die Löschung bereits zu („Diese Daten werden nach Austritt aus dem Hort gelöscht") — der Anker ist dort das Ende der letzten Betreuungsbuchung.
 - Wer den handlungsrelevanten Hinweis formulieren darf, ist als Rolle noch nicht benannt — fachlich ist es die Klassenlehrkraft, technisch braucht es dafür ein eigenes `GRANT UPDATE` auf genau diese Spalte. Dieselbe Lücke betrifft den **Hort**: er sieht laut Festlegung den vollen Satz, hat aber noch keine benannte Rolle, die `init-roles.sh` abbilden könnte.
 - **Woran hängt die Bereinigung?** Ohne Behandlungszeitraum und ohne wiederkehrende Sammelaktion ändert sich ein Merkmal nur, wenn Eltern es melden. Der naheliegende Anker ist der Eltern-Selfservice (Domäne 8): sehen Eltern ihren eigenen Gesundheitssatz und können ihn korrigieren, ist die Bereinigung dieselbe Handlung wie die Pflege. Zu entscheiden mit dem Zuschnitt von Domäne 8, nicht vorher.

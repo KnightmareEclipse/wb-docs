@@ -118,7 +118,16 @@ CREATE TABLE cleaning_cycles (
     -- Ausschluss-Constraint statt als Anwendungsprüfung: native Postgres-Mechanik,
     -- keine Extension nötig, und sie greift auch beim Import.
     CONSTRAINT cleaning_cycles_no_overlap_excl
-        EXCLUDE USING gist (daterange(starts_on, ends_on, '[]') WITH &&)
+        EXCLUDE USING gist (daterange(starts_on, ends_on, '[]') WITH &&),
+    -- Dasselbe für das Buchungsfenster, und es braucht einen eigenen
+    -- Constraint: der darüber deckt nur starts_on/ends_on, das Fenster liegt
+    -- aber bewusst außerhalb seines Zyklus und damit mitten im noch laufenden
+    -- Vorjahreszyklus. Während der Buchungsphase beantwortet deshalb nicht der
+    -- Zyklus-Zeitraum die Frage „wofür wird gerade gebucht", sondern allein
+    -- dieses Fenster — überlappten zwei, wäre die Antwort mehrdeutig, genau der
+    -- Zustand, den der Constraint darüber für den Zyklus selbst verhindert.
+    CONSTRAINT cleaning_cycles_booking_no_overlap_excl
+        EXCLUDE USING gist (tstzrange(booking_opens_at, booking_closes_at) WITH &&)
 );
 
 -- Erinnerungsstufen als Zeilen statt als feste Spalten (domains/putzdienst.md):
@@ -196,6 +205,46 @@ CREATE TABLE cleaning_slots (
     cycle_id     integer NOT NULL REFERENCES cleaning_cycles(cycle_id) ON DELETE RESTRICT,
     duty_type_id integer NOT NULL REFERENCES cleaning_duty_types(duty_type_id) ON DELETE RESTRICT,
     slot_date    date NOT NULL,
+    -- Anfangszeit. Eigene Spalte neben dem Datum statt slot_date als
+    -- timestamptz: der ganze Rest der Domäne rechnet in Kalendertagen — die
+    -- Erinnerungsstufen als „X Tage vorher", die Solver-Regeln als
+    -- Mindestabstand in Kalenderwochen und als „selber Kalendertag", die
+    -- Freikauf-Frist als „vor dem Termindatum" (domains/putzdienst.md). Ein
+    -- Zeitstempel an dieser Stelle machte aus jedem dieser Vergleiche eine
+    -- Zeitzonen- und Tagesgrenzenfrage, ohne dass eine davon nach der Uhrzeit
+    -- fragt.
+    -- time und nicht timetz: es ist die Wanduhrzeit vor Ort am jeweiligen
+    -- slot_date, die Zone ergibt sich daraus.
+    -- Nullable, weil die Terminliste zuerst mit Datum und Art steht und die
+    -- Zeit nachgetragen wird; leer heißt „noch nicht festgelegt", nicht
+    -- „ganztägig". Die Termine starten ausdrücklich NICHT alle zur selben
+    -- Uhrzeit — ein Konfigurationswert am Zyklus wäre deshalb falsch.
+    -- Kein Ende daneben: gezählt wird in Terminen, einen Stundennachweis führt
+    -- der Putzdienst nicht (Kopfkommentar), und eine Endzeit wäre der erste
+    -- Schritt zurück zu einer Dauer, die niemand auswertet.
+    -- Nebenbei trennt sie die ausdrücklich erlaubten zwei Termine desselben
+    -- Tages in der Buchungsansicht, die sonst nur an der Terminart
+    -- auseinanderzuhalten wären.
+    starts_at    time,
+    -- Wann die Papier-Unterschriftenliste dieses Termins übertragen wurde. Am
+    -- TERMIN und nicht an der Zuteilung: übertragen wird eine Liste je Termin,
+    -- nicht eine Aussage je Familie — an der Zuteilung stünde derselbe
+    -- Zeitpunkt hundertfach.
+    --
+    -- Nötig, weil cleaning_assignments.no_show mit DEFAULT false anläuft: ohne
+    -- diese Spalte ist „war da" nicht von „hat noch niemand übertragen" zu
+    -- unterscheiden, und eine vergessene Übertragung sähe aus wie lauter
+    -- erschienene Familien. Das ist dasselbe Argument, mit dem die Strafe immer
+    -- entsteht und nur ausdrücklich ausgesetzt wird
+    -- (cleaning_assignments.penalty_waived_at): entschieden und vergessen
+    -- müssen unterscheidbar bleiben, sonst zählt ein stiller Fehlschlag als
+    -- nicht vorhanden (rules.md Abschnitt 3). NULL heißt: für diesen Termin ist
+    -- nichts erfasst, seine no_show-Werte sagen nichts.
+    --
+    -- Dass no_show nur an einem übertragenen Termin stehen darf, ist wie die
+    -- Freikauf-Frist eine Bedingung über zwei Tabellen und deshalb kein CHECK —
+    -- sie gehört in dieselbe Backend-Stelle, die die Liste übernimmt.
+    attendance_recorded_at timestamptz,
     created_at   timestamptz NOT NULL DEFAULT now(),
     created_by   text NOT NULL,
     updated_at   timestamptz NOT NULL DEFAULT now(),
@@ -233,10 +282,17 @@ CREATE INDEX ON cleaning_slots (duty_type_id);
 -- sein. NULL heißt je Spalte „Standard des Zyklus", nicht „null Termine" — 0
 -- ist ein eigener, gültiger Wert (Eintritt nach dem Stichtag).
 --
--- family_id mit ON DELETE RESTRICT wie children.family_id: eine Familie mit
--- vereinbarter Sonderregelung wird nicht nebenbei mitgelöscht.
+-- Beide Fremdschlüssel mit ON DELETE RESTRICT, und zwar aus demselben Grund:
+-- eine vereinbarte Sonderregelung samt ihrem reason wird nicht nebenbei
+-- mitgelöscht — weder über die Familie (wie children.family_id) noch über den
+-- Zyklus. Der Weg über den Zyklus ist dabei der wirksamere, denn er nähme die
+-- Zeile mit, ohne dass jemand die Familie überhaupt angefasst hätte. Dass
+-- cleaning_slots denselben Zyklus meist ohnehin sperrt, ist kein Ersatz: dann
+-- hinge der Schutz dieser Zeile daran, dass eine andere Tabelle gefüllt ist.
+-- cleaning_reminder_stages bleibt dagegen bei CASCADE — eine Vorlaufzeit ohne
+-- ihren Zyklus sagt nichts, sie ist reine Konfiguration und nichts Vereinbartes.
 CREATE TABLE cleaning_family_duties (
-    cycle_id         integer NOT NULL REFERENCES cleaning_cycles(cycle_id) ON DELETE CASCADE,
+    cycle_id         integer NOT NULL REFERENCES cleaning_cycles(cycle_id) ON DELETE RESTRICT,
     family_id        uuid NOT NULL REFERENCES families(family_id) ON DELETE RESTRICT,
     required_regular smallint CHECK (required_regular >= 0),
     required_major   smallint CHECK (required_major >= 0),
@@ -372,6 +428,12 @@ CREATE INDEX ON cleaning_buyouts (family_id);
 -- bewusst keinen Trigger. Sie gehört in dieselbe Backend-Stelle, die die Zahlung
 -- auslöst — läge sie woanders, entstünde ein bezahlter Freikauf für einen
 -- bereits gelaufenen Termin (TODO-SESSIONS.md).
+--
+-- Ebenfalls Backend, nicht Schema: eine freigekaufte Zuteilung gehört nicht auf
+-- die Übertragungsliste der Anwesenheit — no_show auf einer freigekauften Zeile
+-- wäre eine Strafe auf einem bezahlten Termin. Wie die Frist eine Bedingung
+-- über zwei Tabellen; die Übernahme der Papierliste muss sie ausnehmen
+-- (TODO-SESSIONS.md).
 CREATE TABLE cleaning_slot_buyouts (
     slot_buyout_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     assignment_id  uuid NOT NULL UNIQUE REFERENCES cleaning_assignments(assignment_id) ON DELETE RESTRICT,
@@ -389,10 +451,11 @@ CREATE TABLE cleaning_slot_buyouts (
 --
 -- Q3 deckt genau drei Anlässe ab, alle über Stripe: Voranmeldung samt
 -- Quereinstieg (Domäne 2/4), Ferienprogramm-Buchung (Domäne 3) und
--- Putzdienst-Freikauf (hier). Gebaut ist heute nur der Komplett-Freikauf — die
--- beiden anderen Anlässe und der Einzel-Freikauf eines zugeteilten Termins
--- kommen als je eine weitere nullable Vorgangs-Spalte samt erweitertem
--- Entweder-oder-CHECK dazu, nicht als zweite Zahlungstabelle. Diese Bauform
+-- Putzdienst-Freikauf (hier). Hier gebaut sind die beiden Putzdienst-Vorgänge
+-- (Komplett- und Einzel-Freikauf); die beiden anderen Anlässe erweitern die
+-- Tabelle in ihren eigenen Schemata (anmeldung-schema.sql, ferien-schema.sql)
+-- um je eine weitere nullable Vorgangs-Spalte samt erweitertem
+-- Entweder-oder-CHECK — keine zweite Zahlungstabelle. Diese Bauform
 -- (Fremdschlüssel trägt die Unterscheidung, kein Typ-Feld daneben) ist dieselbe
 -- wie bei guardians und payers in Stammdaten und behält die referenzielle
 -- Integrität, die ein Typ-Feld plus untypisierte Vorgangs-ID aufgäbe.
@@ -436,7 +499,13 @@ CREATE TABLE payments (
     -- bleibt als benannter Ausweg bestehen (Überweisung, Bargeld) und hat keine
     -- Referenz. Bewusst kein CHECK gegen settled_at — eine Referenz existiert
     -- bereits, bevor die Zahlung bestätigt ist.
-    reference          text CHECK (reference <> ''),
+    -- UNIQUE: dieselbe Referenz an zwei Zeilen wäre derselbe Vorgang zweimal
+    -- gebucht — die Gegenrichtung zu der Doppelbelastung, gegen die die beiden
+    -- Vorgangs-Spalten oben je ein UNIQUE tragen. Der reale Weg dorthin ist ein
+    -- zweimal zugestellter Stripe-Webhook, nicht ein Tippfehler. Die manuelle
+    -- Bestätigung durch die Buchhaltung bleibt unberührt: sie hat gar keine
+    -- Referenz, und NULLs kollidieren in einem UNIQUE nicht.
+    reference          text UNIQUE CHECK (reference <> ''),
     settled_at         timestamptz,
     created_at         timestamptz NOT NULL DEFAULT now(),
     created_by         text NOT NULL,

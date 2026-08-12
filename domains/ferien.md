@@ -1,6 +1,6 @@
 # Ferienanmeldung — Fachdomäne (Ferienprogramm, Kochwerkstatt)
 
-Domäne 3 aus `fachdomaenen.md` Abschnitt 6. Tabellenschema: `domains/ferien-schema.sql`, belegt durch `domains/ferien-schema-check.sql` (Sollstand 11/11). Der heutige Ablauf samt Excel-Spalten steht in `prozesse.md` Abschnitt 10.
+Domäne 3 aus `fachdomaenen.md` Abschnitt 6. Tabellenschema: `domains/ferien-schema.sql`, belegt durch `domains/ferien-schema-check.sql` (Sollstand 14/14). Der heutige Ablauf samt Excel-Spalten steht in `prozesse.md` Abschnitt 10.
 
 Die kleinste der drei gebauten Prozessdomänen — und die mit der unangenehmsten Eigenschaft: **sie legt Personen an, die mit der Schule sonst nichts zu tun haben.**
 
@@ -11,6 +11,8 @@ Das Ferienprogramm steht ausdrücklich auch Kindern offen, die weder an der Grun
 Daraus folgt das Löschproblem: **`children.exit_date` bleibt bei ihnen dauerhaft leer** und taugt deshalb nicht als Fristanker (`idea/06-dsgvo-organisatorisch.md`). Der Anker ist stattdessen das **Programm**: ist es vorbei und hat das Kind keinen anderen Bezug zur Schule, fällt es mit der Frist der Buchung. Das Prüfskript zeigt beide Richtungen — solange das Programm läuft, ist das Kind kein Kandidat; danach wird es einer. Auch das braucht keine eigene Spalte.
 
 **„Clemens-Kind" wird nicht gespeichert.** Die Frage des heutigen Formulars ist aus dem Stammdaten-Prädikat „eingeschrieben" ableitbar und wäre als Spalte ein zweiter, veraltender Ort.
+
+**Die Kochwerkstatt bringt zusätzlich Erwachsene mit.** Sie steht ausdrücklich auch Erwachsenen offen (`fachdomaenen.md` Abschnitt 1) — eine erwachsene Teilnehmerin ist eine `persons`-Zeile ganz ohne Rollenzeile (`domains/stammdaten.md`, „Ausblick"), regelmäßig die anmeldende Person selbst. Die Buchung trägt deshalb **entweder ein Kind oder eine erwachsene Person** (zwei Fremdschlüssel, Entweder-oder-CHECK wie beim Dokument-Bezug in Q2); Familie, Notfallkontakt und Fotoeinverständnis gelten nur für Kinder, der Programm-Anker der Löschung gilt für beide gleich.
 
 ## Programm und Angebotstag
 
@@ -50,4 +52,4 @@ Die Ferienbuchung ist der **vierte und letzte** der in `domains/grenzkarte.md` b
 ## Offene Punkte
 
 - Was nach dem Programm mit den Daten schulfremder Kinder geschieht, ist bis heute nicht geregelt (`prozesse.md` Abschnitt 10). Das Schema trägt den Anker, die **Frist** muss die Schulleitung bzw. die/der Datenschutzbeauftragte setzen (`TODO.md`).
-- Die Kochwerkstatt läuft heute über die Hausdienstverwaltung und ist nicht im Detail erhoben; sie passt in dieselbe Struktur, solange sich das nicht als falsch herausstellt.
+- Die Kochwerkstatt läuft heute über die Hausdienstverwaltung und ist nicht im Detail erhoben; die Struktur trägt sie samt erwachsener Teilnehmer, solange sich nichts anderes herausstellt.

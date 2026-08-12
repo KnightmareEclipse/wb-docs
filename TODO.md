@@ -25,10 +25,11 @@ Aufgaben, die reale Konten/Zugänge brauchen und die reine Konzept-Doku (`idea/`
 
 ## Unabhängig vom Putzdienst-Termin
 
-- [ ] Mensa-Anmeldeformular beim Sekretariat bzw. der Hausdienstverwaltung anfordern — es wurde zugesagt, liegt aber nicht vor, und ohne die Feldliste ist Domäne 6 nicht entwerfbar (`prozesse.md` Abschnitt 9)
+- [x] Mensa-Anmeldeformular beim Sekretariat bzw. der Hausdienstverwaltung anfordern — **liegt vor** (`~/Downloads/25_26_RS_Mittagessen.pdf`, Realschule 25/26); Feldliste und Regeln ausgewertet in `prozesse.md` Abschnitt 9. Offen bleibt, ob ein Grundschul-Pendant existiert (`domains/grenzkarte.md`, „Weiße Flecken")
 - [ ] `wb-backend`-Grundgerüst (Compose-Skeleton, FastAPI-Grundgerüst) ist nicht selbst geschrieben und noch nicht gegen `wb-backend/CLAUDE.md` durchgesehen
 - [x] Wer den Dublettenhinweis an einer eingehenden Anmeldung abarbeitet („Verdacht auf vorhandenes Kind", `TODO-SESSIONS.md`): **das Sekretariat**. Der Hinweis hängt bewusst an der Bewerbung/Buchung, die ohnehin gesichtet wird, und nicht an einer eigenen Liste — er begleitet den Vorgang damit, statt ihn anzuhalten
-- [ ] Klären, ob §20 Abs. 9 IfSG eine Meldung ans Gesundheitsamt verlangt, wenn kein Masernnachweis vorgelegt wird (Schulleitung bzw. Datenschutzbeauftragte:r). Wenn ja, braucht der Fall „geprüft, liegt nicht vor" einen Datenanker samt Meldedatum — heute sagt das Fehlen einer `measles_proofs`-Zeile beides zugleich (`domains/gesundheit.md`). Vor dem ersten Anmeldetag mit Weltenbaum
+- [x] Klären, ob §20 Abs. 9 IfSG eine Meldung ans Gesundheitsamt verlangt, wenn kein Masernnachweis vorgelegt wird — **ja**: die Infektionsschutz-Anlage des Betreuungsvertrags hält die Meldung ausdrücklich fest. Der Fall „geprüft, nicht vorgelegt, gemeldet" trägt seither `measles_proofs.reported_to_health_office_on` (`domains/gesundheit.md`)
+- [ ] Beitragssatzung und aktuelle Preisliste des Horts (Preise je Modul und Mittagessen) bei Hortleitung/Geschäftsführung anfordern — ohne sie bleiben die Modulpreise bewusst außerhalb Weltenbaums (`domains/mensa.md`); nötig spätestens für den digitalen Hortvertrag (Domäne 2/4)
 - [ ] Aufbewahrungsfristen für Schülerunterlagen nach baden-württembergischem Schulrecht klären (Schulleitung bzw. Datenschutzbeauftragte:r) — bestimmt, wie lange Stammdaten nach dem Abgang **behalten** werden müssen, bevor die Löschfrist überhaupt greifen darf (`idea/06-dsgvo-organisatorisch.md`). Muss stehen, bevor der Lösch-Job gebaut wird
 
 ## Wiederkehrend / Ablauf-Termine

@@ -24,7 +24,7 @@
 -- Fallstricke beim Auswerten — identisch zu den anderen Prüfskripten:
 --   * Pro Lauf eine frische Datenbank.
 --   * stdout und stderr im Container zusammenführen (`sh -c '… 2>&1'`).
---   * Sollstand: 11 Ankündigungen zu 11 ERROR-Zeilen, jeweils unmittelbar
+--   * Sollstand: 14 Ankündigungen zu 14 ERROR-Zeilen, jeweils unmittelbar
 --     gepaart. Verankert und auf der AUSGABE zählen, nicht auf dieser Datei.
 
 SET app.actor = 'system:test';
@@ -156,6 +156,41 @@ INSERT INTO programs (program_id, label, starts_on, ends_on, booking_closes_at, 
             '2027-01-11 23:00+01', 18.00);
 RESET TimeZone;
 SELECT 'anmeldeschluss-check zeitzonenfest' AS pruefung, label FROM programs WHERE program_id = 3;
+
+-- ---------------------------------------------------------------------------
+-- Erwachsene in der Kochwerkstatt: Teilnehmerin ohne jede Rollenzeile
+-- ---------------------------------------------------------------------------
+INSERT INTO persons (person_id, last_name, first_name) VALUES
+    ('44444444-4444-4444-4444-444444444444', 'Groß', 'Gerda');
+INSERT INTO program_days (program_day_id, program_id, day_on, starts_at, ends_at, capacity)
+    VALUES (4, 3, '2027-01-11', '17:00', '21:00', 12);
+INSERT INTO program_registrations (program_registration_id, program_id, registered_by_person_id)
+    VALUES ('a0000000-0000-0000-0000-000000000004', 3,
+            '44444444-4444-4444-4444-444444444444');
+INSERT INTO program_bookings (program_registration_id, adult_person_id, program_day_id, care_until)
+    VALUES ('a0000000-0000-0000-0000-000000000004',
+            '44444444-4444-4444-4444-444444444444', 4, '21:00');
+SELECT 'erwachsene teilnehmerin ohne kind-rolle gebucht' AS pruefung,
+       (SELECT count(*) FROM children
+         WHERE child_id = '44444444-4444-4444-4444-444444444444') AS kind_rollen,
+       count(*) AS buchungen
+  FROM program_bookings
+ WHERE adult_person_id = '44444444-4444-4444-4444-444444444444';
+
+\echo '--- erwartet: FEHLER (Buchung mit Kind UND Erwachsener zugleich)'
+INSERT INTO program_bookings (program_registration_id, child_id, adult_person_id, program_day_id, care_until)
+    VALUES ('a0000000-0000-0000-0000-000000000004',
+            '11111111-1111-1111-1111-111111111111',
+            '44444444-4444-4444-4444-444444444444', 4, '21:00');
+
+\echo '--- erwartet: FEHLER (Buchung ohne Teilnehmer)'
+INSERT INTO program_bookings (program_registration_id, program_day_id, care_until)
+    VALUES ('a0000000-0000-0000-0000-000000000004', 4, '21:00');
+
+\echo '--- erwartet: FEHLER (zweite aktive Buchung derselben Erwachsenen am selben Tag)'
+INSERT INTO program_bookings (program_registration_id, adult_person_id, program_day_id, care_until)
+    VALUES ('a0000000-0000-0000-0000-000000000004',
+            '44444444-4444-4444-4444-444444444444', 4, '19:00');
 
 -- ---------------------------------------------------------------------------
 -- Q3: vierter und letzter Zahlungsanlass

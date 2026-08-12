@@ -252,39 +252,47 @@ Drei Festlegungen dazu:
 
 ## 8. Hortvertrag und Betreuungsmodule
 
-**Soll digitalisiert werden.** Heute Papier, ausgefüllt am Anmeldetag oder danach.
+**Soll digitalisiert werden.** Heute Papier („Betreuungsvertrag", Stand 12/2025, Vertragspartner ist der Trägerverein CBBE e. V.), ausgefüllt am Anmeldetag oder danach.
 
-**Laufzeit:** gültig bis **Ende Klasse 4**, danach automatisch gekündigt — das Kind ist ab dann möglicherweise kein Schüler mehr. Ein Vertrag für **Klasse 5 gilt nur für Klasse 5**. Das Hortangebot endet mit Klasse 5.
+**Laufzeit laut Vertrag:** ein Schuljahr (01.08.–31.07.), Kündigungsfrist ein Monat zum Vertragsende; ohne Kündigung **stillschweigende Verlängerung auf unbestimmte Zeit** mit Monatsfrist zum Monatsersten. Außerordentliche Kündigung mit 14 Tagen zum Monatsende aus wichtigem Grund (beidseitig, Gründe im Vertrag benannt). Das Hortangebot selbst endet mit Klasse 5. **Modul-Anpassungen:** im September kostenfrei, bei Stundenplanänderungen kostenfrei, zum Schulhalbjahr gegen 20 € Gebühr, eine Erhöhung des Umfangs zum Monatswechsel mit 14 Tagen Vorlauf kostenfrei.
+
+**Beiträge:** nach Beitragssatzung des Trägervereins, 11 Monatsraten September–Juli, Anpassung zu Schuljahresbeginn; die konkreten Preise trägt die Verwaltung aus der aktuellen Preisliste in den Vertrag ein (Liste liegt nicht vor, `domains/grenzkarte.md`, „Weiße Flecken"). Ab dem 2. Kind mit Hortbuchung bekommt das **älteste Kind 10 % Ermäßigung** (außer Notfall-/Ferienbetreuung). Eingezogen wird über dasselbe SEPA-Mandat wie das Schulgeld; Mahngebühr 10 € je Mahnung.
+
+**Mittagessen:** wird **für alle Schüler berechnet, die länger als 13 Uhr betreut werden** — keine eigene Buchung, es folgt aus dem Modul (`domains/mensa.md`). Preiserhöhungen des Lieferanten werden weitergegeben; Erstattung nur bei Langzeiterkrankung ab der 2. Woche nach Abbestellung.
 
 **Externe Kinder:** Der Hort nimmt Kinder auf, die **weder Grund- noch Realschüler** sind. Ein Hortvertrag kann also ohne Einschreibung bestehen.
 
-**Gesundheitsdaten:** Der Hort braucht sie ebenfalls, und der heutige Hortvertrag erhebt sie deshalb **selbst noch einmal** — mit demselben Bogen wie Grund- und Realschule. Beim Zusammenführen ist zu prüfen, dass für den Nachmittag nichts fehlt, was die Schulanmeldung nicht abfragt, und dass externe Hortkinder überhaupt einen Satz bekommen.
+**Gesundheitsdaten:** erhoben als freiwillige Einwilligung mit Ja/Nein-Screening (Vegetarier, Lebensmittelunverträglichkeit, Allergien, chronische Erkrankung, Medikamente während der Betreuungszeit, Notfallmedikamente, körperliche Einschränkungen, Zeckenentfernung) plus Anlage „Angaben zur Gesundheit des Kindes" bei mindestens einem Ja. **Die Anlage deckt sich mit dem Muster von Domäne 9** (je Punkt: was, Attest ja/nein, Erlaubnis ja/nein; bei Medikamenten zusätzlich „nimmt selbständig ein / benötigte Unterstützung" — das geht in die Handlungsanweisung); die Vegetarier-Frage gehört zum Küchenprofil (`domains/mensa.md`). Der Vertrag sagt zu: **„Diese Daten werden nach Austritt aus dem Hort gelöscht."**
 
 **Erhobene Felder:**
 
-- Vor- und Nachname von Mutter und Vater
+- Schuljahr und Klasse; Vor- und Nachname von Mutter und Vater
 - Datum der Aufnahme in den Hort
-- Vorname, Nachname, Geburtsdatum des Kindes
-- Wohnadresse des Kindes
-- Notfallnummer, erreichbar während der Betreuungszeit
-- Unterschrift von Mutter und Vater
-- Gesundheitsdatenbogen (wie Grund-/Realschule, siehe 7.2)
-- Fotoeinverständnis (wie Grund-/Realschule, siehe 7.3)
+- Vorname, Nachname, Geburtsdatum des Kindes; Wohnadresse des Kindes
+- Notfallnummer **je Mutter und Vater** (Festnetz/Arbeitsplatz/Mobil), erreichbar während der Betreuungszeit
+- Unterschriften von Mutter, Vater **und Hortleitung** (mit Stempel des Trägervereins)
+- Gesundheitsdatenbogen (Screening + Anlage, siehe oben)
+- Fotoeinverständnis (Anlage „Einwilligung zu Fotos/Videos", Zwecke: Newsletter, Internet, Presse, Broschüren; je eine Unterschrift von Mutter und Vater)
 - **Einwilligung zum Informationsaustausch** zwischen Hort und Grund- bzw. Realschule über den Entwicklungsstand, zur bestmöglichen Förderung
 - Auswahl der Betreuungsmodule, siehe unten
+- Weitere Anlagen ohne Datenfelder: Regelung zum Infektionsschutz (hält u. a. fest, dass ein **fehlender Masern-Immunitätsnachweis dem Gesundheitsamt gemeldet wird** — `domains/gesundheit.md`), Betreuungsordnung
 
-**Betreuungsmodule.** Mehrere gleichzeitig buchbar, **je Modul werden die einzelnen Tage gewählt**:
+**Betreuungsmodule.** Mehrere gleichzeitig buchbar, **je Modul werden die einzelnen Tage gewählt** (Ankreuzraster Mo–Fr je Modul, Preis je Modul, „Zuzüglich Mittagessen", Monatsbeitrag als Summe):
 
 | Modul | Zeit |
 |---|---|
 | Frühbetreuung | 7:00 bis Schulbeginn |
-| Nachmittagsbetreuung 1 | Schulende bis 13:00 |
+| Nachmittagsbetreuung 1 | Schulende bis 13:00, feste Abholzeit |
 | Nachmittagsbetreuung 2 | Schulende bis 14:30, inkl. Hausaufgabenbegleitung, feste Abholzeit |
-| Nachmittagsbetreuung 3 | Schulende bis 13:30, inkl. Hausaufgabenbegleitung, feste Abholzeit |
-| Nachmittagsbetreuung 4 | Schulende bis 17:00, inkl. Hausaufgabenbegleitung, ab 15:30 flexible Abholzeit |
-| Hort nach Mittagschule | nur Realschule Klasse 5, 15:00–17:00 |
+| Nachmittagsbetreuung 3 | Schulende bis 15:30, inkl. Hausaufgabenbegleitung, feste Abholzeit |
+| Hort-Nachmittagsbetreuung 4 | Schulende bis 17:00, inkl. Hausaufgabenbegleitung, ab 15:30 flexible Abholzeit |
+| Hort nach Mittagsschule | nur Realschule Klasse 5, 15:00–17:00 |
 
-Modul × Wochentag ist damit die Buchungseinheit, nicht das Modul allein. Eingezogen wird über dasselbe SEPA-Mandat wie das Schulgeld.
+Modul × Wochentag ist damit die Buchungseinheit, nicht das Modul allein.
+
+**Getrenntlebende Sorgeberechtigte** bevollmächtigen sich laut Vertrag gegenseitig zur Entgegennahme aller Informationen des Hortträgers.
+
+Der Vertrag erwähnt daneben eine **Notfall- und Ferienbetreuung** (nur als Rabatt-Ausnahme): die Ferienbetreuung ist das Ferienprogramm (Domäne 3), die Notfallbetreuung gehört zum Hort-Alltag und bleibt out of scope (`fachdomaenen.md` Abschnitt 6).
 
 **Laufender Hort-Alltag bleibt draußen** (`fachdomaenen.md` Abschnitt 6): Der Hort führt eigene, sehr umfangreiche Excel-Dateien darüber, wer wann gebucht ist, und notiert dort auch Vorfälle und Verhalten.
 
@@ -295,7 +303,9 @@ Modul × Wochentag ist damit die Buchungseinheit, nicht das Modul allein. Eingez
 - Buchung läuft über das **Sekretariat**, gepflegt wird eine einzige Excel-Liste: welcher Schüler wann zum Essen kommt.
 - Abgerechnet wird über die Buchhaltung mit dem **SEPA-Mandat aus der Schulanmeldung**.
 - Die Essensberechtigung wird bei der Ausgabe **auf Papier** geprüft — bei den wenigen Kindern heute im Kopf merkbar.
-- Es gibt ein **Anmeldeformular, das noch nicht vorliegt** und nachgereicht werden muss.
+- **Anmeldeformular (Realschule, „Anmeldung zum Mittagessen"):** Klasse, Schuljahr, `Vorname`, `Nachname`, `Geburtstag`; je Wochentag Mo–Fr eine Ankreuz-Buchung zu je 20 €/Monat samt Summenfeld; „Infos für die Küche": `Vegetarisch`, `Laktosefrei`, `Glutenfrei`, `sonstige Unverträglichkeiten` (Freitext); Datum und Unterschrift eines Erziehungsberechtigten; interner Vermerk „Kopie Buchhaltung" (Datum/Unterschrift).
+- **Regeln laut Formular:** Die Buchungseinheit ist der **Wochentag im Schuljahres-Abo** (Oktober–Juli), nicht der einzelne Tag; kündbar mit vier Wochen Frist zum Schulhalbjahr (31.01.); keine Erstattung bei Krankheit; Realschüler wählen zwischen warmem Essen und eigenem Vesper. Die Unterschrift ermächtigt zugleich zur **Lastschrift** — das ist die Q1-Lastschrift-Erlaubnis aus `domains/grenzkarte.md` (Q3), keine Zahlung in Weltenbaum.
+- **Ein Grundschul-Pendant gibt es nicht:** für Hortkinder wird das Mittagessen automatisch berechnet, sobald ein Modul über 13 Uhr gebucht ist (Abschnitt 8) — das RS-Formular ist die einzige eigenständige Essensanmeldung. Die Küchen-Infos landen im Küchenprofil je Kind, getrennt vom Art.-9-Bestand der Domäne 9 (`domains/mensa.md`).
 
 ---
 
@@ -330,7 +340,7 @@ Vollständig in `domains/putzdienst.md`; hier nur, was dort fehlt oder abweicht.
 - **Anwesenheit** über Elternunterschriftenliste auf Papier. Erfasst wird **nur, ob jemand da war oder nicht** — der Putzdienst führt **keinen Stundennachweis**, weder auf Papier noch digital. Gezählt wird in Terminen (5+1), nicht in Stunden; Stundenzettel gibt es allein beim Elternbonus (Abschnitt 12).
 - **Strafe bei Nichterscheinen: 45 €**, eingezogen über die Schulgeldabrechnung. Sie wird **immer verhängt**; wer die Berechtigung hat, kann sie danach aussetzen — ein festgehaltener Vorgang, keine unterlassene Forderung.
 
-Modell und Herleitung: `domains/putzdienst.md`. Was das gebaute Schema für Einzel-Freikauf und Straf-Aussetzung noch nicht trägt, steht dort ebenfalls.
+Modell und Herleitung: `domains/putzdienst.md` — das gebaute Schema trägt beide Freikäufe und die Straf-Aussetzung.
 
 ---
 

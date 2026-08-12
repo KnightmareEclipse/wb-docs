@@ -6,9 +6,9 @@ Fachliche/technische Punkte, die eine Session in diesem Repo oder in `wb-backend
 
 ### Was an Domänenschemata noch offen ist
 
-Gebaut sind Stammdaten, Putzdienst, Anmeldung (samt Q1/Q2/Q3), Ferienanmeldung und Gesundheitsdaten — damit alle Domänen, die vor dem Freeze gegen Stammdaten geprüft wurden, und der gesamte Art.-9-Bestand.
+Gebaut sind Stammdaten, Putzdienst, Anmeldung (samt Q1/Q2/Q3/Q5), Ferienanmeldung, Gesundheitsdaten, der Mensa-Kern (`domains/mensa.md`) und die Klassenorganisation (`domains/klassenorganisation.md`) — damit alle Domänen, die vor dem Freeze gegen Stammdaten geprüft wurden, alle fünf Querschnitts-Entitäten und der gesamte Art.-9-Bestand.
 
-Offen sind nur noch die nicht terminlich getriebenen Domänen: **5 Rechnungsfreigabe** (braucht zuerst die Bereichs- und Vorgesetztenstruktur an `employees`, Zuschnitt unbekannt — `domains/grenzkarte.md`, „Weiße Flecken"), **6 Mensa/AGs** (Mensa-Formular liegt nicht vor), **8 Eltern-Selfservice** (schreibt nur eigene Personendaten, keine eigenen Entitäten), **11 Bonussystem**, **12 Klassenbildung** (braucht keine eigene Tabelle) und **13 Klassenorganisation** (nur die Elternvertretung).
+Offen sind nur noch die nicht terminlich getriebenen Domänen: **5 Rechnungsfreigabe** (braucht zuerst die Bereichs- und Vorgesetztenstruktur an `employees`, Zuschnitt unbekannt — `domains/grenzkarte.md`, „Weiße Flecken"), **6 AGs** (nichts Konkretes bekannt) und **11 Bonussystem** (ausdrücklich nicht v1); **8 Eltern-Selfservice** und **12 Klassenbildung** brauchen per Festlegung keine eigenen Tabellen.
 
 Keine davon ist vor dem Vollimport fällig, und keine verlangt eine Änderung an einer bestehenden Stammdaten-Spalte.
 
@@ -42,16 +42,17 @@ Das Schema trägt Einzel-Freikauf und Straf-Aussetzung (`domains/putzdienst.md`)
 
 - **Die Frist des Einzel-Freikaufs** („nur vor dem Termindatum") ist eine Backend-Prüfung, weil das Datum an `cleaning_slots` hängt. Sie muss an derselben Stelle sitzen, die die Zahlung auslöst — sonst entsteht ein bezahlter Freikauf für einen bereits gelaufenen Termin.
 - **Die enge Berechtigung** für Straf-Aussetzung und Pflicht-Erlass ist ein Spalten-GRANT plus Rollenwahl, kein Anwendungs-`if`. Der Personenkreis ist noch zu benennen (`TODO.md`).
+- **Freigekaufte Zuteilungen gehören nicht auf die Übertragungsliste der Anwesenheit:** `no_show` auf einer einzeln freigekauften Zeile wäre eine Strafe auf einem bezahlten Termin. Wie die Frist eine Bedingung über zwei Tabellen — die Übernahme der Papierliste muss sie ausnehmen.
 
 ## Für `wb-backend`
 
 ### Übertragung nach SQLAlchemy/Alembic: was Modelle nicht können
 
-Tabellen, Spalten, PK/FK/UNIQUE, CHECKs, partielle Indizes und der Ausschluss-Constraint lassen sich als Modell ausdrücken. **Drei Dinge nicht:** die plpgsql-Funktion `set_row_audit()`, die 16 Trigger, die sie anhängen, und die Spalten-GRANTs. Die gehören als `op.execute()` in die Initial-Migration.
+Tabellen, Spalten, PK/FK/UNIQUE, CHECKs, partielle Indizes und die Ausschluss-Constraints lassen sich als Modell ausdrücken. **Drei Dinge nicht:** die plpgsql-Funktion `set_row_audit()`, die 47 Trigger, die sie über die sieben Schemata anhängen, und die Spalten-GRANTs. Die gehören als `op.execute()` in die Initial-Migration.
 
 Das ist kein Tipparbeits-, sondern ein Sicherheitsproblem: Alembics `--autogenerate` **sieht diese drei gar nicht**. Es meldet nicht, dass sie fehlen, und würde sie bei einem späteren Regenerieren stillschweigend aus der Migration lassen. Damit fiele genau das weg, worauf das Schema am stärksten baut — Audit-Trail und Art.-9-Schutz — ohne eine einzige Fehlermeldung.
 
-Die Doppelung ist dafür überprüfbar statt riskant: `domains/stammdaten-schema-check.sql` und `domains/putzdienst-schema-check.sql` laufen gegen **jede** Datenbank, auch gegen die von Alembic gebaute. Kommen dort 65/65 bzw. 19/19 heraus, ist die Übertragung nachweislich treu. Das gehört als fester Schritt hinter die Initial-Migration, nicht als einmalige Sichtprüfung.
+Die Doppelung ist dafür überprüfbar statt riskant: die sieben Prüfskripte in `domains/` laufen gegen **jede** Datenbank, auch gegen die von Alembic gebaute. Kommen dort 65/65, 22/22, 46/46, 14/14, 10/10, 4/4 und 3/3 heraus, ist die Übertragung nachweislich treu. Das gehört als fester Schritt hinter die Initial-Migration, nicht als einmalige Sichtprüfung.
 
 Danach führt `wb-backend` das Schema; die `.sql` in diesem Repo bleibt der Entwurf samt Begründungen und ist nicht mehr die Quelle der Wahrheit.
 

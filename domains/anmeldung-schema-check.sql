@@ -26,7 +26,7 @@
 --   * Pro Lauf eine frische Datenbank.
 --   * stdout und stderr im Container zusammenführen (`sh -c '… 2>&1'`), sonst
 --     reordert podman die Ströme und die Paarung sieht wie ein Befund aus.
---   * Sollstand: 37 Ankündigungen zu 37 ERROR-Zeilen, jeweils unmittelbar
+--   * Sollstand: 46 Ankündigungen zu 46 ERROR-Zeilen, jeweils unmittelbar
 --     gepaart. Verankert und auf der AUSGABE zählen, nicht auf dieser Datei —
 --     deren Kopfkommentar enthält die Zeichenkette selbst:
 --       grep -cE '^--- erwartet: FEHLER'  gegen  grep -cE '^psql:.*: ERROR:'
@@ -77,11 +77,17 @@ INSERT INTO school_recommendations (school_recommendation_id, label) VALUES
     (1, 'Hauptschule'), (2, 'Realschule'), (3, 'Gymnasium');
 INSERT INTO fit_assessments (fit_assessment_id, label, sort_order) VALUES
     (1, 'Zusage', 1), (2, 'Eher Ja', 2), (3, 'Eher Nein', 3), (4, 'Absage', 4);
-INSERT INTO consent_purposes (consent_purpose_id, label) VALUES
-    (1, 'Schulvertrag'), (2, 'Gesundheitsdaten'), (3, 'Fotoeinverständnis'),
-    (4, 'Informationsaustausch Hort/Schule');
-INSERT INTO document_types (document_type_id, label) VALUES
-    (1, 'Schulvertrag'), (2, 'Geburtsurkunde'), (3, 'SEPA-Mandat');
+INSERT INTO consent_purposes (consent_purpose_id, label, code) VALUES
+    (1, 'Schulvertrag', 'school_contract'), (2, 'Gesundheitsdaten', 'health_data'),
+    (3, 'Fotoeinverständnis', 'photo'), (4, 'Informationsaustausch Hort/Schule', 'hort_school_exchange');
+INSERT INTO document_types (document_type_id, label, code) VALUES
+    (1, 'Schulvertrag', 'school_contract'), (2, 'Geburtsurkunde', 'birth_certificate'),
+    (3, 'SEPA-Mandat', 'sepa_mandate');
+
+-- Der code ist der stabile Anker für Systemverhalten (Foto-Ansicht,
+-- Werbemail-Filter); das label bleibt frei umbenennbar.
+\echo '--- erwartet: FEHLER (Zweck-Code in freier Schreibweise statt Ankerform)'
+INSERT INTO consent_purposes (label, code) VALUES ('Werbung', 'Werbung per Mail');
 
 -- Status samt der beiden nicht umbenennbaren Kennzeichen
 INSERT INTO application_statuses (application_status_id, label, is_waitlist, is_final) VALUES
@@ -117,6 +123,27 @@ INSERT INTO enrollment_cutoffs (school_year, cutoff_on, compulsory_age)
 \echo '--- erwartet: FEHLER (Schuljahr in abweichender Schreibweise)'
 INSERT INTO enrollment_cutoffs (school_year, cutoff_on, compulsory_age)
     VALUES ('2028/2029', '2028-06-30', 6);
+
+-- ---------------------------------------------------------------------------
+-- Anmeldefenster: Sperre und Gebühr als Daten je Zweig und Schuljahr
+-- ---------------------------------------------------------------------------
+-- Die Schließung ist real je Schule dynamisch — deshalb je Zweig ein Fenster
+-- mit eigenem Schlusszeitpunkt und eigener Gebühr.
+INSERT INTO application_windows (application_window_id, school_branch_id, school_year,
+                                 opens_at, closes_at, fee) VALUES
+    (1, 1, '2027/28', '2026-10-26 00:00+02', '2027-02-01 23:59+01', 60.00),
+    (2, 2, '2027/28', '2026-10-26 00:00+02', '2027-01-16 23:59+01', 60.00);
+SELECT 'anmeldefenster und gebühr als datenwerte, schließung je zweig' AS pruefung,
+       count(*) AS fenster, count(DISTINCT closes_at) AS verschiedene_schlusszeiten
+  FROM application_windows WHERE school_year = '2027/28';
+
+\echo '--- erwartet: FEHLER (Fenster schließt vor seiner Öffnung)'
+INSERT INTO application_windows (school_branch_id, school_year, opens_at, closes_at, fee)
+    VALUES (1, '2028/29', '2027-10-25 00:00+02', '2027-10-01 00:00+02', 60.00);
+
+\echo '--- erwartet: FEHLER (zweites Fenster desselben Zweigs im selben Schuljahr)'
+INSERT INTO application_windows (school_branch_id, school_year, opens_at, closes_at, fee)
+    VALUES (1, '2027/28', '2027-03-01 00:00+01', '2027-06-30 23:59+02', 60.00);
 
 -- ---------------------------------------------------------------------------
 -- Gesprächstermine: Raster und Slot
@@ -261,6 +288,25 @@ SELECT 'bewertung konsolidiert, empfehlung und eigenes niveau getrennt' AS pruef
  WHERE a.application_id = 'a0000000-0000-0000-0000-000000000001';
 
 -- ---------------------------------------------------------------------------
+-- Quereinstieg: Hospitationszeitraum und Schülerüberweisung an der Bewerbung
+-- ---------------------------------------------------------------------------
+INSERT INTO applications (application_id, child_id, application_status_id,
+                          target_school_year, target_grade_level_id, school_branch_id,
+                          is_lateral_entry, trial_attendance_starts_on, trial_attendance_ends_on,
+                          student_transfer_received_on, student_transfer_returned_on)
+    VALUES ('a0000000-0000-0000-0000-000000000003',
+            '44444444-4444-4444-4444-444444444444', 1, '2027/28', 5, 2,
+            true, '2027-11-08', '2027-11-12', '2027-11-20', '2027-11-27');
+SELECT 'quereinstieg: hospitation und überweisungsschritt an der bewerbung' AS pruefung,
+       trial_attendance_starts_on,
+       student_transfer_returned_on IS NOT NULL AS ueberweisung_zurueckgesendet
+  FROM applications WHERE application_id = 'a0000000-0000-0000-0000-000000000003';
+
+\echo '--- erwartet: FEHLER (Hospitationsende vor ihrem Beginn)'
+UPDATE applications SET trial_attendance_ends_on = '2027-11-01'
+    WHERE application_id = 'a0000000-0000-0000-0000-000000000003';
+
+-- ---------------------------------------------------------------------------
 -- Q3: Anmeldegebühr als dritter Zahlungsanlass
 -- ---------------------------------------------------------------------------
 INSERT INTO payments (application_id, amount, reference)
@@ -303,6 +349,31 @@ DELETE FROM applications WHERE application_id = 'a0000000-0000-0000-0000-0000000
 SELECT 'abgelehnte bewerbung samt zahlung geräumt' AS pruefung,
        (SELECT count(*) FROM applications WHERE application_id = 'a0000000-0000-0000-0000-000000000009') AS bewerbungen,
        (SELECT count(*) FROM payments WHERE reference = 'pi_3QexampleAbgelehnt') AS zahlungen;
+
+-- ---------------------------------------------------------------------------
+-- Q5: Nachzieh-Aufgabe
+-- ---------------------------------------------------------------------------
+INSERT INTO sync_targets (sync_target_id, label, code) VALUES
+    (1, 'ASV-BW', 'asv_bw'), (2, 'Optigem', 'optigem'), (3, 'Microsoft 365', 'm365');
+
+\echo '--- erwartet: FEHLER (Zielsystem-Code in freier Schreibweise statt Ankerform)'
+INSERT INTO sync_targets (label, code) VALUES ('Testsystem', 'ASV BW');
+
+-- Neuanlage in ASV-BW nach Vertragsabschluss: die Aufgabe entsteht offen und
+-- wird ausdrücklich erledigt — WER, hält die Audit-Spalte fest.
+INSERT INTO sync_tasks (sync_task_id, sync_target_id, person_id, description)
+    VALUES ('60000000-0000-0000-0000-000000000001', 1,
+            '11111111-1111-1111-1111-111111111111', 'Neuanlage nach Vertragsabschluss');
+SELECT 'nachzieh-aufgabe entsteht offen' AS pruefung, count(*) AS offene
+  FROM sync_tasks WHERE completed_at IS NULL;
+UPDATE sync_tasks SET completed_at = now()
+    WHERE sync_task_id = '60000000-0000-0000-0000-000000000001';
+SELECT 'nachzieh-aufgabe erledigt, verursacher im audit' AS pruefung,
+       completed_at IS NOT NULL AS erledigt, updated_by
+  FROM sync_tasks WHERE sync_task_id = '60000000-0000-0000-0000-000000000001';
+
+\echo '--- erwartet: FEHLER (Aufgabe ohne Beschreibung)'
+INSERT INTO sync_tasks (sync_target_id, description) VALUES (2, '');
 
 -- ---------------------------------------------------------------------------
 -- Schulvertrag
@@ -386,17 +457,18 @@ INSERT INTO signatures (document_id, person_id)
 UPDATE signatures SET signature_level = 'ees'
     WHERE signature_id = '50000000-0000-0000-0000-000000000001';
 
--- Zustimmung mit festgehaltener Zustelladresse, belegt durch eine Signatur
-INSERT INTO consents (person_id, child_id, consent_purpose_id, delivery_email, signature_id)
+-- Zustimmung mit festgehaltener Zustelladresse, belegt durch eine Signatur.
+-- granted_at steht ausdrücklich dabei — die Spalte hat bewusst keinen Default.
+INSERT INTO consents (person_id, child_id, consent_purpose_id, granted_at, delivery_email, signature_id)
     VALUES ('22222222-2222-2222-2222-222222222222',
-            '11111111-1111-1111-1111-111111111111', 1,
+            '11111111-1111-1111-1111-111111111111', 1, now(),
             'familie.mueller@example.org', '50000000-0000-0000-0000-000000000001');
 
 -- Geteilte Mailbox: derselbe Zustellweg für beide Elternteile ist erlaubt und
 -- genau deshalb wird die Adresse festgehalten (domains/stammdaten.md).
-INSERT INTO consents (person_id, child_id, consent_purpose_id, delivery_email, signature_id)
+INSERT INTO consents (person_id, child_id, consent_purpose_id, granted_at, delivery_email, signature_id)
     VALUES ('33333333-3333-3333-3333-333333333333',
-            '11111111-1111-1111-1111-111111111111', 1,
+            '11111111-1111-1111-1111-111111111111', 1, now(),
             'familie.mueller@example.org', '50000000-0000-0000-0000-000000000002');
 SELECT 'zwei zustimmungen über dasselbe postfach sind auswertbar' AS pruefung,
        count(DISTINCT person_id) AS personen, count(DISTINCT delivery_email) AS postfaecher
@@ -404,23 +476,23 @@ SELECT 'zwei zustimmungen über dasselbe postfach sind auswertbar' AS pruefung,
    AND consent_purpose_id = 1;
 
 \echo '--- erwartet: FEHLER (dieselbe Zustimmung derselben Person zweimal)'
-INSERT INTO consents (person_id, child_id, consent_purpose_id, delivery_email)
+INSERT INTO consents (person_id, child_id, consent_purpose_id, granted_at, delivery_email)
     VALUES ('22222222-2222-2222-2222-222222222222',
-            '11111111-1111-1111-1111-111111111111', 1, 'zweitpostfach@example.org');
+            '11111111-1111-1111-1111-111111111111', 1, now(), 'zweitpostfach@example.org');
 
 -- Auch die kindlose Zustimmung ist gegen Doppelung geschützt (NULLS NOT
 -- DISTINCT) — mit gewöhnlichem UNIQUE ginge die zweite Zeile durch.
-INSERT INTO consents (person_id, consent_purpose_id, delivery_email)
-    VALUES ('22222222-2222-2222-2222-222222222222', 4, 'familie.mueller@example.org');
+INSERT INTO consents (person_id, consent_purpose_id, granted_at, delivery_email)
+    VALUES ('22222222-2222-2222-2222-222222222222', 4, now(), 'familie.mueller@example.org');
 
 \echo '--- erwartet: FEHLER (dieselbe kindlose Zustimmung zweimal)'
-INSERT INTO consents (person_id, consent_purpose_id, delivery_email)
-    VALUES ('22222222-2222-2222-2222-222222222222', 4, 'familie.mueller@example.org');
+INSERT INTO consents (person_id, consent_purpose_id, granted_at, delivery_email)
+    VALUES ('22222222-2222-2222-2222-222222222222', 4, now(), 'familie.mueller@example.org');
 
 \echo '--- erwartet: FEHLER (Zustelladresse ohne @)'
-INSERT INTO consents (person_id, child_id, consent_purpose_id, delivery_email)
+INSERT INTO consents (person_id, child_id, consent_purpose_id, granted_at, delivery_email)
     VALUES ('33333333-3333-3333-3333-333333333333',
-            '11111111-1111-1111-1111-111111111111', 3, 'keine-adresse');
+            '11111111-1111-1111-1111-111111111111', 3, now(), 'keine-adresse');
 
 \echo '--- erwartet: FEHLER (Widerruf vor der Zustimmung)'
 UPDATE consents SET revoked_at = granted_at - interval '1 day'
@@ -434,6 +506,43 @@ SELECT 'widerruf ohne historie' AS pruefung, count(*) AS zeilen,
        count(*) FILTER (WHERE revoked_at IS NOT NULL) AS widerrufen
   FROM consents WHERE person_id = '22222222-2222-2222-2222-222222222222'
    AND consent_purpose_id = 1;
+
+-- Die Ablehnung ist eine eigene Antwort, keine fehlende Zeile: der Vater lehnt
+-- das Fotoeinverständnis ab, die Mutter hat noch nicht geantwortet —
+-- entschieden und offen bleiben unterscheidbar.
+INSERT INTO consents (person_id, child_id, consent_purpose_id, declined_at, delivery_email)
+    VALUES ('33333333-3333-3333-3333-333333333333',
+            '11111111-1111-1111-1111-111111111111', 3, now(),
+            'familie.mueller@example.org');
+SELECT 'ablehnung ist von nie beantwortet unterscheidbar' AS pruefung,
+       count(*) FILTER (WHERE declined_at IS NOT NULL) AS abgelehnt,
+       count(*) AS beantwortet
+  FROM consents
+ WHERE child_id = '11111111-1111-1111-1111-111111111111' AND consent_purpose_id = 3;
+
+\echo '--- erwartet: FEHLER (Zeile ohne Antwort — weder erteilt noch abgelehnt)'
+INSERT INTO consents (person_id, child_id, consent_purpose_id, delivery_email)
+    VALUES ('22222222-2222-2222-2222-222222222222',
+            '11111111-1111-1111-1111-111111111111', 3, 'familie.mueller@example.org');
+
+\echo '--- erwartet: FEHLER (erteilt und abgelehnt zugleich)'
+INSERT INTO consents (person_id, child_id, consent_purpose_id, granted_at, declined_at, delivery_email)
+    VALUES ('22222222-2222-2222-2222-222222222222',
+            '11111111-1111-1111-1111-111111111111', 3, now(), now(),
+            'familie.mueller@example.org');
+
+\echo '--- erwartet: FEHLER (Widerruf einer Ablehnung — widerrufen wird nur eine Erteilung)'
+UPDATE consents SET revoked_at = now()
+    WHERE person_id = '33333333-3333-3333-3333-333333333333' AND consent_purpose_id = 3;
+
+-- Die spätere Erteilung überschreibt die Ablehnung — dieselbe Zeile, keine
+-- Historie, wie beim Widerruf.
+UPDATE consents SET granted_at = now(), declined_at = NULL
+    WHERE person_id = '33333333-3333-3333-3333-333333333333' AND consent_purpose_id = 3;
+SELECT 'spätere erteilung überschreibt die ablehnung' AS pruefung,
+       granted_at IS NOT NULL AS erteilt, declined_at IS NULL AS ablehnung_geraeumt
+  FROM consents
+ WHERE person_id = '33333333-3333-3333-3333-333333333333' AND consent_purpose_id = 3;
 
 -- ---------------------------------------------------------------------------
 -- Betreuungsmodule

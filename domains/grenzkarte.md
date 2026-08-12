@@ -4,7 +4,7 @@ Legt für **jede** Domäne aus `fachdomaenen.md` Abschnitt 6 fest, welche Entit�
 
 **Was hier bewusst nicht steht:** Spalten, Typen, Constraints, Indizes. Die entstehen je Domäne in Deadline-Reihenfolge gegen diese Karte. Eine Spalte nachzutragen ist billig, eine falsch gezogene Grenze nicht — deshalb wird nur Letztere vorab entschieden.
 
-Stand der Umsetzung: gebaut sind **Stammdaten** (`stammdaten-schema.sql`), **Putzdienst** samt Q3 (`putzdienst-schema.sql`), **Anmeldung** samt Q1 und Q2 (`anmeldung-schema.sql`), **Ferienanmeldung** (`ferien-schema.sql`) und **Gesundheitsdaten** (`gesundheit-schema.sql`). Damit stehen alle vier Q3-Anlässe, die drei zeitkritischen Prozessdomänen und der gesamte Art.-9-Bestand. Offen als reine Karte sind die Domänen 5–8 und 11–13.
+Stand der Umsetzung: gebaut sind **Stammdaten** (`stammdaten-schema.sql`), **Putzdienst** samt Q3 (`putzdienst-schema.sql`), **Anmeldung** samt Q1, Q2 und Q5 (`anmeldung-schema.sql`), **Ferienanmeldung** (`ferien-schema.sql`), **Gesundheitsdaten** (`gesundheit-schema.sql`), der **Mensa-Kern** (`mensa-schema.sql`) und die **Klassenorganisation** (`klassenorganisation-schema.sql`). Damit stehen alle vier Q3-Anlässe, alle fünf Querschnitts-Entitäten, die drei zeitkritischen Prozessdomänen und der gesamte Art.-9-Bestand. Offen als reine Karte sind die Domänen 5, 8, 11 und 12 sowie die AGs aus Domäne 6 — 8 und 12 brauchen per Festlegung keine eigenen Tabellen.
 
 ## Freeze der Stammdaten
 
@@ -29,7 +29,7 @@ Drei Befunde aus dieser Prüfung sind keine Schemaänderung, sondern Festlegunge
 
 ### Q1 — Zustimmung
 
-Wer hat wann wozu zugestimmt, über welche Zustelladresse, und wurde es widerrufen. Form: *Person × (optional) Kind × Zweck × Zeitpunkt × Zustelladresse × Widerruf*.
+Wer hat wann wozu geantwortet — erteilt oder abgelehnt —, über welche Zustelladresse, und wurde eine Erteilung widerrufen. Form: *Person × (optional) Kind × Zweck × Antwort (erteilt/abgelehnt) × Zeitpunkt × Zustelladresse × Widerruf*. Die Ablehnung ist eine eigene Zeile, keine fehlende — sonst wäre „abgelehnt" nicht von „noch nicht beantwortet" zu unterscheiden.
 
 Braucht sie: Schulvertrag, Gesundheitsdaten, Fotoeinverständnis, Werbe-Einwilligung Ferienbetreuung, die Einwilligung zum **Informationsaustausch zwischen Hort und Schule** über den Entwicklungsstand (Hortvertrag, siehe unten) — und die Lastschrift-Ermächtigung für Mensa- und Hortbuchungen (siehe Q3), die trotz des Namens keine Zahlung ist, sondern eine Erlaubnis.
 
@@ -92,6 +92,8 @@ Zielbild für Datenänderungen (`fachdomaenen.md` Abschnitt 3): die Änderung pa
 
 Die Änderung selbst ist bereits erfasst (Audit-Spalten), und welches Feld welches Fremdsystem betrifft, ist eine statische Abbildung im Code — beides braucht keine Tabelle. Gespeichert wird nur, was sich nicht ableiten lässt: **ob die Aufgabe erledigt ist**.
 
+**Gebaut** als `sync_targets`/`sync_tasks` im Anmelde-Schema — erster realer Abnehmer ist die ASV-BW-Neuanlage nach Vertragsabschluss. Die Zeile trägt Zielsystem, Aufgabentext und Erledigt-Zeitpunkt, mehr nicht; Erzeugung und Abarbeitung der Aufgaben sind Backend-Arbeit in `wb-backend` und ausdrücklich nicht Teil des Entwurfs.
+
 Die „Abschließenden Aufgaben" der vier Anmeldetag-Checklisten sind die reale Vorlage dieser Liste — und zugleich der Nutzennachweis. Von den heute abzuarbeitenden Punkten entfallen mit Weltenbaum ersatzlos: Klassenlisten ausdrucken, Hort-/Mensaliste aktualisieren, Klassenverteiler in Outlook pflegen, Eintrag im Telefonbuch-PC, Kontaktdaten in die Putzliste übertragen. Als echte Nachzieh-Aufgaben bleiben ASV-BW und Optigem. Der Austausch der Schülerüberweisung mit der staatlichen Schule bleibt ebenfalls Handarbeit, gehört aber nicht hierher: er zieht keine Weltenbaum-Änderung in ein Fremdsystem nach, sondern ist ein Vorgangsschritt der Bewerbung (unten) — an zwei Orten geführt wäre derselbe Erledigt-Haken zweimal pflegbar. Solange ASV-BW und Optigem keine Update-Schnittstelle haben, ist das der einzige Weg, aus „hoffentlich hat es jemand gemacht" ein prüfbares Ergebnis zu machen.
 
 ## Je Domäne
@@ -102,9 +104,9 @@ Nummerierung wie `fachdomaenen.md` Abschnitt 6.
 |---|---|---|---|
 | **Stammdaten** | Person, Anschrift, Telefon, Familie, Familienzugehörigkeit, Kind, Erziehungsberechtigte, Kontaktverknüpfung, Zahler, **Mitarbeiter**, Klasse/Klassenstufe/Zweig, 11 Lookups | — | besitzt sie |
 | **1 Putzdienst** (gebaut) | Zyklus, Erinnerungsstufe, Terminart, Putztermin, Zuteilung, abweichende Pflichtmenge, Komplett-Freikauf, Einzel-Freikauf | Q3 | nein |
-| **2 Voranmeldung** / **4 Anmeldeprozess und Anmeldegespräch** (gebaut; eine Domäne, drei Phasen: Voranmeldung → Gespräch → Schulvertrag) | Bewerbung, Anmeldetag, Gesprächsslot, Vertragsvorgang, Antwort je Erziehungsberechtigtem, Betreuungsmodul samt Buchungstagen, Schulpflicht-Stichtag, 8 Wertelisten | Q1, Q2, Q3 | ja (viel) |
-| **3 Ferienanmeldung** (gebaut; Ferienprogramm, Kochwerkstatt) | Programm, Angebotstag, Anmeldevorgang, Buchung | Q1, Q3 | ja (legt schulfremde Kinder samt Familie, Erziehungsberechtigten und Notfallkontakt an) |
-| **6 Mensa** | Essensanmeldung je Kind und Tag | Q1 (Lastschrift-Erlaubnis) | nein |
+| **2 Voranmeldung** / **4 Anmeldeprozess und Anmeldegespräch** (gebaut; eine Domäne, drei Phasen: Voranmeldung → Gespräch → Schulvertrag) | Bewerbung, Anmeldefenster, Anmeldetag, Gesprächsslot, Vertragsvorgang, Antwort je Erziehungsberechtigtem, Betreuungsmodul samt Buchungstagen, Schulpflicht-Stichtag, 8 Wertelisten | Q1, Q2, Q3 | ja (viel) |
+| **3 Ferienanmeldung** (gebaut; Ferienprogramm, Kochwerkstatt) | Programm, Angebotstag, Anmeldevorgang, Buchung | Q1, Q3 | ja (legt schulfremde Kinder samt Familie, Erziehungsberechtigten und Notfallkontakt an, erwachsene Kochwerkstatt-Teilnehmer als reine `persons`-Zeile) |
+| **6 Mensa** (gebaut, `domains/mensa.md`; die Buchung ist eine Betreuungsmodul-Buchung aus 2/4, Katalogzeile „Mittagessen") | Küchenprofil je Kind (Varianten, Küchen-Hinweis), 1 Werteliste | Q1 (Lastschrift-Erlaubnis) | nein |
 | **6 AGs** | unbekannt | unbekannt | vermutlich nein |
 | **9 Gesundheitsdaten** (gebaut) | Gesundheitsmerkmal je Kind, Masernschutznachweis, 2 Wertelisten | Q1, Q2 | nein |
 | **5 Rechnungsfreigabe** | Beleg, Freigabeschritt, Aufteilung | Q2, Q4 | nein |
@@ -112,19 +114,19 @@ Nummerierung wie `fachdomaenen.md` Abschnitt 6.
 | **8 Eltern-Selfservice** | keine | — | ja (eigene Daten) |
 | **11 Bonussystem Elternmitarbeit** | Mitarbeitsanlass, geleistete Stunde je Familie und Schuljahr | — (Rückzahlung läuft über Optigem) | nein |
 | **12 Klassenbildung** | **keine** — alle Eingaben sind vorhanden oder ableitbar (siehe unten) | — | ja (`children.class_id`) |
-| **13 Klassenorganisation** (neu) | Elternvertretung je Klasse | — | nein (Klassenlehrer:in und Raum stehen bereits an `classes`) |
+| **13 Klassenorganisation** (gebaut, `domains/klassenorganisation.md`) | Elternvertretung je Klasse | — | nein (Klassenlehrer:in und Raum stehen bereits an `classes`) |
 
-**Die Hort-Buchung gehört dazu, der Hort-Alltag nicht.** Alle vier Anmeldetag-Checklisten erheben „Betreuungsbedarf: Kernzeit / Nachmittag / Ganztags", beim Quereinsteiger zusätzlich Lernbetreuung und Mittagessen für Realschüler, und es gibt einen eigenen **Hortvertrag** mit eigener Akte und eigenem Welcome-Brief. Eingezogen wird er über dasselbe SEPA-Mandat wie das Schulgeld — **ein Mandat je Kind, aber nicht je Zweck** (`stammdaten.md`, „Zahlungsverantwortliche"): Schulgeld, Hort und Mensa desselben Kindes ziehen über dasselbe, ein Geschwisterkind über sein eigenes. Alle vier Checklisten haken genau eines ab. Das Betreuungsmodul ist damit Teil des Anmeldevorgangs (Domäne 2/4) und nicht abtrennbar.
+**Die Hort-Buchung gehört dazu, der Hort-Alltag nicht.** Alle vier Anmeldetag-Checklisten erheben „Betreuungsbedarf: Kernzeit / Nachmittag / Ganztags", beim Quereinsteiger zusätzlich das Mittagessen für Realschüler — die dort ebenfalls abgefragte **Lernbetreuung ist eingestellt** (Interesse zu klein) und bekommt kein Feld —, und es gibt einen eigenen **Hortvertrag** mit eigener Akte und eigenem Welcome-Brief. Eingezogen wird er über dasselbe SEPA-Mandat wie das Schulgeld — **ein Mandat je Kind, aber nicht je Zweck** (`stammdaten.md`, „Zahlungsverantwortliche"): Schulgeld, Hort und Mensa desselben Kindes ziehen über dasselbe, ein Geschwisterkind über sein eigenes. Alle vier Checklisten haken genau eines ab. Das Betreuungsmodul ist damit Teil des Anmeldevorgangs (Domäne 2/4) und nicht abtrennbar.
 
 Drei Eigenschaften des Hortvertrags, die die Entität schneiden (`prozesse.md` Abschnitt 8):
 
 - **Gebucht wird Modul × Wochentag, nicht das Modul allein.** Es gibt sechs Module (Frühbetreuung, vier Nachmittagsvarianten mit unterschiedlichem Ende und Abholregime, Hort nach Mittagschule nur für Realschule Klasse 5); mehrere sind gleichzeitig buchbar, und je Modul werden die einzelnen Tage gewählt. Die Buchungseinheit ist damit zweidimensional — der Katalog selbst ist eine Werteliste, keine Spaltenreihe.
-- **Der Vertrag hat eine eigene Laufzeit und endet automatisch:** bis Ende Klasse 4, danach gekündigt, weil das Kind ab dann möglicherweise kein Schüler mehr ist; ein Vertrag für Klasse 5 gilt nur für Klasse 5, mit Klasse 5 endet das Angebot. Das Betreuungsmodul trägt also einen Gültigkeitszeitraum und ist nicht mit dem Anmeldevorgang erledigt.
+- **Der Vertrag hat eine eigene Laufzeit:** ein Schuljahr mit stillschweigender Verlängerung und Kündigungsfristen (`prozesse.md` Abschnitt 8); das Angebot selbst endet mit Klasse 5. Das Betreuungsmodul trägt deshalb einen Gültigkeitszeitraum und ist nicht mit dem Anmeldevorgang erledigt. Das **Mittagessen** ist dabei keine eigene Buchung: es wird für alle berechnet, die länger als 13 Uhr betreut werden — eine Moduleigenschaft (`includes_lunch`), und das RS-Mensa-Abo bucht dieselbe Struktur als Katalogzeile „Mittagessen" (`domains/mensa.md`).
 - **Der Hort nimmt Kinder auf, die weder Grund- noch Realschüler sind.** Ein Betreuungsmodul kann deshalb ohne Einschreibung bestehen — dieselbe Lage wie beim Ferienprogramm-Kind (`stammdaten.md`, „Familie"), und derselbe Grund, warum es an `children` hängt und nicht an einer Klassenzuteilung. Der Hortvertrag erhebt den **Gesundheitsdatensatz** heute auf Papier noch einmal selbst. In Weltenbaum nicht mehr: **erhoben wird einmal je Kind, nicht je Vertrag** — ein Grund- oder Realschulvertrag sticht den Hortvertrag aus, und nur ein externes Hortkind liefert den Satz über ihn, weil es keine Schulanmeldung gibt, die ihn geliefert hätte. Entschieden, nicht offen; mitentschieden ist damit, dass der Hort den Satz bekommt, den die Schule erhebt, und keine eigenen Merkmale nachfragt (`domains/gesundheit.md`). Out of scope bleibt allein der laufende **Hort-Alltag** — wer war wann da, Mittagessen je Tag —, für den der Hort eigene, sehr umfangreiche Excel-Dateien führt; sich dort einzuarbeiten lohnt den Aufwand derzeit nicht. Ebenfalls draußen: **Leihgeräte/iPads** (extern begleitet) und **Wahlpflichtfächer** (Schulalltag, Untis).
 
 Vier Stellen brauchen eine Erläuterung, weil die Grenze dort nicht offensichtlich ist:
 
-**Bewerbung (2/4).** Eine Bewerbung *zeigt* auf Kind und Familie, statt Personendaten zu kopieren — der Wechsel von der eigenen Grundschule in die eigene Realschule läuft durch denselben Prozess, und dieses Kind steht bereits vollständig in Stammdaten. Sie trägt nur, was die Bewerbung selbst betrifft: Zielschuljahr und Zielklassenstufe, Anmeldedatum, Quelle (Grundschule/Realschule/Quereinstieg), ausfüllende Person, Bestätigung dass der andere Elternteil informiert ist, wahrgenommene Angebote, Interesse an Hort und Hausaufgabenbetreuung, Status.
+**Bewerbung (2/4).** Eine Bewerbung *zeigt* auf Kind und Familie, statt Personendaten zu kopieren — der Wechsel von der eigenen Grundschule in die eigene Realschule läuft durch denselben Prozess, und dieses Kind steht bereits vollständig in Stammdaten. Sie trägt nur, was die Bewerbung selbst betrifft: Zielschuljahr und Zielklassenstufe, Anmeldedatum, Quelle (Grundschule/Realschule/Quereinstieg), ausfüllende Person, Bestätigung dass der andere Elternteil informiert ist, wahrgenommene Angebote, Interesse an Betreuung (die Hausaufgabenbetreuung ist Bestandteil einzelner Betreuungsmodule, kein eigenes Feld — `domains/anmeldung.md`), Status.
 
 Der **Status** trägt dabei den gesamten Lebenslauf und ersetzt drei naheliegende Zusatzentitäten: die Warteliste ist ein Status samt jährlich fortgeschriebener Zielklassenstufe (sonst zwei Orte für „diese Familie will einen Platz"), die Absage ein Endstatus, und der Rücktritt oder die Kündigung vor dem ersten Schultag ebenfalls — ein Kind mit unterschriebenem Vertrag, das nie eingeschrieben war, ist kein Stammdaten-Fall, weil `entry_date` nie gesetzt wurde. Das reale Vokabular der beiden Wartelisten bestätigt das: „in Bearbeitung", „auf Warteliste", „abgesagt" sind Ausprägungen desselben Feldes, kein eigener Datensatz. Als Lookup, nicht als CHECK (`rules.md` Abschnitt 3).
 
@@ -182,6 +184,8 @@ Damit es niemand später „aufräumt":
 - **Zustimmung und Signatur** (Q1/Q2) — Begründung oben.
 - **Forderung und Bankverbindung** (Q3 vs. `payers`) — Begründung oben.
 
+Und die eine Stelle, an der **bewusst zusammengelegt** wurde, damit sie niemand später „auftrennt": das Mensa-Wochentags-Abo läuft über die Betreuungsmodul-Tabellen (Katalogzeile „Mittagessen"), weil beide Formulare real dieselbe Buchungsform sind — anders als bei den Terminen oben teilen sie nicht nur ein Datum, sondern Buchungseinheit, Laufzeit- und Kündigungsmechanik (`domains/mensa.md`).
+
 ## Weiße Flecken
 
 Was diese Karte offenlässt, ist selbst Ergebnis: es sind die Fragen, die vor der jeweiligen Domäne zu stellen sind.
@@ -189,13 +193,14 @@ Was diese Karte offenlässt, ist selbst Ergebnis: es sind die Fragen, die vor de
 | Was fehlt | Wen fragen | Spätestens vor |
 |---|---|---|
 | Zweck der Voranmeldefelder Beruf, Konfession, Staatsangehörigkeit, Kirchengemeinde — mitgespeichert, aber intern nicht beschlossen (`prozesse.md` Abschnitt 3.3) | Schulleitung, Datenschutzbeauftragte:r | **Vollimport Ende August 2026** |
-| Mensa-Anmeldeformular liegt nicht vor — Felder unbekannt | Sekretariat, Hausdienstverwaltung | Domäne 6 |
+| Beitragssatzung/aktuelle Preisliste des Horts (Preise je Modul und Mittagessen) — Struktur unbekannt, bis dahin bewusst keine Preis-Spalten am Modulkatalog (`domains/mensa.md`) | Hortleitung, Geschäftsführung | digitaler Hortvertrag (Domäne 2/4) |
+| Elternfragebogen der GS-Anmeldetag-Checkliste — Inhalt unbekannt, könnte vorab digital laufen (`prozesse.md` Abschnitt 5.2) | Sekretariat, Grundschulleitung | erster Anmeldetag mit Weltenbaum |
 | Steht in der Realschul-Bewertungstabelle derselbe Wert wie im Feld „Empfehlung Schulart" der Papier-Checkliste, oder eine eigene Einschätzung? Bis zur Klärung zwei Felder — beantwortbar von den Personen, die beide ausfüllen | Sekretariat, Realschulleitung | Domäne 2/4 |
 | Graph-Scoping für den SharePoint-Dateizugriff (welche Site, lesend oder schreibend) | zweiter Admin | Domäne 4 |
 | AGs — nichts Konkretes bekannt | Schulleitung | offen |
 | Aufbewahrungs- und Löschfristen je Entität, darunter die ungeregelte Frist für Ferienprogramm-Daten schulfremder Kinder | Schulleitung bzw. Datenschutzbeauftragte:r (`TODO.md`) | vor dem Lösch-Job |
 | Weitere Excel-Listen, die niemand vollständig kennt | Verwaltung, Hausdienstverwaltung | laufend |
 
-**Ausgewertet:** die vier Anmeldetag-Checklisten (Grundschule Klasse 1, Realschule Klasse 5, Quereinsteiger, Hort), die beiden Wartelisten je Schulform, die Klassenbildungsliste und die Prozesserhebung (`prozesse.md`). Ihre Befunde stecken in dieser Karte.
+**Ausgewertet:** die vier Anmeldetag-Checklisten (Grundschule Klasse 1, Realschule Klasse 5, Quereinsteiger, Hort), die beiden Wartelisten je Schulform, die Klassenbildungsliste, die Prozesserhebung (`prozesse.md`), das RS-Mittagessen-Anmeldeformular und der Betreuungsvertrag samt Anlagen (Stand 12/2025). Ihre Befunde stecken in dieser Karte.
 
 Die Listen-Eigentümer je Domäne stehen in `fachdomaenen.md` Abschnitt 3 — das ist die Ansprechpartnerliste für diese Fragen.

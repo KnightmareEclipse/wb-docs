@@ -26,7 +26,7 @@
 -- Fallstricke beim Auswerten — identisch zu den anderen Prüfskripten:
 --   * Pro Lauf eine frische Datenbank.
 --   * stdout und stderr im Container zusammenführen (`sh -c '… 2>&1'`).
---   * Sollstand: 9 Ankündigungen zu 9 ERROR-Zeilen, jeweils unmittelbar
+--   * Sollstand: 10 Ankündigungen zu 10 ERROR-Zeilen, jeweils unmittelbar
 --     gepaart. Verankert und auf der AUSGABE zählen, nicht auf dieser Datei.
 --
 -- WAS DIESES SKRIPT NICHT BELEGEN KANN: den zweistufigen Zugriff. Es läuft als
@@ -49,7 +49,7 @@ INSERT INTO children (child_id, date_of_birth, entry_date) VALUES
 INSERT INTO children (child_id, date_of_birth) VALUES
     ('22222222-2222-2222-2222-222222222222', '2019-02-17');
 
-INSERT INTO document_types (document_type_id, label) VALUES (10, 'Attest');
+INSERT INTO document_types (document_type_id, label, code) VALUES (10, 'Attest', 'attestation');
 INSERT INTO documents (document_id, document_type_id, child_id, storage_path)
     VALUES ('d0000000-0000-0000-0000-000000000001', 10,
             '11111111-1111-1111-1111-111111111111',
@@ -181,6 +181,28 @@ INSERT INTO measles_proofs (child_id, measles_presentation_type_id)
 \echo '--- erwartet: FEHLER (Nachweis ohne Vorlageart)'
 INSERT INTO measles_proofs (child_id, presented_on)
     VALUES ('22222222-2222-2222-2222-222222222222', '2026-08-01');
+
+-- Der Fall „geprüft, nicht vorgelegt": die Infektionsschutz-Anlage des
+-- Betreuungsvertrags verlangt die Meldung ans Gesundheitsamt — die Zeile trägt
+-- das Meldedatum und ist damit von „nie geprüft" (keine Zeile) unterscheidbar.
+INSERT INTO measles_proofs (child_id, reported_to_health_office_on)
+    VALUES ('22222222-2222-2222-2222-222222222222', '2026-09-15');
+SELECT 'geprüft, nicht vorgelegt, gemeldet' AS pruefung,
+       presented_on IS NULL AS ohne_vorlage, reported_to_health_office_on
+  FROM measles_proofs WHERE child_id = '22222222-2222-2222-2222-222222222222';
+
+\echo '--- erwartet: FEHLER (Zeile ohne jede Tatsache — weder Vorlage noch Meldung)'
+UPDATE measles_proofs SET reported_to_health_office_on = NULL
+    WHERE child_id = '22222222-2222-2222-2222-222222222222';
+
+-- Nachgereicht: die Vorlage kommt in dieselbe Zeile, das Meldedatum bleibt als
+-- Beleg der erfolgten Meldung stehen.
+UPDATE measles_proofs
+   SET presented_on = '2026-10-01', measles_presentation_type_id = 2
+ WHERE child_id = '22222222-2222-2222-2222-222222222222';
+SELECT 'nachgereicht: vorlage und meldung in einer zeile' AS pruefung,
+       presented_on, reported_to_health_office_on IS NOT NULL AS meldung_belegt
+  FROM measles_proofs WHERE child_id = '22222222-2222-2222-2222-222222222222';
 
 -- ---------------------------------------------------------------------------
 -- Löschmechanik

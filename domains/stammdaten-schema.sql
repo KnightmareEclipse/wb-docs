@@ -960,6 +960,18 @@ CREATE TABLE guardians (
 -- Steht schon jetzt, obwohl keine der Domänen gebaut ist, die sie braucht —
 -- warum vorgezogen und was bewusst noch fehlt (Bereichs-/Vorgesetztenstruktur),
 -- steht in domains/grenzkarte.md, Q4. Kein toter Code.
+--
+-- Reichweite: Beschäftigte des Schulträgers UND der KITA. Der Tenant ist ein
+-- gemeinsamer (fachdomaenen.md Abschnitt 6, Domäne 7), und spätestens die
+-- Rechnungsfreigabe (Domäne 5) braucht KITA-Personal hier. Hier festgehalten,
+-- weil es die Bedeutung dieser Tabelle festlegt und nicht nachträglich
+-- verschoben werden soll: eine employees-Zeile setzt KEINE Beziehung zur
+-- Schule voraus. Folge für den Putzdienst, ausdrücklich so gewollt: die
+-- Befreiung von der Elternmitarbeit gilt für KITA-Beschäftigte genauso
+-- (domains/putzdienst.md, „Mitarbeiter-Ausnahme") — sie fragt nach einer
+-- employees-Zeile, nicht nach dem Arbeitgeber. Eine Spalte, die Schulträger
+-- und KITA unterscheidet, gibt es deshalb noch nicht; sie entsteht mit der
+-- ersten Domäne, die den Unterschied liest (7 oder 5).
 CREATE TABLE employees (
     employee_id      uuid PRIMARY KEY REFERENCES persons(person_id) ON DELETE CASCADE,
     -- Dienstadresse, getrennt von persons.email. Letztere ist die private
@@ -977,11 +989,35 @@ CREATE TABLE employees (
     -- API: welche:r angemeldete Mitarbeiter:in ist Klassenlehrer:in welcher
     -- Klasse. Ohne sie ist beides nur über einen Graph-Abruf je Anfrage lösbar.
     entra_object_id  text UNIQUE CHECK (entra_object_id <> ''),
+    -- Beschäftigungszeitraum. Beide Spalten werden gebraucht, weil eine Zeile
+    -- REGELMÄSSIG vor dem ersten Arbeitstag entsteht: die M365-Konten des neuen
+    -- Schuljahres werden Ende Juli angelegt (fachdomaenen.md Abschnitt 1), also
+    -- Wochen vor Dienstantritt. Ohne employment_start wäre eine solche Zeile ab
+    -- dem Anlegen „aktuell beschäftigt" — die Person bekäme den Zugriff einer
+    -- Lehrkraft (entra_object_id oben, Gesundheitsdaten je Klasse) und ihre
+    -- Familie die Putzdienst-Befreiung, beides zu früh. Dasselbe spiegelverkehrt
+    -- am Ende: eine im Februar eingetragene Kündigung zum Schuljahresende darf
+    -- nicht sofort ausschließen.
+    --
+    -- „Aktuell beschäftigt" ist deshalb der Zeitraum und nicht das leere Ende:
+    --   (employment_start IS NULL OR employment_start <= current_date)
+    --   AND (employment_end IS NULL OR employment_end >= current_date)
+    -- Beide nullable: NULL am Anfang heißt „läuft bereits" (Altbestand beim
+    -- Vollimport, für den niemand Eintrittsdaten nachschlägt), NULL am Ende
+    -- heißt „läuft weiter". Ein künftiges Datum ist damit immer eine bewusste
+    -- Eingabe, nie ein Importartefakt.
+    --
+    -- Kein CHECK gegen current_date, und das ist keine Nachlässigkeit: Postgres
+    -- verlangt in einem CHECK eine unveränderliche Ausdrucksform, ein
+    -- Datumsvergleich gegen heute ist dort nicht zulässig. Die Prüfung kann
+    -- also nur in der Abfrage liegen — jede Stelle, die „aktuell beschäftigt"
+    -- fragt, muss das Prädikat oben vollständig verwenden.
+    --
+    -- Die Zeile bleibt nach dem Austritt stehen, weil der Audit-Trail auf sie
+    -- zeigt. Weitere Personalfelder (Funktion, Stundenumfang) gibt es bewusst
+    -- nicht: die Personaldatenquelle der Schule wird nicht nach Weltenbaum
+    -- übertragen (domains/grenzkarte.md, Q4).
     employment_start date,
-    -- Gesetzt heißt: ausgeschieden. Trägt die Putzdienst-Befreiung („aktuell
-    -- beschäftigt" = employment_end IS NULL) und den Offboarding-Lauf der
-    -- M365-Kontenverwaltung. Die Zeile bleibt danach stehen, weil der
-    -- Audit-Trail auf sie zeigt.
     employment_end   date,
     created_at       timestamptz NOT NULL DEFAULT now(),
     created_by       text NOT NULL,
