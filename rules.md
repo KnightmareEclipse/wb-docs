@@ -12,7 +12,7 @@ Vor jeder neuen Komponente, jedem neuen Dienst, jeder neuen Abstraktion diese Le
 4. **Ist es schon im Stack vorhanden?** Kein zweites Tool für das, was ein bestehendes bereits kann.
 5. **Erst dann:** neuer Dienst/eigener Code — minimal gehalten, mit klar benanntem Zweck.
 
-Beispiele für bereits angewandte Entscheidungen nach dieser Leiter: kein Terraform (State-Overhead für eine VPS mit zwei Ressourcen), kein Ansible (ein Host mit statischer IP reicht für ein idempotentes Shell-Skript), kein zusätzlicher Log-Stack, wenn ein bereits vorhandener Mechanismus für die Log-Menge reicht. Neue Entscheidungen folgen demselben Muster.
+Beispiele für bereits angewandte Entscheidungen nach dieser Leiter: kein Terraform/OpenTofu (ein IaC-State-File widerspricht der Neuaufsetzbarkeit aus Abschnitt 6 — Begründung in `pipeline/vps-repo/01-provisioning.md`), kein Ansible (ein Host mit statischer IP reicht für ein idempotentes Shell-Skript), kein zusätzlicher Log-Stack, wenn ein bereits vorhandener Mechanismus für die Log-Menge reicht. Neue Entscheidungen folgen demselben Muster.
 
 Keine Hochverfügbarkeits-Infrastruktur (Multi-Server, Load-Balancer, Multi-Region) ohne konkreten Bedarf — eine VPS mit getesteten Backups und vollständiger Neuaufsetzbarkeit (Abschnitt 6) ist für diese Schulgröße ausreichend. Eine Wiederherstellungszeit von Stunden ist ein bewusst akzeptierter Trade-off gegen Komplexität, kein Mangel.
 
