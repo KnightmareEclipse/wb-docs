@@ -1,18 +1,54 @@
 # Runbook — Kompletter Neuaufbau
 
-Reihenfolge für einen kompletten Neuaufbau der VPS von Grund auf (z. B. bei Totalausfall). Die VPS läuft bereits, aber ohne schützenswerte Daten — der Neuaufbau beginnt daher direkt bei Schritt 2 auf dem bestehenden Server; Schritt 1 erkennt den existierenden Server per `hcloud server describe` und überspringt die Neuanlage.
+Reihenfolge für einen kompletten Neuaufbau der VPS von Grund auf (z. B. bei Totalausfall). Hier steht alles, was ein Mensch dabei tun muss — alles andere erledigen die Skripte in `wb-vps`. Ein vollständiger Durchlauf dauert wenige Minuten; die VPS führt keine unersetzlichen Daten, DB und Logs kommen aus dem Backup (`idea/05-backup-recovery.md`).
 
-**Voraussetzungen, einmalig (nur beim allerersten Setup):**
+**Nur beim allerersten Setup:**
 
-- MFA ist auf dem Hetzner-Cloud-Konto und dem DNS-Provider-Konto der Schule aktiv, das gemeinsame KeePass ist mit einem starken Master-Passwort geschützt (kein MFA anwendbar, `rules.md` Abschnitt 2) — beides bevor der erste persönliche Hetzner-API-Token für Schritt 1 erzeugt wird.
-- Eine Secrets-Datei (`secrets.env`, anfangs mit den ersten Einträgen; Format/Schema/Ablage siehe `pipeline/vps-repo/02-hardening.md`) liegt als Datei-Anhang in der gemeinsamen KeePass-Datenbank — nicht in Git. Alle folgenden Schritte, die ein Secret ablegen (healthchecks-Ping-URL in Schritt 3, DB-Rollen-Passwörter und Identitätsanbieter-Secrets in Schritt 5), aktualisieren genau diese Datei dort. Bei einem Neuaufbau existiert sie bereits — dann entfällt dieser Punkt.
+- MFA ist auf dem Hetzner-Cloud-Konto und dem DNS-Provider-Konto der Schule aktiv, das gemeinsame KeePass ist mit einem starken Master-Passwort geschützt (kein MFA anwendbar, `rules.md` Abschnitt 2) — beides, bevor der erste persönliche Hetzner-API-Token entsteht.
+- Die Secrets-Datei (`secrets.env`) liegt als Datei-Anhang in der gemeinsamen KeePass-Datenbank, nie in Git. Schema: `wb-vps/setup/secrets.example.env`; Format und Ablage: [Phase 2](vps-repo/02-hardening.md). Jeder Schritt unten, der ein Secret erzeugt, trägt es dort ein — dieser Anhang ist die einzige Kopie, die einen Neuaufbau überlebt. Die DB-Rollen-Passwörter (`APP_*`) sind frei gewählte Zufallswerte und stehen dort ebenfalls; ohne sie scheitert Schritt 6.
 
-1. **[Phase 1](vps-repo/01-provisioning.md)** (`wb-vps/infra/`, beliebiger Admin-Rechner mit eigenem Hetzner-API-Token): hcloud-Skript ausführen → Server + Firewall stehen, Hetzners Standard-Debian-Image läuft bereits per Cloud-Init mit den Admin-Keys erreichbar, Server-IP bekannt (neu angelegt oder bereits vorhanden).
-2. **DNS** (manuell, einmalig bzw. bei IP-Wechsel): A/AAAA-Record von `api.clemens.schule` beim DNS-Provider der Schule (All-Inkl, KAS-Panel unter Tools → DNS-Verwaltung) auf die Server-IP aus Schritt 1 setzen — reiner Backend-Endpunkt, wird nie als Seite aufgerufen (nur per API-Aufruf aus den Frontends), Namenswahl daher ohne Sicherheitsrelevanz (Certificate-Transparency-Logs machen den Hostnamen ohnehin öffentlich, sobald ein Zertifikat ausgestellt wird).
-3. **healthchecks.io-Bootstrap** (manuell, einmalig, nur beim allerersten Setup nötig): ein Admin legt den Hobbyist-Account und den Check an, aktiviert MFA auf dem Konto (`rules.md` Abschnitt 2), trägt die Account-Zugangsdaten in den gemeinsamen Passwortmanager und die Ping-URL in die Secrets-Datei dort ein. Bei einem Neuaufbau mit bereits bestehendem Account/Check entfällt dieser Schritt.
-4. **[Phase 2](vps-repo/02-hardening.md) + [Phase 3](vps-repo/03-podman-install.md)** (`wb-vps/ansible/`, Admin-Rechner, IP aus Schritt 1 als Ein-Host-Inventar): `ansible-playbook -i "<ip>," site.yml` gegen die laufende VPS → Host-Hardening, verschlüsseltes Swap, `deploy`-User, Monitoring-Heartbeat, danach die Container-Runtime samt Bare-Repo, `post-receive`-Hook und der einen sudo-Regel, über die ein Push den Deploy auslöst. Anschließend `setup/deploy-secrets.sh <ip> <secrets.env>`. Beides zusammen erledigt `infra/setup-new-server.sh` in einem Lauf.
-5. **Identitätsanbieter-Registrierung-Bootstrap** (manuell, einmalig bzw. bei Wechsel, `idea/04-identitaet-zugriff.md`): App-/Rollen-Registrierung beim M365/Entra-ID-Tenant der Schule anlegen (final bestätigt, Tenant-Zugriff vorhanden), Redirect-URI auf die Origin des internen Frontends setzen (`idea/04-identitaet-zugriff.md` — nicht auf die Subdomain aus Schritt 2; steht erst mit der Frontend-/Domain-Struktur fest, `project-parts.md` Abschnitt 10), Tenant-Restriktion konfigurieren (kein Multi-Tenant-Fallstrick). Client-ID/Tenant-ID/Client-Secret werden vor dem ersten Lauf von Schritt 8 in die Secrets-Datei im Passwortmanager übernommen — gleicher Provisionierungsweg wie die übrigen Secrets (`idea/03-container-anwendung.md`), da das Backend sie beim ersten Start braucht. Rotation: neues Secret beim Anbieter erzeugen, in der Secrets-Datei ersetzen, Phase 2 erneut laufen lassen — gleiches Grundmuster wie DB-Rollen-Rotation (`idea/03-container-anwendung.md`).
-6. **[Phase 4](app-stack-repo/04-app-stack-deploy.md)** (App-Stack-Repo): `git push prod main` gegen den `deploy`-User → Auschecken, Secret-Dateien, Build, Migration und Neustart laufen auf der VPS, die Ausgabe kommt beim Push zurück.
+1. **Admin-Rechner vorbereiten** (jedes Mal):
+
+    ```bash
+    cd wb-vps
+    setup/preflight.sh     # nennt fehlende Werkzeuge samt Installationsbefehl, installiert nichts
+    hcloud context create  # einmal je Rechner, mit dem eigenen persönlichen API-Token
+    ```
+
+    Dazu den `secrets.env`-Anhang aus KeePass lokal herunterladen — Schritt 4 liest ihn.
+
+2. **DNS** (einmalig bzw. bei IP-Wechsel): A/AAAA-Record von `api.clemens.schule` beim DNS-Provider der Schule (All-Inkl, KAS-Panel unter Tools → DNS-Verwaltung) auf die Server-IP setzen — reiner Backend-Endpunkt, wird nie als Seite aufgerufen (nur per API-Aufruf aus den Frontends), Namenswahl daher ohne Sicherheitsrelevanz (Certificate-Transparency-Logs machen den Hostnamen ohnehin öffentlich, sobald ein Zertifikat ausgestellt wird). Bei einem Neuaufbau auf demselben Server bleibt die IP erhalten und der Schritt entfällt.
+3. **healthchecks.io-Bootstrap** (nur beim allerersten Setup): ein Admin legt den Hobbyist-Account und den Check an, aktiviert MFA auf dem Konto (`rules.md` Abschnitt 2), trägt die Account-Zugangsdaten in den gemeinsamen Passwortmanager und die Ping-URL in die Secrets-Datei dort ein. Bei einem Neuaufbau mit bestehendem Account/Check entfällt der Schritt.
+4. **Server und Host-Konfiguration** ([Phase 1](vps-repo/01-provisioning.md) bis [Phase 3](vps-repo/03-podman-install.md)) — ein Befehl:
+
+    ```bash
+    infra/setup-rebuild.sh setup/secrets.env      # bestehenden Server platt machen und neu aufsetzen
+    infra/setup-new-server.sh setup/secrets.env   # stattdessen, wenn noch kein Server existiert
+    ```
+
+    `setup-rebuild.sh` verlangt zur Bestätigung den Servernamen. Danach stehen: Server und Cloud Firewall aus `infra/ports.yml`, gehärteter Host mit verschlüsseltem Swap und Monitoring-Heartbeat, der `deploy`-User, die Container-Runtime sowie Bare-Repo, `post-receive`-Hook und die eine sudo-Regel, über die ein Push den Deploy auslöst. Am Ende steht die Server-IP in der Ausgabe.
+
+    Danach die lokale Kopie löschen: `rm -f setup/secrets.env`.
+
+5. **Identitätsanbieter-Registrierung-Bootstrap** (einmalig bzw. bei Wechsel, `idea/04-identitaet-zugriff.md`): App-/Rollen-Registrierung beim M365/Entra-ID-Tenant der Schule anlegen, Redirect-URI auf die Origin des internen Frontends setzen (nicht auf die Subdomain aus Schritt 2; steht erst mit der Frontend-/Domain-Struktur fest, `project-parts.md` Abschnitt 10), Tenant-Restriktion konfigurieren (kein Multi-Tenant-Fallstrick). Client-ID/Tenant-ID/Client-Secret vor Schritt 6 in die Secrets-Datei im Passwortmanager übernehmen und wie unten beschrieben auf den Host bringen — das Backend braucht sie beim ersten Start.
+
+    Rotation eines einzelnen Secrets (auch der DB-Rollen-Passwörter, `idea/03-container-anwendung.md`) läuft **ohne** Neuaufbau: Wert beim Anbieter bzw. in der Datenbank ändern, in der Secrets-Datei ersetzen, dann
+
+    ```bash
+    setup/deploy-secrets.sh <ip> setup/secrets.env
+    ```
+
+    und einmal Schritt 6 auslösen — erst der Deploy schreibt die einzelnen Secret-Dateien neu und startet die Container, die sie lesen.
+6. **App-Stack deployen** ([Phase 4](app-stack-repo/04-app-stack-deploy.md), Repo `wb-backend`):
+
+    ```bash
+    git remote add prod deploy@<ip>:wb-backend.git   # einmal je Rechner bzw. nach IP-Wechsel
+    git push prod main
+    ```
+
+    Der Push löst Auschecken, Secret-Dateien, Build, Migration und Neustart auf der VPS aus; die Ausgabe kommt beim Push zurück. Ein fehlgeschlagener Build oder eine fehlgeschlagene Migration bricht ab, ohne die laufenden Container anzufassen.
+
+**Fertig, wenn** `curl https://api.clemens.schule/health` über IPv4 und IPv6 mit `{"status":"ok"}` antwortet — das setzt Firewall, Runtime, Datenbank, Backend, Reverse-Proxy und automatisches HTTPS gemeinsam voraus. Nach einem Reboot muss dasselbe ohne Handanlegen wieder gelten.
 
 ## Runbook — Server bootet nicht mehr
 
