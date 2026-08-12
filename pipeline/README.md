@@ -9,14 +9,14 @@ Ableitung aus `idea/` und `project-parts.md` — Phasen mit Automatisierungsgrad
 
 1. [Provisioning](vps-repo/01-provisioning.md) — `[AUTOMATISIERT]`
 2. [Key-Pflege + Host-Hardening](vps-repo/02-hardening.md) — `[AUTOMATISIERT]`
-3. [Container-Runtime-Install (Podman, rootful)](vps-repo/03-podman-install.md) — `[NOCH NICHT UMGESETZT]`
-4. [App-Stack-Deploy](app-stack-repo/04-app-stack-deploy.md) — `[Backend-Grundgerüst steht (wb-backend), VPS-Auslöser offen]`
+3. [Container-Runtime-Install (Podman, rootful)](vps-repo/03-podman-install.md) — `[AUTOMATISIERT]`
+4. [App-Stack-Deploy](app-stack-repo/04-app-stack-deploy.md) — `[AUTOMATISIERT — Git-Push löst Build, Migration und Neustart auf der VPS aus]`
 
 Kompletter Ablauf für einen Neuaufbau von Grund auf: [Runbook](runbook.md).
 
 ## Automatisierungsgrenze
 
-Server-Provisioning, Ersteinrichtung und jeder Reboot danach laufen komplett automatisch. Manuell bleiben nur die einmaligen Konto-Bootstrap-Schritte, die zwingend ein von einem Menschen gehaltenes Geheimnis voraussetzen — Schritte 3 (healthchecks.io), 5 (Deploy-Auslöser) und 7 (Identitätsanbieter-Registrierung) im [Runbook](runbook.md), die nur bei Neuanlage bzw. Rotation des jeweiligen Kontos/der Registrierung anfallen.
+Server-Provisioning, Ersteinrichtung und jeder Reboot danach laufen komplett automatisch. Manuell bleiben nur die einmaligen Konto-Bootstrap-Schritte, die zwingend ein von einem Menschen gehaltenes Geheimnis voraussetzen — Schritte 3 (healthchecks.io) und 5 (Identitätsanbieter-Registrierung) im [Runbook](runbook.md), die nur bei Neuanlage bzw. Rotation des jeweiligen Kontos/der Registrierung anfallen.
 
 Auch Phase 4 braucht danach keine dauerhaft lokal vorgehaltenen Secrets für Routine-Deploys (`app-stack-repo/04-app-stack-deploy.md`).
 
