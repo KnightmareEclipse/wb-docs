@@ -55,6 +55,12 @@ Die Doppelung ist dafür überprüfbar statt riskant: `domains/stammdaten-schema
 
 Danach führt `wb-backend` das Schema; die `.sql` in diesem Repo bleibt der Entwurf samt Begründungen und ist nicht mehr die Quelle der Wahrheit.
 
+### Dependabot für die Base-Images einschalten
+
+`.github/dependabot.yml` in `wb-backend` mit dem `docker`-Ecosystem auf `Dockerfile` und `docker-compose.yml` (PostgreSQL-, Caddy-, Python-Base-Image), monatliches Intervall passend zum Patch-Rhythmus aus `rules.md` Abschnitt 2. Reine Repo-Datei, kein Konto und kein Token nötig — Dependabot ist in GitHub eingebaut und muss nur in den Repo-Einstellungen aktiviert sein.
+
+Das `pip`-Ecosystem bewusst **nicht** eintragen: es würde `requirements.txt` direkt anfassen, ohne `requirements.in` neu zu kompilieren, und damit die pip-tools-Kette umgehen (`rules.md` Abschnitt 3).
+
 ### Constraint-Namen: `naming_convention` vor dem ersten Modell setzen
 
 `MetaData(naming_convention=...)` in SQLAlchemy vergibt jedem Constraint einen deterministischen Namen aus einer Vorlage. Ohne sie benennt Alembic autogenerierte Constraints unvorhersehbar, und eine spätere Migration kann sie nicht sicher per `ALTER TABLE ... DROP CONSTRAINT` greifen — genau der Fall „im laufenden Betrieb anfassen". Muss stehen, **bevor** das erste Modell entsteht, sonst tragen die früh erzeugten Constraints andere Namen als alle späteren.
