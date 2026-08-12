@@ -1,6 +1,6 @@
 # Phase 3 — Container-Runtime-Install (Podman)
 
-`[NOCH NICHT UMGESETZT — Ansible-Rolle podman_rootless, wb-vps/ansible/]`
+`[AUTOMATISIERT — Ansible-Rolle podman_rootless, wb-vps/ansible/]`
 
 Rootless Podman, installiert und betrieben unter dem `deploy`-User — macht „kein Root-Zugriff" für den `deploy`-User technisch verbindlich: ein Container mit Host-Mount (`-v /:/host`), erstellt über einen kompromittierten Deploy-Key, läuft im User-Namespace des `deploy`-Users, nicht als echter Root (`idea/03-container-anwendung.md`).
 
@@ -46,8 +46,7 @@ Installierte Pakete: `podman passt uidmap` — nur was der Rootless-Betrieb selb
 
 ## Offen
 
-*   **Compose gegen Podman ist noch nicht verifiziert.** Geprüft sind bisher nur die Primitive über die Podman-CLI: Cgroup-Limits, Secrets als Datei unter `/run/secrets/`, ein `--internal`-Netz ohne Egress und die Quell-IP. Ob `wb-backend/docker-compose.yml` unverändert über Podmans docker-kompatiblen Socket läuft — insbesondere `depends_on: condition: service_healthy`, `profiles` und die Secret-Definitionen — muss vor Phase 4 einmal gegen den echten Stack laufen.
-*   **Die Ansible-Rolle existiert noch nicht.** Der aktuelle Stand auf `db-prod-fsn-01` ist von Hand installiert und nicht reproduzierbar (`sysctl -w` statt Datei). Phase 3 gilt erst als umgesetzt, wenn die Rolle steht.
+*   **Compose gegen Podman ist noch nicht verifiziert.** Geprüft sind die Primitive über die Podman-CLI: Cgroup-Limits, Secrets als Datei unter `/run/secrets/`, ein `--internal`-Netz ohne Egress und die Quell-IP — alle vier live gegen `db-prod-fsn-01` und über einen Reboot hinweg. Ob `wb-backend/docker-compose.yml` unverändert über Podmans docker-kompatiblen Socket läuft — insbesondere `depends_on: condition: service_healthy`, `profiles` und die Secret-Definitionen — muss vor Phase 4 einmal gegen den echten Stack laufen.
 *   Beim Entfernen eines Containers an einem internen Netz meldet netavark einen aardvark-Cleanup-Fehler (`remove aardvark entries: IO error`). Folgenlos für Funktion und Isolation, taucht aber in Logs auf.
 
 Bleibt im VPS-Repo, da es eine System-Paket-Installation ist, keine Anwendungslogik — ändert sich mit dem Host, nicht mit jedem App-Deploy.

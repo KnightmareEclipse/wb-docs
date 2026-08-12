@@ -9,7 +9,7 @@ Ableitung aus `idea/` und `project-parts.md` — Phasen mit Automatisierungsgrad
 
 1. [Provisioning](vps-repo/01-provisioning.md) — `[AUTOMATISIERT]`
 2. [Key-Pflege + Host-Hardening](vps-repo/02-hardening.md) — `[AUTOMATISIERT]`
-3. [Container-Runtime-Install (Podman)](vps-repo/03-podman-install.md) — `[NOCH NICHT UMGESETZT]`
+3. [Container-Runtime-Install (Podman)](vps-repo/03-podman-install.md) — `[AUTOMATISIERT]`
 4. [App-Stack-Deploy](app-stack-repo/04-app-stack-deploy.md) — `[Backend-Grundgerüst steht (wb-backend), VPS-Auslöser offen]`
 
 Kompletter Ablauf für einen Neuaufbau von Grund auf: [Runbook](runbook.md).
