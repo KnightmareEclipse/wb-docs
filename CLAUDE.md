@@ -25,7 +25,7 @@ Die App-Stack-Architektur ist fixiert (`project-parts.md`) und wird im App-Stack
 
 Gebaut sind die Schemata **Stammdaten**, **Putzdienst**, **Anmeldung** (Voranmeldung/Anmeldegespräch/Schulvertrag samt den Querschnitts-Entitäten Zustimmung, Dokument/Signatur und Nachzieh-Aufgabe), **Ferienanmeldung**, **Gesundheitsdaten**, der **Mensa-Kern** (Küchenprofil; die Buchung läuft über die Betreuungsmodul-Tabellen) und die **Klassenorganisation** (Elternvertretung), jeweils samt Prüfskript, dazu ein Performance-Benchmark (`domains/`). Die Entitäten- und Zuständigkeitsgrenzen **aller** Fachdomänen stehen vorab in `domains/grenzkarte.md` — bewusst ohne Spalten: eine Spalte lässt sich nachtragen, eine falsch gezogene Grenze nicht, und ohne diese Karte modellieren mehrere Domänen denselben Sachverhalt je einmal. Jedes neue Domänenschema entsteht gegen sie; Stammdaten sind ab dem Vollimport Ende August 2026 eingefroren (Definition dort).
 
-**Nächster Schritt:** Übertragung der fünf Schemata nach SQLAlchemy/Alembic in `wb-backend` (`TODO-SESSIONS.md`) — der engere Pfad bis September 2026, nicht der Entwurf. Was daneben bis dahin stehen muss, steht als kritischer Pfad in `fachdomaenen.md` Abschnitt 7 und in `TODO.md`; der Datenmodell-Entwurf blockiert nicht darauf, da lokale Entwicklung gegen den Compose-Stack läuft (`rules.md` Abschnitt 9).
+**Nächster Schritt:** Übertragung aller sieben Schemata nach SQLAlchemy/Alembic in `wb-backend` (`TODO-SESSIONS.md`) — der engere Pfad bis September 2026, nicht der Entwurf. Was daneben bis dahin stehen muss, steht als kritischer Pfad in `fachdomaenen.md` Abschnitt 7 und in `TODO.md`; der Datenmodell-Entwurf blockiert nicht darauf, da lokale Entwicklung gegen den Compose-Stack läuft (`rules.md` Abschnitt 9).
 
 ## Einstieg in eine Session
 
@@ -58,7 +58,7 @@ Eine Schemaänderung ist erst fertig, wenn alle abhängigen Dateien mitgezogen s
 
 `…-schema.sql` → `-plain.sql` (regenerieren, nie von Hand — `sed`-Befehl in `domains/stammdaten.md`) → Prüfskript **samt Sollstand** → `domains/stammdaten-schema-benchmark.md` und die Dateien in `domains/stammdaten-benchmark/` → die betroffenen `.md` → `domains/grenzkarte.md`.
 
-Danach **einmal** validieren, nicht nach jedem Einzelpunkt: alle sieben Prüfskripte in Ladereihenfolge — Stammdaten (65/65), Putzdienst (22/22), Anmeldung (46/46), Ferien (14/14), Gesundheit (10/10), Mensa (4/4), Klassenorganisation (3/3); Aufruf und Sollstand stehen im jeweiligen Kopfkommentar. Bei Spaltenänderungen an Stammdaten zusätzlich der Benchmark-Generator mit `n_children=500`/`n_classes=20` — die Zeilenzahlen müssen denen aus `domains/stammdaten-schema-benchmark.md` (Durchlauf 1) entsprechen.
+Danach **einmal** validieren, nicht nach jedem Einzelpunkt: alle sieben Prüfskripte in Ladereihenfolge — Stammdaten (66/66), Putzdienst (22/22), Anmeldung (51/51), Ferien (14/14), Gesundheit (10/10), Mensa (4/4), Klassenorganisation (3/3); Aufruf und Sollstand stehen im jeweiligen Kopfkommentar. Bei Spaltenänderungen an Stammdaten zusätzlich der Benchmark-Generator mit `n_children=500`/`n_classes=20` — die Zeilenzahlen müssen denen aus `domains/stammdaten-schema-benchmark.md` (Durchlauf 1) entsprechen.
 
 ## Dokumentationsstil
 

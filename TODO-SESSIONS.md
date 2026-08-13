@@ -52,7 +52,7 @@ Tabellen, Spalten, PK/FK/UNIQUE, CHECKs, partielle Indizes und die Ausschluss-Co
 
 Das ist kein Tipparbeits-, sondern ein Sicherheitsproblem: Alembics `--autogenerate` **sieht diese drei gar nicht**. Es meldet nicht, dass sie fehlen, und würde sie bei einem späteren Regenerieren stillschweigend aus der Migration lassen. Damit fiele genau das weg, worauf das Schema am stärksten baut — Audit-Trail und Art.-9-Schutz — ohne eine einzige Fehlermeldung.
 
-Die Doppelung ist dafür überprüfbar statt riskant: die sieben Prüfskripte in `domains/` laufen gegen **jede** Datenbank, auch gegen die von Alembic gebaute. Kommen dort 65/65, 22/22, 46/46, 14/14, 10/10, 4/4 und 3/3 heraus, ist die Übertragung nachweislich treu. Das gehört als fester Schritt hinter die Initial-Migration, nicht als einmalige Sichtprüfung.
+Die Doppelung ist dafür überprüfbar statt riskant: die sieben Prüfskripte in `domains/` laufen gegen **jede** Datenbank, auch gegen die von Alembic gebaute. Kommen dort 66/66, 22/22, 51/51, 14/14, 10/10, 4/4 und 3/3 heraus, ist die Übertragung nachweislich treu. Das gehört als fester Schritt hinter die Initial-Migration, nicht als einmalige Sichtprüfung.
 
 Danach führt `wb-backend` das Schema; die `.sql` in diesem Repo bleibt der Entwurf samt Begründungen und ist nicht mehr die Quelle der Wahrheit.
 

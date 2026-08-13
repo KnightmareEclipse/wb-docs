@@ -102,7 +102,7 @@ Ausdrücklich benannt, weil ohne Zweck kein Feld bleibt (`rules.md` Abschnitt 7)
 - **Kirchengemeinde** — Interesse, kein benannter Verarbeitungszweck.
 - **Geschwister und wahrgenommene Angebote** (Musikarche, Ferienprogramm, Clemens-KITA) — geben einen **Bonus bei der Zusage** und sind damit entscheidungsrelevant, nicht dekorativ.
 
-Der Betreiber will diese Felder zunächst mitspeichern und intern erst **nach dem Import** endgültig klären, welche bleiben. Das ist eine bewusste Entscheidung mit Preis: Konfession ist ein Art.-9-Datum, und ein Feld ohne beschlossenen Zweck mit echten Personendaten zu füllen, ist genau der Fall, den `rules.md` Abschnitt 7 ausschließt. Reihenfolge muss deshalb umgekehrt sein — Zweck vor Vollimport, nicht danach; das Schema trägt beides bereits (Spalten-GRANT auf den Konfessionsspalten, `domains/stammdaten.md`).
+Alle vier Felder werden gespeichert — Konfession und Staatsangehörigkeit auch bei den Erziehungsberechtigten (`domains/stammdaten.md`, „Felder"). Entschieden mit bekanntem Preis: Konfession ist ein Art.-9-Datum, und ein Feld ohne beschlossenen Zweck mit echten Personendaten zu füllen, schließt `rules.md` Abschnitt 7 eigentlich aus. Ausschlaggebend war die Gegenrichtung — eine Spalte zu streichen ist ein `DROP COLUMN`, ein beim Vollimport nicht erhobener Wert ist nicht nacherhebbar. **Der Zweck-Beschluss bleibt damit fällig, und zwar vor dem Vollimport** (`TODO.md`); das Schema trägt die Absicherung bereits (Spalten-GRANT auf den Konfessionsspalten an `children` und `guardians`).
 
 ### 3.4 Bruchstellen
 
@@ -117,7 +117,7 @@ Ganzjährig, eigenes Formular.
 
 - Felder wie Realschule, zusätzlich **Zielklasse** und **Zielschuljahr**.
 - Anmeldegebühr wie bei der Voranmeldung.
-- Bearbeitung sofort: Prüfung, ob in der Zielklassenstufe überhaupt ein Platz frei wäre. Nur dann folgt ein Anmeldegespräch.
+- Bearbeitung sofort: Prüfung, ob in der Zielklassenstufe überhaupt ein Platz frei wäre. Nur dann folgt ein Anmeldegespräch. **Die Prüfung ist dynamisch, „voll" gibt es nicht:** Zielmarke sind derzeit 25 Kinder je Klasse, bei wirklich dringenden Fällen wird auch in eine „volle" Klasse aufgenommen. Verwaltung und Schulleitung entscheiden das je Fall, und beim Quereinstieg wird ohnehin der direkte Kontakt gesucht — deshalb bewusst keine Kapazität im Datenmodell (`domains/anmeldung.md`, „Bewerbung").
 - Der Schulvertragsprozess (Abschnitt 7) läuft für Quereinsteiger identisch und muss deshalb ganzjährig funktionieren.
 
 ---

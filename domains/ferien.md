@@ -47,7 +47,7 @@ Der freie Text des Formulars („Wichtige Notizen", „Bemerkung") steht dagegen
 
 ## Zahlung (Q3)
 
-Die Ferienbuchung ist der **vierte und letzte** der in `domains/grenzkarte.md` benannten Stripe-Anlässe. Damit ist die Liste vollständig: Putzdienst-Komplettfreikauf, Putzdienst-Einzelfreikauf, Anmeldegebühr, Ferienbuchung. Der regulär über Stripe zahlende Elternteil bekommt dabei **keine** `payers`-Zeile — sie hätte keinen einzigen Nutzlast-Wert; eine entsteht nur bei Kostenübernahme durch das Jugendamt.
+Die Ferienbuchung ist der **dritte und letzte** der in `domains/grenzkarte.md` benannten Stripe-Anlässe (Voranmeldung, Ferienprogramm, Putzdienst-Freikauf); als Vorgangs-Spalte an `payments` ist sie die vierte, weil der Putzdienst zwei Vorgänge trägt. Damit ist die Liste vollständig: Putzdienst-Komplettfreikauf, Putzdienst-Einzelfreikauf, Anmeldegebühr, Ferienbuchung. Der regulär über Stripe zahlende Elternteil bekommt dabei **keine** `payers`-Zeile — sie hätte keinen einzigen Nutzlast-Wert; eine entsteht nur bei Kostenübernahme durch das Jugendamt.
 
 ## Offene Punkte
 

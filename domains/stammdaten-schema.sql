@@ -486,14 +486,15 @@ CREATE TABLE addresses (
 CREATE INDEX ON addresses (postal_code, street, house_number);
 
 -- ---------------------------------------------------------------------------
--- Personen und Organisationen
+-- Personen
 -- ---------------------------------------------------------------------------
 
 -- Person: gemeinsame Stammdaten jedes natürlichen Menschen im System — Kind,
--- natürliche Erziehungsberechtigte-Person, Kontaktperson, Zahlungsverantwortliche/r;
--- künftig auch Personal/Lehrer. Nur Attribute, die für jede Rolle gelten;
--- Rollenspezifisches steht auf children/guardians/payers. Organisationen sind
--- keine Personen (eigene Tabelle unten). Entspricht svp_person (ASV-BW) und
+-- Erziehungsberechtigte/r, Kontaktperson, Zahlungsverantwortliche/r, Mitarbeiter/in.
+-- Nur Attribute, die für jede Rolle gelten; Rollenspezifisches steht auf
+-- children/guardians/payers/employees. Eine Organisation als eigene Partei gibt
+-- es bewusst nicht — auch hinter einer Amtsvormundschaft steht die handelnde
+-- Person (Begründung an guardians). Entspricht svp_person (ASV-BW) und
 -- gibbonPerson (Gibbon).
 CREATE TABLE persons (
     person_id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -783,16 +784,14 @@ CREATE TABLE children (
     second_nationality_id      integer REFERENCES countries(country_id) ON DELETE RESTRICT,  -- doppelte Staatsangehörigkeit
     home_language_id           integer REFERENCES languages(language_id) ON DELETE RESTRICT,  -- ein Feld für Verkehrs-/Muttersprache, siehe domains/stammdaten.md
     -- Konfession/Kirchengemeinde: Art.-9-DSGVO-Daten (besondere Kategorie,
-    -- Religionszugehörigkeit, Voranmeldeformular). NUR hier am Kind, nicht an
-    -- der gemeinsamen Basistabelle persons — dieselbe Feld-pro-Rolle-Regel wie
-    -- occupation bei guardians: guardians und payers können die
-    -- Spalte damit strukturell gar nicht erst befüllen, nicht nur per
-    -- Konvention. Dass Erziehungsberechtigte sie bewusst NICHT bekommen, obwohl
-    -- beide Voranmeldeformulare danach fragen, steht an guardians.
-    -- Schutz zusätzlich per Spalten-GRANT auf genau diese zwei Spalten statt
-    -- über eine eigene Tabellengrenze (wb-backend/db/init-roles.sh; Owner von
+    -- Religionszugehörigkeit, Voranmeldeformular). Am Kind UND an guardians
+    -- (Konfession dort ebenfalls, Kirchengemeinde nicht — das Formular fragt sie
+    -- nur beim Kind); nicht an der gemeinsamen Basistabelle persons, damit
+    -- payers und Kontaktpersonen sie strukturell gar nicht erst befüllen können.
+    -- Schutz zusätzlich per Spalten-GRANT auf genau diese Spalten statt über
+    -- eine eigene Tabellengrenze (wb-backend/db/init-roles.sh; Owner von
     -- children darf dabei nicht backend_runtime sein, sonst greift das
-    -- Spalten-GRANT nicht).
+    -- Spalten-GRANT nicht). Die Rolle deckt beide Tabellen ab, siehe guardians.
     denomination_id            integer REFERENCES denominations(denomination_id) ON DELETE RESTRICT,
     congregation               text,               -- Kirchengemeinde, Freitext
     provisional_grade_level_id integer REFERENCES grade_levels(grade_level_id) ON DELETE RESTRICT,  -- NUR gültig, solange class_id NULL ist (CHECK unten) — danach gilt classes.grade_level_id
@@ -933,17 +932,26 @@ CREATE TABLE guardians (
     -- zweiter Ort für dieselbe Tatsache (rules.md Abschnitt 1) und träfe zudem
     -- die falsche Aussage: die Putzdienst-Befreiung (domains/putzdienst.md)
     -- hängt daran, ob jemand AKTUELL beschäftigt ist, nicht ob er es einmal war.
-    -- Bewusst KEINE Konfession/Kirchengemeinde und keine Staatsangehörigkeit,
-    -- obwohl beide Voranmeldeformulare beides abfragen: kein benannter Prozess
-    -- braucht sie bei Erziehungsberechtigten — der ASV-BW-Export betrifft nur
-    -- Kinder. Ein Formularfeld allein reicht als Beleg nicht, wenn es keinen
-    -- Abnehmer gibt (rules.md Abschnitt 7), und bei Art.-9-Daten wiegt das
-    -- doppelt: die Spalte gar nicht erst anzulegen ist die einzige Absicherung,
-    -- die auch ein Import nicht umgehen kann. Beide Felder werden beim Umzug
-    -- nach Weltenbaum aus dem Formular gestrichen statt ins Schema übernommen.
-    -- Sollte die Aufnahmeentscheidung die Konfession der Eltern doch bewerten,
-    -- gehört sie an die Bewerbung (domains/grenzkarte.md, Domäne 2/4) — dort hat
-    -- sie die kürzere Löschfrist, die Art.-9-Daten ohnehin verdienen.
+    -- Konfession und Staatsangehörigkeit: beide Voranmeldeformulare fragen
+    -- beides ab, und beide werden übernommen — entschieden vom Betreiber, damit
+    -- der Vollimport sie nicht verwirft, bevor die Zwecke bestätigt sind
+    -- (fachdomaenen.md Abschnitt 3.3: christliche Familie als Aufnahmekriterium,
+    -- Wurzeln des Kindes). Die Richtung ist damit umgekehrt zur sonstigen
+    -- Datensparsamkeit (rules.md Abschnitt 7): erst speichern, später löschen,
+    -- weil eine Spalte zu streichen billig ist und ein nicht erhobener Wert
+    -- nicht nacherhoben werden kann.
+    --
+    -- Der Preis bleibt und ist keine Formsache: die Konfession ist ein
+    -- Art.-9-Datum. Zwei Absicherungen dagegen — der Zweck-Beschluss steht VOR
+    -- dem Vollimport aus (TODO.md), und die Spalte hängt wie ihr Gegenstück an
+    -- children an der engeren DB-Rolle statt an der pauschalen Laufzeit-Rolle
+    -- (Spalten-GRANT, wb-backend/db/init-roles.sh; Owner von guardians darf
+    -- dabei nicht backend_runtime sein). Fällt der Beschluss gegen ein Feld,
+    -- ist das ein DROP COLUMN plus ein Feld weniger im Import — kein Umbau.
+    --
+    -- KEINE Kirchengemeinde hier: die fragt das Formular nur beim Kind.
+    denomination_id integer REFERENCES denominations(denomination_id) ON DELETE RESTRICT,
+    nationality_id  integer REFERENCES countries(country_id) ON DELETE RESTRICT,
     created_at      timestamptz NOT NULL DEFAULT now(),
     created_by      text NOT NULL,
     updated_at      timestamptz NOT NULL DEFAULT now(),
@@ -1247,7 +1255,7 @@ CREATE TABLE payers (
     -- svp_schueler_stamm_kto_verbind am Schüler — sie existiert also auch
     -- dort, verlangt wird sie nicht.
     bic                text CHECK (bic ~ '^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$'),
-    account_holder     text,               -- Kontoinhaber, falls abweichend vom Namen der Person/Organisation
+    account_holder     text,               -- Kontoinhaber, falls abweichend vom Namen der Person — nimmt bei Kostenübernahme die Behörde auf, deren Sachbearbeiterin die Zeile gehört
     -- Kreditinstitut steht bewusst NICHT daneben, obwohl das Formular es
     -- abfragt: es folgt aus der BIC und wäre ein zweiter Ort für denselben
     -- Sachverhalt (rules.md Abschnitt 1).

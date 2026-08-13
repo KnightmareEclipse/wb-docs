@@ -330,9 +330,26 @@ CREATE TABLE document_types (
 -- DSGVO-Verstoß wie eine verwaiste Zeile, und sie fällt niemandem auf.
 --
 -- Bezug ist entweder ein Kind oder eine Bewerbung — genau eines von beidem,
--- getragen vom Fremdschlüssel statt von einem Typ-Feld daneben, wie bei payments.
--- Der Vertragsvorgang braucht keinen eigenen Bezug, weil er 1:1 an der Bewerbung
--- hängt.
+-- getragen vom Fremdschlüssel statt von einem Typ-Feld daneben, wie bei payments
+-- und contracts. Der Vertragsvorgang braucht keinen eigenen Bezug: er hängt
+-- selbst schon an einer Bewerbung oder einem Kind.
+--
+-- EINE ZEILE SAGT ZWEI DINGE, EINZELN ODER ZUSAMMEN: angefordert
+-- (requested_on) und vorgelegt (storage_path samt created_on, nur gemeinsam) —
+-- dieselbe Bauform wie measles_proofs in domains/gesundheit-schema.sql. Grund
+-- ist die Sekretariats-Checkliste des Anmeldetags (prozesse.md Abschnitt 5.2):
+-- „Beobachtungsbogen des Kindergartens einholen; falls nicht mitgebracht,
+-- bekommen die Eltern einen Bogen zum Ausfüllenlassen" ist ein Vorgang mit
+-- offenem Ende, und ohne die Anforderungszeile wäre „fehlt noch" von „nie
+-- verlangt" nicht zu unterscheiden — dieselbe Unterscheidung zwischen
+-- entschieden und vergessen wie bei der abgelehnten Zustimmung (consents) und
+-- der übertragenen Anwesenheitsliste (cleaning_slots.attendance_recorded_at).
+--
+-- Zwei Folgen: der Lösch-Job darf für eine Zeile ohne storage_path keine Datei
+-- in SharePoint suchen (domains/grenzkarte.md, Q2) — es gibt keine —, und eine
+-- Signatur auf einer noch nicht vorgelegten Unterlage verhindert die Datenbank
+-- nicht (der CHECK liefe über zwei Tabellen). Das bleibt Sache der
+-- Eingabemaske, dieselbe dokumentierte Lücke wie bei contract_responses.person_id.
 --
 -- Entscheidend ist die LÖSCHFRIST, nicht der Anlass: was länger leben muss als
 -- die Bewerbung, zeigt aufs Kind. Am Kind hängen deshalb Geburtsurkunde, Zeugnis,
@@ -347,14 +364,19 @@ CREATE TABLE documents (
     document_type_id integer NOT NULL REFERENCES document_types(document_type_id) ON DELETE RESTRICT,
     child_id         uuid REFERENCES children(child_id) ON DELETE RESTRICT,
     application_id   uuid,   -- Fremdschlüssel per ALTER TABLE unten (applications wird danach definiert)
-    storage_path     text NOT NULL CHECK (storage_path <> ''),
-    created_on       date NOT NULL DEFAULT current_date,
+    storage_path     text CHECK (storage_path <> ''),
+    created_on       date,               -- Vorlage-/Erzeugungsdatum, gilt nur mit storage_path
+    requested_on     date,               -- angefordert am; leer heißt: lag ohne Aufforderung vor
     created_at       timestamptz NOT NULL DEFAULT now(),
     created_by       text NOT NULL,
     updated_at       timestamptz NOT NULL DEFAULT now(),
     updated_by       text NOT NULL,
     CONSTRAINT documents_exactly_one_subject_check
-        CHECK ((child_id IS NOT NULL)::int + (application_id IS NOT NULL)::int = 1)
+        CHECK ((child_id IS NOT NULL)::int + (application_id IS NOT NULL)::int = 1),
+    CONSTRAINT documents_any_fact_check
+        CHECK (storage_path IS NOT NULL OR requested_on IS NOT NULL),
+    CONSTRAINT documents_presentation_complete_check
+        CHECK ((storage_path IS NULL) = (created_on IS NULL))
 );
 CREATE INDEX ON documents (child_id);
 
@@ -567,6 +589,26 @@ CREATE TABLE applications (
     -- Schema-Zusage.
     student_transfer_received_on date,
     student_transfer_returned_on date,
+    -- Vollständigkeitsprüfung der Unterlagen am Anmeldetag — der letzte Punkt
+    -- der Sekretariats-Checkliste (prozesse.md Abschnitt 5.2) und die
+    -- verwaltende der beiden Spuren des Tages. Nicht zu verwechseln mit
+    -- contracts.secretariat_checked_at: das ist dieselbe Handlung Wochen später
+    -- am fertigen Vertrag, hier geht es um die Unterlagen, die die Eltern zum
+    -- Gespräch mitbringen (Geburtsurkunde, Zeugnis, Beobachtungsbogen). Welche
+    -- davon fehlen, sagt documents.requested_on; DASS jemand durchgesehen hat,
+    -- sagt nur diese Spalte — sonst wäre eine vergessene Prüfung von einer
+    -- vollständigen Mappe nicht zu unterscheiden.
+    documents_checked_at       timestamptz,
+    -- Warteliste: die jährliche Rückfrage, ob das Interesse weiterbesteht
+    -- (prozesse.md Abschnitt 6). Zwei Spalten, weil die fehlende Antwort selbst
+    -- eine Information ist: ohne den Zeitpunkt der Frage wäre „gefragt, keine
+    -- Antwort" von „dieses Jahr nie gefragt" nicht zu unterscheiden — über
+    -- mehrere Jahre hinweg genau der Fall, in dem eine Familie still liegen
+    -- bleibt. Beide werden bei der jährlichen Fortschreibung geleert
+    -- (domains/anmeldung.md), sie gelten also immer für das aktuelle
+    -- target_school_year. Keine Historie, wie überall.
+    waitlist_interest_asked_at     timestamptz,
+    waitlist_interest_confirmed_at timestamptz,
     -- Gesprächstermin. Nullable: die Voranmeldung läuft Monate vor der
     -- Terminvergabe. Fremdschlüssel steht unten als zusammengesetzter, der
     -- zugleich den Zweig prüft — ein einspaltiger daneben wäre eine
@@ -589,6 +631,13 @@ CREATE TABLE applications (
     -- EIN Freitextfeld für den Bearbeitungsstand, bewusst nicht zwei: die
     -- Trennung zwischen „Bemerkung" und „Stand" wird im Alltag nicht eingehalten
     -- (domains/grenzkarte.md). Kein Notiz-Verlauf, solange niemand danach sucht.
+    -- Es nimmt ZWEI Herkünfte auf: den Bearbeitungsstand der Wartelisten-Tabelle
+    -- und den „Freitext für zusätzliche Anmerkungen" der Sekretariats-Checkliste
+    -- am Anmeldetag (prozesse.md Abschnitt 5.2). Beide gehören der verwaltenden
+    -- Spur und damit hierher — NICHT nach assessment_notes: das liegt im
+    -- Bewertungsblock unten mit eigenem, engem Spalten-GRANT und ist
+    -- standardmäßig nicht breit sichtbar. Eine Anmeldetags-Anmerkung dort wäre
+    -- für genau die Verwaltung unlesbar, die sie geschrieben hat.
     processing_note            text CHECK (processing_note <> ''),
     -- Zusammensetzungswunsch für die Klassenbildung — real drei Kinder je
     -- Jahrgang. Eine Kind-zu-Kind-Verknüpfung mit Richtung und Gegenseitigkeit
@@ -615,6 +664,12 @@ CREATE TABLE applications (
         CHECK (trial_attendance_ends_on IS NULL
                OR (trial_attendance_starts_on IS NOT NULL
                    AND trial_attendance_ends_on >= trial_attendance_starts_on)),
+    -- Bestätigt werden kann nur, was gefragt wurde — dieselbe Bauform wie
+    -- consents_revoked_after_granted_check.
+    CONSTRAINT applications_waitlist_confirmation_requires_query_check
+        CHECK (waitlist_interest_confirmed_at IS NULL
+               OR (waitlist_interest_asked_at IS NOT NULL
+                   AND waitlist_interest_confirmed_at >= waitlist_interest_asked_at)),
     -- Bindet school_branch_id an die Zielklassenstufe …
     FOREIGN KEY (target_grade_level_id, school_branch_id)
         REFERENCES grade_levels(grade_level_id, school_branch_id),
@@ -655,21 +710,32 @@ CREATE TABLE application_programs (
 );
 
 -- ---------------------------------------------------------------------------
--- Schulvertrag
+-- Schulvertrag und Hortvertrag
 -- ---------------------------------------------------------------------------
 
 -- Der Vertragsvorgang beginnt mit der Zusage und endet mit der Bestätigungsmail.
--- 1:1 zur Bewerbung (UNIQUE), aber eigene Zeile und keine Spalten an der
--- Bewerbung: er hat einen eigenen Lebenslauf mit vier Stationen, von denen drei
--- nach dem Absenden der Eltern liegen, und die meisten Bewerbungen erreichen ihn
--- nie.
+-- Eigene Zeile und keine Spalten an der Bewerbung: er hat einen eigenen
+-- Lebenslauf mit vier Stationen, von denen drei nach dem Absenden der Eltern
+-- liegen, und die meisten Bewerbungen erreichen ihn nie.
 --
 -- Die vier Zeitpunkte sind bewusst Zeitpunkte und kein Statusfeld: sie treten
 -- immer in dieser Reihenfolge ein, und „wann war das" ist die Frage, die im
 -- Nachhinein gestellt wird (domains/anmeldung.md).
+--
+-- BEZUG IST ENTWEDER EINE BEWERBUNG ODER EIN KIND, getragen vom Fremdschlüssel
+-- statt von einem Typ-Feld daneben, wie bei documents und payments. Grund ist
+-- der Hortvertrag: der Hort nimmt Kinder auf, die weder Grund- noch Realschüler
+-- sind (prozesse.md Abschnitt 8), für sie gibt es keine Bewerbung — und ohne
+-- diesen zweiten Bezug hätte ihr Vertrag keine Frist, keine Prüfung durch das
+-- Sekretariat und keine Freigabe, obwohl er genau dieselben vier Stationen
+-- durchläuft. Ein Schulvertrag hängt weiterhin an genau einer Bewerbung
+-- (UNIQUE); am Kind gibt es bewusst KEIN UNIQUE: ein externes Hortkind, das
+-- Jahre später wiederkommt, schließt einen zweiten Vertrag, und welcher gilt,
+-- sagt die Laufzeit der Buchung (care_module_bookings) und nicht diese Zeile.
 CREATE TABLE contracts (
     contract_id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    application_id        uuid NOT NULL UNIQUE REFERENCES applications(application_id) ON DELETE RESTRICT,
+    application_id        uuid UNIQUE REFERENCES applications(application_id) ON DELETE RESTRICT,
+    child_id              uuid REFERENCES children(child_id) ON DELETE RESTRICT,
     -- Frist für die Eltern, real 14 Tage ab Versand. Als Datum und nicht als
     -- Dauer, weil das Sekretariat sie im Einzelfall verlängert.
     deadline_on           date NOT NULL,
@@ -687,8 +753,11 @@ CREATE TABLE contracts (
     CONSTRAINT contracts_release_after_check_check
         CHECK (headmaster_released_at IS NULL OR secretariat_checked_at IS NOT NULL),
     CONSTRAINT contracts_confirmation_after_release_check
-        CHECK (confirmation_sent_at IS NULL OR headmaster_released_at IS NOT NULL)
+        CHECK (confirmation_sent_at IS NULL OR headmaster_released_at IS NOT NULL),
+    CONSTRAINT contracts_exactly_one_subject_check
+        CHECK ((application_id IS NOT NULL)::int + (child_id IS NOT NULL)::int = 1)
 );
+CREATE INDEX ON contracts (child_id);
 
 -- Antwort je Erziehungsberechtigtem. Eigene Zeilen und kein Feld am Vertrag,
 -- weil Mutter und Vater je einen eigenen persönlichen Link bekommen und
@@ -742,6 +811,14 @@ CREATE INDEX ON contract_responses (person_id);
 -- school_branch_id nullable: „Hort nach Mittagschule" gilt nur für die
 -- Realschule, alle übrigen für beide Zweige. NULL heißt also „ohne
 -- Einschränkung" und nicht „unbekannt".
+--
+-- Dass ein Kind nur ein Modul seines eigenen Zweigs bucht, erzwingt das Schema
+-- NICHT: der Zweig des Kindes führt über children.class_id → classes und wäre
+-- nur als Trigger prüfbar. Dieselbe dokumentierte Lücke wie bei
+-- contract_responses.person_id unten, program_bookings.child_id
+-- (domains/ferien-schema.sql) und class_parent_representatives.guardian_id
+-- (domains/klassenorganisation-schema.sql) — die Bindung liegt in der
+-- Buchungsstrecke, die nur die für dieses Kind gültigen Module anbietet.
 CREATE TABLE care_modules (
     care_module_id    integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
     label             text NOT NULL UNIQUE CHECK (label <> ''),

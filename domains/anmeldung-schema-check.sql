@@ -26,7 +26,7 @@
 --   * Pro Lauf eine frische Datenbank.
 --   * stdout und stderr im Container zusammenführen (`sh -c '… 2>&1'`), sonst
 --     reordert podman die Ströme und die Paarung sieht wie ein Befund aus.
---   * Sollstand: 46 Ankündigungen zu 46 ERROR-Zeilen, jeweils unmittelbar
+--   * Sollstand: 51 Ankündigungen zu 51 ERROR-Zeilen, jeweils unmittelbar
 --     gepaart. Verankert und auf der AUSGABE zählen, nicht auf dieser Datei —
 --     deren Kopfkommentar enthält die Zeichenkette selbst:
 --       grep -cE '^--- erwartet: FEHLER'  gegen  grep -cE '^psql:.*: ERROR:'
@@ -263,11 +263,32 @@ UPDATE applications SET processing_note = ''
 
 -- Die Warteliste ist ein Status samt fortgeschriebener Zielklassenstufe, keine
 -- eigene Entität: die jährliche Fortschreibung ist ein UPDATE.
-UPDATE applications
-   SET target_school_year = '2032/33', target_grade_level_id = 6, school_branch_id = 2
+
+-- Davor die jährliche Rückfrage: gefragt, aber noch nicht geantwortet — der
+-- Zustand, der ohne eigene Spalte wie „nie gefragt" aussähe.
+UPDATE applications SET waitlist_interest_asked_at = now()
  WHERE application_id = 'a0000000-0000-0000-0000-000000000002';
-SELECT 'warteliste jährlich fortgeschrieben' AS pruefung, s.label, s.is_waitlist,
-       g.label AS zielstufe
+SELECT 'gefragt ohne antwort ist von nie gefragt unterscheidbar' AS pruefung,
+       waitlist_interest_asked_at IS NOT NULL     AS gefragt,
+       waitlist_interest_confirmed_at IS NULL     AS keine_antwort
+  FROM applications WHERE application_id = 'a0000000-0000-0000-0000-000000000002';
+
+\echo '--- erwartet: FEHLER (Interesse bestätigt, ohne dass gefragt wurde)'
+UPDATE applications SET waitlist_interest_asked_at = NULL,
+                        waitlist_interest_confirmed_at = now()
+ WHERE application_id = 'a0000000-0000-0000-0000-000000000002';
+
+UPDATE applications SET waitlist_interest_confirmed_at = now()
+ WHERE application_id = 'a0000000-0000-0000-0000-000000000002';
+
+-- Die Fortschreibung räumt beide Spalten: sie gelten je Zieljahr, nicht ewig.
+UPDATE applications
+   SET target_school_year = '2032/33', target_grade_level_id = 6, school_branch_id = 2,
+       waitlist_interest_asked_at = NULL, waitlist_interest_confirmed_at = NULL
+ WHERE application_id = 'a0000000-0000-0000-0000-000000000002';
+SELECT 'warteliste jährlich fortgeschrieben, rückfrage zurückgesetzt' AS pruefung,
+       s.label, s.is_waitlist, g.label AS zielstufe,
+       a.waitlist_interest_asked_at IS NULL AS rueckfrage_offen
   FROM applications a
   JOIN application_statuses s ON s.application_status_id = a.application_status_id
   JOIN grade_levels g         ON g.grade_level_id = a.target_grade_level_id
@@ -376,7 +397,7 @@ SELECT 'nachzieh-aufgabe erledigt, verursacher im audit' AS pruefung,
 INSERT INTO sync_tasks (sync_target_id, description) VALUES (2, '');
 
 -- ---------------------------------------------------------------------------
--- Schulvertrag
+-- Schulvertrag und Hortvertrag
 -- ---------------------------------------------------------------------------
 INSERT INTO contracts (contract_id, application_id, deadline_on)
     VALUES ('c0000000-0000-0000-0000-000000000001',
@@ -385,6 +406,14 @@ INSERT INTO contracts (contract_id, application_id, deadline_on)
 \echo '--- erwartet: FEHLER (zweiter Vertragsvorgang zur selben Bewerbung)'
 INSERT INTO contracts (application_id, deadline_on)
     VALUES ('a0000000-0000-0000-0000-000000000001', '2027-03-15');
+
+\echo '--- erwartet: FEHLER (Vertragsvorgang ohne jeden Bezug)'
+INSERT INTO contracts (deadline_on) VALUES ('2027-03-15');
+
+\echo '--- erwartet: FEHLER (Vertragsvorgang an Bewerbung UND Kind zugleich)'
+INSERT INTO contracts (application_id, child_id, deadline_on)
+    VALUES ('a0000000-0000-0000-0000-000000000001',
+            '11111111-1111-1111-1111-111111111111', '2027-03-15');
 
 \echo '--- erwartet: FEHLER (Schulleitung gibt frei, ohne dass das Sekretariat geprüft hat)'
 UPDATE contracts SET headmaster_released_at = now()
@@ -424,19 +453,60 @@ INSERT INTO contract_responses (contract_id, person_id, accepted)
 -- ---------------------------------------------------------------------------
 -- Q1/Q2: Zustimmung, Dokument, Signatur
 -- ---------------------------------------------------------------------------
-INSERT INTO documents (document_id, document_type_id, application_id, storage_path)
+INSERT INTO documents (document_id, document_type_id, application_id, storage_path, created_on)
     VALUES ('d0000000-0000-0000-0000-000000000001', 1,
-            'a0000000-0000-0000-0000-000000000001', 'RS25a/mueller-anna/schulvertrag.pdf');
-INSERT INTO documents (document_type_id, child_id, storage_path)
-    VALUES (2, '11111111-1111-1111-1111-111111111111', 'RS25a/mueller-anna/geburtsurkunde.pdf');
+            'a0000000-0000-0000-0000-000000000001',
+            'RS25a/mueller-anna/schulvertrag.pdf', current_date);
+INSERT INTO documents (document_type_id, child_id, storage_path, created_on)
+    VALUES (2, '11111111-1111-1111-1111-111111111111',
+            'RS25a/mueller-anna/geburtsurkunde.pdf', current_date);
 
 \echo '--- erwartet: FEHLER (Dokument ohne jeden Bezug)'
-INSERT INTO documents (document_type_id, storage_path) VALUES (1, 'irgendwo.pdf');
+INSERT INTO documents (document_type_id, storage_path, created_on)
+    VALUES (1, 'irgendwo.pdf', current_date);
 
 \echo '--- erwartet: FEHLER (Dokument an Kind UND Bewerbung zugleich)'
-INSERT INTO documents (document_type_id, child_id, application_id, storage_path)
+INSERT INTO documents (document_type_id, child_id, application_id, storage_path, created_on)
     VALUES (1, '11111111-1111-1111-1111-111111111111',
-            'a0000000-0000-0000-0000-000000000001', 'doppelt.pdf');
+            'a0000000-0000-0000-0000-000000000001', 'doppelt.pdf', current_date);
+
+-- Angeforderte, noch nicht vorgelegte Unterlage: der Beobachtungsbogen des
+-- Kindergartens (prozesse.md Abschnitt 5.2). „Fehlt noch" ist damit eine Zeile
+-- und nicht das Fehlen einer Zeile.
+INSERT INTO document_types (document_type_id, label, code)
+    VALUES (4, 'Beobachtungsbogen Kindergarten', 'kindergarten_observation');
+INSERT INTO documents (document_id, document_type_id, application_id, requested_on)
+    VALUES ('d0000000-0000-0000-0000-000000000009', 4,
+            'a0000000-0000-0000-0000-000000000001', current_date);
+SELECT 'angefordert ist von nie verlangt unterscheidbar' AS pruefung,
+       storage_path IS NULL AS liegt_nicht_vor, requested_on IS NOT NULL AS angefordert
+  FROM documents WHERE document_id = 'd0000000-0000-0000-0000-000000000009';
+
+-- Nachgereicht: dieselbe Zeile trägt beides, die Anforderung bleibt als Beleg.
+UPDATE documents SET storage_path = 'RS25a/mueller-anna/beobachtungsbogen.pdf',
+                     created_on   = current_date
+    WHERE document_id = 'd0000000-0000-0000-0000-000000000009';
+
+-- Erst danach hakt das Sekretariat die Vollständigkeitsprüfung des Anmeldetags
+-- ab — eine eigene Spalte, weil eine vergessene Prüfung sonst wie eine
+-- vollständige Mappe aussähe.
+UPDATE applications SET documents_checked_at = now()
+    WHERE application_id = 'a0000000-0000-0000-0000-000000000001';
+SELECT 'unterlagenprüfung des anmeldetags ist festgehalten' AS pruefung,
+       a.documents_checked_at IS NOT NULL AS geprueft,
+       count(*) FILTER (WHERE d.storage_path IS NULL) AS offene_unterlagen
+  FROM applications a
+  LEFT JOIN documents d ON d.application_id = a.application_id
+ WHERE a.application_id = 'a0000000-0000-0000-0000-000000000001'
+ GROUP BY a.documents_checked_at;
+
+\echo '--- erwartet: FEHLER (Dokument weder vorgelegt noch angefordert)'
+INSERT INTO documents (document_type_id, application_id)
+    VALUES (1, 'a0000000-0000-0000-0000-000000000001');
+
+\echo '--- erwartet: FEHLER (vorgelegtes Dokument ohne Vorlagedatum)'
+INSERT INTO documents (document_type_id, application_id, storage_path)
+    VALUES (1, 'a0000000-0000-0000-0000-000000000001', 'ohne-datum.pdf');
 
 -- Ein Dokument, zwei Unterschriften
 INSERT INTO signatures (signature_id, document_id, person_id) VALUES
@@ -576,16 +646,37 @@ INSERT INTO care_module_booking_days (care_module_booking_id, weekday)
 INSERT INTO care_module_bookings (child_id, care_module_id, valid_from, valid_until)
     VALUES ('11111111-1111-1111-1111-111111111111', 1, '2027-09-13', '2027-01-01');
 
--- Der Hort nimmt Kinder auf, die weder Grund- noch Realschüler sind: Buchung
--- ohne Vertragsvorgang und ohne Einschreibung.
-INSERT INTO care_module_bookings (child_id, care_module_id, valid_from)
-    VALUES ('44444444-4444-4444-4444-444444444444', 1, '2027-09-13');
-SELECT 'externes hortkind ohne bewerbung und ohne eintrittsdatum' AS pruefung,
+-- Der Hort nimmt Kinder auf, die weder Grund- noch Realschüler sind. Ihr
+-- Hortvertrag durchläuft dieselben vier Stationen wie ein Schulvertrag, hängt
+-- aber am Kind statt an einer Bewerbung — die gibt es für sie nicht.
+INSERT INTO contracts (contract_id, child_id, deadline_on)
+    VALUES ('c0000000-0000-0000-0000-000000000002',
+            '44444444-4444-4444-4444-444444444444', '2027-08-31');
+UPDATE contracts SET secretariat_checked_at = now()
+    WHERE contract_id = 'c0000000-0000-0000-0000-000000000002';
+UPDATE contracts SET headmaster_released_at = now()
+    WHERE contract_id = 'c0000000-0000-0000-0000-000000000002';
+INSERT INTO care_module_bookings (child_id, care_module_id, contract_id, valid_from)
+    VALUES ('44444444-4444-4444-4444-444444444444', 1,
+            'c0000000-0000-0000-0000-000000000002', '2027-09-13');
+SELECT 'hortvertrag hängt am kind statt an einer bewerbung' AS pruefung,
        b.valid_from, c.entry_date IS NULL AS nicht_eingeschrieben,
-       b.contract_id IS NULL AS ohne_vertragsvorgang
+       k.application_id IS NULL AS ohne_bewerbung,
+       k.secretariat_checked_at IS NOT NULL AS geprueft,
+       k.headmaster_released_at IS NOT NULL AS freigegeben
   FROM care_module_bookings b
-  JOIN children c ON c.child_id = b.child_id
+  JOIN children  c ON c.child_id    = b.child_id
+  JOIN contracts k ON k.contract_id = b.contract_id
  WHERE b.child_id = '44444444-4444-4444-4444-444444444444';
+
+-- Zwei Elternteile antworten auch am Hortvertrag getrennt — dieselbe Tabelle,
+-- kein Sonderweg.
+INSERT INTO contract_responses (contract_id, person_id, accepted, responded_at)
+    VALUES ('c0000000-0000-0000-0000-000000000002',
+            '22222222-2222-2222-2222-222222222222', true, now());
+SELECT 'antwort je erziehungsberechtigtem gilt auch am hortvertrag' AS pruefung,
+       count(*) AS antworten
+  FROM contract_responses WHERE contract_id = 'c0000000-0000-0000-0000-000000000002';
 
 -- ---------------------------------------------------------------------------
 -- Löschmechanik: die Bewerbung blockiert, das Kind hängt daran

@@ -64,7 +64,7 @@ Eigene Tabelle statt einer Merkmalszeile, weil er kein „was liegt vor" und kei
 - **Das Küchenprofil** (Essensvariante, Vegetarier-Frage des Betreuungsvertrags): eine Handlungsanweisung an die Küche, keine Diagnose — es lebt in Domäne 6 mit eigenem Leserkreis (`domains/mensa.md`), das medizinische Merkmal bleibt hier.
 - **Die Geburtsurkunde** ist kein Gesundheitsdatum und bleibt eine reine Q2-Zeile mit Bezug Kind; hier hätte sie das falsche Zugriffsprofil.
 - **Diagnose-Codes** (ICD o. ä.). Niemand fragt danach, und ein Code verleitet zu Auswertungen, für die es keine Rechtsgrundlage gibt.
-- **Historie.** Ein beendetes Merkmal trägt ein Behandlungsende, ein entfallenes wird gelöscht.
+- **Historie.** Es gilt ausschließlich, was in der Datenbank steht — kein Beginn, kein Ende, keine abgelaufene Zeile. Ein Merkmal, das nicht mehr zutrifft, wird gelöscht (siehe „Was hier steht, gilt").
 
 ## Anschluss an die anderen Domänen
 

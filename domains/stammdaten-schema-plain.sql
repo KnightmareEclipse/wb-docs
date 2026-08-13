@@ -212,6 +212,8 @@ CREATE INDEX ON children (payer_id);
 CREATE TABLE guardians (
     guardian_id     uuid PRIMARY KEY REFERENCES persons(person_id) ON DELETE RESTRICT,
     occupation      text,
+    denomination_id integer REFERENCES denominations(denomination_id) ON DELETE RESTRICT,
+    nationality_id  integer REFERENCES countries(country_id) ON DELETE RESTRICT,
     created_at      timestamptz NOT NULL DEFAULT now(),
     created_by      text NOT NULL,
     updated_at      timestamptz NOT NULL DEFAULT now(),

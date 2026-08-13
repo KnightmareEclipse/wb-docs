@@ -20,7 +20,7 @@
 --   * stdout und stderr im Container zusammenführen — das `sh -c '… 2>&1'`
 --     oben. Sonst reordert podman die beiden Ströme und die Paarung
 --     Ankündigung/ERROR sieht wie ein Befund aus.
---   * Sollstand: 65 Ankündigungen zu 65 ERROR-Zeilen. Verankert zählen, und auf
+--   * Sollstand: 66 Ankündigungen zu 66 ERROR-Zeilen. Verankert zählen, und auf
 --     der AUSGABE statt auf dieser Datei — deren Kopfkommentar enthält die
 --     Zeichenkette selbst und verfälscht die Zahl:
 --       grep -cE '^--- erwartet: FEHLER'  gegen  grep -cE '^psql:.*: ERROR:'
@@ -333,8 +333,24 @@ SELECT 'dieselbe Nummer bei anderer Person akzeptiert' AS pruefung, count(*) AS 
 -- Es gibt keine Organisation als Erziehungsberechtigte — auch eine Amtsvormundin
 -- ist eine ganz normale Person (domains/stammdaten.md, „Familie").
 -- ---------------------------------------------------------------------------
-INSERT INTO guardians (guardian_id, occupation)
-    VALUES ('33333333-3333-3333-3333-333333333333', 'Erzieherin');
+INSERT INTO guardians (guardian_id, occupation, denomination_id, nationality_id)
+    VALUES ('33333333-3333-3333-3333-333333333333', 'Erzieherin', 1, 2);
+
+-- Konfession und Staatsangehörigkeit stehen auch an der Rolle, nicht nur am
+-- Kind — beide Voranmeldeformulare erheben sie (prozesse.md Abschnitt 3.2), und
+-- der Zweck-Beschluss steht noch aus (TODO.md). Belegt wird hier nur, dass die
+-- Werte Wertelisten-gebunden sind: ein Streichen bleibt ein DROP COLUMN, ein
+-- Freitext-Wildwuchs wäre nicht mehr einzufangen.
+SELECT 'konfession und staatsangehörigkeit auch an der rolle, als lookup' AS pruefung,
+       d.label AS konfession, c.label AS staatsangehoerigkeit
+    FROM guardians g
+    JOIN denominations d ON d.denomination_id = g.denomination_id
+    JOIN countries c     ON c.country_id      = g.nationality_id
+    WHERE g.guardian_id = '33333333-3333-3333-3333-333333333333';
+
+\echo '--- erwartet: FEHLER (Konfession als Freitext-ID ohne Werteliste)'
+UPDATE guardians SET denomination_id = 99
+    WHERE guardian_id = '33333333-3333-3333-3333-333333333333';
 
 \echo '--- erwartet: FEHLER (Erziehungsberechtigte ohne Personenzeile)'
 INSERT INTO guardians (guardian_id) VALUES ('55555555-5555-5555-5555-555555555555');
