@@ -74,6 +74,8 @@ Eigene Tabelle statt einer Merkmalszeile, weil er kein „was liegt vor" und kei
 
 Das **Attest** zeigt auf die Q2-Dokumentzeile im Anmelde-Schema, statt einen zweiten Dateiverweis aufzumachen: die Datei liegt in SharePoint, und der Lösch-Job muss sie über genau einen Weg finden. Das Prüfskript zeigt beides — das Attest ist über diesen einen Weg auffindbar, und es lässt sich nicht löschen, solange ein Merkmal darauf zeigt.
 
+**Dass das Attest zu diesem Kind gehört, erzwingt das Schema nicht** — die Bedingung führt über `documents.child_id` und wäre nur als Trigger ausdrückbar, dieselbe dokumentierte Lücke wie bei `contract_responses.person_id`. Hier wiegt sie am schwersten: ein fremdes Attest an der Merkmalszeile gäbe die Dateireferenz eines Art.-9-Dokuments an den Leserkreis eines anderen Kindes weiter und blockierte dessen Löschung über zwei Fremdschlüssel hinweg. Die Bindung liegt deshalb in der Eingabemaske, die zum Attest ausschließlich Dokumente desselben Kindes anbietet.
+
 **Damit liegt die Löschreihenfolge fest, und sie läuft gegen das Gefälle der Fristen.** Dieser Bestand hat voraussichtlich die kürzeste Frist im System, hält über das Attest aber ein `ON DELETE RESTRICT` in eine Domäne mit anderer Frist. Der Lösch-Job muss deshalb hier anfangen: erst das Merkmal, dann die Q2-Dokumentzeile, dann die Datei in SharePoint (`idea/06-dsgvo-organisatorisch.md`). Umgekehrt blockiert er.
 
 **Ein Kind lässt sich nicht löschen, solange Merkmale oder ein Masernnachweis daran hängen** (`ON DELETE RESTRICT` auf beiden Tabellen, im Prüfskript belegt). Die Zusage aus `domains/stammdaten.md`, ein Kind zu löschen sei **ein** Befehl auf die Personenzeile, gilt seit dieser Domäne nicht mehr unverändert — dort nachgezogen.

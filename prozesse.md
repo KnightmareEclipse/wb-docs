@@ -446,9 +446,8 @@ Was Weltenbaum nicht abnimmt, bleibt benannt: Bescheinigungen schreibt weiterhin
 
 ## 17. DSGVO-Datenauskunft
 
-- **Kein fixer Prozess definiert.**
-- Herausgegeben wird in jedem Fall die **digitale Schülerakte** (SharePoint, geführt vom Sekretariat) mit allen Dokumenten zur Person: Schulvertrag, Gesundheitsdaten, Fotoeinverständnis und was im Lauf der Zeit dazukam.
-- Der Rest ist offen.
+- **Kein fixer Prozess definiert** — festzulegen von Schulleitung bzw. Datenschutzbeauftragte:r (`TODO.md`, `idea/06-dsgvo-organisatorisch.md`).
+- Herausgegeben wird in jedem Fall die **digitale Schülerakte** (SharePoint, geführt vom Sekretariat) mit allen Dokumenten zur Person: Schulvertrag, Gesundheitsdaten, Fotoeinverständnis und was im Lauf der Zeit dazukam. Sie deckt den Datenbankbestand **nicht** ab — der ist über `persons.person_id` bzw. `children.child_id` einsammelbar, sobald Weltenbaum führt.
 
 ---
 

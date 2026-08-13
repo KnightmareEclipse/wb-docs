@@ -146,6 +146,18 @@ CREATE TABLE health_traits (
     -- Attest. Zeigt auf die Q2-Dokumentzeile im Anmelde-Schema, statt hier einen
     -- zweiten Dateiverweis aufzumachen: die Datei liegt in SharePoint, und der
     -- Lösch-Job muss sie über genau einen Weg finden (domains/grenzkarte.md, Q2).
+    --
+    -- Dass das Dokument zu DIESEM Kind gehört, erzwingt das Schema NICHT: die
+    -- Bedingung führt über documents.child_id und ist damit weder als CHECK noch
+    -- als Fremdschlüssel ausdrückbar, sondern nur als Trigger — dieselbe
+    -- dokumentierte Lücke wie bei contract_responses.person_id und
+    -- program_bookings.child_id. Hier wiegt sie am schwersten und wird deshalb
+    -- benannt: ein fremdes Attest an dieser Zeile gibt die Dateireferenz eines
+    -- Art.-9-Dokuments an den Leserkreis eines anderen Kindes weiter, und der
+    -- Lösch-Job kommt nicht durch — das RESTRICT hier hält das Dokument, dessen
+    -- child_id wiederum sein eigenes Kind hält, obwohl dessen Frist abgelaufen
+    -- ist. Die Bindung liegt in der Eingabemaske, die zum Attest ausschließlich
+    -- Dokumente desselben Kindes anbietet.
     attestation_document_id uuid REFERENCES documents(document_id) ON DELETE RESTRICT,
     -- Erlaubnis zur Verabreichung bzw. Durchführung. Zeitpunkt statt Boolean
     -- wegen der Nachweispflicht (Art. 7 Abs. 1 DSGVO).

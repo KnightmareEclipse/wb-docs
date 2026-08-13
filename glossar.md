@@ -21,11 +21,11 @@ Entra-ID-Rollen-Claim für Schulsekretariats-Personal, darf Stammdaten aller Sch
 _Avoid_: Admin, Sekretariat
 
 **Schulleitung**:
-Je Schulzweig eine. Prüft den Vertrag nach der Verwaltung, gibt ihn frei und zeichnet gegen (`domains/anmeldung.md`); darf zusammen mit der Geschäftsführung die Putzdienst-Strafe aussetzen und die Pflicht erlassen (`domains/putzdienst.md`). Der zweite Zugriff hängt an einem eigenen Spalten-GRANT, nicht am Rollen-Claim allein.
+Je Schulzweig eine — und sieht ausschließlich ihren Zweig, nicht alle Schüler. Prüft den Vertrag nach der Verwaltung, gibt ihn frei und zeichnet gegen (`domains/anmeldung.md`); dafür braucht sie den Vertrag als Datei, bekommt ihn aber über Weltenbaum statt über die Bibliothek — sonst sähe sie beide Zweige (`domains/grenzkarte.md`, Q2); darf zusammen mit der Geschäftsführung die Putzdienst-Strafe aussetzen und die Pflicht erlassen (`domains/putzdienst.md`). Der zweite Zugriff hängt an einem eigenen Spalten-GRANT, nicht am Rollen-Claim allein.
 _Avoid_: Admin
 
 **Geschäftsführung**:
-Operativer Kopf des Trägervereins (`fachdomaenen.md` Abschnitt 5). Im System genau ein Zugriff: Straf-Aussetzung und Pflicht-Erlass beim Putzdienst, gemeinsam mit der Schulleitung.
+Operativer Kopf des Trägervereins (`fachdomaenen.md` Abschnitt 5). Sieht wie die Verwaltung **alle** Schüler — beide brauchen den Gesamtüberblick, alle übrigen Rollen sehen nur einen Teil der Schüler oder einen Teil der Daten. Drei eigene Zugriffe: Straf-Aussetzung und Pflicht-Erlass beim Putzdienst (gemeinsam mit der Schulleitung), direkter Zugriff auf die Dateibibliotheken (`domains/grenzkarte.md`, Q2) und als Einzige das Hochladen der Vertragsvorlagen (`domains/anmeldung.md`) — sie verantwortet die Verwaltung und besonders die Verträge.
 
 **Klassenlehrer:in**:
 Die Lehrkraft, auf die `classes.class_teacher_id` ihrer Klasse zeigt. Sieht den vollen Gesundheitssatz der Kinder dieser Klasse und formuliert daraus den handlungsrelevanten Hinweis, den alle unterrichtenden Personen sehen (`domains/gesundheit.md`).

@@ -50,12 +50,13 @@ INSERT INTO children (child_id, date_of_birth) VALUES
     ('22222222-2222-2222-2222-222222222222', '2019-02-17');
 
 INSERT INTO document_types (document_type_id, label, code) VALUES (10, 'Attest', 'attestation');
--- Vorlagepfad und Vorlagedatum gelten nur gemeinsam (documents im
+-- Dateireferenz und Vorlagedatum gelten nur gemeinsam (documents im
 -- Anmelde-Schema) — ein Attest ohne Vorlagedatum wäre eine Anforderung.
-INSERT INTO documents (document_id, document_type_id, child_id, storage_path, created_on)
+INSERT INTO documents (document_id, document_type_id, child_id,
+                       storage_drive_id, storage_item_id, created_on)
     VALUES ('d0000000-0000-0000-0000-000000000001', 10,
             '11111111-1111-1111-1111-111111111111',
-            'RS25a/mueller-anna/attest-adrenalin.pdf', current_date);
+            'b!akte', '01ATTEST-ADRENALIN', current_date);
 
 INSERT INTO health_trait_types (health_trait_type_id, label, sort_order) VALUES
     (1, 'Lebensmittelunverträglichkeit', 1),
@@ -247,6 +248,6 @@ DELETE FROM documents WHERE document_id = 'd0000000-0000-0000-0000-000000000001'
 
 -- Das Attest hängt an genau EINEM Weg: über das Merkmal an der Q2-Zeile. Der
 -- Lösch-Job findet die SharePoint-Datei damit ohne zweiten Dateiverweis.
-SELECT 'attest ist über genau einen weg auffindbar' AS pruefung, d.storage_path
+SELECT 'attest ist über genau einen weg auffindbar' AS pruefung, d.storage_item_id
   FROM health_traits h JOIN documents d ON d.document_id = h.attestation_document_id
  WHERE h.child_id = '11111111-1111-1111-1111-111111111111';

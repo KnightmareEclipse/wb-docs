@@ -329,13 +329,27 @@ CREATE TABLE document_types (
 -- dort mitentfernen — eine verwaiste Datei in SharePoint ist genauso ein
 -- DSGVO-Verstoß wie eine verwaiste Zeile, und sie fällt niemandem auf.
 --
+-- DIE REFERENZ IST DIE GRAPH-KENNUNG, NICHT DER PFAD: Bibliothek (drive) plus
+-- Element (driveItem), beide nur gemeinsam gültig. Ein Pfad bräche bei jedem
+-- Verschieben und Umbenennen — und genau das ist der real belegte Fehlermodus
+-- dieser Schule: „bricht ein in Teams verschobener Datei-Link den Prozess, ohne
+-- dass die verschiebende Person das merkt" (fachdomaenen.md Abschnitt 3). Die
+-- Element-Kennung überlebt beides innerhalb ihrer Bibliothek; damit darf die
+-- Akte eines Kindes beim Zug- oder Zweigwechsel in einen anderen
+-- Kohorten-Ordner gezogen werden, ohne dass hier eine Zeile angefasst wird.
+-- Der Anzeigepfad wird bei Bedarf über Graph aufgelöst und NICHT gespeichert —
+-- er wäre ein zweiter, veraltender Ort (rules.md Abschnitt 1).
+-- Beide Spalten, statt die Bibliothek als Konfigurationswert anzunehmen: es gibt
+-- mindestens zwei (von Weltenbaum erzeugt / Schülerakte, domains/grenzkarte.md,
+-- Q2), und welche gilt, ist Teil der Adresse und keine Regel im Code.
+--
 -- Bezug ist entweder ein Kind oder eine Bewerbung — genau eines von beidem,
 -- getragen vom Fremdschlüssel statt von einem Typ-Feld daneben, wie bei payments
 -- und contracts. Der Vertragsvorgang braucht keinen eigenen Bezug: er hängt
 -- selbst schon an einer Bewerbung oder einem Kind.
 --
 -- EINE ZEILE SAGT ZWEI DINGE, EINZELN ODER ZUSAMMEN: angefordert
--- (requested_on) und vorgelegt (storage_path samt created_on, nur gemeinsam) —
+-- (requested_on) und vorgelegt (Referenz samt created_on, nur gemeinsam) —
 -- dieselbe Bauform wie measles_proofs in domains/gesundheit-schema.sql. Grund
 -- ist die Sekretariats-Checkliste des Anmeldetags (prozesse.md Abschnitt 5.2):
 -- „Beobachtungsbogen des Kindergartens einholen; falls nicht mitgebracht,
@@ -345,40 +359,126 @@ CREATE TABLE document_types (
 -- entschieden und vergessen wie bei der abgelehnten Zustimmung (consents) und
 -- der übertragenen Anwesenheitsliste (cleaning_slots.attendance_recorded_at).
 --
--- Zwei Folgen: der Lösch-Job darf für eine Zeile ohne storage_path keine Datei
+-- Zwei Folgen: der Lösch-Job darf für eine Zeile ohne Referenz keine Datei
 -- in SharePoint suchen (domains/grenzkarte.md, Q2) — es gibt keine —, und eine
 -- Signatur auf einer noch nicht vorgelegten Unterlage verhindert die Datenbank
 -- nicht (der CHECK liefe über zwei Tabellen). Das bleibt Sache der
 -- Eingabemaske, dieselbe dokumentierte Lücke wie bei contract_responses.person_id.
 --
 -- Entscheidend ist die LÖSCHFRIST, nicht der Anlass: was länger leben muss als
--- die Bewerbung, zeigt aufs Kind. Am Kind hängen deshalb Geburtsurkunde, Zeugnis,
+-- die Bewerbung, zeigt aufs Kind. Am Kind hängen deshalb Geburtsurkunde,
+-- Zeugnis, Grundschulempfehlung und Beobachtungsbogen, das
 -- Gesundheitsdatenblatt samt Attesten (domains/gesundheit.md) und das
 -- SEPA-Mandat (domains/grenzkarte.md, Q2; domains/stammdaten-schema.sql,
 -- children.mandate_reference) — Letzteres besonders, weil der Datenwert für den
--- Einzug am Kind steht und ohne sein Dokument als Nachweis dastünde. An der
--- Bewerbung hängen nur Unterlagen des Verfahrens selbst, die mit ihm verfallen:
--- Schulvertrag und Grundschulempfehlung.
+-- Einzug am Kind steht und ohne sein Dokument als Nachweis dastünde.
+-- Die drei Verfahrensunterlagen hängen ausdrücklich MIT am Kind und nicht an der
+-- Bewerbung, obwohl sie nur zu Beginn gelesen werden: wie lange sie bleiben,
+-- entscheidet die Schule mit der Aufbewahrungsfrist (TODO.md) und nicht der
+-- Entwurf — an der Bewerbung hätten sie still deren kürzere Frist geerbt. An ihr
+-- hängt deshalb nur der Schulvertrag, der ohne seinen Vorgang nichts bedeutet.
 CREATE TABLE documents (
     document_id      uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     document_type_id integer NOT NULL REFERENCES document_types(document_type_id) ON DELETE RESTRICT,
     child_id         uuid REFERENCES children(child_id) ON DELETE RESTRICT,
     application_id   uuid,   -- Fremdschlüssel per ALTER TABLE unten (applications wird danach definiert)
-    storage_path     text CHECK (storage_path <> ''),
-    created_on       date,               -- Vorlage-/Erzeugungsdatum, gilt nur mit storage_path
+    -- Graph-Kennung der Bibliothek und des Elements (Kopfkommentar). CHECK <> ''
+    -- wie an den identitätstragenden Spalten in Stammdaten: eine leere Kennung
+    -- sähe aus wie eine Referenz und zeigte nirgendwohin.
+    storage_drive_id text CHECK (storage_drive_id <> ''),
+    storage_item_id  text CHECK (storage_item_id <> ''),
+    created_on       date,               -- Vorlage-/Erzeugungsdatum, gilt nur mit der Referenz
     requested_on     date,               -- angefordert am; leer heißt: lag ohne Aufforderung vor
+    -- Fassung der Word-Vorlage, aus der dieses Dokument erzeugt wurde (der
+    -- SharePoint-Versionsstempel, z. B. "3.0"). Leer bei allem, was nicht
+    -- Weltenbaum erzeugt hat — Geburtsurkunde, Zeugnis, Attest.
+    --
+    -- Sie hat genau EINEN Abnehmer, und ohne ihn gäbe es die Spalte nicht
+    -- (domains/anmeldung.md, „Wenn mitten im Vorgang ein Fehler auffällt"): Vor
+    -- Abschluss darf ein Dokument neu erzeugt werden, ohne dass bereits
+    -- geleistete Unterschriften verfallen — ein fehlender Buchstabe im Namen
+    -- kostet die Eltern sonst einen zweiten kompletten Signaturlauf. Das ist
+    -- nur zulässig, solange sich der VERTRAGSTEXT nicht geändert hat, und
+    -- genau das sagt diese Spalte: dieselbe Fassung heißt, dass sich
+    -- ausschließlich Platzhalter unterscheiden können. Deshalb erzeugt die
+    -- Korrektur auch aus der HIER stehenden Fassung neu und nicht aus der
+    -- aktuellen — eine inzwischen hochgeladene Vorlage mit geänderter
+    -- Kündigungsfrist schöbe sich sonst unter eine schon geleistete
+    -- Unterschrift.
+    --
+    -- Keine Vorlagenhistorie in der Datenbank: die Fassungen selbst hält
+    -- SharePoint, hier steht nur, welche es war. CHECK <> '' wie an den
+    -- übrigen bedeutungstragenden Textspalten — ein Leerstring sähe aus wie
+    -- eine Fassung und verglichen sich gegen nichts.
+    template_version text CHECK (template_version <> ''),
     created_at       timestamptz NOT NULL DEFAULT now(),
     created_by       text NOT NULL,
     updated_at       timestamptz NOT NULL DEFAULT now(),
     updated_by       text NOT NULL,
     CONSTRAINT documents_exactly_one_subject_check
         CHECK ((child_id IS NOT NULL)::int + (application_id IS NOT NULL)::int = 1),
+    -- Eine halbe Adresse ist keine: ohne Bibliothek findet der Abruf das Element
+    -- nicht, ohne Element sagt die Bibliothek nichts.
+    CONSTRAINT documents_storage_complete_check
+        CHECK ((storage_drive_id IS NULL) = (storage_item_id IS NULL)),
     CONSTRAINT documents_any_fact_check
-        CHECK (storage_path IS NOT NULL OR requested_on IS NOT NULL),
+        CHECK (storage_item_id IS NOT NULL OR requested_on IS NOT NULL),
     CONSTRAINT documents_presentation_complete_check
-        CHECK ((storage_path IS NULL) = (created_on IS NULL))
+        CHECK ((storage_item_id IS NULL) = (created_on IS NULL))
 );
 CREATE INDEX ON documents (child_id);
+
+-- Der Aktenordner eines Kindes — die ZWEITE Ebene neben den Dokumentzeilen
+-- oben, und der Grund, warum nicht jede Datei eine Zeile braucht.
+--
+-- Eine documents-Zeile bekommt nur, was ein Prozess liest: die signierten
+-- Unterlagen (Vertrag, Gesundheitsblatt, Fotoeinverständnis, SEPA-Mandat,
+-- Atteste) und die am Anmeldetag angeforderten (Geburtsurkunde, Zeugnis,
+-- Grundschulempfehlung, Beobachtungsbogen) — dort muss „fehlt noch" von „nie
+-- verlangt" unterscheidbar sein. Alles Übrige der digitalen Schülerakte —
+-- Schriftverkehr, Bescheinigungen, „was im Lauf der Zeit dazukam" (prozesse.md
+-- Abschnitt 17) — liegt im Ordner OHNE Zeile. Nicht jedes Kind hat dieselben
+-- Dateien, und ein Index, den niemand liest und der unvollständig sein darf,
+-- ist schlechter als keiner: niemand sähe ihm an, ob er vollständig ist.
+--
+-- Diese eine Zeile macht den Lösch-Job trotzdem vollständig: er löscht den
+-- ORDNER und erwischt damit auch die Dateien, die Weltenbaum nie gesehen hat
+-- (idea/06-dsgvo-organisatorisch.md). Ohne sie bliebe genau der freie Teil der
+-- Akte stehen. Zweiter Abnehmer ist die Datenauskunft (TODO.md), dritter die
+-- Ansicht „Akte öffnen".
+--
+-- child_id ist zugleich Primärschlüssel: ein Kind hat einen Aktenordner oder
+-- keinen — dieselbe Bauform wie measles_proofs und meal_profiles. Nullable ist
+-- damit die ganze Zeile: ein Bewerber ohne Unterlagen und ein reines
+-- Ferienprogramm-Kind haben keinen.
+--
+-- ON DELETE RESTRICT und damit KEINE Kaskade: der Ordner ist der letzte Ort,
+-- an dem Personendaten liegen, die keine Zeile mehr nennt — er darf nicht als
+-- Nebenwirkung eines anderen Löschbefehls aus der Datenbank verschwinden,
+-- während seine Dateien in SharePoint stehen bleiben. Der Lösch-Job muss ihn
+-- ausdrücklich anfassen, wie bei den Gesundheitstabellen.
+--
+-- Eigene Tabelle statt einer Spalte an children: der Aktenordner ist kein
+-- Stammdatum, sondern Teil von Q2 — und Stammdaten sind ab dem Vollimport
+-- eingefroren (domains/grenzkarte.md). Neue Tabellen, die sie nur
+-- referenzieren, bleiben jederzeit erlaubt.
+CREATE TABLE child_file_folders (
+    child_id         uuid PRIMARY KEY REFERENCES children(child_id) ON DELETE RESTRICT,
+    -- Graph-Kennung wie an documents und dort begründet: Bibliothek plus
+    -- Element, nie ein Pfad. Der Ordner darf damit umbenannt und in einen
+    -- anderen Kohorten-Ordner verschoben werden, ohne dass hier etwas
+    -- nachzuziehen ist — der Zug- oder Zweigwechsel wird ein reiner
+    -- SharePoint-Vorgang.
+    storage_drive_id text NOT NULL CHECK (storage_drive_id <> ''),
+    storage_item_id  text NOT NULL CHECK (storage_item_id <> ''),
+    created_at       timestamptz NOT NULL DEFAULT now(),
+    created_by       text NOT NULL,
+    updated_at       timestamptz NOT NULL DEFAULT now(),
+    updated_by       text NOT NULL,
+    -- Zwei Kinder können nicht denselben Ordner haben — der reale Weg dorthin
+    -- ist ein Verknüpfen per Copy-Paste beim Nachtragen des Altbestands.
+    UNIQUE (storage_drive_id, storage_item_id)
+);
 
 -- Signatur: Person × Dokument × Zeitpunkt × Signaturbild × Niveau.
 -- Niveau als Spalte und nicht als Werteliste: es gibt heute durchgängig genau
@@ -742,18 +842,50 @@ CREATE TABLE application_programs (
 -- Nachhinein gestellt wird (domains/anmeldung.md).
 --
 -- BEZUG IST ENTWEDER EINE BEWERBUNG ODER EIN KIND, getragen vom Fremdschlüssel
--- statt von einem Typ-Feld daneben, wie bei documents und payments. Grund ist
--- der Hortvertrag: der Hort nimmt Kinder auf, die weder Grund- noch Realschüler
--- sind (prozesse.md Abschnitt 8), für sie gibt es keine Bewerbung — und ohne
--- diesen zweiten Bezug hätte ihr Vertrag keine Frist, keine Prüfung durch das
--- Sekretariat und keine Freigabe, obwohl er genau dieselben vier Stationen
--- durchläuft. Ein Schulvertrag hängt weiterhin an genau einer Bewerbung
--- (UNIQUE); am Kind gibt es bewusst KEIN UNIQUE: ein externes Hortkind, das
--- Jahre später wiederkommt, schließt einen zweiten Vertrag, und welcher gilt,
--- sagt die Laufzeit der Buchung (care_module_bookings) und nicht diese Zeile.
+-- statt von einem Typ-Feld daneben, wie bei documents und payments. Er trägt
+-- damit zugleich die Vertragsart: BEWERBUNG heißt Schulvertrag, KIND heißt
+-- Hortvertrag.
+--
+-- DER HORTVERTRAG IST IMMER EIN EIGENER VORGANG — für interne Kinder wie für
+-- externe, und dadurch derselbe Ablauf für beide. Drei Gründe, jeder allein
+-- tragend:
+--   * Er entsteht später. Am Anmeldetag steht der Betreuungsbedarf regelmäßig
+--     noch nicht fest; erhoben wird dort nur applications.interested_in_care.
+--     An den Schulvertrag gehängt fände ein im Mai nachgereichter Hortvertrag
+--     dessen vier Zeitpunkte längst gesetzt — weder eigene Frist noch eigene
+--     Prüfung durch das Sekretariat noch eigene Freigabe.
+--   * Er wird im laufenden Schuljahr geändert und gekündigt, während der
+--     Schulvertrag steht: Modul-Anpassungen im September, zum Halbjahr und bei
+--     Stundenplanänderungen (prozesse.md Abschnitt 8).
+--   * Der Hort nimmt Kinder auf, die weder Grund- noch Realschüler sind
+--     (prozesse.md Abschnitt 8) — für sie gibt es gar keine Bewerbung.
+-- Auch die eigene Bestätigung des Horts (Anschreiben + Welcome-Brief,
+-- prozesse.md Abschnitt 5.2) braucht deshalb ihren eigenen confirmation_sent_at
+-- und nicht den der Aufnahmebestätigung.
+--
+-- MEHRERE VERTRÄGE ÜBER DIE ZEIT SIND ZULÄSSIG, je Bewerbung wie je Kind —
+-- deshalb steht auf keiner der beiden Bezugsspalten ein tabellenweites UNIQUE.
+-- Zwei reale Anlässe: ein Kind schließt über die Jahre mehrere Hortverträge,
+-- und ein bereits gegengezeichneter Schulvertrag muss neu aufgesetzt werden,
+-- wenn nach der Freigabe auffällt, dass wesentliche Angaben fehlen (real
+-- vorgekommen). Der alte Vorgang bleibt dabei stehen: er ist der Beleg, wie
+-- damals entschieden wurde, und seine vier Zeitpunkte werden nicht rückdatiert.
+--
+-- ES GILT DER VERTRAG MIT DEM JÜNGSTEN confirmation_sent_at — abgeleitet und
+-- deshalb ohne „ist aktuell"-Kennzeichen, das ein zweiter Ort für dieselbe
+-- Tatsache wäre (rules.md Abschnitt 1). Ein noch laufender Neuvorgang ändert
+-- damit nichts, solange er nicht abgeschlossen ist: bis dahin bleibt der zuletzt
+-- bestätigte der gültige, und genau das ist die richtige Aussage.
+--
+-- Was bleibt, ist die Sperre gegen den Versehensfall: HÖCHSTENS EIN OFFENER
+-- Vorgang je Bewerbung und je Kind (partielle Unique-Indizes unten). Zwei
+-- gleichzeitig laufende Vertragsstrecken zum selben Vorgang wären keine
+-- Historie, sondern ein Fehler — die Eltern bekämen zwei Links und niemand
+-- wüsste, welcher zählt. Referenzmuster wie
+-- care_module_bookings_one_open_per_child_and_module.
 CREATE TABLE contracts (
     contract_id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    application_id        uuid UNIQUE REFERENCES applications(application_id) ON DELETE RESTRICT,
+    application_id        uuid REFERENCES applications(application_id) ON DELETE RESTRICT,
     child_id              uuid REFERENCES children(child_id) ON DELETE RESTRICT,
     -- Frist für die Eltern, real 14 Tage ab Versand. Als Datum und nicht als
     -- Dauer, weil das Sekretariat sie im Einzelfall verlängert.
@@ -787,6 +919,15 @@ CREATE TABLE contracts (
         CHECK ((application_id IS NOT NULL)::int + (child_id IS NOT NULL)::int = 1)
 );
 CREATE INDEX ON contracts (child_id);
+CREATE INDEX ON contracts (application_id);
+-- Höchstens ein OFFENER Vorgang je Bezug (Kopfkommentar): abgeschlossene
+-- Verträge sammeln sich als Historie, laufende darf es nur einen geben. Je
+-- Bezugsspalte ein eigener partieller Index; Zeilen der jeweils anderen Art
+-- tragen dort NULL und kollidieren nicht.
+CREATE UNIQUE INDEX contracts_one_open_per_application
+    ON contracts (application_id) WHERE confirmation_sent_at IS NULL;
+CREATE UNIQUE INDEX contracts_one_open_per_child
+    ON contracts (child_id) WHERE confirmation_sent_at IS NULL;
 
 -- Antwort je Erziehungsberechtigtem. Eigene Zeilen und kein Feld am Vertrag,
 -- weil Mutter und Vater je einen eigenen persönlichen Link bekommen und
@@ -885,8 +1026,10 @@ CREATE TABLE care_modules (
 --
 -- Hängt am KIND und nicht am Vertragsvorgang: der Hort nimmt auch Kinder auf,
 -- die weder Grund- noch Realschüler sind (prozesse.md Abschnitt 8) — für sie
--- gibt es keine Bewerbung, aber eine Buchung. contract_id bleibt deshalb
--- nullable und sagt nur, aus welchem Anmeldevorgang die Buchung entstanden ist.
+-- gibt es keine Bewerbung, aber eine Buchung. contract_id sagt nur, aus welchem
+-- Vorgang die Buchung entstanden ist: bei Betreuungsmodulen der Hortvertrag des
+-- Kindes (Begründung an contracts, gilt für interne wie externe Kinder), beim
+-- Mensa-Abo gar keiner — deshalb nullable.
 --
 -- valid_from/valid_until tragen Laufzeit, Kündigung und Angebotsende in einem:
 -- der reale Betreuungsvertrag läuft ein Schuljahr (01.08.–31.07.) und
@@ -1069,6 +1212,8 @@ CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON application_statuses
 CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON consents
     FOR EACH ROW EXECUTE FUNCTION set_row_audit();
 CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON documents
+    FOR EACH ROW EXECUTE FUNCTION set_row_audit();
+CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON child_file_folders
     FOR EACH ROW EXECUTE FUNCTION set_row_audit();
 CREATE TRIGGER set_row_audit BEFORE INSERT OR UPDATE ON signatures
     FOR EACH ROW EXECUTE FUNCTION set_row_audit();

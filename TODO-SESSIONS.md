@@ -44,15 +44,22 @@ Das Schema trägt Einzel-Freikauf und Straf-Aussetzung (`domains/putzdienst.md`)
 - **Die enge Berechtigung** für Straf-Aussetzung und Pflicht-Erlass ist ein Spalten-GRANT plus Rollenwahl, kein Anwendungs-`if`. Der Personenkreis ist noch zu benennen (`TODO.md`).
 - **Freigekaufte Zuteilungen gehören nicht auf die Übertragungsliste der Anwesenheit:** `no_show` auf einer einzeln freigekauften Zeile wäre eine Strafe auf einem bezahlten Termin. Wie die Frist eine Bedingung über zwei Tabellen — die Übernahme der Papierliste muss sie ausnehmen.
 
+### Was am Vertragsvorgang im Backend liegt, nicht im Schema
+
+Der Tippfehler-Fall braucht nichts davon — dort wird in dieselbe Zeile neu erzeugt und die Unterschriften bleiben (`domains/anmeldung.md`, „Wenn mitten im Vorgang ein Fehler auffällt"). Beides greift nur, wenn der **Vertragstext** sich geändert hat und deshalb wirklich neu unterschrieben werden muss:
+
+- **Das Räumen der alten Dokumentzeile ist ein Vorgang, kein Klickpfad.** Zustimmung → Signatur → Dokument → Datei in SharePoint hängen mit `ON DELETE RESTRICT` aneinander; wer beim Dokument anfängt, bricht mit einer Fremdschlüssel-Verletzung ab. Das gehört in **eine** Transaktion hinter einen Knopf. Sonst führt das Sekretariat den ersten Schritt aus, läuft beim zweiten in eine Fehlermeldung und lässt einen halb geräumten Bestand stehen — und Unfertiges bleibt an dieser Schule eher liegen, als dass jemand nachfragt (`fachdomaenen.md` Abschnitt 3).
+- **Der zweite Signaturlink braucht eine Begründung.** Er sieht aus wie der erste; ohne einen Satz dazu wirkt er wie ein Systemfehler, und die Eltern unterschreiben nicht. Gehört in dieselbe Mailvorlage, die den Link erzeugt.
+
 ## Für `wb-backend`
 
 ### Übertragung nach SQLAlchemy/Alembic: was Modelle nicht können
 
-Tabellen, Spalten, PK/FK/UNIQUE, CHECKs, partielle Indizes und die Ausschluss-Constraints lassen sich als Modell ausdrücken. **Drei Dinge nicht:** die plpgsql-Funktion `set_row_audit()`, die 47 Trigger, die sie über die sieben Schemata anhängen, und die Spalten-GRANTs. Die gehören als `op.execute()` in die Initial-Migration.
+Tabellen, Spalten, PK/FK/UNIQUE, CHECKs, partielle Indizes und die Ausschluss-Constraints lassen sich als Modell ausdrücken. **Drei Dinge nicht:** die plpgsql-Funktion `set_row_audit()`, die 48 Trigger, die sie über die sieben Schemata anhängen, und die Spalten-GRANTs. Die gehören als `op.execute()` in die Initial-Migration.
 
 Das ist kein Tipparbeits-, sondern ein Sicherheitsproblem: Alembics `--autogenerate` **sieht diese drei gar nicht**. Es meldet nicht, dass sie fehlen, und würde sie bei einem späteren Regenerieren stillschweigend aus der Migration lassen. Damit fiele genau das weg, worauf das Schema am stärksten baut — Audit-Trail und Art.-9-Schutz — ohne eine einzige Fehlermeldung.
 
-Die Doppelung ist dafür überprüfbar statt riskant: die sieben Prüfskripte in `domains/` laufen gegen **jede** Datenbank, auch gegen die von Alembic gebaute. Kommen dort 66/66, 22/22, 53/53, 14/14, 11/11, 4/4 und 3/3 heraus, ist die Übertragung nachweislich treu. Das gehört als fester Schritt hinter die Initial-Migration, nicht als einmalige Sichtprüfung.
+Die Doppelung ist dafür überprüfbar statt riskant: die sieben Prüfskripte in `domains/` laufen gegen **jede** Datenbank, auch gegen die von Alembic gebaute. Kommen dort 66/66, 22/22, 59/59, 14/14, 11/11, 4/4 und 3/3 heraus, ist die Übertragung nachweislich treu. Das gehört als fester Schritt hinter die Initial-Migration, nicht als einmalige Sichtprüfung.
 
 Danach führt `wb-backend` das Schema; die `.sql` in diesem Repo bleibt der Entwurf samt Begründungen und ist nicht mehr die Quelle der Wahrheit.
 

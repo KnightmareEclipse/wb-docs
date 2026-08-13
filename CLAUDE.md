@@ -58,7 +58,7 @@ Eine Schemaänderung ist erst fertig, wenn alle abhängigen Dateien mitgezogen s
 
 `…-schema.sql` → `-plain.sql` (regenerieren, nie von Hand — `sed`-Befehl in `domains/stammdaten.md`) → Prüfskript **samt Sollstand** → `domains/stammdaten-schema-benchmark.md` und die Dateien in `domains/stammdaten-benchmark/` → die betroffenen `.md` → `domains/grenzkarte.md`.
 
-Danach **einmal** validieren, nicht nach jedem Einzelpunkt: alle sieben Prüfskripte in Ladereihenfolge — Stammdaten (66/66), Putzdienst (22/22), Anmeldung (53/53), Ferien (14/14), Gesundheit (11/11), Mensa (4/4), Klassenorganisation (3/3); Aufruf und Sollstand stehen im jeweiligen Kopfkommentar. Bei Spaltenänderungen an Stammdaten zusätzlich der Benchmark-Generator mit `n_children=500`/`n_classes=20` — die Zeilenzahlen müssen denen aus `domains/stammdaten-schema-benchmark.md` (Durchlauf 1) entsprechen.
+Danach **einmal** validieren, nicht nach jedem Einzelpunkt: alle sieben Prüfskripte in Ladereihenfolge — Stammdaten (66/66), Putzdienst (22/22), Anmeldung (59/59), Ferien (14/14), Gesundheit (11/11), Mensa (4/4), Klassenorganisation (3/3); Aufruf und Sollstand stehen im jeweiligen Kopfkommentar. Bei Spaltenänderungen an Stammdaten zusätzlich der Benchmark-Generator mit `n_children=500`/`n_classes=20` — die Zeilenzahlen müssen denen aus `domains/stammdaten-schema-benchmark.md` (Durchlauf 1) entsprechen.
 
 ## Dokumentationsstil
 
