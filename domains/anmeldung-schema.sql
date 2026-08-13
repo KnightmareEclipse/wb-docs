@@ -580,15 +580,34 @@ CREATE TABLE applications (
     -- auseinandergehen.
     primary_school_recommendation_id integer REFERENCES school_recommendations(school_recommendation_id) ON DELETE RESTRICT,
     -- Austausch der Schülerüberweisung mit der staatlichen Schule
-    -- (children.previous_school_id): erhalten und zurückgesendet. Ein
-    -- Vorgangsschritt der Bewerbung und bewusst KEINE Q5-Nachzieh-Aufgabe — er
-    -- zieht keine Weltenbaum-Änderung in ein Fremdsystem nach, und an zwei
+    -- (children.previous_school_id). DREI Schritte, weil der reale Ablauf drei
+    -- hat: wir informieren die abgebende Schule, daraufhin kommt die
+    -- Überweisung, und ggf. geht sie zurück. Auf den Checklisten stehen sie
+    -- ebenso als drei eigene Punkte („Bisherige örtl. Schule informieren",
+    -- „Schülerüberweisung erhalten?", „Rücksendung an Herkunftsschule").
+    --
+    -- Der erste Schritt braucht eine eigene Spalte, weil er sonst nicht vom
+    -- Warten zu unterscheiden wäre: ohne ihn hieße ein leeres
+    -- student_transfer_received_on zugleich „wir haben die Schule noch nicht
+    -- informiert" (zu tun: informieren) und „die Schule hat noch nicht
+    -- geantwortet" (zu tun: nachfassen) — zwei verschiedene Handlungen für
+    -- dasselbe Bild. Ein Anker daneben, an dem sich das ablesen ließe, gibt es
+    -- hier nicht: der Austausch läuft Wochen nach dem Anmeldetag und damit lange
+    -- nach documents_checked_at (domains/grenzkarte.md, „Drei Zustände").
+    --
+    -- Ein Vorgangsschritt der Bewerbung und bewusst KEINE Q5-Nachzieh-Aufgabe —
+    -- er zieht keine Weltenbaum-Änderung in ein Fremdsystem nach, und an zwei
     -- Orten geführt wäre derselbe Erledigt-Haken zweimal pflegbar
-    -- (domains/grenzkarte.md, Q5). Kein Reihenfolge-CHECK: welcher Schritt
-    -- zuerst kommt, hängt am Verfahren der Gegenseite und ist keine
-    -- Schema-Zusage.
-    student_transfer_received_on date,
-    student_transfer_returned_on date,
+    -- (domains/grenzkarte.md, Q5).
+    --
+    -- Weiterhin kein Reihenfolge-CHECK, und mit dem dritten Schritt erst recht
+    -- nicht: die abgebende Schule kann die Überweisung auch unaufgefordert
+    -- schicken (die Eltern melden das Kind dort selbst ab), und die Rücksendung
+    -- ist ausdrücklich nur „ggf.". Erzwungen wäre das eine Sperre gegen einen
+    -- realen Ablauf.
+    student_transfer_requested_on date,   -- „Bisherige örtl. Schule informieren"
+    student_transfer_received_on  date,
+    student_transfer_returned_on  date,
     -- Vollständigkeitsprüfung der Unterlagen am Anmeldetag — der letzte Punkt
     -- der Sekretariats-Checkliste (prozesse.md Abschnitt 5.2) und die
     -- verwaltende der beiden Spuren des Tages. Nicht zu verwechseln mit
@@ -750,10 +769,20 @@ CREATE TABLE contracts (
     -- gibt die Schulleitung frei, dann geht die Bestätigung raus. Eine
     -- Bestätigungsmail vor der Freigabe wäre genau der Fehler, der an dieser
     -- Schule niemandem auffiele.
+    -- Geprüft wird beides: dass der frühere Schritt überhaupt stattgefunden hat
+    -- UND dass er früher liegt. Ohne den Zeitvergleich ließe sich
+    -- secretariat_checked_at nachträglich hinter die Freigabe schieben, und die
+    -- Zeile dokumentierte eine Prüfung, die nach der Freigabe stattfand — genau
+    -- die Aussage, die diese vier Zeitpunkte tragen sollen. Gleiche Bauform wie
+    -- consents_revoked_after_granted_check.
     CONSTRAINT contracts_release_after_check_check
-        CHECK (headmaster_released_at IS NULL OR secretariat_checked_at IS NOT NULL),
+        CHECK (headmaster_released_at IS NULL
+               OR (secretariat_checked_at IS NOT NULL
+                   AND headmaster_released_at >= secretariat_checked_at)),
     CONSTRAINT contracts_confirmation_after_release_check
-        CHECK (confirmation_sent_at IS NULL OR headmaster_released_at IS NOT NULL),
+        CHECK (confirmation_sent_at IS NULL
+               OR (headmaster_released_at IS NOT NULL
+                   AND confirmation_sent_at >= headmaster_released_at)),
     CONSTRAINT contracts_exactly_one_subject_check
         CHECK ((application_id IS NOT NULL)::int + (child_id IS NOT NULL)::int = 1)
 );
@@ -888,6 +917,29 @@ CREATE TABLE care_module_bookings (
         CHECK (valid_until IS NULL OR valid_until >= valid_from)
 );
 CREATE INDEX ON care_module_bookings (child_id);
+-- Höchstens EINE offene Buchung je Kind und Modul. Das UNIQUE oben schließt
+-- valid_from ein und lässt deshalb zwei Zeilen desselben Moduls mit
+-- verschiedenem Beginn und beide ohne Ende zu — genau die Form, in der eine
+-- Modul-Anpassung real entsteht: alte Buchung beenden, neue anlegen
+-- (prozesse.md Abschnitt 8, im September kostenfrei, zum Halbjahr gegen
+-- Gebühr). Wird das valid_until der alten dabei vergessen, sind beide „aktiv",
+-- und „isst am Wochentag X mit" (domains/mensa.md) zählt dasselbe Kind zweimal:
+-- die Küche kocht eine Portion zu viel und der Abrechnungshinweis geht doppelt
+-- an die Buchhaltung. Beides fällt niemandem auf, weil jede Zeile für sich
+-- gültig aussieht.
+--
+-- Der Index erzwingt damit die richtige Reihenfolge (erst schließen, dann neu
+-- anlegen) und trägt zugleich die Zusage aus domains/anmeldung.md, „welcher
+-- Vertrag gilt, sagt die Laufzeit der Buchung".
+--
+-- Partieller Index statt EXCLUDE über daterange: volle Überlappungsfreiheit
+-- bräuchte btree_gist für die beiden Gleichheitsspalten (uuid, integer) und
+-- damit eine Extension — für den realen Fehlerfall (die alte Zeile nicht
+-- geschlossen) genügt die offene Buchung. Referenzmuster wie
+-- phone_numbers_one_primary_per_person in Stammdaten und
+-- program_bookings_one_active_per_child_and_day in der Ferien-Domäne.
+CREATE UNIQUE INDEX care_module_bookings_one_open_per_child_and_module
+    ON care_module_bookings (child_id, care_module_id) WHERE valid_until IS NULL;
 
 -- Die Buchungseinheit ist Modul × Wochentag, nicht das Modul allein: je Modul
 -- werden die einzelnen Tage gewählt (prozesse.md Abschnitt 8). Deshalb eine
@@ -927,10 +979,14 @@ CREATE TABLE care_module_booking_days (
 -- Entweder-oder-CHECK unangetastet: eine Zahlung ohne Anlass gibt es nie, und
 -- eine leere Vorgangsspalte ist immer ein Fehler und nie ein Zustand.
 --
--- Folge für den Lösch-Job: er räumt von außen nach innen — Zahlung, Dokumente
--- samt SharePoint-Datei, Vertragsvorgang, dann die Bewerbung
--- (domains/anmeldung.md, „Löschung"). Die Fremdschlüssel erzwingen die
--- Reihenfolge, statt sie ihm zu überlassen.
+-- Folge für den Lösch-Job: er räumt von außen nach innen — Zahlung, dann
+-- Zustimmung, Signatur und Dokument samt SharePoint-Datei (in dieser
+-- Reihenfolge: consents.signature_id blockiert die Signatur,
+-- signatures.document_id das Dokument), dann der Vertragsvorgang, dann die
+-- Bewerbung (domains/anmeldung.md, „Löschung"). Die Fremdschlüssel erzwingen
+-- die Reihenfolge, statt sie ihm zu überlassen — wer eine Stufe überspringt,
+-- bricht mit einer Fremdschlüssel-Verletzung ab und hinterlässt einen halb
+-- geräumten Bestand.
 ALTER TABLE payments
     ADD COLUMN application_id uuid UNIQUE REFERENCES applications(application_id) ON DELETE RESTRICT;
 

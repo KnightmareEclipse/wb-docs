@@ -26,7 +26,7 @@
 --   * Pro Lauf eine frische Datenbank.
 --   * stdout und stderr im Container zusammenführen (`sh -c '… 2>&1'`), sonst
 --     reordert podman die Ströme und die Paarung sieht wie ein Befund aus.
---   * Sollstand: 51 Ankündigungen zu 51 ERROR-Zeilen, jeweils unmittelbar
+--   * Sollstand: 53 Ankündigungen zu 53 ERROR-Zeilen, jeweils unmittelbar
 --     gepaart. Verankert und auf der AUSGABE zählen, nicht auf dieser Datei —
 --     deren Kopfkommentar enthält die Zeichenkette selbst:
 --       grep -cE '^--- erwartet: FEHLER'  gegen  grep -cE '^psql:.*: ERROR:'
@@ -314,14 +314,29 @@ SELECT 'bewertung konsolidiert, empfehlung und eigenes niveau getrennt' AS pruef
 INSERT INTO applications (application_id, child_id, application_status_id,
                           target_school_year, target_grade_level_id, school_branch_id,
                           is_lateral_entry, trial_attendance_starts_on, trial_attendance_ends_on,
-                          student_transfer_received_on, student_transfer_returned_on)
+                          student_transfer_requested_on, student_transfer_received_on,
+                          student_transfer_returned_on)
     VALUES ('a0000000-0000-0000-0000-000000000003',
             '44444444-4444-4444-4444-444444444444', 1, '2027/28', 5, 2,
-            true, '2027-11-08', '2027-11-12', '2027-11-20', '2027-11-27');
-SELECT 'quereinstieg: hospitation und überweisungsschritt an der bewerbung' AS pruefung,
+            true, '2027-11-08', '2027-11-12', '2027-11-15', '2027-11-20', '2027-11-27');
+-- Alle drei Schritte des Überweisungsvorgangs: informiert, erhalten,
+-- zurückgesendet. Der erste unterscheidet „noch nicht informiert" von „noch
+-- keine Antwort" — zwei verschiedene Handlungen für dasselbe leere Empfangsdatum.
+SELECT 'quereinstieg: hospitation und die drei überweisungsschritte' AS pruefung,
        trial_attendance_starts_on,
-       student_transfer_returned_on IS NOT NULL AS ueberweisung_zurueckgesendet
+       student_transfer_requested_on IS NOT NULL AS schule_informiert,
+       student_transfer_received_on  IS NOT NULL AS ueberweisung_erhalten,
+       student_transfer_returned_on  IS NOT NULL AS ueberweisung_zurueckgesendet
   FROM applications WHERE application_id = 'a0000000-0000-0000-0000-000000000003';
+
+-- Der Regelfall daneben: informiert, aber noch keine Antwort — genau der
+-- Zustand, der ohne die erste Spalte wie „noch nichts getan" aussähe.
+UPDATE applications SET student_transfer_requested_on = '2027-03-01'
+    WHERE application_id = 'a0000000-0000-0000-0000-000000000001';
+SELECT 'informiert, aber noch nicht erhalten' AS pruefung,
+       student_transfer_requested_on IS NOT NULL AS schule_informiert,
+       student_transfer_received_on  IS NULL     AS wartet_auf_ueberweisung
+  FROM applications WHERE application_id = 'a0000000-0000-0000-0000-000000000001';
 
 \echo '--- erwartet: FEHLER (Hospitationsende vor ihrem Beginn)'
 UPDATE applications SET trial_attendance_ends_on = '2027-11-01'
@@ -432,6 +447,13 @@ SELECT 'vertragsvorgang in der vorgesehenen reihenfolge' AS pruefung,
        headmaster_released_at IS NOT NULL AS freigegeben,
        confirmation_sent_at   IS NOT NULL AS bestaetigt
   FROM contracts WHERE contract_id = 'c0000000-0000-0000-0000-000000000001';
+
+-- Die Reihenfolge gilt auch nachträglich: ein korrigierter Prüfzeitpunkt darf
+-- nicht hinter die Freigabe rutschen, sonst dokumentiert die Zeile eine
+-- Prüfung nach der Freigabe — genau die Aussage, die die vier Zeitpunkte tragen.
+\echo '--- erwartet: FEHLER (Prüfzeitpunkt nachträglich hinter die Freigabe geschoben)'
+UPDATE contracts SET secretariat_checked_at = now() + interval '1 day'
+    WHERE contract_id = 'c0000000-0000-0000-0000-000000000001';
 
 -- Der Konfliktfall, für den es die eigenen Antwortzeilen überhaupt gibt:
 -- Mutter nimmt an, Vater lehnt ab.
@@ -645,6 +667,28 @@ INSERT INTO care_module_booking_days (care_module_booking_id, weekday)
 \echo '--- erwartet: FEHLER (Gültigkeit endet vor ihrem Beginn)'
 INSERT INTO care_module_bookings (child_id, care_module_id, valid_from, valid_until)
     VALUES ('11111111-1111-1111-1111-111111111111', 1, '2027-09-13', '2027-01-01');
+
+-- Höchstens eine OFFENE Buchung je Kind und Modul: die Modul-Anpassung muss die
+-- alte Buchung schließen, bevor die neue entsteht — sonst wäre das Kind zweimal
+-- aktiv gebucht und stünde doppelt auf der Küchen-Tagesliste (domains/mensa.md).
+INSERT INTO care_module_bookings (care_module_booking_id, child_id, care_module_id, valid_from)
+    VALUES ('e0000000-0000-0000-0000-000000000002',
+            '11111111-1111-1111-1111-111111111111', 2, '2027-09-13');
+\echo '--- erwartet: FEHLER (zweite offene Buchung desselben Moduls)'
+INSERT INTO care_module_bookings (child_id, care_module_id, valid_from)
+    VALUES ('11111111-1111-1111-1111-111111111111', 2, '2028-02-01');
+
+-- Nach dem Schließen der alten ist die neue erlaubt — der Index erzwingt die
+-- Reihenfolge, nicht die Anpassung selbst.
+UPDATE care_module_bookings SET valid_until = '2028-01-31'
+    WHERE care_module_booking_id = 'e0000000-0000-0000-0000-000000000002';
+INSERT INTO care_module_bookings (child_id, care_module_id, valid_from)
+    VALUES ('11111111-1111-1111-1111-111111111111', 2, '2028-02-01');
+SELECT 'modulanpassung: geschlossene und neue buchung nebeneinander' AS pruefung,
+       count(*) FILTER (WHERE valid_until IS NULL) AS offen,
+       count(*)                                    AS gesamt
+  FROM care_module_bookings
+ WHERE child_id = '11111111-1111-1111-1111-111111111111' AND care_module_id = 2;
 
 -- Der Hort nimmt Kinder auf, die weder Grund- noch Realschüler sind. Ihr
 -- Hortvertrag durchläuft dieselben vier Stationen wie ein Schulvertrag, hängt

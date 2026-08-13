@@ -10,6 +10,8 @@ Das RS-Anmeldeformular („Anmeldung zum Mittagessen") ist dieselbe Buchungsform
 
 Für Hortkinder ist das Mittagessen **keine eigene Buchung**: der Betreuungsvertrag berechnet es „für alle Schüler, die länger als 13 Uhr betreut werden". Ob ein Modul das auslöst, trägt `care_modules.includes_lunch` — dieselbe Bauform wie die Hausaufgabenbetreuung (`includes_homework`): eine Eigenschaft des Moduls, gepflegt von der Verwaltung. **„Isst am Wochentag X mit" ist damit ein einziges Prädikat**: aktive Buchung eines `includes_lunch`-Moduls, dessen Buchungstage X enthalten — Hortkind und Mensa-Kind über denselben Weg. Die Küchen-Tagesliste ist eine Abfrage, kein Bestand.
 
+Weil sie **Zeilen zählt**, darf ein Kind je Modul nur eine offene Buchung haben — sonst kocht die Küche eine Portion zu viel. Das sichert ein partieller Unique-Index an `care_module_bookings` (`domains/anmeldung-schema.sql`), nicht die Abfrage.
+
 ## Küchenprofil: einmal je Kind
 
 Was der Küche gehört, ist die **Essensvariante**: `meal_profiles` (höchstens eine Zeile je Kind, mit Freitext-Hinweis „keine Nüsse") und `meal_profile_diets` (Varianten als Werteliste — Vegetarisch, Laktosefrei, Glutenfrei; mehrere zugleich sind der Normalfall, eine weitere ist eine Zeile statt einer Migration).

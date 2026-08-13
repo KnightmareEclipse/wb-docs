@@ -1,6 +1,6 @@
 # Gesundheitsdaten — Fachdomäne
 
-Domäne 9 aus `fachdomaenen.md` Abschnitt 6. Tabellenschema: `domains/gesundheit-schema.sql`, belegt durch `domains/gesundheit-schema-check.sql` (Sollstand 10/10). Die realen Feldlisten stehen in `prozesse.md` Abschnitt 7.2 (Schulvertrag) und 5.2 (Anmeldetag-Checklisten).
+Domäne 9 aus `fachdomaenen.md` Abschnitt 6. Tabellenschema: `domains/gesundheit-schema.sql`, belegt durch `domains/gesundheit-schema-check.sql` (Sollstand 11/11). Die realen Feldlisten stehen in `prozesse.md` Abschnitt 7.2 (Schulvertrag) und 5.2 (Anmeldetag-Checklisten).
 
 Besondere Kategorien nach Art. 9 DSGVO — der Datenbestand mit dem engsten Zugriffsprofil im System. Heute liegt er in einer Excel-Liste beim Sekretariat.
 
@@ -25,7 +25,7 @@ Alle sechs Formulare folgen ohnehin demselben Muster, und genau das sind die Spa
 
 ## Was hier steht, gilt
 
-Es gibt **keinen Behandlungszeitraum**, obwohl die Checklisten ihn bei therapeutischen Maßnahmen real erheben. Ein Merkmal, das nicht mehr zutrifft, wird **gelöscht** statt mit einem Enddatum versehen; dasselbe für eine zurückgenommene Erlaubnis, die auf leer gesetzt wird statt ein Widerrufsfeld zu bekommen.
+Es gibt **keinen Behandlungszeitraum**, obwohl die Checklisten ihn bei therapeutischen Maßnahmen real erheben. Ein Merkmal, das nicht mehr zutrifft, wird **gelöscht** statt mit einem Enddatum versehen; eine zurückgenommene Erlaubnis wird zur Ablehnung umgesetzt statt ein Widerrufsfeld zu bekommen (siehe unten).
 
 Das ist die einzige Stelle, an der Datensparsamkeit die Schema-Ausnahme aus `rules.md` Abschnitt 1 schlägt, und der Grund gilt nur für Art. 9: ein „bis"-Datum entfernt die Zeile nicht, es behauptet nur, dass sie abgelaufen ist. Weil kein Abnehmer danach filtert, stünde der breit sichtbare Hinweis einer längst beendeten Therapie weiterhin allen unterrichtenden Personen vor Augen — ein Datum, das niemand liest, ist bei besonderen Kategorien schlechter als keines, weil es den Anschein einer Bereinigung erzeugt, die nicht stattfindet.
 
@@ -34,6 +34,10 @@ Das ist die einzige Stelle, an der Datensparsamkeit die Schema-Ausnahme aus `rul
 **Kein UNIQUE je Kind und Art:** mehrere Allergien sind der Normalfall, zwei Therapien nebeneinander ebenso.
 
 Drei Formularfelder sind dabei zu einem zusammengefasst, weil sie dasselbe meinen — Beschreibung der Notfallsituation, nicht auszuführende Tätigkeiten und Verabreichungshinweis sind alle die Antwort auf „was ist zu tun oder zu unterlassen".
+
+**Die Verabreichungserlaubnis trägt drei Zustände in zwei Spalten** (`permission_granted_at`, `permission_declined_at`, CHECK: nie beides): erteilt, ausdrücklich verweigert, nicht beantwortet. Mit nur einem Zeitpunkt fielen die letzten beiden zusammen, und die Vollständigkeitsprüfung des Sekretariats könnte bei einem Kind mit Notfallmedikament ohne Erlaubnis nicht entscheiden, ob nachzufassen ist. Dieselbe Bauform wie `consents` — bewusst kein Boolean (verlöre den Zeitpunkt und damit den Nachweis nach Art. 7 Abs. 1 DSGVO) und keine Werteliste (Fremdschlüssel und Join für ein Paar, das nicht wachsen kann; `rules.md` Abschnitt 3 nimmt reine Ja/Nein-Merkmale von der Lookup-Regel aus).
+
+Dass die Spalte den dritten Zustand **selbst** tragen muss, ist die Ausnahme und nicht die Regel: anderswo steht der Anker daneben (siehe `domains/grenzkarte.md`, „Drei Zustände"). Hier gibt es keinen, weil die Erlaubnis je **Merkmal** gilt — ein mitten im Schuljahr ergänztes Notfallmedikament hat kein unterschriebenes Blatt, und zwei Notfallmedikamente desselben Kindes sind getrennt zu erlauben.
 
 ## Der zweistufige Zugriff ist die eigentliche Konstruktion
 

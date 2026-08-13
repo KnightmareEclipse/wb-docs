@@ -148,8 +148,33 @@ CREATE TABLE health_traits (
     -- Lösch-Job muss sie über genau einen Weg finden (domains/grenzkarte.md, Q2).
     attestation_document_id uuid REFERENCES documents(document_id) ON DELETE RESTRICT,
     -- Erlaubnis zur Verabreichung bzw. Durchführung. Zeitpunkt statt Boolean
-    -- wegen der Nachweispflicht (Art. 7 Abs. 1 DSGVO), dieselbe Bauform wie
-    -- children.previous_school_consent_at.
+    -- wegen der Nachweispflicht (Art. 7 Abs. 1 DSGVO).
+    --
+    -- ZWEI SPALTEN, DREI ZUSTÄNDE — dieselbe Bauform wie consents im
+    -- Anmelde-Schema: erteilt (granted), ausdrücklich verweigert (declined),
+    -- gar nicht beantwortet (beide leer). Mit nur einer Spalte fielen die
+    -- letzten beiden zusammen, und das Sekretariat könnte bei einem Kind mit
+    -- Notfallmedikament ohne Erlaubnis nicht entscheiden, ob nachzufassen ist:
+    -- entweder ruft es Eltern an, die längst „nein" gesagt haben, oder es liest
+    -- die Leere als „nein" und fasst bei denen nicht nach, die die Frage
+    -- übersprungen haben — dann steht das Kind mit Notfallmedikament und
+    -- ungeklärter Verabreichungslage in der Akte.
+    --
+    -- Warum die Spalte den dritten Zustand selbst tragen muss, obwohl an
+    -- anderen Erlaubnis-Zeitpunkten ein ANKER daneben genügt
+    -- (children.previous_school_consent_at hat die abgesendete Voranmeldung,
+    -- applications.kindergarten_consent_at hat documents_checked_at, no_show hat
+    -- cleaning_slots.attendance_recorded_at): diese Erlaubnis gilt je MERKMAL,
+    -- nicht je Kind. Ein mitten im Schuljahr ergänztes Notfallmedikament hat
+    -- kein unterschriebenes Blatt und keinen Anker, gegen den sich „wurde
+    -- gefragt" ablesen ließe — und zwei Notfallmedikamente desselben Kindes sind
+    -- getrennt zu erlauben.
+    --
+    -- Kein Boolean und keine Werteliste für die drei Zustände: ein Boolean
+    -- verlöre den Zeitpunkt und damit den Nachweis, eine Werteliste brächte
+    -- Fremdschlüssel, Join und einen stabilen Code für ein Paar, das nicht
+    -- wachsen kann — rules.md Abschnitt 3 nimmt reine Ja/Nein-Merkmale
+    -- ausdrücklich von der Lookup-Regel aus.
     --
     -- Warum sie NICHT nach Q1 wandert, obwohl die Zeckenentfernung genau dorthin
     -- verwiesen wird (Kopfkommentar) — der Unterschied ist der Bezug: eine
@@ -162,7 +187,8 @@ CREATE TABLE health_traits (
     --
     -- Kein Widerrufsfeld daneben, anders als consents.revoked_at: es gilt die
     -- Regel dieser Tabelle — was hier steht, gilt. Eine zurückgenommene
-    -- Erlaubnis wird auf NULL gesetzt, ein entfallenes Merkmal gelöscht.
+    -- Erlaubnis wird zur Ablehnung (declined gesetzt, granted geräumt), ein
+    -- entfallenes Merkmal gelöscht.
     --
     -- WER sie erteilt hat, tragen die Audit-Spalten unten, nicht Q2: von dieser
     -- Zeile führt kein Weg zu einer Signatur — attestation_document_id zeigt auf
@@ -175,7 +201,8 @@ CREATE TABLE health_traits (
     -- Reicht das für einen Prozess einmal nicht, ist der Nachweis das
     -- unterschriebene Blatt in Q2 — über child_id und Dokumenttyp auffindbar,
     -- aber nicht je Merkmal.
-    permission_granted_at timestamptz,
+    permission_granted_at  timestamptz,
+    permission_declined_at timestamptz,
     -- --- BREIT SICHTBAR: eigenes Spalten-GRANT, andere Leserschaft ------------
     -- Der kurze handlungsrelevante Hinweis, den die Klassenlehrkraft formuliert
     -- und den ALLE unterrichtenden Personen sehen: „keine Sprungübungen",
@@ -189,7 +216,13 @@ CREATE TABLE health_traits (
     created_at            timestamptz NOT NULL DEFAULT now(),
     created_by            text NOT NULL,
     updated_at            timestamptz NOT NULL DEFAULT now(),
-    updated_by            text NOT NULL
+    updated_by            text NOT NULL,
+    -- Erteilt oder verweigert, nie beides. Beide leer heißt „nicht beantwortet"
+    -- — anders als bei consents ist das hier ein zulässiger Zustand, weil die
+    -- meisten Merkmale (eine Allergie ohne Medikament) gar keine Erlaubnis
+    -- brauchen.
+    CONSTRAINT health_traits_permission_single_answer_check
+        CHECK (permission_granted_at IS NULL OR permission_declined_at IS NULL)
 );
 -- „Alle Merkmale dieses Kindes" ist die einzige Abfrage der Domäne.
 CREATE INDEX ON health_traits (child_id);

@@ -1001,15 +1001,27 @@ CREATE TABLE employees (
     -- REGELMÄSSIG vor dem ersten Arbeitstag entsteht: die M365-Konten des neuen
     -- Schuljahres werden Ende Juli angelegt (fachdomaenen.md Abschnitt 1), also
     -- Wochen vor Dienstantritt. Ohne employment_start wäre eine solche Zeile ab
-    -- dem Anlegen „aktuell beschäftigt" — die Person bekäme den Zugriff einer
-    -- Lehrkraft (entra_object_id oben, Gesundheitsdaten je Klasse) und ihre
-    -- Familie die Putzdienst-Befreiung, beides zu früh. Dasselbe spiegelverkehrt
-    -- am Ende: eine im Februar eingetragene Kündigung zum Schuljahresende darf
-    -- nicht sofort ausschließen.
+    -- dem Anlegen beschäftigt — die Person bekäme den Zugriff einer Lehrkraft
+    -- (entra_object_id oben, Gesundheitsdaten je Klasse) Wochen zu früh.
+    -- Dasselbe spiegelverkehrt am Ende: eine im Februar eingetragene Kündigung
+    -- zum Schuljahresende darf ihn nicht sofort entziehen.
     --
-    -- „Aktuell beschäftigt" ist deshalb der Zeitraum und nicht das leere Ende:
-    --   (employment_start IS NULL OR employment_start <= current_date)
-    --   AND (employment_end IS NULL OR employment_end >= current_date)
+    -- „Beschäftigt" ist deshalb der Zeitraum und nicht das leere Ende — geprüft
+    -- gegen einen STICHTAG, den der fragende Prozess mitbringt:
+    --   (employment_start IS NULL OR employment_start <= <stichtag>)
+    --   AND (employment_end IS NULL OR employment_end >= <stichtag>)
+    -- Welcher Stichtag gilt, ist eine fachliche Entscheidung des Abnehmers und
+    -- keine Eigenschaft dieser Tabelle. Die beiden bekannten Abnehmer bringen
+    -- verschiedene mit:
+    --   * Zugriffsentscheidungen (Lehrkraft-Rechte, Gesundheitsdaten je Klasse)
+    --     fragen current_date — wer heute nicht beschäftigt ist, sieht heute
+    --     nichts.
+    --   * Die Putzdienst-Befreiung fragt das BUCHUNGSFENSTER ihres Zyklus, nicht
+    --     heute (domains/putzdienst.md, „Mitarbeiter-Ausnahme"): die Pflicht
+    --     wird einmal je Zyklus ermittelt, und wer danach mitten im Schuljahr
+    --     ausscheidet, bleibt für diesen Zyklus befreit.
+    -- Auf „employment_end IS NULL" verkürzt wären beide falsch.
+    --
     -- Beide nullable: NULL am Anfang heißt „läuft bereits" (Altbestand beim
     -- Vollimport, für den niemand Eintrittsdaten nachschlägt), NULL am Ende
     -- heißt „läuft weiter". Ein künftiges Datum ist damit immer eine bewusste
@@ -1018,8 +1030,9 @@ CREATE TABLE employees (
     -- Kein CHECK gegen current_date, und das ist keine Nachlässigkeit: Postgres
     -- verlangt in einem CHECK eine unveränderliche Ausdrucksform, ein
     -- Datumsvergleich gegen heute ist dort nicht zulässig. Die Prüfung kann
-    -- also nur in der Abfrage liegen — jede Stelle, die „aktuell beschäftigt"
-    -- fragt, muss das Prädikat oben vollständig verwenden.
+    -- also nur in der Abfrage liegen — jede Stelle, die nach der Beschäftigung
+    -- fragt, muss das Prädikat oben vollständig verwenden und ihren Stichtag
+    -- selbst mitbringen.
     --
     -- Die Zeile bleibt nach dem Austritt stehen, weil der Audit-Trail auf sie
     -- zeigt. Weitere Personalfelder (Funktion, Stundenumfang) gibt es bewusst

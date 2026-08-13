@@ -26,7 +26,7 @@
 -- Fallstricke beim Auswerten — identisch zu den anderen Prüfskripten:
 --   * Pro Lauf eine frische Datenbank.
 --   * stdout und stderr im Container zusammenführen (`sh -c '… 2>&1'`).
---   * Sollstand: 10 Ankündigungen zu 10 ERROR-Zeilen, jeweils unmittelbar
+--   * Sollstand: 11 Ankündigungen zu 11 ERROR-Zeilen, jeweils unmittelbar
 --     gepaart. Verankert und auf der AUSGABE zählen, nicht auf dieser Datei.
 --
 -- WAS DIESES SKRIPT NICHT BELEGEN KANN: den zweistufigen Zugriff. Es läuft als
@@ -116,15 +116,45 @@ INSERT INTO health_traits (child_id, health_trait_type_id, description)
 INSERT INTO health_traits (child_id, description)
     VALUES ('11111111-1111-1111-1111-111111111111', 'irgendwas');
 
--- Zurückgenommene Erlaubnis: auf NULL setzen, kein Widerrufsfeld — dieselbe
--- Regel wie beim entfallenen Merkmal, das gelöscht statt datiert wird.
-UPDATE health_traits SET permission_granted_at = NULL
+-- Zurückgenommene Erlaubnis wird zur ABLEHNUNG, nicht zur fehlenden Antwort:
+-- wer zurücknimmt, hat geantwortet, und genau das muss von „nie gefragt"
+-- unterscheidbar bleiben (domains/grenzkarte.md, „Drei Zustände"). Kein
+-- Widerrufsfeld daneben — dieselbe Regel wie beim entfallenen Merkmal, das
+-- gelöscht statt datiert wird.
+UPDATE health_traits SET permission_granted_at = NULL, permission_declined_at = now()
     WHERE child_id = '11111111-1111-1111-1111-111111111111' AND health_trait_type_id = 5;
-SELECT 'erlaubnis zurueckgenommen' AS pruefung, permission_granted_at IS NULL AS keine_erlaubnis
+SELECT 'zurueckgenommene erlaubnis ist eine ablehnung, keine leere' AS pruefung,
+       permission_granted_at IS NULL      AS nicht_erteilt,
+       permission_declined_at IS NOT NULL AS ausdruecklich_verweigert
   FROM health_traits
  WHERE child_id = '11111111-1111-1111-1111-111111111111' AND health_trait_type_id = 5;
+
+\echo '--- erwartet: FEHLER (erteilt und verweigert zugleich)'
 UPDATE health_traits SET permission_granted_at = now()
     WHERE child_id = '11111111-1111-1111-1111-111111111111' AND health_trait_type_id = 5;
+
+-- Erneut erteilen heißt: beide Spalten gemeinsam umsetzen.
+UPDATE health_traits SET permission_granted_at = now(), permission_declined_at = NULL
+    WHERE child_id = '11111111-1111-1111-1111-111111111111' AND health_trait_type_id = 5;
+
+-- Die Eltern verweigern die Erlaubnis zur Durchführung der Logopädie in der
+-- Schule — eine echte Antwort, kein Schweigen.
+UPDATE health_traits SET permission_declined_at = now()
+    WHERE child_id = '11111111-1111-1111-1111-111111111111' AND health_trait_type_id = 8;
+
+-- Die drei Zustände GLEICHZEITIG — das ist der eigentliche Beleg: die
+-- Notfallmedikation (Typ 5) ist erlaubt, die Logopädie (Typ 8) ausdrücklich
+-- nicht, und die beiden Allergien (Typ 2) brauchen gar keine Erlaubnis und
+-- haben deshalb keine Antwort. Ohne die zweite Spalte fielen die letzten beiden
+-- Zustände zusammen, und das Sekretariat wüsste bei der Vollständigkeitsprüfung
+-- nicht, ob nachzufassen ist.
+SELECT 'drei zustaende der verabreichungserlaubnis' AS pruefung,
+       count(*) FILTER (WHERE permission_granted_at IS NOT NULL)  AS erteilt,
+       count(*) FILTER (WHERE permission_declined_at IS NOT NULL) AS verweigert,
+       count(*) FILTER (WHERE permission_granted_at IS NULL
+                          AND permission_declined_at IS NULL)     AS nicht_beantwortet
+  FROM health_traits
+ WHERE child_id = '11111111-1111-1111-1111-111111111111';
 
 \echo '--- erwartet: FEHLER (leerer Handlungshinweis statt NULL)'
 UPDATE health_traits SET action_note = ''

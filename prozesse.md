@@ -1,6 +1,6 @@
 # Prozesse — Ist-Stand und erhobene Daten
 
-Wie die Prozesse der Schule **heute** ablaufen und **welche Felder** sie dabei real erheben. Ausgewertete Fassung der Prozesserhebung; die Rohsammlung dahinter wird nicht weitergeführt.
+Wie die Prozesse der Schule **heute** ablaufen und **welche Felder** sie dabei real erheben. Ausgewertete Fassung der Prozesserhebung; die Rohsammlung dahinter ist ausgewertet und entfallen.
 
 Abgrenzung zu den Nachbardateien, damit nichts zweimal dasteht:
 
@@ -9,7 +9,7 @@ Abgrenzung zu den Nachbardateien, damit nichts zweimal dasteht:
 | **hier** | Ablauf heute, Beteiligte, Werkzeug, erhobene Felder, bekannte Bruchstellen |
 | `fachdomaenen.md` | Scope, Zielbild, Domänen-Liste samt Priorität, Jahreskalender der Verwaltung |
 | `domains/grenzkarte.md` | Entitäten je Domäne, wem welche Tatsache gehört |
-| `domains/*.md` + `.sql` | die gebauten Domänen (Stammdaten, Putzdienst) |
+| `domains/*.md` + `.sql` | die gebauten Domänen (Stammdaten, Putzdienst, Anmeldung, Ferien, Gesundheit, Mensa, Klassenorganisation) |
 
 Zeitliche Einordnung steht im Jahreskalender in `fachdomaenen.md` Abschnitt 1; hier nur die prozesseigenen Termine, die dort nicht auflösbar sind.
 
@@ -29,12 +29,12 @@ Zeitliche Einordnung steht im Jahreskalender in `fachdomaenen.md` Abschnitt 1; h
 | Hortvertrag | Papier | Hort | über dasselbe SEPA-Mandat | 2/4 (Betreuungsmodul) |
 | Mensa-Anmeldung | Excel, Buchung über Sekretariat | Hausdienstverwaltung + Sekretariat | Optigem-Lastschrift | 6 |
 | Ferienprogramm / Kochwerkstatt | Jotform + Power Automate → Excel | Hort bzw. Hausdienstverwaltung | Stripe-Anlass, Zahlung beim Absenden | 3 |
-| Putzdienst | Jotform + Power Automate, vor Ort Papier | Sekretariat | Freikauf/Strafe | 1 (gebaut) |
+| Putzdienst | Jotform + Power Automate, vor Ort Papier | Sekretariat | Freikauf/Strafe | 1 |
 | Elternbonus Elternmitarbeit | reiner Papierprozess | Sekretariat | Rückzahlung über Schulgeldabrechnung | 11 |
 | Rechnungsfreigabe | SPFx-Teams-App + Power Automate + SharePoint | Buchhaltung/Führungskräfte | — | 5 |
 | M365-Konten | Vis365, Handarbeit | zweiter Admin | — | 7 |
-| Schuljahreswechsel | ASV-BW-CSV + Handarbeit | Sekretariat + zweiter Admin | — | — |
-| Abgang/Schulwechsel | Zuruf, kein Prozess | Sekretariat + Schulleitung | — | — |
+| Schuljahreswechsel | ASV-BW-CSV + Handarbeit | Sekretariat + zweiter Admin | — | Stammdaten (Jahreslauf) |
+| Abgang/Schulwechsel | Zuruf, kein Prozess | Sekretariat + Schulleitung | — | Stammdaten (siehe 16) |
 | DSGVO-Auskunft | kein Prozess, digitale Schülerakte in SharePoint | Sekretariat | — | — |
 | Krankmeldung | Mail an mehrere Empfänger | Eltern selbst | — | **entfällt**, siehe 19 |
 | AGs | nichts bekannt | Schulleitung | — | 6 |
@@ -146,7 +146,7 @@ Daraus folgt eine Slot-Struktur mit Kapazität je Slot, Tagesraster und Pausenfe
 
 Anforderung ans Schema daraus: Die Felder werden mitgebaut, aber **nicht öffentlich sichtbar** abgelegt, mit der Möglichkeit, sie später umzuschalten, falls die Lehrkräfte überzeugt werden können. Das deckt sich mit dem engsten Zugriffsprofil im System nach den Art.-9-Daten (`domains/grenzkarte.md`, „Bewertung").
 
-**Sekretariats-Checkliste — wird digitalisiert.** Inhalt vollständig, `GS` = Grundschule, `RS` = Realschule:
+**Sekretariats-Checkliste — wird digitalisiert.** Inhalt vollständig, `GS` = Grundschule, `RS` = Realschule; die beiden übrigen Varianten (Quereinsteiger, Hort) stehen darunter:
 
 | | Punkt |
 |---|---|
@@ -175,6 +175,39 @@ Anforderung ans Schema daraus: Die Felder werden mitgebaut, aber **nicht öffent
 | GS+RS | Gesundheitsabfrage: Allergien und Unverträglichkeiten, regelmäßige Medikamente samt Welche, Seh- oder Hörschwäche, therapeutische Maßnahmen (LRS, ADHS, Logopädie, …) |
 | GS+RS | Vollständigkeitsprüfung aller Unterlagen |
 | GS+RS | Freitext für zusätzliche Anmerkungen |
+
+**Die Sekretariats-Checkliste gibt es in vier Varianten**, nicht in zwei: Grundschule Klasse 1, Realschule Klasse 5, **Quereinsteiger** und **Hort**. Die Tabelle oben ist der gemeinsame Bestand der ersten beiden; die anderen beiden weichen ab.
+
+**Quereinsteiger** — zusätzlich zur Tabelle oben:
+
+| Punkt |
+|---|
+| Wechsel in Klasse und Schuljahr (das Formularfeldpaar aus Abschnitt 4) |
+| Geschwister an der eigenen Schule |
+| **Hospitation von … bis** — ein Zeitraum, den nur diese Variante erhebt |
+| Voranmeldung durchgehen |
+| Bei getrenntlebenden Eltern: abweichende Adresse von Vater/Mutter samt Name, Straße, PLZ/Ort |
+| Unterlagen: Geburtsurkunde (Kopie), **Zeugnisse**, Dokumentation Masernschutzimpfung |
+| Betreuungsbedarf; **nur für Realschüler:** Lernbetreuung (eingestellt, `domains/grenzkarte.md`) und Mittagessen |
+| Hort-Betreuung Klasse 1–5: Kernzeit / Nachmittag / Ganztags, Vertrag doppelt ausfüllen |
+| Gesundheitsabfrage wie oben, zusätzlich **Behandlungsgrund und Behandlungszeitraum** bei therapeutischen Maßnahmen |
+| Reine Hinweise ohne Datenfeld: Infoblatt VVS, aktuelle Preisliste, Leitbild/Bekenntnis/Bonus/Putzen, Förderverein Schönbühl samt Mitgliedsantrag, Rechnungen kontrollieren, Plätze begrenzt und Tage müssen fest sein |
+
+**Hort** — die kürzeste Variante, erhebt nur: Notfalltelefonnummer (vormittags erreichbar), bei getrenntlebenden Eltern die abweichende Adresse samt Sorgeberechtigung, „in Briefe miteinbeziehen" und E-Mail, dazu die Gesundheitsabfrage (Allergien, Unverträglichkeiten, regelmäßige Medikamente samt „welche", Seh-/Hörschwäche, therapeutische Maßnahmen).
+
+**Abschließende Aufgaben des Sekretariats** — der Block, der auf allen vier Listen den Abschluss bildet und die reale Vorlage der Nachzieh-Aufgaben (Q5) ist (`domains/grenzkarte.md`):
+
+| Aufgabe | in Weltenbaum |
+|---|---|
+| Prüfen, ob alle Unterlagen vorhanden: Voranmeldung, SEPA-Mandat, Verträge (2-fach, alle Unterschriften), Geburtsurkunde, Masernnachweis | `applications.documents_checked_at` samt Q2 und `measles_proofs` |
+| Aufnahmebestätigung an die Eltern senden inkl. unterschriebenem Schulvertrag, Elternbrief Förderverein + Flyer, Welcome-Mappe; beim Hort Anschreiben + Welcome-Brief | `contracts.confirmation_sent_at` |
+| Bei Bedarf: Hortvertrag | Vertragsvorgang am Kind (`domains/anmeldung.md`) |
+| Kopie für Buchhaltung / Aufnahme in Optigem | **Q5-Aufgabe** |
+| Aufnahme in ASV-BW, Datenblatt ausdrucken | **Q5-Aufgabe** |
+| Akten anlegen (Schulakte, Hortakte, inkl. Datenblatt) | SharePoint, Ordner ist die Kohorten-Kennung (`domains/grenzkarte.md`, Q2) |
+| Listen aktualisieren: Klassenliste ausdrucken, Hort-/Mensaliste, Klassenverteiler in Outlook, Eintrag in Telefonbuch-PC, Kontaktdaten in die Putzliste, Eintrag in die Quereinsteiger-Liste | **entfallen ersatzlos** — alle sind Abfragen auf den Weltenbaum-Bestand |
+| Bisherige örtliche Schule informieren; **Schülerüberweisung erhalten?**; Rücksendung an die Herkunftsschule — drei Schritte in dieser Reihenfolge, die Rücksendung nur bei Bedarf | `applications.student_transfer_requested_on`/`_received_on`/`_returned_on` |
+| To do Lehrer: WebUntis anmelden, Office-365-Zugang, Materialliste, Schulplaner ausgeben | außerhalb des Scopes bzw. Domäne 7 |
 
 ### 5.3 Kann-Kind, schulpflichtig, zurückgestellt
 
@@ -254,7 +287,7 @@ Drei Festlegungen dazu:
 
 **Soll digitalisiert werden.** Heute Papier („Betreuungsvertrag", Stand 12/2025, Vertragspartner ist der Trägerverein CBBE e. V.), ausgefüllt am Anmeldetag oder danach.
 
-**Laufzeit laut Vertrag:** ein Schuljahr (01.08.–31.07.), Kündigungsfrist ein Monat zum Vertragsende; ohne Kündigung **stillschweigende Verlängerung auf unbestimmte Zeit** mit Monatsfrist zum Monatsersten. Außerordentliche Kündigung mit 14 Tagen zum Monatsende aus wichtigem Grund (beidseitig, Gründe im Vertrag benannt). Das Hortangebot selbst endet mit Klasse 5. **Modul-Anpassungen:** im September kostenfrei, bei Stundenplanänderungen kostenfrei, zum Schulhalbjahr gegen 20 € Gebühr, eine Erhöhung des Umfangs zum Monatswechsel mit 14 Tagen Vorlauf kostenfrei.
+**Laufzeit laut Vertrag:** ein Schuljahr (01.08.–31.07.), Kündigungsfrist ein Monat zum Vertragsende; ohne Kündigung **stillschweigende Verlängerung auf unbestimmte Zeit** mit Monatsfrist zum Monatsersten. Außerordentliche Kündigung mit 14 Tagen zum Monatsende aus wichtigem Grund (beidseitig, Gründe im Vertrag benannt). Das Hortangebot selbst endet mit Klasse 5, und es endet **zweistufig**: die Module der Klassen 1–4 laufen mit dem Ende der Klasse 4 aus und werden dann automatisch gekündigt — wer danach weiter Betreuung braucht, bucht als Realschüler das eigene Klasse-5-Modul, das nur dort gilt. Beide Enden setzt der Jahreslauf, nicht das Sekretariat (`domains/stammdaten.md`, „Schuljahreswechsel"). **Modul-Anpassungen:** im September kostenfrei, bei Stundenplanänderungen kostenfrei, zum Schulhalbjahr gegen 20 € Gebühr, eine Erhöhung des Umfangs zum Monatswechsel mit 14 Tagen Vorlauf kostenfrei.
 
 **Beiträge:** nach Beitragssatzung des Trägervereins, 11 Monatsraten September–Juli, Anpassung zu Schuljahresbeginn; die konkreten Preise trägt die Verwaltung aus der aktuellen Preisliste in den Vertrag ein (Liste liegt nicht vor, `domains/grenzkarte.md`, „Weiße Flecken"). Ab dem 2. Kind mit Hortbuchung bekommt das **älteste Kind 10 % Ermäßigung** (außer Notfall-/Ferienbetreuung). Eingezogen wird über dasselbe SEPA-Mandat wie das Schulgeld; Mahngebühr 10 € je Mahnung.
 
@@ -401,6 +434,13 @@ Vollständig Handarbeit des zweiten Admins.
 ## 16. Abgang und Schulwechsel
 
 Sekretariat und Schulleitung erfahren es zuerst, ASV-BW wird gepflegt. Alles Weitere — Bescheinigungen, M365-Konto, Abmeldung bei Mensa, Hort und AGs, Optigem — läuft über Zuruf an hoffentlich die richtigen Personen, die hoffentlich wissen, was zu tun ist. **Kein definierter Prozess.**
+
+**Eigentümer in Weltenbaum ist die Stammdaten-Domäne**, nicht eine eigene: der Abgang ist eine alltägliche Datenänderung (Abschnitt 2) und läuft über denselben Schreibpfad. Gesetzt wird `children.exit_date` — die Spalte, auf die sich die M365-Kontenverwaltung verlässt (`fachdomaenen.md` Abschnitt 6, Domäne 7) und an der die Löschfrist hängt. Zwei Folgen innerhalb von Weltenbaum gehören dazu und nicht in einen Zuruf:
+
+- **Laufende Betreuungs- und Mensabuchungen enden** (`care_module_bookings.valid_until`) — sonst steht das Kind weiter auf Hort- und Küchenliste.
+- **Die Fremdsysteme bekommen je eine Nachzieh-Aufgabe** (Q5, `sync_tasks`): ASV-BW, Optigem, M365-Offboarding. Genau dafür gibt es die Entität — heute reißt der Faden an dieser Stelle.
+
+Was Weltenbaum nicht abnimmt, bleibt benannt: Bescheinigungen schreibt weiterhin ein Mensch.
 
 ---
 
