@@ -47,10 +47,15 @@
 -- jedes leicht befüllbare Feld mit allem Möglichen. Ein Freitextfeld ohne
 -- benannten Abnehmer sammelt damit Personendaten ohne Rechtsgrundlage, ohne
 -- Zweckbindung und ohne Löschregel — und ist als Einziges hinterher nicht
--- selektiv löschbar. Die drei vorhandenen Freitexte haben je einen konkreten
--- Abnehmer: phone_numbers.note die Erreichbarkeit einer Nummer,
+-- selektiv löschbar. Gemeint ist der NOTIZ-Freitext ohne eigenen Sachverhalt;
+-- davon gibt es genau drei, und jeder hat einen konkreten Abnehmer:
+-- phone_numbers.note die Erreichbarkeit einer Nummer,
 -- child_contacts.relationship den Bezug zum Kind, family_guardians.acting_for
--- die Briefanschrift bei Amtsvormundschaft.
+-- die Briefanschrift bei Amtsvormundschaft. Die übrigen Freitextspalten tragen
+-- je einen benannten Sachverhalt statt einer Notiz (classes.stream,
+-- classes.room, children.birthplace, children.congregation,
+-- guardians.occupation) und sind an ihrer Spalte begründet — sie fallen nicht
+-- unter diese Zählung.
 --
 -- Nachrüsten ist ausdrücklich der vorgesehene Weg, nicht der Notnagel: eine
 -- nullable Spalte anzufügen ist Katalogarbeit (gemessen: 1,9 ms auf einer
@@ -578,10 +583,10 @@ CREATE TABLE persons (
     -- eigentliche Prüfung ist ohnehin, ob der OTP-Code ankommt (idea/04). Der
     -- CHECK fängt die realen Import-Artefakte: Leerstring, "unbekannt", "kein",
     -- ein versehentlich mitkopierter Anzeigename. Leerstring statt NULL ist
-    -- dabei der häufigste (CSV/Excel) und ohne das UNIQUE von früher der
-    -- gefährlichste: mehrere Personen mit Leerstring-Mail liefen sonst
-    -- widerspruchsfrei ein und stünden in derselben Trefferliste wie eine echte
-    -- Adresse.
+    -- dabei der häufigste (CSV/Excel) und zugleich der gefährlichste, weil diese
+    -- Spalte bewusst kein UNIQUE trägt (Begründung oben): mehrere Personen mit
+    -- Leerstring-Mail liefen sonst widerspruchsfrei ein und stünden in derselben
+    -- Trefferliste wie eine echte Adresse.
     CHECK (email ~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$')
 );
 CREATE INDEX ON persons (address_id);
@@ -741,8 +746,7 @@ CREATE TABLE children (
     -- Kind, und Geschwister teilen sie sich (Begründung dort).
     --
     -- Die Referenz vergibt die Schule (das Formular fragt sie nicht ab) und sie
-    -- muss je Gläubiger-ID eindeutig sein — daher UNIQUE, jetzt über alle
-    -- Kinder statt über alle Zahler.
+    -- muss je Gläubiger-ID eindeutig sein — daher UNIQUE über alle Kinder.
     --
     -- Keine Mandatshistorie: Optigem führt die Lastschrift aus
     -- (fachdomaenen.md Abschnitt 4), Weltenbaum hält nur den aktuellen Stand.
@@ -751,7 +755,7 @@ CREATE TABLE children (
     -- Signatur). Dieses Artefakt gehört NICHT hierher, sondern in die
     -- Schulvertrags-/Anmeldeprozess-Fachdomäne, die dieselbe Struktur schon für
     -- Schulvertrag, Gesundheitsdatenblatt und Fotoeinverständnis braucht; es
-    -- zeigt seit dieser Änderung auf das Kind, nicht mehr auf payers.payer_id
+    -- zeigt auf das Kind und nicht auf payers.payer_id, wie der Datenwert selbst
     -- (domains/grenzkarte.md, Q2). Wichtig dabei: das Dokument trägt KEIN
     -- eigenes Unterschriftsdatum — das steht hier, einmal. Der Nachweis ist das
     -- Artefakt, der Datenwert für den Einzug ist diese Spalte.
@@ -867,9 +871,9 @@ CREATE TABLE children (
     -- ein Kind darf eine/n Zahler/in ohne Mandat haben (Erfassung vor
     -- Vertragsabschluss).
     --
-    -- Diese Prüfung ist schwächer als die frühere „Mandat nur mit IBAN", und
-    -- das ist der Preis der Verlagerung: die IBAN steht an payers, ein CHECK
-    -- kann nicht über zwei Tabellen greifen. Bewusst kein Trigger dafür — der
+    -- Diese Prüfung ist schwächer als „Mandat nur mit IBAN", und das ist der
+    -- Preis dafür, dass das Mandat am Kind steht und die Bankverbindung an der
+    -- Person: ein CHECK kann nicht über zwei Tabellen greifen. Bewusst kein Trigger dafür — der
     -- Schulvertragsprozess erhebt Bankverbindung und Mandat in einem Schritt
     -- (prozesse.md Abschnitt 7.4), die Lücke ist also kein realer Ablauf. Was
     -- die Datenbank hier noch garantiert, ist die Kette Mandat → Zahler → Zeile
@@ -935,7 +939,7 @@ CREATE TABLE guardians (
     -- Konfession und Staatsangehörigkeit: beide Voranmeldeformulare fragen
     -- beides ab, und beide werden übernommen — entschieden vom Betreiber, damit
     -- der Vollimport sie nicht verwirft, bevor die Zwecke bestätigt sind
-    -- (fachdomaenen.md Abschnitt 3.3: christliche Familie als Aufnahmekriterium,
+    -- (prozesse.md Abschnitt 3.3: christliche Familie als Aufnahmekriterium,
     -- Wurzeln des Kindes). Die Richtung ist damit umgekehrt zur sonstigen
     -- Datensparsamkeit (rules.md Abschnitt 7): erst speichern, später löschen,
     -- weil eine Spalte zu streichen billig ist und ein nicht erhobener Wert
@@ -1226,9 +1230,9 @@ CREATE UNIQUE INDEX child_contacts_one_contact_per_priority ON child_contacts (c
 -- der ohnehin vorhandenen Adresse.
 --
 -- ON DELETE RESTRICT wie bei guardians: eine zahlende Person verschwindet nicht
--- nebenbei, solange sie referenziert ist. Umgekehrt blockiert seit dem Wegfall
--- der Verknüpfungstabelle nichts mehr das Löschen eines Kindes mit
--- Zahlungsverantwortung — die Zuordnung verschwindet mit der Kindzeile, die
+-- nebenbei, solange sie referenziert ist. Umgekehrt blockiert nichts das
+-- Löschen eines Kindes mit Zahlungsverantwortung: die Zuordnung ist eine Spalte
+-- an der Kindzeile und verschwindet mit ihr, die
 -- payers-Zeile bleibt und fällt als verwaist im selben Lauf
 -- (domains/stammdaten.md, „Löschmechanik").
 CREATE TABLE payers (

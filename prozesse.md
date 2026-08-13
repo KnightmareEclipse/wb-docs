@@ -243,7 +243,7 @@ Aktuelle Regel:
 
 ### 7.1 Ablauf
 
-1. Jeder Elternteil öffnet **seinen eigenen Link** und entscheidet, ob der Schulplatz angenommen wird. **Konfliktfall:** Sagt einer ja und einer nein, wird das Sekretariat benachrichtigt und klärt telefonisch, was gilt.
+1. Jeder Elternteil öffnet **seinen eigenen Link** und entscheidet, ob der Schulplatz angenommen wird. **Konfliktfall:** Sagt einer ja und einer nein, wird das Sekretariat benachrichtigt und klärt telefonisch, was gilt. Das gilt für **jede** Angabe, die beide Unterschriften braucht — Platzannahme, Gesundheitsdaten, Fotoeinverständnis, Hortvertrag: bis zur Klärung gilt die Ablehnung.
 2. **Stammdatenbestätigung:** Jeder bestätigt **seine eigenen** Daten aus der Voranmeldung — nicht die des anderen. Die Daten des Kindes bestätigen beide.
 3. **Schulvertrag** wird zum Lesen verlinkt und digital unterschrieben. **Beide Unterschriften nötig**, heute als einfache elektronische Signatur.
 4. **Gesundheitsdaten** — Abfrage ist freiwillig, es wird zuerst gefragt, ob man sie beantworten will.

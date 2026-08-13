@@ -41,7 +41,7 @@ Dublettenerkennung beim Import: Nachname + Geburtsdatum beim Kind, Vor- + Nachna
 Das Schema trägt Einzel-Freikauf und Straf-Aussetzung (`domains/putzdienst.md`). Zwei Dinge daneben sind bewusst nicht als Constraint gebaut und dürfen deshalb beim Implementieren nicht untergehen:
 
 - **Die Frist des Einzel-Freikaufs** („nur vor dem Termindatum") ist eine Backend-Prüfung, weil das Datum an `cleaning_slots` hängt. Sie muss an derselben Stelle sitzen, die die Zahlung auslöst — sonst entsteht ein bezahlter Freikauf für einen bereits gelaufenen Termin.
-- **Die enge Berechtigung** für Straf-Aussetzung und Pflicht-Erlass ist ein Spalten-GRANT plus Rollenwahl, kein Anwendungs-`if`. Der Personenkreis ist noch zu benennen (`TODO.md`).
+- **Die enge Berechtigung** für Straf-Aussetzung und Pflicht-Erlass ist ein Spalten-GRANT plus Rollenwahl, kein Anwendungs-`if`. Auslösen dürfen beides Geschäftsführung und Schulleitung — eine Schreib- und keine Lesebeschränkung: Buchhaltung, Buchungsansicht und Solver lesen beide Stellen weiter, eng gelesen wird allein der Grund der Abweichung (`TODO.md`).
 - **Freigekaufte Zuteilungen gehören nicht auf die Übertragungsliste der Anwesenheit:** `no_show` auf einer einzeln freigekauften Zeile wäre eine Strafe auf einem bezahlten Termin. Wie die Frist eine Bedingung über zwei Tabellen — die Übernahme der Papierliste muss sie ausnehmen.
 
 ### Was am Vertragsvorgang im Backend liegt, nicht im Schema
@@ -51,6 +51,8 @@ Der Tippfehler-Fall braucht nichts davon — dort wird in dieselbe Zeile neu erz
 - **Das Räumen der alten Dokumentzeile ist ein Vorgang, kein Klickpfad.** Zustimmung → Signatur → Dokument → Datei in SharePoint hängen mit `ON DELETE RESTRICT` aneinander; wer beim Dokument anfängt, bricht mit einer Fremdschlüssel-Verletzung ab. Das gehört in **eine** Transaktion hinter einen Knopf. Sonst führt das Sekretariat den ersten Schritt aus, läuft beim zweiten in eine Fehlermeldung und lässt einen halb geräumten Bestand stehen — und Unfertiges bleibt an dieser Schule eher liegen, als dass jemand nachfragt (`fachdomaenen.md` Abschnitt 3).
 - **Der zweite Signaturlink braucht eine Begründung.** Er sieht aus wie der erste; ohne einen Satz dazu wirkt er wie ein Systemfehler, und die Eltern unterschreiben nicht. Gehört in dieselbe Mailvorlage, die den Link erzeugt.
 
+Unabhängig vom Textwechsel gehört ein Schritt an den Abschluss selbst: **die Signaturbilder abräumen, sobald `confirmation_sent_at` gesetzt wird** — Datei in SharePoint löschen, Kennung an der Signaturzeile leeren (`domains/anmeldung.md`, „Wo die Dateien liegen"). Vorher wird das Bild für die Neuerzeugung gebraucht, danach steckt es im PDF; bleibt es liegen, ist es eine zweite Kopie ohne Abnehmer, die kein Lösch-Job je anfasst, weil sein Anker die Frist des Dokuments ist.
+
 ## Für `wb-backend`
 
 ### Übertragung nach SQLAlchemy/Alembic: was Modelle nicht können
@@ -59,7 +61,7 @@ Tabellen, Spalten, PK/FK/UNIQUE, CHECKs, partielle Indizes und die Ausschluss-Co
 
 Das ist kein Tipparbeits-, sondern ein Sicherheitsproblem: Alembics `--autogenerate` **sieht diese drei gar nicht**. Es meldet nicht, dass sie fehlen, und würde sie bei einem späteren Regenerieren stillschweigend aus der Migration lassen. Damit fiele genau das weg, worauf das Schema am stärksten baut — Audit-Trail und Art.-9-Schutz — ohne eine einzige Fehlermeldung.
 
-Die Doppelung ist dafür überprüfbar statt riskant: die sieben Prüfskripte in `domains/` laufen gegen **jede** Datenbank, auch gegen die von Alembic gebaute. Kommen dort 66/66, 22/22, 59/59, 14/14, 11/11, 4/4 und 3/3 heraus, ist die Übertragung nachweislich treu. Das gehört als fester Schritt hinter die Initial-Migration, nicht als einmalige Sichtprüfung.
+Die Doppelung ist dafür überprüfbar statt riskant: die sieben Prüfskripte in `domains/` laufen gegen **jede** Datenbank, auch gegen die von Alembic gebaute. Kommen dort 66/66, 22/22, 60/60, 14/14, 11/11, 4/4 und 3/3 heraus, ist die Übertragung nachweislich treu. Das gehört als fester Schritt hinter die Initial-Migration, nicht als einmalige Sichtprüfung.
 
 Danach führt `wb-backend` das Schema; die `.sql` in diesem Repo bleibt der Entwurf samt Begründungen und ist nicht mehr die Quelle der Wahrheit.
 

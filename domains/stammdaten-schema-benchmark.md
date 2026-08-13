@@ -25,7 +25,7 @@ Beide Durchläufe auf derselben Hetzner-Cloud-VPS (Falkenstein), 4 vCPU, 7,6 GB 
 
 Jede Query fünfmal per `EXPLAIN (ANALYZE)` gemessen; Tabellen/Filter je Query stehen in der Stresstest-Tabelle unten (identische Queries, nur die Datenmenge unterscheidet sich).
 
-**Die Messwerte stammen von vor der Schema-Vereinfachung und wurden auf Postgres 16 erhoben, produktiv läuft mindestens 18** (Wegfall von `organizations`, der Verknüpfungstabelle `child_payers` und der Rollentabelle `contacts`, Rollenzeilen teilen sich den Schlüssel mit `persons`). Sie sind damit eine **obere Schranke**: jede betroffene Abfrage braucht seither strikt weniger Joins, keine mehr. Zeilenzahlen und Query-Beschreibungen sind dagegen auf dem aktuellen Stand, und die Suite läuft wieder vollständig durch (23 von 23 Abfragen). Eine Neumessung ist ein eigener Lauf und steht aus; die Aussage des Benchmarks — bei dieser Datenmenge ist jede Normalisierungsentscheidung performance-neutral — wird davon nur bestätigt, nicht berührt.
+**Die Messwerte sind eine obere Schranke:** erhoben gegen ein Schema mit mehr Joins als dem heutigen und auf Postgres 16, während produktiv mindestens 18 läuft. Jede betroffene Abfrage kommt heute mit weniger Joins aus, keine mit mehr. Zeilenzahlen und Query-Beschreibungen stehen dagegen auf dem aktuellen Stand, und die Suite läuft vollständig durch (23 von 23 Abfragen). Eine Neumessung ist ein eigener Lauf und steht aus; die Aussage des Benchmarks — bei dieser Datenmenge ist jede Normalisierungsentscheidung performance-neutral — wird davon nur bestätigt, nicht berührt.
 
 | Kategorie | Query | min ms | avg ms | max ms |
 |---|---|---:|---:|---:|

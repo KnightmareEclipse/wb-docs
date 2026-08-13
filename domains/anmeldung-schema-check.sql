@@ -26,7 +26,7 @@
 --   * Pro Lauf eine frische Datenbank.
 --   * stdout und stderr im Container zusammenführen (`sh -c '… 2>&1'`), sonst
 --     reordert podman die Ströme und die Paarung sieht wie ein Befund aus.
---   * Sollstand: 59 Ankündigungen zu 59 ERROR-Zeilen, jeweils unmittelbar
+--   * Sollstand: 60 Ankündigungen zu 60 ERROR-Zeilen, jeweils unmittelbar
 --     gepaart. Verankert und auf der AUSGABE zählen, nicht auf dieser Datei —
 --     deren Kopfkommentar enthält die Zeichenkette selbst:
 --       grep -cE '^--- erwartet: FEHLER'  gegen  grep -cE '^psql:.*: ERROR:'
@@ -607,6 +607,25 @@ INSERT INTO signatures (document_id, person_id)
 \echo '--- erwartet: FEHLER (Signaturstufe in abweichender Schreibweise)'
 UPDATE signatures SET signature_level = 'ees'
     WHERE signature_id = '50000000-0000-0000-0000-000000000001';
+
+-- Das Signaturbild liegt als Datei in der erzeugten Bibliothek und wird wie
+-- jedes Dokument über die Graph-Kennung adressiert, nie über einen Pfad.
+UPDATE signatures SET storage_drive_id = 'b!erzeugt', storage_item_id = 'sig-01'
+    WHERE signature_id = '50000000-0000-0000-0000-000000000001';
+
+\echo '--- erwartet: FEHLER (Signaturbild-Element ohne Bibliothek)'
+UPDATE signatures SET storage_drive_id = NULL
+    WHERE signature_id = '50000000-0000-0000-0000-000000000001';
+
+-- Mit dem Abschluss des Vorgangs wird das Bild gelöscht — es steckt dann im
+-- erzeugten PDF. Die Zeile bleibt als Nachweis: keine Zeile hieße „hat nicht
+-- unterschrieben", eine Zeile ohne Bild heißt „unterschrieben, Bild abgeräumt"
+-- (so kommt auch der Altbestand herein).
+UPDATE signatures SET storage_drive_id = NULL, storage_item_id = NULL
+    WHERE signature_id = '50000000-0000-0000-0000-000000000001';
+SELECT 'signatur ohne bild bleibt nachweis' AS pruefung,
+       count(*) AS signaturen, count(storage_item_id) AS mit_bild
+  FROM signatures WHERE document_id = 'd0000000-0000-0000-0000-000000000001';
 
 -- Tippfehler-Korrektur vor Abschluss: dasselbe Dokument wird aus DERSELBEN
 -- Vorlagenfassung neu erzeugt, die bereits geleisteten Unterschriften bleiben

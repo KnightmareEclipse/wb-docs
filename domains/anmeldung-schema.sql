@@ -253,8 +253,9 @@ CREATE TABLE consent_purposes (
 -- beantwortet" zu unterscheiden — für die Vollständigkeitsprüfung des
 -- Sekretariats dieselbe Unterscheidung zwischen entschieden und vergessen wie
 -- cleaning_slots.attendance_recorded_at beim Putzdienst. Für den Leser der
--- breiten Foto-Ansicht ändert sich nichts: nur eine nicht widerrufene
--- Erteilung zählt als Ja.
+-- breiten Foto-Ansicht heißt das: eine Ablehnung sperrt, auch gegen eine
+-- vorliegende Erteilung — wie mehrere Antworten zu einem Ja/Nein je Kind werden,
+-- steht in domains/grenzkarte.md, Q1.
 --
 -- Die Zustelladresse gehört zwingend dazu und ist NICHT aus persons.email
 -- ableitbar: zwei Erziehungsberechtigte dürfen sich eine Mailbox teilen
@@ -491,12 +492,35 @@ CREATE TABLE child_file_folders (
 -- eine Stufe (einfache elektronische Signatur), und eine Liste mit einer Zeile
 -- wäre ein Mechanismus ohne Bedarf (rules.md Abschnitt 1). Kommt eine zweite
 -- Stufe, ist das eine Werteliste und keine Umdeutung dieser Spalte.
+--
+-- DAS SIGNATURBILD IST EINE DATEI IN DER ERZEUGTEN BIBLIOTHEK, also dieselbe
+-- Lage wie beim Dokument — und deshalb dieselbe Adresse: Graph-Kennung aus
+-- Bibliothek und Element, nie ein Pfad (Begründung an documents). Ein Pfad
+-- bräche beim Verschieben, und das ist der real belegte Fehlermodus dieser
+-- Schule (fachdomaenen.md Abschnitt 3).
+--
+-- BEIDE SPALTEN SIND LEER, SOBALD DER VORGANG ABGESCHLOSSEN IST: mit der
+-- Bestätigungsmail wird das Bild gelöscht, weil es dann im erzeugten PDF steckt
+-- und daneben nur eine zweite Kopie desselben Personendatums wäre
+-- (domains/anmeldung.md, „Wo die Dateien liegen"). Bis dahin wird es gebraucht
+-- — die Korrektur vor Abschluss erzeugt dasselbe Dokument aus derselben
+-- Vorlagenfassung neu und setzt die bereits geleisteten Unterschriften wieder
+-- ein (domains/anmeldung.md, „Wenn mitten im Vorgang ein Fehler auffällt").
+--
+-- Leer heißt deshalb NIE „hat nicht unterschrieben" — das sagt die fehlende
+-- Zeile. Die Zeile ohne Bild heißt „unterschrieben, Bild abgeräumt", und
+-- genauso kommt der Altbestand herein: der Vollimport bringt Signaturen ohne
+-- Bild mit, zu einem Dokument teils auch nur die eine von zwei Personen.
 CREATE TABLE signatures (
     signature_id    uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     document_id     uuid NOT NULL REFERENCES documents(document_id) ON DELETE RESTRICT,
     person_id       uuid NOT NULL REFERENCES persons(person_id) ON DELETE RESTRICT,
     signed_at       timestamptz NOT NULL DEFAULT now(),
-    image_path      text CHECK (image_path <> ''),
+    -- Graph-Kennung des Signaturbilds (Kopfkommentar). CHECK <> '' wie an
+    -- documents: eine leere Kennung sähe aus wie eine Referenz und zeigte
+    -- nirgendwohin.
+    storage_drive_id text CHECK (storage_drive_id <> ''),
+    storage_item_id  text CHECK (storage_item_id <> ''),
     -- CHECK auf den einen bekannten Wert und nicht nur auf „nicht leer": ohne ihn
     -- wären „ees" oder „EES " lautlos eine zweite Signaturstufe, und genau die
     -- Unterscheidung soll die Spalte tragen. Kommt eine echte zweite Stufe, ist
@@ -508,7 +532,11 @@ CREATE TABLE signatures (
     updated_at      timestamptz NOT NULL DEFAULT now(),
     updated_by      text NOT NULL,
     -- Dieselbe Person unterschreibt dasselbe Dokument einmal.
-    UNIQUE (document_id, person_id)
+    UNIQUE (document_id, person_id),
+    -- Eine halbe Adresse ist keine, gleiche Bauform wie
+    -- documents_storage_complete_check.
+    CONSTRAINT signatures_image_complete_check
+        CHECK ((storage_drive_id IS NULL) = (storage_item_id IS NULL))
 );
 CREATE INDEX ON signatures (person_id);
 
@@ -1151,7 +1179,8 @@ CREATE TABLE care_module_booking_days (
 -- eine leere Vorgangsspalte ist immer ein Fehler und nie ein Zustand.
 --
 -- Folge für den Lösch-Job: er räumt von außen nach innen — Zahlung, dann
--- Zustimmung, Signatur und Dokument samt SharePoint-Datei (in dieser
+-- Zustimmung, Signatur (samt Bild, falls der Vorgang nie abgeschlossen wurde)
+-- und Dokument samt SharePoint-Datei (in dieser
 -- Reihenfolge: consents.signature_id blockiert die Signatur,
 -- signatures.document_id das Dokument), dann der Vertragsvorgang, dann die
 -- Bewerbung (domains/anmeldung.md, „Löschung"). Die Fremdschlüssel erzwingen

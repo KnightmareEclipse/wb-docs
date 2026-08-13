@@ -321,7 +321,7 @@ CREATE INDEX ON cleaning_family_duties (family_id);
 -- Solver-Nebenbedingung („eine Familie höchstens einmal pro Termin",
 -- domains/putzdienst.md) — im Schema statt nur im Modell, damit auch die
 -- manuelle Verschiebung durchs Sekretariat sie nicht verletzen kann. Es ist
--- aber nicht mehr der Primärschlüssel, sondern ein UNIQUE daneben: der
+-- dabei bewusst nicht der Primärschlüssel, sondern ein UNIQUE daneben: der
 -- Einzel-Freikauf (unten) zeigt auf die Zuteilung, und dieser Fremdschlüssel
 -- taucht in einer Eltern-URL auf. Ein zusammengesetzter Schlüssel aus einer
 -- fortlaufenden Termin-ID und der Familien-uuid gäbe dort beides preis;
