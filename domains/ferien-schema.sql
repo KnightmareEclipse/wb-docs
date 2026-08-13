@@ -143,7 +143,14 @@ CREATE TABLE program_registrations (
     program_registration_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     program_id              integer NOT NULL REFERENCES programs(program_id) ON DELETE RESTRICT,
     registered_by_person_id uuid NOT NULL REFERENCES persons(person_id) ON DELETE RESTRICT,
-    submitted_at            timestamptz NOT NULL DEFAULT now(),
+    -- KEIN eigenes submitted_at daneben: die Zeile entsteht beim Absenden, und
+    -- created_at trägt damit denselben Zeitpunkt — vom Trigger gesetzt und bei
+    -- UPDATE aus OLD übernommen, also unveränderlich. Ein zweites Feld wäre ein
+    -- zweiter Ort für dieselbe Tatsache (rules.md Abschnitt 1). Der Unterschied
+    -- zu applications.submitted_on ist das Formular: dort IST das Anmeldedatum
+    -- ein erhobenes Feld, das bei einer Nachmeldung abweichend gesetzt wird
+    -- (prozesse.md Abschnitt 3.2) — das Ferienformular erhebt keines
+    -- (Abschnitt 10).
     created_at              timestamptz NOT NULL DEFAULT now(),
     created_by              text NOT NULL,
     updated_at              timestamptz NOT NULL DEFAULT now(),
@@ -193,7 +200,7 @@ CREATE INDEX ON program_registrations (program_id);
 -- Buchungsstrecke, die nur Kinder der eigenen Familie anbietet
 -- (idea/04-identitaet-zugriff.md).
 --
--- Kein CHECK „cancelled_at nach submitted_at": der Bezugspunkt steht in der
+-- Kein CHECK „cancelled_at nach der Anmeldung": der Bezugspunkt steht in der
 -- anderen Tabelle. Wann tatsächlich storniert wurde, hält ohnehin die
 -- Audit-Spalte updated_at fest.
 CREATE TABLE program_bookings (

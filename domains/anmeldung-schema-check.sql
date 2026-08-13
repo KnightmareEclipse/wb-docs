@@ -432,21 +432,21 @@ INSERT INTO contracts (application_id, child_id, deadline_on)
     VALUES ('a0000000-0000-0000-0000-000000000001',
             '11111111-1111-1111-1111-111111111111', '2027-03-15');
 
-\echo '--- erwartet: FEHLER (Schulleitung gibt frei, ohne dass das Sekretariat geprüft hat)'
-UPDATE contracts SET headmaster_released_at = now()
+\echo '--- erwartet: FEHLER (Freigabe, ohne dass jemand auf Vollständigkeit geprüft hat)'
+UPDATE contracts SET released_at = now()
     WHERE contract_id = 'c0000000-0000-0000-0000-000000000001';
 
 \echo '--- erwartet: FEHLER (Bestätigungsmail vor der Freigabe)'
-UPDATE contracts SET secretariat_checked_at = now(), confirmation_sent_at = now()
+UPDATE contracts SET completeness_checked_at = now(), confirmation_sent_at = now()
     WHERE contract_id = 'c0000000-0000-0000-0000-000000000001';
 
 -- Der reguläre Weg, in der vorgesehenen Reihenfolge
-UPDATE contracts SET secretariat_checked_at = now() WHERE contract_id = 'c0000000-0000-0000-0000-000000000001';
-UPDATE contracts SET headmaster_released_at = now() WHERE contract_id = 'c0000000-0000-0000-0000-000000000001';
+UPDATE contracts SET completeness_checked_at = now() WHERE contract_id = 'c0000000-0000-0000-0000-000000000001';
+UPDATE contracts SET released_at = now() WHERE contract_id = 'c0000000-0000-0000-0000-000000000001';
 UPDATE contracts SET confirmation_sent_at = now()   WHERE contract_id = 'c0000000-0000-0000-0000-000000000001';
 SELECT 'vertragsvorgang in der vorgesehenen reihenfolge' AS pruefung,
-       secretariat_checked_at IS NOT NULL AS geprueft,
-       headmaster_released_at IS NOT NULL AS freigegeben,
+       completeness_checked_at IS NOT NULL AS geprueft,
+       released_at IS NOT NULL AS freigegeben,
        confirmation_sent_at   IS NOT NULL AS bestaetigt
   FROM contracts WHERE contract_id = 'c0000000-0000-0000-0000-000000000001';
 
@@ -467,7 +467,7 @@ SELECT 'mehrere verträge je bewerbung, der zuletzt bestätigte gilt' AS pruefun
 -- nicht hinter die Freigabe rutschen, sonst dokumentiert die Zeile eine
 -- Prüfung nach der Freigabe — genau die Aussage, die die vier Zeitpunkte tragen.
 \echo '--- erwartet: FEHLER (Prüfzeitpunkt nachträglich hinter die Freigabe geschoben)'
-UPDATE contracts SET secretariat_checked_at = now() + interval '1 day'
+UPDATE contracts SET completeness_checked_at = now() + interval '1 day'
     WHERE contract_id = 'c0000000-0000-0000-0000-000000000001';
 
 -- Der Konfliktfall, für den es die eigenen Antwortzeilen überhaupt gibt:
@@ -790,12 +790,16 @@ SELECT 'modulanpassung: geschlossene und neue buchung nebeneinander' AS pruefung
 -- Grund- noch Realschüler sind. Ihr Hortvertrag durchläuft dieselben vier
 -- Stationen und hängt ebenfalls am Kind — nur gibt es hier gar keine Bewerbung,
 -- unter der ein Schulvertrag stehen könnte.
+-- Dieselben Stationen, andere Stellen: geprüft wird im Hort, freigegeben von der
+-- HORTLEITUNG (domains/anmeldung.md) — die Schulleitung ist je Zweig benannt und
+-- für dieses Kind gar nicht zuständig. Deshalb heißen die Spalten nach der
+-- Handlung und nicht nach der Stelle.
 INSERT INTO contracts (contract_id, child_id, deadline_on)
     VALUES ('c0000000-0000-0000-0000-000000000002',
             '44444444-4444-4444-4444-444444444444', '2027-08-31');
-UPDATE contracts SET secretariat_checked_at = now()
+UPDATE contracts SET completeness_checked_at = now()
     WHERE contract_id = 'c0000000-0000-0000-0000-000000000002';
-UPDATE contracts SET headmaster_released_at = now()
+UPDATE contracts SET released_at = now()
     WHERE contract_id = 'c0000000-0000-0000-0000-000000000002';
 INSERT INTO care_module_bookings (child_id, care_module_id, contract_id, valid_from)
     VALUES ('44444444-4444-4444-4444-444444444444', 1,
@@ -803,8 +807,8 @@ INSERT INTO care_module_bookings (child_id, care_module_id, contract_id, valid_f
 SELECT 'hortvertrag hängt am kind statt an einer bewerbung' AS pruefung,
        b.valid_from, c.entry_date IS NULL AS nicht_eingeschrieben,
        k.application_id IS NULL AS ohne_bewerbung,
-       k.secretariat_checked_at IS NOT NULL AS geprueft,
-       k.headmaster_released_at IS NOT NULL AS freigegeben
+       k.completeness_checked_at IS NOT NULL AS geprueft,
+       k.released_at IS NOT NULL AS freigegeben
   FROM care_module_bookings b
   JOIN children  c ON c.child_id    = b.child_id
   JOIN contracts k ON k.contract_id = b.contract_id

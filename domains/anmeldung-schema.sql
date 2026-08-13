@@ -219,7 +219,13 @@ CREATE TABLE fit_assessments (
 -- ---------------------------------------------------------------------------
 
 -- Zweck einer Zustimmung: Schulvertrag, Gesundheitsdaten, Fotoeinverständnis,
--- Informationsaustausch Hort↔Schule, Werbung, Lastschrift-Erlaubnis.
+-- Zeckenentfernung, Informationsaustausch Hort↔Schule, Werbung,
+-- Lastschrift-Erlaubnis.
+--
+-- Die Zeckenentfernung steht hier und nicht als Spalte in Domäne 9: sie ist
+-- eine Erlaubnis und kein Merkmal des Kindes (domains/gesundheit.md). Sie gilt
+-- dem KIND und nicht einem einzelnen Merkmal — das ist der Unterschied zur
+-- Verabreichungserlaubnis, die deshalb an health_traits bleibt.
 --
 -- code neben dem frei umbenennbaren label, dasselbe Muster wie
 -- genders/countries/languages in Stammdaten — nur ist der Abnehmer hier kein
@@ -711,7 +717,7 @@ CREATE TABLE applications (
     -- Vollständigkeitsprüfung der Unterlagen am Anmeldetag — der letzte Punkt
     -- der Sekretariats-Checkliste (prozesse.md Abschnitt 5.2) und die
     -- verwaltende der beiden Spuren des Tages. Nicht zu verwechseln mit
-    -- contracts.secretariat_checked_at: das ist dieselbe Handlung Wochen später
+    -- contracts.completeness_checked_at: das ist dieselbe Handlung Wochen später
     -- am fertigen Vertrag, hier geht es um die Unterlagen, die die Eltern zum
     -- Gespräch mitbringen (Geburtsurkunde, Zeugnis, Beobachtungsbogen). Welche
     -- davon fehlen, sagt documents.requested_on; DASS jemand durchgesehen hat,
@@ -863,6 +869,21 @@ CREATE TABLE application_programs (
 -- prozesse.md Abschnitt 5.2) braucht deshalb ihren eigenen confirmation_sent_at
 -- und nicht den der Aufnahmebestätigung.
 --
+-- WER PRÜFT UND WER GIBT FREI, hängt an der Vertragsart und ist deshalb keine
+-- Eigenschaft dieser Tabelle — die beiden Spalten sind nach der Handlung
+-- benannt, nicht nach der Stelle:
+--   * Schulvertrag: die Verwaltung prüft auf Vollständigkeit, die Schulleitung
+--     des jeweiligen Zweigs gibt frei und zeichnet gegen (prozesse.md
+--     Abschnitt 7.1).
+--   * Hortvertrag: der Vorgang läuft vollständig über den Hort — der Hort prüft,
+--     die HORTLEITUNG gibt frei und zeichnet gegen (prozesse.md Abschnitt 8:
+--     „Unterschriften von Mutter, Vater und Hortleitung"). Die Schulleitung ist
+--     hier gar nicht zuständig: sie ist je Zweig benannt (glossar.md), und ein
+--     externes Hortkind hat keinen.
+-- Beide Male sind es zwei verschiedene Personen — die Freigabe ist die
+-- Zweitprüfung, und genau deshalb braucht das Aufsetzen keine eigene Rolle
+-- (domains/anmeldung.md).
+--
 -- MEHRERE VERTRÄGE ÜBER DIE ZEIT SIND ZULÄSSIG, je Bewerbung wie je Kind —
 -- deshalb steht auf keiner der beiden Bezugsspalten ein tabellenweites UNIQUE.
 -- Zwei reale Anlässe: ein Kind schließt über die Jahre mehrere Hortverträge,
@@ -888,33 +909,40 @@ CREATE TABLE contracts (
     application_id        uuid REFERENCES applications(application_id) ON DELETE RESTRICT,
     child_id              uuid REFERENCES children(child_id) ON DELETE RESTRICT,
     -- Frist für die Eltern, real 14 Tage ab Versand. Als Datum und nicht als
-    -- Dauer, weil das Sekretariat sie im Einzelfall verlängert.
-    deadline_on           date NOT NULL,
-    secretariat_checked_at timestamptz,
-    headmaster_released_at timestamptz,
+    -- Dauer, weil die Verwaltung sie im Einzelfall verlängert.
+    deadline_on            date NOT NULL,
+    -- Die beiden Spalten sind nach der HANDLUNG benannt und nicht nach der
+    -- Stelle, weil die Stelle von der Vertragsart abhängt (Begründung im
+    -- Tabellenkopf, „Wer prüft und wer gibt frei"): beim Schulvertrag prüft die
+    -- Verwaltung und die Schulleitung gibt frei, beim Hortvertrag prüft der Hort
+    -- und die Hortleitung gibt frei. Ein Name wie „headmaster_released_at" wäre
+    -- für die Hälfte der Zeilen schlicht falsch — die Schulleitung ist je Zweig
+    -- zuständig (glossar.md), und ein externes Hortkind hat keinen.
+    completeness_checked_at timestamptz,
+    released_at            timestamptz,
     confirmation_sent_at   timestamptz,
-    created_at            timestamptz NOT NULL DEFAULT now(),
-    created_by            text NOT NULL,
-    updated_at            timestamptz NOT NULL DEFAULT now(),
-    updated_by            text NOT NULL,
-    -- Die Reihenfolge ist Teil des Verfahrens: erst prüft das Sekretariat, dann
-    -- gibt die Schulleitung frei, dann geht die Bestätigung raus. Eine
-    -- Bestätigungsmail vor der Freigabe wäre genau der Fehler, der an dieser
-    -- Schule niemandem auffiele.
+    created_at             timestamptz NOT NULL DEFAULT now(),
+    created_by             text NOT NULL,
+    updated_at             timestamptz NOT NULL DEFAULT now(),
+    updated_by             text NOT NULL,
+    -- Die Reihenfolge ist Teil des Verfahrens: erst prüft die führende Stelle
+    -- auf Vollständigkeit, dann gibt die zuständige Leitung frei, dann geht die
+    -- Bestätigung raus. Eine Bestätigungsmail vor der Freigabe wäre genau der
+    -- Fehler, der an dieser Schule niemandem auffiele.
     -- Geprüft wird beides: dass der frühere Schritt überhaupt stattgefunden hat
     -- UND dass er früher liegt. Ohne den Zeitvergleich ließe sich
-    -- secretariat_checked_at nachträglich hinter die Freigabe schieben, und die
+    -- completeness_checked_at nachträglich hinter die Freigabe schieben, und die
     -- Zeile dokumentierte eine Prüfung, die nach der Freigabe stattfand — genau
     -- die Aussage, die diese vier Zeitpunkte tragen sollen. Gleiche Bauform wie
     -- consents_revoked_after_granted_check.
     CONSTRAINT contracts_release_after_check_check
-        CHECK (headmaster_released_at IS NULL
-               OR (secretariat_checked_at IS NOT NULL
-                   AND headmaster_released_at >= secretariat_checked_at)),
+        CHECK (released_at IS NULL
+               OR (completeness_checked_at IS NOT NULL
+                   AND released_at >= completeness_checked_at)),
     CONSTRAINT contracts_confirmation_after_release_check
         CHECK (confirmation_sent_at IS NULL
-               OR (headmaster_released_at IS NOT NULL
-                   AND confirmation_sent_at >= headmaster_released_at)),
+               OR (released_at IS NOT NULL
+                   AND confirmation_sent_at >= released_at)),
     CONSTRAINT contracts_exactly_one_subject_check
         CHECK ((application_id IS NOT NULL)::int + (child_id IS NOT NULL)::int = 1)
 );

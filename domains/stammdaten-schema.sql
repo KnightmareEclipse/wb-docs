@@ -692,8 +692,8 @@ CREATE TABLE families (
     updated_by text NOT NULL
 );
 
--- Kind: IST eine Person (immer natürliche Person) — deshalb teilt sich children.id
--- direkt mit persons.id, keine eigene person_id-Spalte. Hier stehen die Felder,
+-- Kind: IST eine Person (immer natürliche Person) — deshalb teilt sich children.child_id
+-- direkt mit persons.person_id, keine eigene person_id-Spalte. Hier stehen die Felder,
 -- die es nur beim Kind gibt: Demografie (aus Voranmeldeformular und ASV-BW-Export,
 -- Zweck ist die Übernahme nach ASV-BW) und Schulbezug. Erziehungsberechtigte
 -- bekommen diese Felder bewusst nicht (Datensparsamkeit, rules.md Abschnitt 7).
@@ -751,7 +751,7 @@ CREATE TABLE children (
     -- Signatur). Dieses Artefakt gehört NICHT hierher, sondern in die
     -- Schulvertrags-/Anmeldeprozess-Fachdomäne, die dieselbe Struktur schon für
     -- Schulvertrag, Gesundheitsdatenblatt und Fotoeinverständnis braucht; es
-    -- zeigt seit dieser Änderung auf das Kind, nicht mehr auf payers.id
+    -- zeigt seit dieser Änderung auf das Kind, nicht mehr auf payers.payer_id
     -- (domains/grenzkarte.md, Q2). Wichtig dabei: das Dokument trägt KEIN
     -- eigenes Unterschriftsdatum — das steht hier, einmal. Der Nachweis ist das
     -- Artefakt, der Datenwert für den Einzug ist diese Spalte.
@@ -891,8 +891,8 @@ CREATE INDEX ON children (payer_id);
 -- nach, ein Index auf date_of_birth käme dabei nicht zum Einsatz. Kein
 -- Fremdschlüssel hängt daran.
 
--- Erziehungsberechtigte: IST eine Person — deshalb teilt sich guardians.id
--- direkt mit persons.id, wie bei children, payers und employees. Kein
+-- Erziehungsberechtigte: IST eine Person — deshalb teilt sich guardians.guardian_id
+-- direkt mit persons.person_id, wie bei children, payers und employees. Kein
 -- Surrogatschlüssel und keine zusätzliche person_id daneben.
 --
 -- Es gibt bewusst KEINE Organisation als Erziehungsberechtigte, obwohl das
@@ -963,7 +963,7 @@ CREATE TABLE guardians (
 -- ---------------------------------------------------------------------------
 
 -- Mitarbeiter: IST eine Person (immer natürlich) — deshalb teilt sich
--- employees.id direkt mit persons.id, wie bei children und guardians.
+-- employees.employee_id direkt mit persons.person_id, wie bei children und guardians.
 --
 -- Steht schon jetzt, obwohl keine der Domänen gebaut ist, die sie braucht —
 -- warum vorgezogen und was bewusst noch fehlt (Bereichs-/Vorgesetztenstruktur),
@@ -1217,7 +1217,9 @@ CREATE UNIQUE INDEX child_contacts_one_contact_per_priority ON child_contacts (c
 -- Zugriffskontext ist ein anderer (Abrechnung statt allgemeines Personenprofil),
 -- betrifft nur wenige Personen, und die meisten Abfragen auf persons brauchen
 -- die Daten nie mit. Eigene, engere DB-Rolle wie bei den Konfessionsspalten
--- (wb-backend/db/init-roles.sh).
+-- (wb-backend/db/init-roles.sh) — Abnehmer ist die BUCHHALTUNG und sonst
+-- niemand: sie überträgt die Bankverbindung einmal von Hand nach Optigem
+-- (glossar.md, fachdomaenen.md Abschnitt 3).
 --
 -- billing_address_id nullable: NULL heißt „Anschrift der zahlenden Person
 -- gilt", nur bei abweichender Rechnungsadresse gesetzt — kein Pflicht-Duplikat
