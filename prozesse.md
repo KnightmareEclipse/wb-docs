@@ -102,7 +102,7 @@ Ausdrücklich benannt, weil ohne Zweck kein Feld bleibt (`rules.md` Abschnitt 7)
 - **Kirchengemeinde** — Interesse, kein benannter Verarbeitungszweck.
 - **Geschwister und wahrgenommene Angebote** (Musikarche, Ferienprogramm, Clemens-KITA) — geben einen **Bonus bei der Zusage** und sind damit entscheidungsrelevant, nicht dekorativ.
 
-Alle vier Felder werden gespeichert — Konfession und Staatsangehörigkeit auch bei den Erziehungsberechtigten (`domains/stammdaten.md`, „Felder"). Entschieden mit bekanntem Preis: Konfession ist ein Art.-9-Datum, und ein Feld ohne beschlossenen Zweck mit echten Personendaten zu füllen, schließt `rules.md` Abschnitt 7 eigentlich aus. Ausschlaggebend war die Gegenrichtung — eine Spalte zu streichen ist ein `DROP COLUMN`, ein beim Vollimport nicht erhobener Wert ist nicht nacherhebbar. **Der Zweck-Beschluss bleibt damit fällig, und zwar vor dem Vollimport** (`TODO.md`); das Schema trägt die Absicherung bereits (Spalten-GRANT auf den Konfessionsspalten an `children` und `guardians`).
+Alle vier Felder werden gespeichert — Konfession und Staatsangehörigkeit auch bei den Erziehungsberechtigten (`schema/stammdaten-schema.sql`, „Felder"). Entschieden mit bekanntem Preis: Konfession ist ein Art.-9-Datum, und ein Feld ohne beschlossenen Zweck mit echten Personendaten zu füllen, schließt `rules.md` Abschnitt 7 eigentlich aus. Ausschlaggebend war die Gegenrichtung — eine Spalte zu streichen ist ein `DROP COLUMN`, ein beim Vollimport nicht erhobener Wert ist nicht nacherhebbar. **Der Zweck-Beschluss bleibt damit fällig, und zwar vor dem Vollimport** (`TODO.md`); das Schema trägt die Absicherung bereits (Spalten-GRANT auf den Konfessionsspalten an `children` und `guardians`).
 
 ### 3.4 Bruchstellen
 
@@ -117,7 +117,7 @@ Ganzjährig, eigenes Formular.
 
 - Felder wie Realschule, zusätzlich **Zielklasse** und **Zielschuljahr**.
 - Anmeldegebühr wie bei der Voranmeldung.
-- Bearbeitung sofort: Prüfung, ob in der Zielklassenstufe überhaupt ein Platz frei wäre. Nur dann folgt ein Anmeldegespräch. **Die Prüfung ist dynamisch, „voll" gibt es nicht:** Zielmarke sind derzeit 25 Kinder je Klasse, bei wirklich dringenden Fällen wird auch in eine „volle" Klasse aufgenommen. Verwaltung und Schulleitung entscheiden das je Fall, und beim Quereinstieg wird ohnehin der direkte Kontakt gesucht — deshalb bewusst keine Kapazität im Datenmodell (`domains/anmeldung.md`, „Bewerbung").
+- Bearbeitung sofort: Prüfung, ob in der Zielklassenstufe überhaupt ein Platz frei wäre. Nur dann folgt ein Anmeldegespräch. **Die Prüfung ist dynamisch, „voll" gibt es nicht:** Zielmarke sind derzeit 25 Kinder je Klasse, bei wirklich dringenden Fällen wird auch in eine „volle" Klasse aufgenommen. Verwaltung und Schulleitung entscheiden das je Fall, und beim Quereinstieg wird ohnehin der direkte Kontakt gesucht — deshalb bewusst keine Kapazität im Datenmodell (`schema/anmeldung-schema.sql`, „Bewerbung").
 - Der Schulvertragsprozess (Abschnitt 7) läuft für Quereinsteiger identisch und muss deshalb ganzjährig funktionieren.
 
 ---
@@ -144,7 +144,7 @@ Daraus folgt eine Slot-Struktur mit Kapazität je Slot, Tagesraster und Pausenfe
 
 **Lehrer-Checkliste — bleibt zwingend Papier.** Darauf stehen sehr sensible Notizen, die nach Abschluss des Prozesses zügig vernichtet werden. Digitalisiert wird nur das konsolidierte Ergebnis: **„Passt zur Schule": Ja / Eher Ja / Eher Nein / Nein**, dazu wenige Notizen — heute in Excel. Die Lehrkräfte stehen dem kritisch gegenüber und würden Excel vermutlich weiter bevorzugen.
 
-Anforderung ans Schema daraus: Die Felder werden mitgebaut, aber **nicht öffentlich sichtbar** abgelegt, mit der Möglichkeit, sie später umzuschalten, falls die Lehrkräfte überzeugt werden können. Das deckt sich mit dem engsten Zugriffsprofil im System nach den Art.-9-Daten (`domains/grenzkarte.md`, „Bewertung").
+**Entschieden: die Bewertung wird gar nicht abgebildet.** Gespräch, Notizen und Ranking bleiben vollständig bei den Lehrkräften auf Papier und in Excel; Weltenbaum nimmt allein das Ergebnis der Aufnahmeentscheidung auf — Zusage, Warteliste samt Priorität oder Absage. Es werden also auch keine stillgelegten Felder mitgebaut, die später umgeschaltet werden könnten.
 
 **Sekretariats-Checkliste — wird digitalisiert.** Inhalt vollständig, `GS` = Grundschule, `RS` = Realschule; die beiden übrigen Varianten (Quereinsteiger, Hort) stehen darunter:
 
@@ -201,11 +201,11 @@ Anforderung ans Schema daraus: Die Felder werden mitgebaut, aber **nicht öffent
 |---|---|
 | Prüfen, ob alle Unterlagen vorhanden: Voranmeldung, SEPA-Mandat, Verträge (2-fach, alle Unterschriften), Geburtsurkunde, Masernnachweis | `applications.documents_checked_at` samt Q2 und `measles_proofs` |
 | Aufnahmebestätigung an die Eltern senden inkl. unterschriebenem Schulvertrag, Elternbrief Förderverein + Flyer, Welcome-Mappe; beim Hort Anschreiben + Welcome-Brief | `contracts.confirmation_sent_at` |
-| Bei Bedarf: Hortvertrag | Vertragsvorgang am Kind (`domains/anmeldung.md`) |
+| Bei Bedarf: Hortvertrag | Vertragsvorgang am Kind (`schema/anmeldung-schema.sql`) |
 | Kopie für Buchhaltung / Aufnahme in Optigem | **Q5-Aufgabe** |
 | Aufnahme in ASV-BW, Datenblatt ausdrucken | **Q5-Aufgabe** |
 | Akten anlegen (Schulakte, Hortakte, inkl. Datenblatt) | SharePoint, Ordner ist die Kohorten-Kennung (`domains/grenzkarte.md`, Q2) |
-| Listen aktualisieren: Klassenliste ausdrucken, Hort-/Mensaliste, Klassenverteiler in Outlook, Eintrag in Telefonbuch-PC, Kontaktdaten in die Putzliste, Eintrag in die Quereinsteiger-Liste | **entfallen ersatzlos** — alle sind Abfragen auf den Weltenbaum-Bestand |
+| Listen aktualisieren: Klassenliste ausdrucken, Hort-/Mensaliste, Klassenverteiler in Outlook, Eintrag in Telefonbuch-PC, Kontaktdaten in die Putzliste, Eintrag in die Quereinsteiger-Liste | **entfallen ersatzlos** — alle sind Abfragen auf den Weltenbaum-Bestand. **Ausnahme: der Klassenverteiler in Outlook** bleibt vorerst und wird nachgezogen, weil die Schule ihre Klassen weiter über M365 anschreibt (`soll-prozesse/15-klassenbildung.md`, `soll-prozesse/02-datenaenderung.md`) |
 | Bisherige örtliche Schule informieren; **Schülerüberweisung erhalten?**; Rücksendung an die Herkunftsschule — drei Schritte in dieser Reihenfolge, die Rücksendung nur bei Bedarf | `applications.student_transfer_requested_on`/`_received_on`/`_returned_on` |
 | To do Lehrer: WebUntis anmelden, Office-365-Zugang, Materialliste, Schulplaner ausgeben | außerhalb des Scopes bzw. Domäne 7 |
 
@@ -272,9 +272,9 @@ Derselbe Satz wird zusätzlich auf allen vier Anmeldetag-Checklisten und im Hort
 
 Drei Festlegungen dazu:
 
-- **Das Unterschriftsdatum ist wichtig** — gedeckt durch `children.mandate_signed_at` (`domains/stammdaten.md`, „Zahlungsverantwortliche").
-- **Die BIC bleibt**, aber nur für **nicht-deutsche Konten**: Optigem verlangt sie. `payers.bic` ist damit nicht streichbar (`domains/stammdaten.md`, „Zahlungsverantwortliche").
-- **Das SEPA-Mandat ist für alle Neuanmeldungen Pflicht, weil es an das Kind gebunden ist:** Verlässt das erste Kind die Schule, verfällt es auch für die noch eingeschriebenen Geschwister. Je Kind wird deshalb ausdrücklich ein eigenes Mandat eingesammelt — im Schema `children.mandate_reference`/`mandate_signed_at`, während die Bankverbindung bei der zahlenden Person bleibt (`domains/stammdaten.md`, „Zahlungsverantwortliche").
+- **Das Unterschriftsdatum ist wichtig** — gedeckt durch `children.mandate_signed_at` (`schema/stammdaten-schema.sql`, „Zahlungsverantwortliche").
+- **Die BIC bleibt**, aber nur für **nicht-deutsche Konten**: Optigem verlangt sie. `payers.bic` ist damit nicht streichbar (`schema/stammdaten-schema.sql`, „Zahlungsverantwortliche").
+- **Das SEPA-Mandat ist für alle Neuanmeldungen Pflicht, weil es an das Kind gebunden ist:** Verlässt das erste Kind die Schule, verfällt es auch für die noch eingeschriebenen Geschwister. Je Kind wird deshalb ausdrücklich ein eigenes Mandat eingesammelt — im Schema `children.mandate_reference`/`mandate_signed_at`, während die Bankverbindung bei der zahlenden Person bleibt (`schema/stammdaten-schema.sql`, „Zahlungsverantwortliche").
 
 ### 7.5 Sonderfälle
 
@@ -287,15 +287,15 @@ Drei Festlegungen dazu:
 
 **Soll digitalisiert werden.** Heute Papier („Betreuungsvertrag", Stand 12/2025, Vertragspartner ist der Trägerverein CBBE e. V.), ausgefüllt am Anmeldetag oder danach.
 
-**Laufzeit laut Vertrag:** ein Schuljahr (01.08.–31.07.), Kündigungsfrist ein Monat zum Vertragsende; ohne Kündigung **stillschweigende Verlängerung auf unbestimmte Zeit** mit Monatsfrist zum Monatsersten. Außerordentliche Kündigung mit 14 Tagen zum Monatsende aus wichtigem Grund (beidseitig, Gründe im Vertrag benannt). Das Hortangebot selbst endet mit Klasse 5, und es endet **zweistufig**: die Module der Klassen 1–4 laufen mit dem Ende der Klasse 4 aus und werden dann automatisch gekündigt — wer danach weiter Betreuung braucht, bucht als Realschüler das eigene Klasse-5-Modul, das nur dort gilt. Beide Enden setzt der Jahreslauf, nicht das Sekretariat (`domains/stammdaten.md`, „Schuljahreswechsel"). **Modul-Anpassungen:** im September kostenfrei, bei Stundenplanänderungen kostenfrei, zum Schulhalbjahr gegen 20 € Gebühr, eine Erhöhung des Umfangs zum Monatswechsel mit 14 Tagen Vorlauf kostenfrei.
+**Laufzeit laut Vertrag:** ein Schuljahr (01.08.–31.07.), Kündigungsfrist ein Monat zum Vertragsende; ohne Kündigung **stillschweigende Verlängerung auf unbestimmte Zeit** mit Monatsfrist zum Monatsersten. Außerordentliche Kündigung mit 14 Tagen zum Monatsende aus wichtigem Grund (beidseitig, Gründe im Vertrag benannt). Das Hortangebot selbst endet mit Klasse 5, und es endet **zweistufig**: die Module der Klassen 1–4 laufen mit dem Ende der Klasse 4 aus und werden dann automatisch gekündigt — wer danach weiter Betreuung braucht, bucht als Realschüler das eigene Klasse-5-Modul, das nur dort gilt. Beide Enden setzt der Jahreslauf, nicht das Sekretariat (`schema/stammdaten-schema.sql`, „Schuljahreswechsel"). **Modul-Anpassungen:** im September kostenfrei, bei Stundenplanänderungen kostenfrei, zum Schulhalbjahr gegen 20 € Gebühr, eine Erhöhung des Umfangs zum Monatswechsel mit 14 Tagen Vorlauf kostenfrei.
 
 **Beiträge:** nach Beitragssatzung des Trägervereins, 11 Monatsraten September–Juli, Anpassung zu Schuljahresbeginn; die konkreten Preise trägt die Verwaltung aus der aktuellen Preisliste in den Vertrag ein (Liste liegt nicht vor, `domains/grenzkarte.md`, „Weiße Flecken"). Ab dem 2. Kind mit Hortbuchung bekommt das **älteste Kind 10 % Ermäßigung** (außer Notfall-/Ferienbetreuung). Eingezogen wird über dasselbe SEPA-Mandat wie das Schulgeld; Mahngebühr 10 € je Mahnung.
 
-**Mittagessen:** wird **für alle Schüler berechnet, die länger als 13 Uhr betreut werden** — keine eigene Buchung, es folgt aus dem Modul (`domains/mensa.md`). Preiserhöhungen des Lieferanten werden weitergegeben; Erstattung nur bei Langzeiterkrankung ab der 2. Woche nach Abbestellung.
+**Mittagessen:** wird **für alle Schüler berechnet, die länger als 13 Uhr betreut werden** — keine eigene Buchung, es folgt aus dem Modul (`schema/mensa-schema.sql`). Preiserhöhungen des Lieferanten werden weitergegeben; Erstattung nur bei Langzeiterkrankung ab der 2. Woche nach Abbestellung.
 
 **Externe Kinder:** Der Hort nimmt Kinder auf, die **weder Grund- noch Realschüler** sind. Ein Hortvertrag kann also ohne Einschreibung bestehen.
 
-**Gesundheitsdaten:** erhoben als freiwillige Einwilligung mit Ja/Nein-Screening (Vegetarier, Lebensmittelunverträglichkeit, Allergien, chronische Erkrankung, Medikamente während der Betreuungszeit, Notfallmedikamente, körperliche Einschränkungen, Zeckenentfernung) plus Anlage „Angaben zur Gesundheit des Kindes" bei mindestens einem Ja. **Die Anlage deckt sich mit dem Muster von Domäne 9** (je Punkt: was, Attest ja/nein, Erlaubnis ja/nein; bei Medikamenten zusätzlich „nimmt selbständig ein / benötigte Unterstützung" — das geht in die Handlungsanweisung); die Vegetarier-Frage gehört zum Küchenprofil (`domains/mensa.md`). Der Vertrag sagt zu: **„Diese Daten werden nach Austritt aus dem Hort gelöscht."**
+**Gesundheitsdaten:** erhoben als freiwillige Einwilligung mit Ja/Nein-Screening (Vegetarier, Lebensmittelunverträglichkeit, Allergien, chronische Erkrankung, Medikamente während der Betreuungszeit, Notfallmedikamente, körperliche Einschränkungen, Zeckenentfernung) plus Anlage „Angaben zur Gesundheit des Kindes" bei mindestens einem Ja. **Die Anlage deckt sich mit dem Muster von Domäne 9** (je Punkt: was, Attest ja/nein, Erlaubnis ja/nein; bei Medikamenten zusätzlich „nimmt selbständig ein / benötigte Unterstützung" — das geht in die Handlungsanweisung); die Vegetarier-Frage gehört zum Küchenprofil (`schema/mensa-schema.sql`). Der Vertrag sagt zu: **„Diese Daten werden nach Austritt aus dem Hort gelöscht."**
 
 **Erhobene Felder:**
 
@@ -308,7 +308,7 @@ Drei Festlegungen dazu:
 - Fotoeinverständnis (Anlage „Einwilligung zu Fotos/Videos", Zwecke: Newsletter, Internet, Presse, Broschüren; je eine Unterschrift von Mutter und Vater)
 - **Einwilligung zum Informationsaustausch** zwischen Hort und Grund- bzw. Realschule über den Entwicklungsstand, zur bestmöglichen Förderung
 - Auswahl der Betreuungsmodule, siehe unten
-- Weitere Anlagen ohne Datenfelder: Regelung zum Infektionsschutz (hält u. a. fest, dass ein **fehlender Masern-Immunitätsnachweis dem Gesundheitsamt gemeldet wird** — `domains/gesundheit.md`), Betreuungsordnung
+- Weitere Anlagen ohne Datenfelder: Regelung zum Infektionsschutz (hält u. a. fest, dass ein **fehlender Masern-Immunitätsnachweis dem Gesundheitsamt gemeldet wird** — `schema/gesundheit-schema.sql`), Betreuungsordnung
 
 **Betreuungsmodule.** Mehrere gleichzeitig buchbar, **je Modul werden die einzelnen Tage gewählt** (Ankreuzraster Mo–Fr je Modul, Preis je Modul, „Zuzüglich Mittagessen", Monatsbeitrag als Summe):
 
@@ -338,7 +338,7 @@ Der Vertrag erwähnt daneben eine **Notfall- und Ferienbetreuung** (nur als Raba
 - Die Essensberechtigung wird bei der Ausgabe **auf Papier** geprüft — bei den wenigen Kindern heute im Kopf merkbar.
 - **Anmeldeformular (Realschule, „Anmeldung zum Mittagessen"):** Klasse, Schuljahr, `Vorname`, `Nachname`, `Geburtstag`; je Wochentag Mo–Fr eine Ankreuz-Buchung zu je 20 €/Monat samt Summenfeld; „Infos für die Küche": `Vegetarisch`, `Laktosefrei`, `Glutenfrei`, `sonstige Unverträglichkeiten` (Freitext); Datum und Unterschrift eines Erziehungsberechtigten; interner Vermerk „Kopie Buchhaltung" (Datum/Unterschrift).
 - **Regeln laut Formular:** Die Buchungseinheit ist der **Wochentag im Schuljahres-Abo** (Oktober–Juli), nicht der einzelne Tag; kündbar mit vier Wochen Frist zum Schulhalbjahr (31.01.); keine Erstattung bei Krankheit; Realschüler wählen zwischen warmem Essen und eigenem Vesper. Die Unterschrift ermächtigt zugleich zur **Lastschrift** — das ist die Q1-Lastschrift-Erlaubnis aus `domains/grenzkarte.md` (Q3), keine Zahlung in Weltenbaum.
-- **Ein Grundschul-Pendant gibt es nicht:** für Hortkinder wird das Mittagessen automatisch berechnet, sobald ein Modul über 13 Uhr gebucht ist (Abschnitt 8) — das RS-Formular ist die einzige eigenständige Essensanmeldung. Die Küchen-Infos landen im Küchenprofil je Kind, getrennt vom Art.-9-Bestand der Domäne 9 (`domains/mensa.md`).
+- **Ein Grundschul-Pendant gibt es nicht:** für Hortkinder wird das Mittagessen automatisch berechnet, sobald ein Modul über 13 Uhr gebucht ist (Abschnitt 8) — das RS-Formular ist die einzige eigenständige Essensanmeldung. Die Küchen-Infos landen im Küchenprofil je Kind, getrennt vom Art.-9-Bestand der Domäne 9 (`schema/mensa-schema.sql`).
 
 ---
 
@@ -364,7 +364,7 @@ Der Vertrag erwähnt daneben eine **Notfall- und Ferienbetreuung** (nur als Raba
 
 ## 11. Putzdienst
 
-Vollständig in `domains/putzdienst.md`; hier nur, was dort fehlt oder abweicht.
+Vollständig in `schema/putzdienst-schema.sql`; hier nur, was dort fehlt oder abweicht.
 
 - **5+1 ist Pflicht für alle Familien**, ausgenommen **Mitarbeiterfamilien**. Die Menge gilt **pro Familie unabhängig von der Schulart**: ein Kind in der Grundschule und eines in der Realschule bleibt 5+1, nicht 2×(5+1).
 - **Quereinsteiger** leisten anteilig; ab Jahreshälfte gilt **2+1** — die Hälfte von 5+1.
@@ -373,7 +373,7 @@ Vollständig in `domains/putzdienst.md`; hier nur, was dort fehlt oder abweicht.
 - **Anwesenheit** über Elternunterschriftenliste auf Papier. Erfasst wird **nur, ob jemand da war oder nicht** — der Putzdienst führt **keinen Stundennachweis**, weder auf Papier noch digital. Gezählt wird in Terminen (5+1), nicht in Stunden; Stundenzettel gibt es allein beim Elternbonus (Abschnitt 12).
 - **Strafe bei Nichterscheinen: 45 €**, eingezogen über die Schulgeldabrechnung. Sie wird **immer verhängt**; wer die Berechtigung hat, kann sie danach aussetzen — ein festgehaltener Vorgang, keine unterlassene Forderung.
 
-Modell und Herleitung: `domains/putzdienst.md` — das gebaute Schema trägt beide Freikäufe und die Straf-Aussetzung.
+Modell und Herleitung: `schema/putzdienst-schema.sql` — das gebaute Schema trägt beide Freikäufe und die Straf-Aussetzung.
 
 ---
 
@@ -477,13 +477,25 @@ Keine offenen Widersprüche mehr. Was die Erhebung an Abweichungen zutage geför
 
 | Abweichung | Ergebnis |
 |---|---|
-| **SEPA-Mandat** | bestätigt: je Kind eines. Im Schema von `payers` nach `children` verlagert, vor dem Freeze und damit ohne Migration (`domains/stammdaten.md`) |
-| **Quereinsteiger-Proration** | bestätigt: 2+1 ab Jahreshälfte. Formel rundet ab, mit Untergrenze 1 je Terminart (`domains/putzdienst.md`) |
+| **SEPA-Mandat** | bestätigt: je Kind eines. Im Schema von `payers` nach `children` verlagert, vor dem Freeze und damit ohne Migration (`schema/stammdaten-schema.sql`) |
+| **Quereinsteiger-Proration** | bestätigt: 2+1 ab Jahreshälfte. Formel rundet ab, mit Untergrenze 1 je Terminart (`schema/putzdienst-schema.sql`) |
 | **Putzdienst-Freikauf** | zwei getrennte Vorgänge: komplett in der Buchungsphase, einzeln vor dem jeweiligen Termin |
 | **Strafe** | wird immer verhängt, aussetzbar nur mit Berechtigung |
 | **Stundennachweis** | gibt es im Putzdienst nicht — nur Anwesenheit; Stunden zählt allein der Elternbonus |
 
 Alle fünf stehen auch im Schema: Stammdaten und Putzdienst sind gegen diese Erhebung nachgezogen und durch ihre Prüfskripte belegt.
+
+**Nachtrag aus den Soll-Prozessen, Putzdienst (Abschnitt 11):** Der Soll-Ablauf führt den **Freikauf nur noch einmal** — der Jahresfreikauf ist dort die Summe der offenen Pflichttermine (bei 5+1 derzeit 210 €) und passt sich mit, wenn Preis oder Pflichtzahl sich ändern (`soll-prozesse/01-putzdienst.md`). Das gebaute Schema trägt weiterhin beide Vorgänge; wer beide Seiten abgleicht, findet hier den Grund.
+
+**Nachtrag aus den Soll-Prozessen, Quereinsteiger-Proration (Abschnitt 11 und 21):** Die Tabelle oben führt „2+1 ab Jahreshälfte" als bestätigte Formel samt Rundung und Untergrenze. **Der Soll-Ablauf rechnet sie nicht mehr:** Wie viele Termine ein Quereinsteiger schuldet und welche er bekommt, legt allein das Sekretariat von Hand fest, angestoßen durch eine Aufgabe, die mit der Einschreibung entsteht (`soll-prozesse/01-putzdienst.md`, `soll-prozesse/08-schulvertrag.md`). Der Grund ist derselbe wie beim Freikauf: Eine Zahl, die ein Mensch einträgt, braucht keine Formel, die jemand pflegen und erklären muss. Das gebaute Schema trägt die Formel weiterhin.
+
+**Nachtrag aus den Soll-Prozessen, Einschulungs-Stichtage (Abschnitt 5.3):** Dort steht, die Stichtage müssten „dynamisch konfigurierbar" sein. **Der Soll-Ablauf führt sie gar nicht:** Das Sekretariat trägt die Einstufung — schulpflichtig, Kann-Kind, zurückgestellt — ein, ohne dass das System einen Vorschlag rechnet (`soll-prozesse/06-anmeldetag.md`). Die Stichtage ändern sich, an ihnen hängt kein Ablauf und kein Betrag, und ein veralteter Vorschlag wäre schlechter als gar keiner; die Zurückstellung ist ohnehin eine Entscheidung und keine Rechnung. Damit entfällt auch der Konfigurationswert.
+
+**Nachtrag aus den Soll-Prozessen, Klassenbildung (ohne Ist-Sektion):** Eine Klasse trägt im Soll-Ablauf eine **unveränderliche Kennung** aus Schulart, Startschuljahr der Kohorte und Zug — `GS26b` —, aus der sich Stufe und Anzeigename rechnen; aufgerückt wird deshalb nichts, und die M365-Klassengruppe wird nie mehr umbenannt (`soll-prozesse/15-klassenbildung.md`). Wichtig für den Abgleich mit der gebauten Ablage: **Die Schülerakte in SharePoint folgt dieser Kennung** — angelegt unter der Kohorte, umbenannt auf die Klassenkennung, sobald das Kind gesetzt ist, und beim Klassenwechsel mitgezogen; der Link darauf steht am Kind.
+
+**Nachtrag aus den Soll-Prozessen, Elternbonus (Abschnitt 12):** Der Soll-Ablauf weicht in drei Punkten von der Papiermechanik ab (`soll-prozesse/14-elternbonus.md`). **Mitarbeiterfamilien sind ausgenommen**, kein Aufschlag und keine Stunden — die Erhebung gibt diese Ausnahme nur für den Putzdienst her; sie ist hier eine Entscheidung und keine Ableitung. Der **Stundenzettel entfällt**: Eltern tragen jede Stunde selbst ein und benennen dabei die Person, die diese Aufgabe verantwortet hat, und nur diese bestätigt sie; was am 31. Juli unbestätigt ist, zählt nicht — dieselbe Härte wie beim zu spät abgegebenen Zettel. Und die **anteilige Rückzahlung ist gedeckelt** auf das, was der Familie im Schuljahr berechnet wurde, statt eigene Regeln für Quereinsteiger und unterjährige Abgänge zu tragen; maßgeblich bleibt die Abrechnung in Optigem, unsere Zahl ist ein Vorschlag. Die Einordnung „weiterhin ausdrücklich nicht v1" ist damit überholt: Der Prozess ist in `soll-prozesse/README.md` vorgezogen.
+
+**Nachtrag aus den Soll-Prozessen, Rechnungsfreigabe (Abschnitt 13):** „Läuft stabil, deshalb niedrige Migrationspriorität" gilt weiter — der Soll-Ablauf übernimmt die fünf Schritte und alle Aktionen der Führungskraft unverändert (`soll-prozesse/12-rechnungsfreigabe.md`). Der Umzug ist trotzdem mehr als eine Umstellung, weil fünf Dinge dazukommen, die im heutigen Portal fehlen. Über einer **Meldegrenze von derzeit 250 €** erfährt die Geschäftsführung jede Freigabe — eine Information, keine zweite Unterschrift. Der **Zahlungsempfänger wird ein Eintrag statt Freitext**, jeder darf einen anlegen und die Buchhaltung führt Dubletten zusammen; dasselbe gilt für Projekte und Buchungskonten, deren vier Tippfehler sich heute nicht korrigieren lassen, ohne Altbelege abzuhängen. Ein **Dublettenhinweis** meldet gleichen Empfänger und gleichen Betrag innerhalb von 30 Tagen, sperrt aber nichts. **Vorlagen** belegen das Wiederkehrende vor — und eine Aufteilungsvorlage der Geschäftsführung nimmt die Zustimmung der beteiligten Führungskräfte vorweg, sodass ein fester Schlüssel mit einer einzigen Freigabe durchläuft. Und aus den Anhängen entsteht **eine PDF je Beleg**, die die Buchhaltung nach Optigem mitnimmt; übertragen wird weiter von Hand, weil Optigem keine Schnittstelle hat. Zwei Punkte ändern außerdem die Rechte: Wer sich selbst etwas erstatten lässt, gibt es nicht mehr selbst frei, und Sekretariat wie Schulleitung sehen hier nur ihre eigenen Belege — die erste Abweichung von „das Sekretariat sieht alles" überhaupt.
 
 ---
 
@@ -493,8 +505,6 @@ Die Fristen-gebundenen Punkte stehen in `TODO.md`, die entwurfsgebundenen in `do
 
 | Frage | Wen fragen | Spätestens vor |
 |---|---|---|
-| Ist der „Einschulungsuntersuchungsbericht" der Checkliste das interne Lehrerformular? | Sekretariat | Domäne 2/4 |
-| Lassen sich die Lehrkräfte von Excel weg zur digitalen Bewertung bewegen? | Schulleitung | Domäne 2/4 |
 | Welche Excel-Listen existieren darüber hinaus? | Verwaltung, Hausdienstverwaltung, Hort | laufend |
 | Was im Jahreslauf regelmäßig vergessen wird — es sind „Kleinigkeiten", die Schmerzpunkte sind unbekannt | Sekretariat | offen |
 
