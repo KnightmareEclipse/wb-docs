@@ -102,7 +102,7 @@ Ausdrücklich benannt, weil ohne Zweck kein Feld bleibt (`rules.md` Abschnitt 7)
 - **Kirchengemeinde** — Interesse, kein benannter Verarbeitungszweck.
 - **Geschwister und wahrgenommene Angebote** (Musikarche, Ferienprogramm, Clemens-KITA) — geben einen **Bonus bei der Zusage** und sind damit entscheidungsrelevant, nicht dekorativ.
 
-Alle vier Felder werden gespeichert — Konfession und Staatsangehörigkeit auch bei den Erziehungsberechtigten (`schema/stammdaten-schema.sql`). Entschieden mit bekanntem Preis: Konfession ist ein Art.-9-Datum, und ein Feld ohne beschlossenen Zweck mit echten Personendaten zu füllen, schließt `rules.md` Abschnitt 7 eigentlich aus. Ausschlaggebend war die Gegenrichtung — eine Spalte zu streichen ist ein `DROP COLUMN`, ein beim Vollimport nicht erhobener Wert ist nicht nacherhebbar. **Der Zweck-Beschluss bleibt damit fällig, und zwar vor dem Vollimport** (`TODO.md`); das Schema trägt die Absicherung bereits (Spalten-GRANT auf den Konfessionsspalten an `children` und `guardians`).
+Alle vier Felder werden gespeichert — Konfession und Staatsangehörigkeit auch bei den Erziehungsberechtigten (`schema/stammdaten-schema.sql`). Entschieden mit bekanntem Preis: Konfession ist ein Art.-9-Datum, und ein Feld ohne beschlossenen Zweck mit echten Personendaten zu füllen, schließt `rules.md` Abschnitt 7 eigentlich aus. Ausschlaggebend war die Gegenrichtung — eine Spalte zu streichen ist ein `DROP COLUMN`, ein beim Vollimport nicht erhobener Wert ist nicht nacherhebbar. **Der Zweck-Beschluss bleibt damit fällig, und zwar vor dem Vollimport** (`TODO.md`); das Schema trägt die Absicherung bereits (Spalten-GRANT auf den Konfessionsspalten an `children` und `family_guardians`).
 
 ### 3.4 Bruchstellen
 
@@ -273,7 +273,7 @@ Derselbe Satz wird zusätzlich auf allen vier Anmeldetag-Checklisten und im Hort
 Drei Festlegungen dazu:
 
 - **Das Unterschriftsdatum ist wichtig** — gedeckt durch `children.mandate_signed_at` (`schema/stammdaten-schema.sql`).
-- **Die BIC bleibt**, aber nur für **nicht-deutsche Konten**: Optigem verlangt sie. `payers.bic` ist damit nicht streichbar (`schema/stammdaten-schema.sql`).
+- **Die BIC bleibt**, aber nur für **nicht-deutsche Konten**: Optigem verlangt sie. `sepa_mandates.bic` ist damit nicht streichbar (`schema/stammdaten-schema.sql`).
 - **Das SEPA-Mandat ist für alle Neuanmeldungen Pflicht, weil es an das Kind gebunden ist:** Verlässt das erste Kind die Schule, verfällt es auch für die noch eingeschriebenen Geschwister. Je Kind wird deshalb ausdrücklich ein eigenes Mandat eingesammelt — im Schema `children.mandate_reference`/`mandate_signed_at`, während die Bankverbindung bei der zahlenden Person bleibt (`schema/stammdaten-schema.sql`).
 
 ### 7.5 Sonderfälle
@@ -437,7 +437,7 @@ Sekretariat und Schulleitung erfahren es zuerst, ASV-BW wird gepflegt. Alles Wei
 
 **Eigentümer in Weltenbaum ist die Stammdaten-Domäne**, nicht eine eigene: der Abgang ist eine alltägliche Datenänderung (Abschnitt 2) und läuft über denselben Schreibpfad. Gesetzt wird `children.exit_date` — die Spalte, auf die sich die M365-Kontenverwaltung verlässt (`fachdomaenen.md` Abschnitt 6, Domäne 7) und an der die Löschfrist hängt. Zwei Folgen innerhalb von Weltenbaum gehören dazu und nicht in einen Zuruf:
 
-- **Laufende Betreuungs- und Mensabuchungen enden** (`care_module_bookings.valid_until`) — sonst steht das Kind weiter auf Hort- und Küchenliste.
+- **Laufende Betreuungs- und Mensabuchungen enden** (`care_module_agreements.valid_until` — der Zeitraum hängt an der Vereinbarung, nicht am einzelnen Wochentag) — sonst steht das Kind weiter auf Hort- und Küchenliste.
 - **Die Fremdsysteme bekommen je eine Nachzieh-Aufgabe** (Q5, `sync_tasks`): ASV-BW, Optigem, M365-Offboarding. Genau dafür gibt es die Entität — heute reißt der Faden an dieser Stelle.
 
 Was Weltenbaum nicht abnimmt, bleibt benannt: Bescheinigungen schreibt weiterhin ein Mensch.
