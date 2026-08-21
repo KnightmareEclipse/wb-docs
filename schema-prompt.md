@@ -1,0 +1,200 @@
+# Prompt: eine Fachdomäne ins Schema überführen
+
+Gegenstück zu [`prozessblock-prompt.md`](prozessblock-prompt.md). Dort entstehen die Abläufe, hier wird daraus SQL. **Eine Domäne je Durchgang** — dieselbe Portionierung, die sich bei den Blöcken bewährt hat: ein schmaler Auftrag liefert verlässlich besser als ein breiter. Für alle Domänen ohne Rückfragen gibt es [`schema-bau-prompt.md`](schema-bau-prompt.md); der sagt auch, welche Abschnitte hier dann nicht gelten. Steht das SQL, prüft [`schema-pruef-prompt.md`](schema-pruef-prompt.md) es gegen die Blöcke — in einer frischen Session, die den Bau nicht mitgemacht hat.
+
+Kopieren, `DOMÄNE` ersetzen, absenden. Alles unter dem Strich ist der Prompt. Effort `high`, bei einer Domäne mit vielen Berührungspunkten `xhigh`; Thinking anlassen.
+
+---
+
+Wir überführen die Fachdomäne **DOMÄNE** ins Datenmodell. Ergebnis ist eine `.sql`-Datei unter `schema/` **in diesem Repo** (`wb-brainstorming`), aus der später SQLAlchemy-2.0-Modelle und eine Alembic-Migration entstehen. Nur diese Domäne, keine andere — was an ihren Rand stößt, wird benannt und nicht mitmodelliert.
+
+**Das ist ein Neubau, keine Fortschreibung.** Die Schemata in `wb-docs/domains/` sind ein Vorentwurf, den dieser Durchgang ersetzt (siehe unten); dort wird nichts geändert. Auch der dortige Stammdaten-Freeze bindet diesen Entwurf nicht — hier ist noch alles beweglich.
+
+## Was du vorher liest, und wozu
+
+1. **Alle Blöcke in `soll-prozesse/`, die diese Domäne berühren** — vollständig, nicht überflogen. Sie sind die fachliche Wahrheit: Aus ihnen wird das Schema abgeleitet, nicht umgekehrt. Welche das sind, findest du über die Verweise; im Zweifel einer zu viel.
+2. **`soll-prozesse/hebel.md`** — was für alle Prozesse gilt. Ein Hebel, den mehrere Blöcke nennen, ist fast immer **eine** Struktur im Schema und nicht je Block eine.
+3. **`~/Documents/projects/weltenbaum/wb-docs/rules.md`**, Abschnitt 1 samt der ausdrücklichen **Ausnahme für DB-Schema-Design**, und Abschnitt 7 (Datensparsamkeit). Das sind die Maßstäbe, an denen ich deinen Entwurf messe.
+4. **`wb-docs/domains/grenzkarte.md`** — wem welche Tatsache gehört, die Querschnitts-Entitäten Q1–Q5 und die weißen Flecken. Der Domänenschnitt gilt weiter: Wenn deine Domäne etwas braucht, das dort schon jemandem gehört, referenzierst du es und baust es nicht nach. Den Abschnitt zum Stammdaten-Freeze liest du als Begründungssammlung — er beschreibt einen Stichtag des anderen Repos und bindet diesen Entwurf nicht.
+
+**Punkte 1 bis 4 liest du selbst, nicht durch einen Subagenten.** Jede Tabelle trägt später den Satz wörtlich, der sie verlangt — ein zusammengefasster Bericht hat diesen Satz nicht mehr, und das Zitat ist hinterher nicht zu rekonstruieren.
+
+## Drei Referenzen und ein Vorentwurf
+
+Vier vorhandene Schemata dienen als Inspiration, **keines als Vorlage** — und sie sind nicht gleich viel wert.
+
+**Die drei Referenzen** — ASV-BW (`~/Documents/projectNightmare/ASV-BW/asv_struktur.sql`, der Wert steckt in den `COMMENT ON COLUMN`-Zeilen), SVWS-NRW, GibbonEdu — dienen **einem** Zweck: Randfälle nicht neu zu erfinden. Sie laufen seit Jahren produktiv, ihre Kanten sind echt. Sie sind aber keine Feldquelle: Dass ASV-BW allein im Schülerstamm rund 170 Spalten führt, begründet keine einzige davon bei uns (`rules.md` Abschnitt 7). Ihre Namenskonventionen übernehmen wir ausdrücklich nicht — Gibbons `gibbonPersonID` ist das Gegenbeispiel, nicht das Vorbild.
+
+**Der Vorentwurf** — `wb-docs/domains/*-schema.sql` — steht **unter** den dreien und ist die Quelle, der du am wenigsten glaubst: Domäne für Domäne entstanden, jede gegen den Blockstand ihres Tages, die späteren Blöcke gab es damals nicht. Das sind Einzelentscheidungen, die den ganzen Prozess nie zusammen gesehen haben — der Grund für diesen Neubau, nicht sein Ausgangspunkt. Zwei Dinge nimmst du trotzdem daraus, und nur diese zwei:
+
+- **Die Konventionen**, unverändert: `stammdaten-schema.sql` zeigt, wie Kommentare, Schlüssel, Constraint-Namen und Begründungen in diesem Projekt aussehen. Daran hängt keine fachliche Entscheidung, also hängt daran auch kein Fehler.
+- **Felder ohne Blockgrundlage als Hinweis, nie als Übernahme.** Dahinter kann echtes Formularwissen stecken — oder eine Erfindung von damals. Auseinanderhalten kannst du das nicht, also übernimmst du es nicht, sondern schreibst eine Zeile in die Abweichungsliste.
+
+Wo du eine Quelle **bewusst nicht** übernimmst, steht der Grund am betroffenen Feld. Hier darfst du delegieren: In allen vier suchst du Fundstellen und Randfälle, keine Zitate, und ASV-BW allein hat sechsstellige Zeilenzahl.
+
+## Rangfolge bei Widerspruch
+
+Der häufigste Grund, mich zu fragen, ist „zwei Quellen sagen Verschiedenes". Das musst du nicht fragen, das ist entschieden:
+
+1. **Der Soll-Block** schlägt alles. Er ist die jüngste und einzige abgestimmte Fassung.
+2. **`hebel.md`** schlägt einen einzelnen Block, wo der Block keine Abweichung ausschreibt.
+3. **`grenzkarte.md`** schlägt alles Weitere — sie zieht die Grenzen, dein Entwurf füllt sie.
+4. **`prozesse.md`** liefert reale Formularfelder, die **drei Referenzen** liefern Randfälle — beide nie eine Struktur.
+5. **Der Vorentwurf in `wb-docs`** schlägt gar nichts. Er widerspricht dir nicht, er hat nur eine andere Antwort gegeben.
+
+Steht deine Ableitung gegen Punkt 3, ist das ein Fund für die Abweichungsliste — kein Grund anzuhalten. Steht sie gegen den Vorentwurf, ist das der erwartete Normalfall dieses Durchgangs und **keine** Meldung wert; berichtenswert ist dort allein ein Feld, für das du in keinem Block eine Grundlage findest.
+
+## Reihenfolge: erst der Entwurf, dann die Fragen
+
+**Frag mich nichts, bevor du geschrieben hast.** Aus den Blöcken und der Grenzkarte lässt sich der größte Teil ableiten, ohne dass ich etwas beitrage. Also: das vollständige Schema entwerfen, jede offene Entscheidung darin als Annahme markieren, mir den Entwurf zeigen — und **erst danach** fragen.
+
+Jede Annahme steht **an genau der Stelle, an die sie gehört**, als SQL-Kommentar in dieser Form:
+
+```sql
+-- [A] Die Modulbuchung hängt am Kind und nicht am Vertrag. — Alternative: am
+-- Vertrag, dann ist die Historie über Vertragswechsel hinweg lückenlos; Preis:
+-- jede Abfrage „welche Module hat dieses Kind" braucht einen Join mehr.
+```
+
+- Immer `[A]`, damit ich alle mit einer Textsuche finde.
+- Aussage, dann Alternative, dann Preis — in dieser Reihenfolge, ein Satz je Teil.
+- Am Ende deiner Nachricht listest du sie als `A1, A2 …` auf, damit ich sie ohne Scrollen beantworten kann.
+- **Annahme und Frage sind nicht dasselbe.** Ein `[A]` ist entschieden und trägt weiter, wenn ich schweige; eine Frage hält an. Kannst du unter deiner Annahme weiterbauen, ist es ein `[A]` und keine Frage.
+- **Eine Domäne ist erst fertig, wenn kein `[A]` mehr in der Datei steht.** Bestätigte Annahmen verlieren die Marke und werden normaler Kommentar, gekippte werden ersetzt. `[?]`-Marken bleiben stehen — die sind für die Leute in der Schule, nicht für mich.
+
+## Was du allein entscheidest
+
+Das hier fragst du nicht, das entscheidest du und schreibst höchstens eine `[A]`-Zeile dazu:
+
+- Datentyp, Länge, `NULL`/`NOT NULL`, `DEFAULT`, jede `CHECK`-Bedingung.
+- Ob etwas eine eigene Tabelle, eine Spalte oder ein Lookup wird.
+- Tabellen- und Spaltennamen, Reihenfolge der Spalten, Indizes.
+- Ob ein Sachverhalt aus zwei Blöcken **eine** Struktur wird.
+- Welche Constraints die Regeln der Blöcke tragen — „höchstens eine offene Aufgabe je Art und Bezug" ist ein partieller Unique-Index und keine Frage an mich.
+
+## Was du mich fragst
+
+- Wo ein Block schweigt und die Antwort den Schnitt trägt — nicht ein Detail, sondern eine Grenze.
+- Wo zwei Blöcke sich widersprechen und die Rangfolge oben nicht greift, weil beide gleich alt sind. Dann Konflikt offenlegen, beide Seiten zitieren.
+- Wo eine Ableitung eine Änderung an `hebel.md` oder an einem fertigen Block nach sich zöge.
+
+**Zwei bis vier Runden sind normal** — deutlich weniger als bei einem Prozessblock, weil hier das meiste ableitbar ist. Höchstens vier Fragen je Runde, nach Gewicht sortiert, als `F1, F2 …` mit Buchstaben an den Optionen. Zu jeder Option ihr **Preis**, nicht nur die Empfehlung. Was ich nicht beantworten kann, wird eine **`[?]`-Marke mit Adressat**; nichts ausdenken, und wenn die Blöcke für eine Entscheidung nicht reichen, sag das, statt zu raten.
+
+## Die Regeln fürs Modell
+
+**Dritte Normalform als Boden, Lesbarkeit als Decke.** 3NF ist einzuhalten: keine Wiederholgruppe, keine partielle Abhängigkeit vom zusammengesetzten Schlüssel, keine transitive Abhängigkeit. Darüber hinaus wird nicht normalisiert, wenn es niemand mehr liest — eine Tabelle, die du mir nicht in einem Satz erklären kannst, ist falsch geschnitten. Performance trägt dabei kein Argument in eine der beiden Richtungen (`rules.md` Abschnitt 1).
+
+**Ein Ort pro Sachverhalt** — vollständig in `rules.md` Abschnitt 1, hier nur die Stelle, an der du sonst stolperst: Ein ableitbarer Wert darf ausnahmsweise zusätzlich stehen, wenn er ein Constraint tragen muss, das über den Ableitungsweg nicht ausdrückbar ist — und bleibt dann per **zusammengesetztem Fremdschlüssel** an sein Original gebunden, damit beide nicht auseinanderlaufen können.
+
+**Schlüssel tragen Namen, keine `id`.**
+
+- Tabellen englisch, `snake_case`, Plural: `families`, `care_module_bookings`.
+- Primärschlüssel heißt Singular plus `_id`: `family_id` in `families`. Nie ein blankes `id`.
+- Ein Fremdschlüssel heißt **genau wie der Primärschlüssel, auf den er zeigt**. Zeigen zwei Spalten derselben Tabelle auf dieselbe Zieltabelle, trägt die Rolle das Präfix — `payer_person_id`, `confirming_person_id` — und ein Kommentar sagt, warum es zwei gibt.
+- `uuid` mit `gen_random_uuid()` für alles mit Personenbezug: Eine fremde Familie darf sich nicht über eine hochgezählte Nummer erraten lassen. `integer`-Identity für Lookups und Organisationstabellen, die nie in einer URL für Externe auftauchen.
+- Ein natürlicher Schlüssel wird `UNIQUE`, nie Primärschlüssel — er ändert sich irgendwann, und dann hängen alle Fremdschlüssel daran.
+- **Jedes Constraint bekommt einen expliziten Namen**, Muster `pk_`, `fk_`, `uq_`, `ck_`, `ix_` plus Tabelle und Spalten. Das ist kein Schönheitsdienst: Ohne deterministische Namen erzeugt Alembics Autogenerate bei jedem Lauf andere und schlägt beim Downgrade fehl.
+
+**Lookup oder `CHECK`?** Eine Werteliste, die die Schule pflegt oder die wachsen kann, wird eine Lookup-Tabelle mit stabilem Code. Ein Wertepaar, das nicht wachsen kann, wird ein `CHECK` — ein Fremdschlüssel plus Join für zwei Werte ist Aufwand ohne Ertrag.
+
+**Drei Zustände: erteilt, verweigert, nicht gefragt.** Eine Antwort, die ausbleiben kann, braucht drei unterscheidbare Zustände, sonst sieht die vergessene Frage aus wie ein Nein. Wie das gebaut wird — zwei Zeitpunkte, oder ein Zeitpunkt plus ein Anker eine Tabelle weiter —, steht in `grenzkarte.md`; halte dich an die dortige Unterscheidung, statt eine dritte Bauform zu erfinden.
+
+**Jede Tabelle mit Personenbezug nennt ihren Löschanker** — als Kommentar an der Tabelle, ein Satz: woran die Frist rechnet und aus welchem Block der Anker kommt. Die Anker stehen alle schon in den Blöcken; wenn du für eine Tabelle keinen findest, ist das ein Fund und keine Lücke, die du füllst.
+
+**Keine konstruierten Randfälle.** Statt „was, wenn genau dieser seltene Fall eintritt" die generelle Regel suchen, die ihn mit abdeckt. Und kein Feld, kein Trigger, kein Status gegen menschliches Vergessen: Bleibt ein Vorgang liegen, weil ihn niemand einträgt, ist das kein Modellierungsproblem.
+
+## Nachvollziehbarkeit
+
+Zwei verschiedene Dinge, beide verlangt:
+
+**Woher eine Struktur kommt.** Jede Tabelle trägt als erste Kommentarzeile ihre Herkunft: welcher Block sie verlangt und welcher Satz darin, wörtlich zitiert. Jede Spalte, deren Existenz nicht auf den ersten Blick klar ist, trägt ihre Begründung — und **warum eine erwartete Spalte fehlt**, steht als Kommentar an der Tabelle, weil eine nicht existierende Spalte keinen anderen Anker hat. Ohne diese Zeilen schlägt der nächste Durchgang zuverlässig genau das vor, was hier schon verworfen wurde.
+
+**Was im Betrieb mit den Daten geschah.** Die [Änderungsspur](soll-prozesse/hebel.md#änderungsspur) ist ein Hebel und deshalb **eine** Struktur für alle Domänen — sie wird nicht je Tabelle nachgebaut. Prüfe stattdessen, ob deine Tabellen das tragen, was die Blöcke von ihr verlangen: wer, wann, was vorher dastand, und der Lauf als Urheber bei maschinellen Änderungen.
+
+**Wo eine Begründung hingehört** entscheidet eine Frage, damit sie nicht zweimal dasteht: Hängt sie an genau einer Spalte oder einem Constraint? → in die `.sql`. Braucht sie zwei Tabellen oder einen Prozess, um überhaupt formulierbar zu sein? → in die `.md`, und die `.sql` verweist darauf.
+
+## Verständlichkeit
+
+Das Schema wird von Menschen abgenommen, die es nicht gebaut haben. Deshalb:
+
+- Die Datei beginnt mit einem **Lesepfad**: drei bis fünf Sätze, welche Tabellen man zuerst versteht und in welcher Reihenfolge der Rest daran hängt.
+- Bezeichner sind englisch, Kommentare deutsch — so steht es im Bestand, und zwei Sprachen im selben Namen wären schlimmer als eine falsche.
+- Keine Abkürzung, die nicht im [Glossar](../wb-docs/glossar.md) steht. Was in den Blöcken einen Namen hat, heißt hier genauso.
+- Nichts, was SQLAlchemy nicht sauber ausdrücken kann: keine Datenbank-Trigger, keine Stored Procedures, keine Regel, die nur in der Datenbank lebt und im Code unsichtbar ist.
+
+## Länge
+
+Du neigst zu langen Ausgaben, und in einer Schemadatei fällt das nicht auf, bis niemand sie mehr liest. Die Budgets zählen deshalb **Sätze und nicht Zeilen**: Eine SQL-Zeile trägt drei Wörter, eine Kommentarzeile fünfzehn — ein Zeilenmaß behandelt beide gleich und ist damit dreimal großzügiger, als es klingt.
+
+- **Spaltenkommentar: ein Satz, höchstens zwei.**
+- **Tabellenkommentar: höchstens drei Sätze** — Herkunft, Löschanker, bewusst fehlende Spalten. Das sind die drei aus „Nachvollziehbarkeit"; mehr trägt eine Tabelle nicht.
+- **Kopf und Lesepfad zusammen: höchstens fünf Sätze.** Was mehr braucht, ist ein Modell über mehrere Tabellen und gehört in die `.md`.
+- **Ein Kommentar sagt nur, was im SQL nicht schon steht.** `-- Pflichtfeld` über einem `NOT NULL` ist eine verlorene Zeile, `-- nullable` über einer Spalte ohne `NOT NULL` genauso. Der Test: Kannst du nicht benennen, was ein Leser ohne diesen Satz falsch machen würde, schreibst du ihn nicht — er ist zugleich der Filter dafür, welche Spalte überhaupt eine Begründung bekommt.
+- **Ein Grund steht einmal.** Gilt er für mehrere Spalten, steht er an der Tabelle, und die Spalten verweisen mit drei Worten darauf, statt ihn zu wiederholen.
+- **Wird eine Begründung länger als das Feld, das sie erklärt**, ist sie kein Spaltenkommentar mehr: ab in die `.md`, und die `.sql` verweist. Das ist dieselbe Grenze wie oben, nur von der Länge her gedacht.
+
+Kollidiert ein Budget mit der Nachvollziehbarkeit, gewinnt die Nachvollziehbarkeit — und der Überhang geht in die `.md`, nicht in eine längere `.sql`.
+
+## So sieht eine fertige Tabelle aus
+
+```sql
+-- Herkunft: 13 (M365-Kontenverwaltung) — „Neu ist der Mitarbeitendeneintrag:
+-- Name und Haus (Pflicht) …". Löschanker: last_working_day; ab ihm rechnet der
+-- Lösch-Lauf (Block 17), und ab ihm enden die Rollen von selbst (hebel.md).
+-- Bewusst KEINE Spalten für Vertrag, Gehalt, Urlaub: Block 13 grenzt die
+-- Personalverwaltung im eigentlichen Sinn ausdrücklich aus.
+CREATE TABLE employees (
+    employee_id       uuid    NOT NULL DEFAULT gen_random_uuid(),
+    person_id         uuid    NOT NULL,
+    -- Schule oder KITA. Trägt zwei Entscheidungen: die Domain des M365-Kontos
+    -- und ob die Familie bei Putzdienst (01) und Elternbonus (14) ausgenommen
+    -- ist — die KITA ist ein eigener Betrieb und zählt dort nicht mit.
+    house_id          integer NOT NULL,
+    -- Spiegelt den Tenant und wird allein vom Admin gepflegt (Block 13). Sie
+    -- entsteht erst mit dem Konto; am leeren Feld ist ablesbar, dass es fehlt.
+    school_email      text,
+    first_working_day date,
+    last_working_day  date,
+
+    CONSTRAINT pk_employees            PRIMARY KEY (employee_id),
+    CONSTRAINT fk_employees_person     FOREIGN KEY (person_id) REFERENCES persons (person_id),
+    CONSTRAINT fk_employees_house      FOREIGN KEY (house_id)  REFERENCES houses (house_id),
+    CONSTRAINT uq_employees_school_email UNIQUE (school_email),
+    CONSTRAINT ck_employees_working_days
+        CHECK (last_working_day IS NULL OR first_working_day IS NULL
+               OR last_working_day >= first_working_day)
+);
+```
+
+## Was du lieferst
+
+**Datei anfassen erst nach meinem OK.** Bis dahin steht alles in deiner Antwort, nichts auf der Platte.
+
+1. **Den Entwurf für `schema/<domäne>-schema.sql`** — in diesem Repo, nicht in `wb-docs`. Vollständig, so wie oben: kein Auszug, keine Auslassungszeichen, keine „hier analog weiter"-Stelle. `<domäne>` ist der kurze deutsche Kleinbuchstabenname (`mensa`, `putzdienst`, `klassenorganisation`).
+2. **Die Abweichungsliste** (siehe unten) als eigener Abschnitt deiner Antwort, nie in der Datei.
+3. **Erst nach meinem OK zum Schema: das Prüfskript** `schema/<domäne>-schema-check.sql` mit Sollstand im Kopfkommentar. Es prüft, ob jede Tabelle existiert und jedes Constraint greift, und belegt jede Regel aus den Blöcken, die im Schema stehen soll, mit einem fehlschlagenden `INSERT` — eine Regel ohne Gegenprobe gilt als nicht gebaut. Lauf es gegen eine Wegwerf-Datenbank, wenn du eine Postgres-Instanz hast; sonst sag, dass es ungeprüft ist. Vorher schreibst du es nicht: ein Prüfskript zu einem Entwurf, der sich noch ändert, schreibst du zweimal.
+
+## Die Abweichungsliste
+
+Gibt es die Domäne im Vorentwurf schon, legst du ihn **einmal** daneben — nicht um dich anzugleichen, sondern für **eine** Frage: Steht dort etwas, für das du in keinem Block eine Grundlage findest? Das kann aus einem Formular stammen, das ich kenne und du nicht, und wäre das Einzige, was bei einem Neubau wirklich verlorengehen kann.
+
+Je Fund eine Zeile: was dort steht, wo du gesucht hast, dein Vorschlag. Nicht stillschweigend weglassen, aber auch nicht ungefragt übernehmen — es entscheidet sich in meiner Antwort, nicht in deinem Entwurf.
+
+Alles andere gehört **nicht** auf die Liste: dass du anders schneidest, anders benennst oder eine Tabelle mehr oder weniger hast, ist der Zweck dieses Durchgangs und keine Abweichung, über die ich lesen muss.
+
+## Wie du mit mir redest
+
+- **Ergebnis zuerst.** Der erste Satz sagt, was rausgekommen ist; die Begründung steht dahinter.
+- **Drei Listen, drei Präfixe:** Annahmen `A1, A2 …`, Fragen `F1, F2 …`, Abweichungen `W1, W2 …`. Dann ist „A3 ja, F1b, W2 so lassen" eine vollständige Antwort, und ich muss nicht dazuschreiben, welche Liste ich meine.
+- **Höchstens ungefähr fünfzehn Zeilen Prosa je Antwort.** SQL zählt nie mit, weder der Entwurf noch ein Ausschnitt daraus. Die drei Listen zählen ebenfalls nicht mit, tragen aber **je Eintrag genau eine Zeile** — sie sind zum Abhaken, nicht zum Lesen. Kürze nie eine Liste, um ein Budget zu halten: eine unterschlagene Annahme kostet mich mehr als zehn Zeilen.
+- Begründe nur, wo eine Entscheidung daran hängt. **Keine Zusammenfassung dessen, was ich gerade gelesen habe, und keine dessen, was du gerade geschrieben hast** — die Datei steht ja da. Kein Schlussabsatz, der das Ergebnis noch einmal würdigt, und keine „nächsten Schritte", solange ich nicht danach frage.
+- Korrigier eine frühere Aussage nur, wenn der Fehler meine Entscheidung ändert. Sonst still richtigstellen und weiter.
+
+## Bevor du mir den Entwurf zeigst
+
+Vier Nähte, jede hat in diesem Projekt schon eine Nacharbeitsrunde gekostet. Sie sagen, worauf du sehen sollst — **melde davon nur, was etwas ergeben hat.** „Geprüft, nichts gefunden" schreibst du nicht.
+
+1. **Doppelter Ort.** Steht irgendein Sachverhalt an zwei Stellen — auch in einer anderen Domäne oder in einer Querschnitts-Entität aus `grenzkarte.md`?
+2. **3NF.** Gibt es eine Spalte, die von etwas anderem als dem ganzen Primärschlüssel abhängt?
+3. **Herkunft.** Trägt jede Tabelle ihren Block und ihren Löschanker, und jede nicht offensichtliche Spalte ihre Begründung?
+4. **Lesbarkeit.** Kannst du jede Tabelle in einem Satz erklären, und trägt der Lesepfad am Kopf der Datei wirklich?
