@@ -20,6 +20,7 @@ Antwort auf die falsche Frage.
 | `glossar.md` | Das Rollen-Vokabular, repo-übergreifend gültig — Infra-Admin vs. Admin vs. Verwaltung |
 | `idea/`, `pipeline/`, `project-parts.md` | Infrastruktur: Container, Identität, Backup, DSGVO-Organisation, Repo-Struktur |
 | `TODO.md`, `TODO-SESSIONS.md` | Was reale Konten und Zugänge braucht bzw. was eine Session selbst abarbeiten kann |
+| `fragen.md` | Der Wortlaut der offenen Fragen an die Schule, je Gesprächspartner, samt dem Kriterium, wann eine Antwort reicht |
 | `prompts/` | Die wiederkehrenden Aufträge. Was für alle gilt, steht einmal in `prompts/gemeinsam.md` |
 | `pruefberichte/` | Archiv der abgeschlossenen Prüfzyklen — ein neuer Lauf liest sie **nicht** |
 
