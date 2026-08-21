@@ -36,6 +36,14 @@ Dublettenerkennung beim Import: Nachname + Geburtsdatum beim Kind, Vor- + Nachna
 
 **Eine Quelle ist beim Import ausdrücklich nicht belastbar: die Warteliste.** Sie wird vom Sekretariat heute faktisch nicht gepflegt (`prozesse.md` Abschnitt 6) — Einträge können längst erledigt, abgesagt oder eingeschult sein. Sie ungeprüft zu übernehmen erzeugt einen Bestand, dem man den Verfall nicht ansieht, und die jährliche Fortschreibung zöge ihn danach still weiter. Vor dem Import einmal durch das Sekretariat bestätigen zu lassen oder mit Status „ungeprüft" zu übernehmen.
 
+### Die bestehenden Klassen sind ein eigener Importschritt
+
+Der Vollimport bringt Kinder, aber keine Klassen. Jede bestehende Klasse wird mit ihrer
+**rückgerechneten Kohorten-Kennung** angelegt: Eine Klasse, die im Importjahr in Stufe 3 steht, ist
+`GS` mit Startschuljahr zwei Jahre davor. Das ist ableitbar und keine Frage an die Schule — aber
+ohne diesen Schritt hat kein Kind eine Klasse, und Klassenliste, Aktenordner und M365-Gruppe hängen
+daran (`soll-prozesse/15-klassenbildung.md`, `soll-prozesse/README.md`).
+
 ### Was am Putzdienst noch im Backend fehlt, nicht im Schema
 
 Das Schema trägt Einzel-Freikauf und Straf-Aussetzung (`schema/putzdienst-schema.sql`). Zwei Dinge daneben sind bewusst nicht als Constraint gebaut und dürfen deshalb beim Implementieren nicht untergehen:

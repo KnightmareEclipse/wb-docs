@@ -237,7 +237,6 @@ Was diese Karte offenlässt, ist selbst Ergebnis: es sind die Fragen, die vor de
 | Was fehlt | Wen fragen | Spätestens vor |
 |---|---|---|
 | Zweck der Voranmeldefelder Beruf, Konfession, Staatsangehörigkeit, Kirchengemeinde — die Spalten stehen (an `children` und `family_guardians`), der Beschluss dazu nicht (`prozesse.md` Abschnitt 3.3). Fällt er negativ aus, ist es ein `DROP COLUMN` plus ein Feld weniger im Import | Schulleitung, Datenschutzbeauftragte:r | **Vollimport Ende August 2026** |
-| Beitragssatzung/aktuelle Preisliste des Horts (Preise je Modul und Mittagessen) — Struktur unbekannt, bis dahin bewusst keine Preis-Spalten am Modulkatalog (`schema/mensa-schema.sql`) | Hortleitung, Geschäftsführung | digitaler Hortvertrag (Domäne 2/4) |
 | Elternfragebogen der GS-Anmeldetag-Checkliste — Inhalt unbekannt, könnte vorab digital laufen (`prozesse.md` Abschnitt 5.2) | Sekretariat, Grundschulleitung | erster Anmeldetag mit Weltenbaum |
 | Welche zwei SharePoint-Bibliotheken die Dateien tragen und wer sie einrichtet — Form ist entschieden (`Sites.Selected`, App-only, je Bibliothek gegrantet), offen sind die konkreten Sites | zweiter Admin | Domäne 4 |
 | Ob der Hort eigenen Dateizugriff bekommt — vorerst führt er nichts Eigenes, seine Gesundheitsangaben kommen als Zeilen | Hortleitung, Sekretariat | nach dem Produktivstart |

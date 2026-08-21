@@ -12,7 +12,7 @@ Wir übertragen die Fachdomäne **DOMÄNE** aus dem geprüften Schema nach SQLAl
 
 **Die `.sql` ist die Wahrheit, das Modell ist das Abgeleitete.** Was du nicht ausdrücken kannst, ist ein Fund und keine stille Vereinfachung.
 
-Es gelten `CLAUDE.md` dieses Repos (Code-Stil, verbindlich) und [`../wb-docs/prompts/gemeinsam.md`](gemeinsam.md) (die `[A]`-Marke, wie du fragst, wie du mit mir redest, kein Subagent urteilt). Beides liest du zuerst und ich wiederhole es hier nicht.
+Es gelten die `CLAUDE.md` von `wb-backend` (Code-Stil, verbindlich — **alle `§`-Verweise unten meinen sie**, nicht die von `wb-docs`) und [`../wb-docs/prompts/gemeinsam.md`](gemeinsam.md) (die `[A]`-Marke, wie du fragst, wie du mit mir redest, kein Subagent urteilt). Beides liest du zuerst und ich wiederhole es hier nicht.
 
 ## Was du vorher liest, und wozu
 
