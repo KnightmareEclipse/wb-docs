@@ -145,10 +145,10 @@ Nummerierung wie `fachdomaenen.md` Abschnitt 6.
 | Domäne | Eigene Entitäten | Nutzt Querschnitt | Schreibt Stammdaten |
 |---|---|---|---|
 | **Stammdaten** (gebaut) | Person, Anschrift, Telefon, Familie, Familienzugehörigkeit, Kind, Erziehungsberechtigte, Kontaktverknüpfung, SEPA-Mandat, **Mitarbeiter** samt Rollen, Klasse/Klassenstufe/Zweig, Anmeldecode, 11 Lookups | — | besitzt sie |
-| **1 Putzdienst** (gebaut) | Zyklus, Erinnerungsstufe, Terminart, Putztermin, Zuteilung, abweichende Pflichtmenge, Komplett-Freikauf, Einzel-Freikauf | Q3 | nein |
+| **1 Putzdienst** (gebaut) | Zyklus, Terminart, Pflichtmenge und Platzzahl je Zyklus und Art, Putztermin, Zuteilung, abweichende Pflichtmenge je Familie, Komplett-Freikauf, Einzel-Freikauf, Tauschangebot samt Annahme | Q3 | nein |
 | **2 Voranmeldung** / **4 Anmeldeprozess und Anmeldegespräch** (gebaut; eine Domäne, drei Phasen: Voranmeldung → Gespräch → Schulvertrag) | Bewerbung, Anmeldefenster, Anmeldetag, Gesprächsslot, Vertragsvorgang (Schul- **oder** Hortvertrag), Antwort je Erziehungsberechtigtem, Betreuungsmodul samt Buchungstagen, Anmeldefreischaltung, Schulgeld- und Modulpreis, 8 Wertelisten | Q1, Q2, Q3 | ja (viel) |
-| **3 Ferienanmeldung** (gebaut; Ferienprogramm, Kochwerkstatt) | Programm, Angebotstag, Anmeldevorgang, Buchung | Q1, Q3 | ja (legt schulfremde Kinder samt Familie, Erziehungsberechtigten und Notfallkontakt an, erwachsene Kochwerkstatt-Teilnehmer als reine `persons`-Zeile) |
-| **6 Mensa** (gebaut, `schema/mensa-schema.sql`; die Buchung ist eine Betreuungsmodul-Buchung aus 2/4, Katalogzeile „Mittagessen") | Küchenprofil je Kind (Varianten, Küchen-Hinweis), 1 Werteliste | Q1 (Lastschrift-Erlaubnis) | nein |
+| **3 Ferienanmeldung** (gebaut; Ferienprogramm, Kochwerkstatt) | Terminart, Modul samt Preis, Programm, Termin samt seinen Tagen, Terminzuschlag, Buchung, Kostenübernahme-Code, Betreuungs-Anmerkung je Kind und Programm | Q1, Q3 | ja (legt schulfremde Kinder samt Familie, Erziehungsberechtigten und Notfallkontakt an, erwachsene Kochwerkstatt-Teilnehmer als reine `persons`-Zeile) |
+| **6 Mensa** (gebaut, `schema/mensa-schema.sql`; das Abo der Realschule steht eigenständig neben den Betreuungsmodulen aus 2/4) | Küchenprofil je Kind, Schuljahres-Abo samt seinen Wochentagen, Beitrag je Zahl der Esstage, 1 Werteliste | Q1 (Lastschrift-Erlaubnis) | nein |
 | **6 AGs** (gebaut) | **keine** — es ist nichts bekannt, was zu bauen wäre | — | nein |
 | **9 Gesundheitsdaten** (gebaut) | Gesundheitsbestand je Kind, Gesundheitsmerkmal, Masernschutznachweis, 2 Wertelisten | Q1, Q2 | nein |
 | **5 Rechnungsfreigabe** (gebaut, `schema/rechnungsfreigabe-schema.sql`) | Beleg, Freigabeschritt, Aufteilung, Vorlage, Lieferant, 2 weitere Wertelisten | Q2, Q4 | nein |
@@ -228,8 +228,7 @@ Damit es niemand später „aufräumt":
 - **Zustimmung und Signatur** (Q1/Q2) — Begründung oben.
 - **Forderung und Bankverbindung** (Q3 vs. `sepa_mandates`) — Begründung oben.
 - **Lieferant und Person.** Die einzige Organisation im System wird der **Lieferant** der Rechnungsfreigabe sein — eine Firma, bei der die Schule einkauft. Stammdaten kennt dagegen bewusst keine Organisation als Partei: hinter jeder Vormundschaft steht die handelnde Person (`schema/stammdaten-schema.sql`, `family_guardians`). Zwei verschiedene Sachverhalte, nie eine gemeinsame Parteien-Tabelle.
-
-Und die eine Stelle, an der **bewusst zusammengelegt** wurde, damit sie niemand später „auftrennt": das Mensa-Wochentags-Abo läuft über die Betreuungsmodul-Tabellen (Katalogzeile „Mittagessen"), weil beide Formulare real dieselbe Buchungsform sind — anders als bei den Terminen oben teilen sie nicht nur ein Datum, sondern Buchungseinheit, Laufzeit- und Kündigungsmechanik (`schema/mensa-schema.sql`).
+- **Mensa-Abo und Betreuungsmodul.** Sie sehen aus wie dieselbe Buchungsform und sind es nicht: Block 11 gibt dem Abo einen eigenen Beginn (frühestens 1. Oktober, sonst zum nächsten Monatsersten), eine eigene Kündigung (nur zum 31. Januar, Erklärung bis zum 3. Januar) und einen eigenen Monatsbeitrag je Esstag — und es entsteht „kein Vertragsdokument und keine Unterschrift", woran die Modulanlage hängt. Das Abo steht deshalb in eigenen Tabellen (`schema/mensa-schema.sql`); diese Karte sah eine gemeinsame Struktur vor, der Block schlägt sie. Was **nicht** doppelt entsteht, ist das Essen der Hort- und Ferienkinder: es folgt ihrem gebuchten Modul, angemeldet wird es nirgends, und berechnet wird für beide Wege aus `meal_prices`.
 
 ## Weiße Flecken
 
