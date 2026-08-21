@@ -272,9 +272,9 @@ Derselbe Satz wird zusätzlich auf allen vier Anmeldetag-Checklisten und im Hort
 
 Drei Festlegungen dazu:
 
-- **Das Unterschriftsdatum ist wichtig** — gedeckt durch `children.mandate_signed_at` (`schema/stammdaten-schema.sql`).
+- **Das Unterschriftsdatum ist wichtig** — gedeckt durch die Q2-Signatur am Mandat (`signatures.sepa_mandate_id`), nicht durch eine eigene Spalte: der Namenszug hätte daneben keinen Platz (`schema/stammdaten-schema.sql`).
 - **Die BIC bleibt**, aber nur für **nicht-deutsche Konten**: Optigem verlangt sie. `sepa_mandates.bic` ist damit nicht streichbar (`schema/stammdaten-schema.sql`).
-- **Das SEPA-Mandat ist für alle Neuanmeldungen Pflicht, weil es an das Kind gebunden ist:** Verlässt das erste Kind die Schule, verfällt es auch für die noch eingeschriebenen Geschwister. Je Kind wird deshalb ausdrücklich ein eigenes Mandat eingesammelt — im Schema `children.mandate_reference`/`mandate_signed_at`, während die Bankverbindung bei der zahlenden Person bleibt (`schema/stammdaten-schema.sql`).
+- **Das SEPA-Mandat ist für alle Neuanmeldungen Pflicht, weil es an das Kind gebunden ist:** Verlässt das erste Kind die Schule, verfällt es auch für die noch eingeschriebenen Geschwister. Je Kind wird deshalb ausdrücklich ein eigenes Mandat eingesammelt — im Schema je eine `sepa_mandates`-Zeile, die die Bankverbindung selbst trägt (`schema/stammdaten-schema.sql`).
 
 ### 7.5 Sonderfälle
 
@@ -477,7 +477,7 @@ Keine offenen Widersprüche mehr. Was die Erhebung an Abweichungen zutage geför
 
 | Abweichung | Ergebnis |
 |---|---|
-| **SEPA-Mandat** | bestätigt: je Kind eines. Im Schema von `payers` nach `children` verlagert, vor dem Freeze und damit ohne Migration (`schema/stammdaten-schema.sql`) |
+| **SEPA-Mandat** | bestätigt: je Kind eines. Im Schema in die eigene Tabelle `sepa_mandates` je Kind verlagert, vor dem Freeze und damit ohne Migration (`schema/stammdaten-schema.sql`) |
 | **Quereinsteiger-Proration** | bestätigt: 2+1 ab Jahreshälfte. Formel rundet ab, mit Untergrenze 1 je Terminart (`schema/putzdienst-schema.sql`) |
 | **Putzdienst-Freikauf** | zwei getrennte Vorgänge: komplett in der Buchungsphase, einzeln vor dem jeweiligen Termin |
 | **Strafe** | wird immer verhängt, aussetzbar nur mit Berechtigung |
