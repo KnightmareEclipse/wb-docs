@@ -200,13 +200,13 @@ Daraus folgt eine Slot-Struktur mit Kapazität je Slot, Tagesraster und Pausenfe
 | Aufgabe | in Weltenbaum |
 |---|---|
 | Prüfen, ob alle Unterlagen vorhanden: Voranmeldung, SEPA-Mandat, Verträge (2-fach, alle Unterschriften), Geburtsurkunde, Masernnachweis | `applications.documents_checked_at` samt Q2 und `measles_proofs` |
-| Aufnahmebestätigung an die Eltern senden inkl. unterschriebenem Schulvertrag, Elternbrief Förderverein + Flyer, Welcome-Mappe; beim Hort Anschreiben + Welcome-Brief | `contracts.confirmation_sent_at` |
+| Aufnahmebestätigung an die Eltern senden inkl. unterschriebenem Schulvertrag, Elternbrief Förderverein + Flyer, Welcome-Mappe; beim Hort Anschreiben + Welcome-Brief | eine `outbound_emails`-Zeile mit dem Anlass „Aufnahmebestätigung" — der Vertrag braucht daneben kein eigenes Versanddatum (`schema/querschnitt-schema.sql`) |
 | Bei Bedarf: Hortvertrag | Vertragsvorgang am Kind (`schema/anmeldung-schema.sql`) |
 | Kopie für Buchhaltung / Aufnahme in Optigem | **Q5-Aufgabe** |
 | Aufnahme in ASV-BW, Datenblatt ausdrucken | **Q5-Aufgabe** |
 | Akten anlegen (Schulakte, Hortakte, inkl. Datenblatt) | SharePoint, Ordner ist die Kohorten-Kennung (`grenzkarte.md`, Q2) |
 | Listen aktualisieren: Klassenliste ausdrucken, Hort-/Mensaliste, Klassenverteiler in Outlook, Eintrag in Telefonbuch-PC, Kontaktdaten in die Putzliste, Eintrag in die Quereinsteiger-Liste | **entfallen ersatzlos** — alle sind Abfragen auf den Weltenbaum-Bestand. **Ausnahme: der Klassenverteiler in Outlook** bleibt vorerst und wird nachgezogen, weil die Schule ihre Klassen weiter über M365 anschreibt (`soll-prozesse/15-klassenbildung.md`, `soll-prozesse/02-datenaenderung.md`) |
-| Bisherige örtliche Schule informieren; **Schülerüberweisung erhalten?**; Rücksendung an die Herkunftsschule — drei Schritte in dieser Reihenfolge, die Rücksendung nur bei Bedarf | `applications.student_transfer_requested_on`/`_received_on`/`_returned_on` |
+| Bisherige örtliche Schule informieren; **Schülerüberweisung erhalten?**; Rücksendung an die Herkunftsschule — drei Schritte in dieser Reihenfolge, die Rücksendung nur bei Bedarf | **Q5-Aufgabe** beim Sekretariat — informieren, erhalten und zurücksenden laufen am Stück und bekommen keine drei Haken (`soll-prozesse/08-schulvertrag.md`) |
 | To do Lehrer: WebUntis anmelden, Office-365-Zugang, Materialliste, Schulplaner ausgeben | außerhalb des Scopes bzw. Domäne 7 |
 
 ### 5.3 Kann-Kind, schulpflichtig, zurückgestellt
