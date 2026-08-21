@@ -102,7 +102,7 @@ Ausdrücklich benannt, weil ohne Zweck kein Feld bleibt (`rules.md` Abschnitt 7)
 - **Kirchengemeinde** — Interesse, kein benannter Verarbeitungszweck.
 - **Geschwister und wahrgenommene Angebote** (Musikarche, Ferienprogramm, Clemens-KITA) — geben einen **Bonus bei der Zusage** und sind damit entscheidungsrelevant, nicht dekorativ.
 
-Alle vier Felder werden gespeichert — Konfession und Staatsangehörigkeit auch bei den Erziehungsberechtigten (`schema/stammdaten-schema.sql`, „Felder"). Entschieden mit bekanntem Preis: Konfession ist ein Art.-9-Datum, und ein Feld ohne beschlossenen Zweck mit echten Personendaten zu füllen, schließt `rules.md` Abschnitt 7 eigentlich aus. Ausschlaggebend war die Gegenrichtung — eine Spalte zu streichen ist ein `DROP COLUMN`, ein beim Vollimport nicht erhobener Wert ist nicht nacherhebbar. **Der Zweck-Beschluss bleibt damit fällig, und zwar vor dem Vollimport** (`TODO.md`); das Schema trägt die Absicherung bereits (Spalten-GRANT auf den Konfessionsspalten an `children` und `guardians`).
+Alle vier Felder werden gespeichert — Konfession und Staatsangehörigkeit auch bei den Erziehungsberechtigten (`schema/stammdaten-schema.sql`). Entschieden mit bekanntem Preis: Konfession ist ein Art.-9-Datum, und ein Feld ohne beschlossenen Zweck mit echten Personendaten zu füllen, schließt `rules.md` Abschnitt 7 eigentlich aus. Ausschlaggebend war die Gegenrichtung — eine Spalte zu streichen ist ein `DROP COLUMN`, ein beim Vollimport nicht erhobener Wert ist nicht nacherhebbar. **Der Zweck-Beschluss bleibt damit fällig, und zwar vor dem Vollimport** (`TODO.md`); das Schema trägt die Absicherung bereits (Spalten-GRANT auf den Konfessionsspalten an `children` und `guardians`).
 
 ### 3.4 Bruchstellen
 
@@ -117,7 +117,7 @@ Ganzjährig, eigenes Formular.
 
 - Felder wie Realschule, zusätzlich **Zielklasse** und **Zielschuljahr**.
 - Anmeldegebühr wie bei der Voranmeldung.
-- Bearbeitung sofort: Prüfung, ob in der Zielklassenstufe überhaupt ein Platz frei wäre. Nur dann folgt ein Anmeldegespräch. **Die Prüfung ist dynamisch, „voll" gibt es nicht:** Zielmarke sind derzeit 25 Kinder je Klasse, bei wirklich dringenden Fällen wird auch in eine „volle" Klasse aufgenommen. Verwaltung und Schulleitung entscheiden das je Fall, und beim Quereinstieg wird ohnehin der direkte Kontakt gesucht — deshalb bewusst keine Kapazität im Datenmodell (`schema/anmeldung-schema.sql`, „Bewerbung").
+- Bearbeitung sofort: Prüfung, ob in der Zielklassenstufe überhaupt ein Platz frei wäre. Nur dann folgt ein Anmeldegespräch. **Die Prüfung ist dynamisch, „voll" gibt es nicht:** Zielmarke sind derzeit 25 Kinder je Klasse, bei wirklich dringenden Fällen wird auch in eine „volle" Klasse aufgenommen. Verwaltung und Schulleitung entscheiden das je Fall, und beim Quereinstieg wird ohnehin der direkte Kontakt gesucht — deshalb bewusst keine Kapazität im Datenmodell (`schema/anmeldung-schema.sql`).
 - Der Schulvertragsprozess (Abschnitt 7) läuft für Quereinsteiger identisch und muss deshalb ganzjährig funktionieren.
 
 ---
@@ -272,9 +272,9 @@ Derselbe Satz wird zusätzlich auf allen vier Anmeldetag-Checklisten und im Hort
 
 Drei Festlegungen dazu:
 
-- **Das Unterschriftsdatum ist wichtig** — gedeckt durch `children.mandate_signed_at` (`schema/stammdaten-schema.sql`, „Zahlungsverantwortliche").
-- **Die BIC bleibt**, aber nur für **nicht-deutsche Konten**: Optigem verlangt sie. `payers.bic` ist damit nicht streichbar (`schema/stammdaten-schema.sql`, „Zahlungsverantwortliche").
-- **Das SEPA-Mandat ist für alle Neuanmeldungen Pflicht, weil es an das Kind gebunden ist:** Verlässt das erste Kind die Schule, verfällt es auch für die noch eingeschriebenen Geschwister. Je Kind wird deshalb ausdrücklich ein eigenes Mandat eingesammelt — im Schema `children.mandate_reference`/`mandate_signed_at`, während die Bankverbindung bei der zahlenden Person bleibt (`schema/stammdaten-schema.sql`, „Zahlungsverantwortliche").
+- **Das Unterschriftsdatum ist wichtig** — gedeckt durch `children.mandate_signed_at` (`schema/stammdaten-schema.sql`).
+- **Die BIC bleibt**, aber nur für **nicht-deutsche Konten**: Optigem verlangt sie. `payers.bic` ist damit nicht streichbar (`schema/stammdaten-schema.sql`).
+- **Das SEPA-Mandat ist für alle Neuanmeldungen Pflicht, weil es an das Kind gebunden ist:** Verlässt das erste Kind die Schule, verfällt es auch für die noch eingeschriebenen Geschwister. Je Kind wird deshalb ausdrücklich ein eigenes Mandat eingesammelt — im Schema `children.mandate_reference`/`mandate_signed_at`, während die Bankverbindung bei der zahlenden Person bleibt (`schema/stammdaten-schema.sql`).
 
 ### 7.5 Sonderfälle
 
@@ -287,7 +287,7 @@ Drei Festlegungen dazu:
 
 **Soll digitalisiert werden.** Heute Papier („Betreuungsvertrag", Stand 12/2025, Vertragspartner ist der Trägerverein CBBE e. V.), ausgefüllt am Anmeldetag oder danach.
 
-**Laufzeit laut Vertrag:** ein Schuljahr (01.08.–31.07.), Kündigungsfrist ein Monat zum Vertragsende; ohne Kündigung **stillschweigende Verlängerung auf unbestimmte Zeit** mit Monatsfrist zum Monatsersten. Außerordentliche Kündigung mit 14 Tagen zum Monatsende aus wichtigem Grund (beidseitig, Gründe im Vertrag benannt). Das Hortangebot selbst endet mit Klasse 5, und es endet **zweistufig**: die Module der Klassen 1–4 laufen mit dem Ende der Klasse 4 aus und werden dann automatisch gekündigt — wer danach weiter Betreuung braucht, bucht als Realschüler das eigene Klasse-5-Modul, das nur dort gilt. Beide Enden setzt der Jahreslauf, nicht das Sekretariat (`schema/stammdaten-schema.sql`, „Schuljahreswechsel"). **Modul-Anpassungen:** im September kostenfrei, bei Stundenplanänderungen kostenfrei, zum Schulhalbjahr gegen 20 € Gebühr, eine Erhöhung des Umfangs zum Monatswechsel mit 14 Tagen Vorlauf kostenfrei.
+**Laufzeit laut Vertrag:** ein Schuljahr (01.08.–31.07.), Kündigungsfrist ein Monat zum Vertragsende; ohne Kündigung **stillschweigende Verlängerung auf unbestimmte Zeit** mit Monatsfrist zum Monatsersten. Außerordentliche Kündigung mit 14 Tagen zum Monatsende aus wichtigem Grund (beidseitig, Gründe im Vertrag benannt). Das Hortangebot selbst endet mit Klasse 5, und es endet **zweistufig**: die Module der Klassen 1–4 laufen mit dem Ende der Klasse 4 aus und werden dann automatisch gekündigt — wer danach weiter Betreuung braucht, bucht als Realschüler das eigene Klasse-5-Modul, das nur dort gilt. Beide Enden setzt der Jahreslauf, nicht das Sekretariat (`schema/stammdaten-schema.sql`). **Modul-Anpassungen:** im September kostenfrei, bei Stundenplanänderungen kostenfrei, zum Schulhalbjahr gegen 20 € Gebühr, eine Erhöhung des Umfangs zum Monatswechsel mit 14 Tagen Vorlauf kostenfrei.
 
 **Beiträge:** nach Beitragssatzung des Trägervereins, 11 Monatsraten September–Juli, Anpassung zu Schuljahresbeginn; die konkreten Preise trägt die Verwaltung aus der aktuellen Preisliste in den Vertrag ein (Liste liegt nicht vor, `domains/grenzkarte.md`, „Weiße Flecken"). Ab dem 2. Kind mit Hortbuchung bekommt das **älteste Kind 10 % Ermäßigung** (außer Notfall-/Ferienbetreuung). Eingezogen wird über dasselbe SEPA-Mandat wie das Schulgeld; Mahngebühr 10 € je Mahnung.
 
