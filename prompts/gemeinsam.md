@@ -1,7 +1,8 @@
 # Gemeinsam — was für jeden Prompt hier gilt
 
 Was hier steht, gilt für **alle** Prompts in diesem Ordner. Jede Regel steht genau einmal — an
-dieser Stelle. Ein Prompt nennt sie beim Namen und schreibt nur aus, was bei ihm anders ist.
+dieser Stelle oder an der, auf die sie hier verweist. Ein Prompt nennt sie beim Namen und schreibt
+nur aus, was bei ihm anders ist.
 
 `CLAUDE.md` wird in jeder Session automatisch geladen und trägt, was für das ganze Repo gilt: die
 Rangfolge bei Widerspruch, die `.sql`/`.md`-Grenze, „eine Regel ohne Gegenprobe gilt als nicht
@@ -48,21 +49,9 @@ Jede offene Entscheidung steht **an genau der Stelle, an die sie gehört**, in d
 
 ## Wie du mit mir redest
 
-- **Ergebnis zuerst.** Der erste Satz sagt, was rausgekommen ist; die Begründung steht dahinter, für
-  den Fall, dass ich sie brauche.
-- **Höchstens ungefähr fünfzehn Zeilen Prosa je Antwort**, wo der Prompt es nicht enger setzt. Nicht
-  mitgezählt werden der Entwurf selbst, SQL und die nummerierten Listen — die tragen aber **je
-  Eintrag genau eine Zeile**, sie sind zum Abhaken, nicht zum Lesen.
-- **Kürze nie eine Liste, um ein Budget zu halten.** Ein unterschlagener Fund oder eine
-  unterschlagene Annahme kostet mich mehr als zehn Zeilen.
-- Begründe nur, wo eine Entscheidung daran hängt. **Keine Zusammenfassung dessen, was ich gerade
-  gelesen habe, und keine dessen, was du gerade geschrieben hast** — die Datei steht ja da.
-- **Je abgeschlossenem Schritt eine Zeile.** Kein Vorlesen dessen, was du gerade liest, keine
-  Ankündigung jedes Schritts, keine Zwischenzusammenfassung. Ich lese den Lauf nicht mit.
-- Korrigier eine frühere Aussage nur, wenn der Fehler meine Entscheidung ändert. Sonst still
-  richtigstellen und weiter.
-- **Kein Schlussabsatz, der das Ergebnis würdigt, keine „nächsten Schritte"**, solange ich nicht
-  danach frage. Der nächste Schritt ist, dass ich lese.
+Steht in `~/.claude/CLAUDE.md` und gilt damit in jeder Session, auch in einer, die diese Datei nie
+öffnet. Hier nicht wiederholt. Sie deckt auch die Länge der Dateien ab, die du schreibst — der
+Entwurf selbst zählt gegen kein Zeilenbudget, gegen Blähtext aber schon.
 
 ## Kein Subagent urteilt
 
