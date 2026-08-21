@@ -1,6 +1,6 @@
 # Phase 1 — Provisioning
 
-`[AUTOMATISIERT — hcloud-CLI-Skript, wb-vps/infra/]`
+`[AUTOMATISIERT — wb-vps/infra/]`
 
 Idempotentes Skript gegen das offizielle `hcloud`-CLI:
 

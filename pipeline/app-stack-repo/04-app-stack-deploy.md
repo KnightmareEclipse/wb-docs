@@ -1,6 +1,6 @@
 # Phase 4 — App-Stack-Deploy
 
-`[Konzept + Tools fixiert — Build läuft direkt auf der VPS statt über einen externen CI-Runner, Backend-Grundgerüst steht im App-Stack-Repo (wb-backend), VPS-seitiger Deploy-Auslöser noch nicht bootstrappt]`
+`[AUTOMATISIERT — Auslöser in wb-vps/ansible/roles/podman_rootful/, Stack in wb-backend. Offen: der Image-GC unten.]`
 
 Reverse-Proxy (Caddy), Datenbank (PostgreSQL) und Backend-Container (eigenes FastAPI-Image) laufen hier — Details `project-parts.md`. Der Backup-Dump wird bei Bedarf vom NAS der Schule abgeholt (`idea/05-backup-recovery.md`), kein eigener Timer auf der VPS. Das Ablaufmuster:
 

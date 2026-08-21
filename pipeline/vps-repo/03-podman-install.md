@@ -1,6 +1,6 @@
 # Phase 3 — Container-Runtime-Install (Podman, rootful)
 
-`[AUTOMATISIERT — Ansible-Rolle podman_rootful, wb-vps/ansible/]`
+`[AUTOMATISIERT — wb-vps/ansible/roles/podman_rootful/]`
 
 Podman als Container-Runtime, **rootful** betrieben. Veröffentlichte Ports leitet der Kernel per DNAT weiter — der Container sieht damit die echte Absenderadresse des Aufrufers, nachgewiesen gegen `db-prod-fsn-01` über IPv4 und IPv6 im Access-Log von Caddy.
 
