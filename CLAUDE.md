@@ -100,7 +100,9 @@ Diese Datei wird automatisch geladen; verlinkt werden muss nichts. Je nach Arbei
   `prompts/schema-reparieren.md`. Für alle drei und den Blockprompt gilt `prompts/gemeinsam.md`.
 - **Neue Fachdomäne verstehen:** `fachdomaenen.md`, `prozesse.md` und die vier
   Anmeldetag-Checklisten in `~/Downloads/CHECKLISTEN/`.
-- **Übertragung nach `wb-backend`:** `prompts/schema-uebertragen.md` — eine Domäne je Durchgang, in
+- **Übertragung nach `wb-backend`:** davor einmalig `geruest-prompt.md` — das Grundgerüst dort ist
+  nicht selbst geschrieben und noch nie gegen seine eigene `CLAUDE.md` gelesen worden; der Prompt
+  wird nach dem Lauf gelöscht. Dann `prompts/schema-uebertragen.md` — eine Domäne je Durchgang, in
   der Ladereihenfolge des Schemas. Dazu `TODO-SESSIONS.md`, `project-parts.md`,
   `idea/04-identitaet-zugriff.md`.
 - **Infrastruktur:** `pipeline/runbook.md`, `idea/03-container-anwendung.md`,
