@@ -1,6 +1,6 @@
 # Prompt: eine Fachdomäne ins Schema überführen
 
-Gegenstück zu [`prompts/block-fuellen.md`](prompts/block-fuellen.md). Dort entstehen die Abläufe, hier wird daraus SQL. **Eine Domäne je Durchgang** — dieselbe Portionierung, die sich bei den Blöcken bewährt hat: ein schmaler Auftrag liefert verlässlich besser als ein breiter. Steht das SQL, prüft [`prompts/schema-pruefen.md`](prompts/schema-pruefen.md) es gegen die Blöcke — in einer frischen Session, die den Bau nicht mitgemacht hat.
+Gegenstück zu [`prompts/block-fuellen.md`](block-fuellen.md). Dort entstehen die Abläufe, hier wird daraus SQL. **Eine Domäne je Durchgang** — dieselbe Portionierung, die sich bei den Blöcken bewährt hat: ein schmaler Auftrag liefert verlässlich besser als ein breiter. Steht das SQL, prüft [`prompts/schema-pruefen.md`](schema-pruefen.md) es gegen die Blöcke — in einer frischen Session, die den Bau nicht mitgemacht hat.
 
 Kopieren, `DOMÄNE` ersetzen, absenden. Alles unter dem Strich ist der Prompt. Effort `high`, bei einer Domäne mit vielen Berührungspunkten `xhigh`; Thinking anlassen.
 
@@ -10,7 +10,7 @@ Wir überführen die Fachdomäne **DOMÄNE** ins Datenmodell. Ergebnis ist eine 
 
 Es gelten [`gemeinsam.md`](gemeinsam.md) (die `[A]`-Marke, wie du fragst, wie du mit mir redest, kein Subagent urteilt) und `CLAUDE.md`. Beides liest du zuerst und ich wiederhole es hier nicht.
 
-**Du baust in einen bestehenden, geprüften Stand hinein.** In `schema/` liegen vierzehn Domänen, aus denselben Blöcken abgeleitet und durch fünf Prüfzyklen gegangen. Das ist kein Vorentwurf, sondern der Bestand: Was dort schon jemandem gehört, referenzierst du und baust es nicht nach. Was du dort ändern müsstest, ist eine Frage an mich und keine stille Korrektur — und der Stammdaten-Freeze (`grenzkarte.md`) gilt ab dem Vollimport für alles, was `stammdaten-schema.sql` berührt.
+**Du baust in einen bestehenden, geprüften Stand hinein.** In `schema/` liegen vierzehn Domänen, aus denselben Blöcken abgeleitet und durch fünf Prüfzyklen gegangen. Das ist kein Vorentwurf, sondern der Bestand: Was dort schon jemandem gehört, referenzierst du und baust es nicht nach. Was du dort ändern müsstest, ist eine Frage an mich und keine stille Korrektur — und der Stammdaten-Freeze (`grenzkarte.md`) gilt ab dem Vollimport für alles, was `schema/stammdaten-schema.sql` berührt.
 
 ## Was du vorher liest, und wozu
 
@@ -27,7 +27,7 @@ Es gelten [`gemeinsam.md`](gemeinsam.md) (die `[A]`-Marke, wie du fragst, wie du
 
 **Der eigene Bestand in `schema/`** ist etwas anderes als eine Referenz — er ist verbindlich, und zwar zweifach:
 
-- **Die Konventionen sind gesetzt.** `stammdaten-schema.sql` zeigt, wie Kommentare, Schlüssel, Constraint-Namen und Begründungen in diesem Projekt aussehen; `querschnitt-schema.sql` zeigt, wie ein Hebel genau einmal gebaut wird. Du folgst ihnen, statt eine zweite Form daneben zu setzen.
+- **Die Konventionen sind gesetzt.** `schema/stammdaten-schema.sql` zeigt, wie Kommentare, Schlüssel, Constraint-Namen und Begründungen in diesem Projekt aussehen; `schema/querschnitt-schema.sql` zeigt, wie ein Hebel genau einmal gebaut wird. Du folgst ihnen, statt eine zweite Form daneben zu setzen.
 - **Präzedenz schlägt Geschmack.** Tragen zwei Bauformen dieselbe Regel, nimm die, die im Bestand schon vorkommt. Eine dritte Form für denselben Sachverhalt ist ein Fund, den der nächste Prüflauf meldet.
 
 Wo du eine Quelle **bewusst nicht** übernimmst, steht der Grund am betroffenen Feld.
@@ -60,7 +60,7 @@ Das hier fragst du nicht, das entscheidest du und schreibst höchstens eine `[A]
 
 - Wo ein Block schweigt und die Antwort den Schnitt trägt — nicht ein Detail, sondern eine Grenze.
 - Wo zwei Blöcke sich widersprechen und die Rangfolge oben nicht greift, weil beide gleich alt sind. Dann Konflikt offenlegen, beide Seiten zitieren.
-- Wo eine Ableitung eine Änderung an `hebel.md` oder an einem fertigen Block nach sich zöge.
+- Wo eine Ableitung eine Änderung an `soll-prozesse/hebel.md` oder an einem fertigen Block nach sich zöge.
 
 Reichen die Blöcke für eine Entscheidung nicht, sag das, statt zu raten.
 
@@ -91,7 +91,7 @@ Zwei verschiedene Dinge, beide verlangt:
 
 **Woher eine Struktur kommt.** Jede Tabelle trägt als erste Kommentarzeile ihre Herkunft: welcher Block sie verlangt und welcher Satz darin, wörtlich zitiert. Jede Spalte, deren Existenz nicht auf den ersten Blick klar ist, trägt ihre Begründung — und **warum eine erwartete Spalte fehlt**, steht als Kommentar an der Tabelle, weil eine nicht existierende Spalte keinen anderen Anker hat. Ohne diese Zeilen schlägt der nächste Durchgang zuverlässig genau das vor, was hier schon verworfen wurde.
 
-**Was im Betrieb mit den Daten geschah.** Die [Änderungsspur](soll-prozesse/hebel.md#änderungsspur) ist ein Hebel und deshalb **eine** Struktur für alle Domänen — sie wird nicht je Tabelle nachgebaut. Prüfe stattdessen, ob deine Tabellen das tragen, was die Blöcke von ihr verlangen: wer, wann, was vorher dastand, und der Lauf als Urheber bei maschinellen Änderungen.
+**Was im Betrieb mit den Daten geschah.** Die [Änderungsspur](../soll-prozesse/hebel.md#änderungsspur) ist ein Hebel und deshalb **eine** Struktur für alle Domänen — sie wird nicht je Tabelle nachgebaut. Prüfe stattdessen, ob deine Tabellen das tragen, was die Blöcke von ihr verlangen: wer, wann, was vorher dastand, und der Lauf als Urheber bei maschinellen Änderungen.
 
 ## Verständlichkeit
 
@@ -99,7 +99,7 @@ Das Schema wird von Menschen abgenommen, die es nicht gebaut haben. Deshalb:
 
 - Die Datei beginnt mit einem **Lesepfad**: drei bis fünf Sätze, welche Tabellen man zuerst versteht und in welcher Reihenfolge der Rest daran hängt.
 - Bezeichner sind englisch, Kommentare deutsch — so steht es im Bestand, und zwei Sprachen im selben Namen wären schlimmer als eine falsche.
-- Keine Abkürzung, die nicht im [Glossar](glossar.md) steht. Was in den Blöcken einen Namen hat, heißt hier genauso.
+- Keine Abkürzung, die nicht im [Glossar](../glossar.md) steht. Was in den Blöcken einen Namen hat, heißt hier genauso.
 - Nichts, was SQLAlchemy nicht sauber ausdrücken kann: keine Datenbank-Trigger, keine Stored Procedures, keine Regel, die nur in der Datenbank lebt und im Code unsichtbar ist.
 
 ## Länge

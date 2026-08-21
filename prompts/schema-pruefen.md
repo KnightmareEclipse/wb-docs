@@ -1,6 +1,6 @@
 # Prompt: das gebaute Schema gegenprüfen
 
-Gegenstück zu [`prompts/schema-bauen.md`](prompts/schema-bauen.md). Dort entsteht das SQL, hier wird es
+Gegenstück zu [`prompts/schema-bauen.md`](schema-bauen.md). Dort entsteht das SQL, hier wird es
 angegriffen. **Der Prüfer baut nicht** — er meldet, und du entscheidest.
 
 Der Lauf ist nur etwas wert, wenn er unabhängig ist: eine frische Session, die den Bau nicht

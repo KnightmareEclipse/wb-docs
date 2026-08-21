@@ -18,7 +18,7 @@ Es gelten `prompts/gemeinsam.md` (die `[A]`-Marke, wie du fragst, wie du mit mir
 
 ## Wie viel gefragt wird
 
-Aus `prozesse.md` und `hebel.md` lässt sich der größte Teil des Blocks füllen, ohne dass ich etwas beitrage — der Entwurf kommt deshalb vor den Fragen.
+Aus `prozesse.md` und `soll-prozesse/hebel.md` lässt sich der größte Teil des Blocks füllen, ohne dass ich etwas beitrage — der Entwurf kommt deshalb vor den Fragen.
 
 **Fünf bis zehn Runden sind hier normal und erwünscht**, deutlich mehr als beim Schema: Ein Block trägt Entscheidungen, die kein Dokument hergibt. Lieber einmal mehr gefragt als eine Annahme getroffen, die den ganzen Ablauf trägt.
 
@@ -28,7 +28,7 @@ Aus `prozesse.md` und `hebel.md` lässt sich der größte Teil des Blocks fülle
 
 Sie sagen, worauf du sehen sollst — nicht, dass du nochmal sehen sollst. Jede hat in diesem Projekt schon eine Nacharbeitsrunde gekostet:
 
-1. **Hebel.** Nutzt der Block einen Hebel anders, als er in `hebel.md` steht? Dann gehört die Änderung nach `hebel.md`, nicht in den Block. Braucht er einen neuen? Nur wenn ihn mehr als ein Prozess braucht.
+1. **Hebel.** Nutzt der Block einen Hebel anders, als er in `soll-prozesse/hebel.md` steht? Dann gehört die Änderung dorthin, nicht in den Block. Braucht er einen neuen? Nur wenn ihn mehr als ein Prozess braucht.
 2. **Herkunft.** Entsteht hier etwas, das andere Blöcke nur lesen? Dann sagt dieser Block es, und der andere verweist hierher.
 3. **Neuer Zustand.** Erzeugt der Block einen Zustand, den es vorher nicht gab? Geh die fertigen Blöcke durch: greift dort eine Pflicht, eine Frist oder eine Mail für diesen Zustand ins Leere?
 4. **Doppelung.** Steht jetzt ein Satz zweimal? Entscheide, welchem Block er gehört, kürze den anderen auf den Verweis.

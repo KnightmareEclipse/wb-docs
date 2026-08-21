@@ -42,7 +42,7 @@
 -- grenzkarte.md führt für diese Domäne „Kontostatus, Offboarding-Schritt" als
 -- eigene Entitäten. Beide sind hier bewusst nicht gebaut: Block 13 ist die
 -- jüngere und einzige abgestimmte Fassung und schlägt die Karte (Rangfolge in
--- schema-prompt.md).
+-- CLAUDE.md).
 --
 -- Der Löschanker dieser Domäne steht ebenfalls schon: `employees.last_working_day`
 -- — „nicht der Haken des Admins, sonst hinge die Löschfrist einer Person daran,

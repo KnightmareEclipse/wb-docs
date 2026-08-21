@@ -1,6 +1,6 @@
 # Prompt: die Funde aus dem Prüfbericht schließen
 
-Gegenstück zu [`prompts/schema-pruefen.md`](prompts/schema-pruefen.md). Dort wird gemeldet, hier wird
+Gegenstück zu [`prompts/schema-pruefen.md`](schema-pruefen.md). Dort wird gemeldet, hier wird
 repariert. **Der Reparateur baut, was der Block hergibt — und fragt, was er nicht hergibt.**
 
 Ein Paket je Lauf. Beim Absenden nennst du die Kennungen (`F3 F7 F12 …`) oder eine
