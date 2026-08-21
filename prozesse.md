@@ -8,7 +8,7 @@ Abgrenzung zu den Nachbardateien, damit nichts zweimal dasteht:
 |---|---|
 | **hier** | Ablauf heute, Beteiligte, Werkzeug, erhobene Felder, bekannte Bruchstellen |
 | `fachdomaenen.md` | Scope, Zielbild, Domänen-Liste samt Priorität, Jahreskalender der Verwaltung |
-| `domains/grenzkarte.md` | Entitäten je Domäne, wem welche Tatsache gehört |
+| `grenzkarte.md` | Entitäten je Domäne, wem welche Tatsache gehört |
 | `domains/*.md` + `.sql` | die gebauten Domänen (Stammdaten, Putzdienst, Anmeldung, Ferien, Gesundheit, Mensa, Klassenorganisation) |
 
 Zeitliche Einordnung steht im Jahreskalender in `fachdomaenen.md` Abschnitt 1; hier nur die prozesseigenen Termine, die dort nicht auflösbar sind.
@@ -53,7 +53,7 @@ Der häufigste Vorgang überhaupt und der einzige ohne jede Automatisierung.
 
 **Wunsch der Schule:** Eltern sollen ihre Daten selbst ändern können. Häufigkeit ist nicht hoch, der Aufwand pro Fall aber vollständig manuell.
 
-Zielbild und die daraus folgende Nachzieh-Aufgabe: `fachdomaenen.md` Abschnitt 3, `domains/grenzkarte.md` Q5.
+Zielbild und die daraus folgende Nachzieh-Aufgabe: `fachdomaenen.md` Abschnitt 3, `grenzkarte.md` Q5.
 
 ---
 
@@ -90,7 +90,7 @@ Grundschul- und Realschulformular sind **feldgleich**. Das Quereinsteigerformula
 
 **Geschwister:** `Geschwister` (heute Freitext-Namensliste)
 
-**Was auf dem Grundschulformular fehlt: die örtlich zuständige Grundschule.** Weil `kindSchule` dort den Kindergarten trägt, erhebt die Voranmeldung die staatliche Schule gar nicht — sie kommt heute erst am Anmeldetag auf der Sekretariats-Checkliste vor (Abschnitt 5.2), zusammen mit dem Hinweis, dass das Kind dort bis zur Zusage angemeldet bleiben muss. **Sie muss künftig zusätzlich abgefragt werden**, und zwar als eigenes Feld neben dem Kindergarten, nicht statt seiner: die beiden sind verschiedene Einrichtungen mit verschiedenen Rollen im Verfahren (`domains/grenzkarte.md`, „Zwei Schulen, nicht eine").
+**Was auf dem Grundschulformular fehlt: die örtlich zuständige Grundschule.** Weil `kindSchule` dort den Kindergarten trägt, erhebt die Voranmeldung die staatliche Schule gar nicht — sie kommt heute erst am Anmeldetag auf der Sekretariats-Checkliste vor (Abschnitt 5.2), zusammen mit dem Hinweis, dass das Kind dort bis zur Zusage angemeldet bleiben muss. **Sie muss künftig zusätzlich abgefragt werden**, und zwar als eigenes Feld neben dem Kindergarten, nicht statt seiner: die beiden sind verschiedene Einrichtungen mit verschiedenen Rollen im Verfahren (`grenzkarte.md`, „Zwei Schulen, nicht eine").
 
 ### 3.3 Wozu die Schule die erklärungsbedürftigen Felder braucht
 
@@ -107,7 +107,7 @@ Alle vier Felder werden gespeichert — Konfession und Staatsangehörigkeit auch
 ### 3.4 Bruchstellen
 
 - Eltern, die die Voranmeldung verpassen, gehen heute über das **Quereinsteigerformular** und landen damit in der falschen Liste. Gewünscht: harte Sperre, dazu **einzelne Nachmeldelinks über das Sekretariat** in die reguläre Voranmeldung der jeweiligen Schule — die Sperre braucht diesen benannten Ausweg, sonst wird sie umgangen statt eingehalten.
-- Die Geschwister-Namensliste wird nicht ausgewertet (`domains/grenzkarte.md`, „Bewerbung"): gebraucht werden nur „Geschwister bereits an der Schule" und die Anzahl.
+- Die Geschwister-Namensliste wird nicht ausgewertet (`grenzkarte.md`, „Bewerbung"): gebraucht werden nur „Geschwister bereits an der Schule" und die Anzahl.
 
 ---
 
@@ -136,7 +136,7 @@ Ganzjährig, eigenes Formular.
 - Heute werden Termine **zugeteilt und per Brief verteilt**. Terminverschiebungen sind der große Schmerzpunkt des Sekretariats — sehr hoher Aufwand.
 - **Gewünscht:** Eltern buchen ihren Termin selbst aus einer angebotenen Auswahl.
 
-Daraus folgt eine Slot-Struktur mit Kapazität je Slot, Tagesraster und Pausenfenster — der Gesprächstermin ist damit mehr als ein Einzelslot mit Datum (`domains/grenzkarte.md`, „Bewusst nicht zusammengelegt: Termine").
+Daraus folgt eine Slot-Struktur mit Kapazität je Slot, Tagesraster und Pausenfenster — der Gesprächstermin ist damit mehr als ein Einzelslot mit Datum (`grenzkarte.md`, „Bewusst nicht zusammengelegt: Termine").
 
 **Die Werte oben sind der Ausgangsstand, nicht die Regel.** Wochentage, Zeitfenster, Pause und Kinder je Stunde setzen die zuständigen Personen selbst, weil sich das immer wieder ändert — das gilt ausdrücklich auch für die Sondertermine, die deshalb nicht als Festlegung fehlen, sondern gepflegt werden wie jeder andere Termin (`rules.md` Abschnitt 3).
 
@@ -188,14 +188,14 @@ Daraus folgt eine Slot-Struktur mit Kapazität je Slot, Tagesraster und Pausenfe
 | Voranmeldung durchgehen |
 | Bei getrenntlebenden Eltern: abweichende Adresse von Vater/Mutter samt Name, Straße, PLZ/Ort |
 | Unterlagen: Geburtsurkunde (Kopie), **Zeugnisse**, Dokumentation Masernschutzimpfung |
-| Betreuungsbedarf; **nur für Realschüler:** Lernbetreuung (eingestellt, `domains/grenzkarte.md`) und Mittagessen |
+| Betreuungsbedarf; **nur für Realschüler:** Lernbetreuung (eingestellt, `grenzkarte.md`) und Mittagessen |
 | Hort-Betreuung Klasse 1–5: Kernzeit / Nachmittag / Ganztags, Vertrag doppelt ausfüllen |
 | Gesundheitsabfrage wie oben, zusätzlich **Behandlungsgrund und Behandlungszeitraum** bei therapeutischen Maßnahmen |
 | Reine Hinweise ohne Datenfeld: Infoblatt VVS, aktuelle Preisliste, Leitbild/Bekenntnis/Bonus/Putzen, Förderverein Schönbühl samt Mitgliedsantrag, Rechnungen kontrollieren, Plätze begrenzt und Tage müssen fest sein |
 
 **Hort** — die kürzeste Variante, erhebt nur: Notfalltelefonnummer (vormittags erreichbar), bei getrenntlebenden Eltern die abweichende Adresse samt Sorgeberechtigung, „in Briefe miteinbeziehen" und E-Mail, dazu die Gesundheitsabfrage (Allergien, Unverträglichkeiten, regelmäßige Medikamente samt „welche", Seh-/Hörschwäche, therapeutische Maßnahmen).
 
-**Abschließende Aufgaben des Sekretariats** — der Block, der auf allen vier Listen den Abschluss bildet und die reale Vorlage der Nachzieh-Aufgaben (Q5) ist (`domains/grenzkarte.md`):
+**Abschließende Aufgaben des Sekretariats** — der Block, der auf allen vier Listen den Abschluss bildet und die reale Vorlage der Nachzieh-Aufgaben (Q5) ist (`grenzkarte.md`):
 
 | Aufgabe | in Weltenbaum |
 |---|---|
@@ -204,7 +204,7 @@ Daraus folgt eine Slot-Struktur mit Kapazität je Slot, Tagesraster und Pausenfe
 | Bei Bedarf: Hortvertrag | Vertragsvorgang am Kind (`schema/anmeldung-schema.sql`) |
 | Kopie für Buchhaltung / Aufnahme in Optigem | **Q5-Aufgabe** |
 | Aufnahme in ASV-BW, Datenblatt ausdrucken | **Q5-Aufgabe** |
-| Akten anlegen (Schulakte, Hortakte, inkl. Datenblatt) | SharePoint, Ordner ist die Kohorten-Kennung (`domains/grenzkarte.md`, Q2) |
+| Akten anlegen (Schulakte, Hortakte, inkl. Datenblatt) | SharePoint, Ordner ist die Kohorten-Kennung (`grenzkarte.md`, Q2) |
 | Listen aktualisieren: Klassenliste ausdrucken, Hort-/Mensaliste, Klassenverteiler in Outlook, Eintrag in Telefonbuch-PC, Kontaktdaten in die Putzliste, Eintrag in die Quereinsteiger-Liste | **entfallen ersatzlos** — alle sind Abfragen auf den Weltenbaum-Bestand. **Ausnahme: der Klassenverteiler in Outlook** bleibt vorerst und wird nachgezogen, weil die Schule ihre Klassen weiter über M365 anschreibt (`soll-prozesse/15-klassenbildung.md`, `soll-prozesse/02-datenaenderung.md`) |
 | Bisherige örtliche Schule informieren; **Schülerüberweisung erhalten?**; Rücksendung an die Herkunftsschule — drei Schritte in dieser Reihenfolge, die Rücksendung nur bei Bedarf | `applications.student_transfer_requested_on`/`_received_on`/`_returned_on` |
 | To do Lehrer: WebUntis anmelden, Office-365-Zugang, Materialliste, Schulplaner ausgeben | außerhalb des Scopes bzw. Domäne 7 |
@@ -256,7 +256,7 @@ Aktuelle Regel:
 
 `Einwilligung Mutter`, `Einwilligung Vater`, `Lebensmittelunverträglichkeit` + `Art`, `Allergien` + `Art`, `Chronisch krank` + `Art`, `Medikamente` + `Welche`, `Kind braucht Unterstützung` + `Welche`, `Attest für Medikamente`, `Erlaubnis für Unterstützung`, `Akuter Notfall`, `Notfallmedikamente`, `Beschreibung Notfallsituation`, `Attest zur Notfallmedikation`, `Erlaubnis zur Verabreichung im Notfall`, `Körperliche Einschränkung` + `Art`, `Diese Tätigkeiten dürfen nicht ausgeführt werden`, `Attest zur Einschränkung`, `Zecken entfernen`, `SignaturMutter`, `SignaturVater`
 
-Derselbe Satz wird zusätzlich auf allen vier Anmeldetag-Checklisten und im Hortvertrag erhoben — sechs Formulare, ein Datenbestand. Die Checklisten ergänzen Seh-/Hörschwäche und therapeutische Maßnahmen samt Behandlungsgrund und -zeitraum. Struktur und Zugriffsstufen: `domains/grenzkarte.md`, „Gesundheitsmerkmal (9)".
+Derselbe Satz wird zusätzlich auf allen vier Anmeldetag-Checklisten und im Hortvertrag erhoben — sechs Formulare, ein Datenbestand. Die Checklisten ergänzen Seh-/Hörschwäche und therapeutische Maßnahmen samt Behandlungsgrund und -zeitraum. Struktur und Zugriffsstufen: `grenzkarte.md`, „Gesundheitsmerkmal (9)".
 
 ### 7.3 Erhobene Felder — Fotoeinverständnis
 
@@ -289,7 +289,7 @@ Drei Festlegungen dazu:
 
 **Laufzeit laut Vertrag:** ein Schuljahr (01.08.–31.07.), Kündigungsfrist ein Monat zum Vertragsende; ohne Kündigung **stillschweigende Verlängerung auf unbestimmte Zeit** mit Monatsfrist zum Monatsersten. Außerordentliche Kündigung mit 14 Tagen zum Monatsende aus wichtigem Grund (beidseitig, Gründe im Vertrag benannt). Das Hortangebot selbst endet mit Klasse 5, und es endet **zweistufig**: die Module der Klassen 1–4 laufen mit dem Ende der Klasse 4 aus und werden dann automatisch gekündigt — wer danach weiter Betreuung braucht, bucht als Realschüler das eigene Klasse-5-Modul, das nur dort gilt. Beide Enden setzt der Jahreslauf, nicht das Sekretariat (`schema/stammdaten-schema.sql`). **Modul-Anpassungen:** im September kostenfrei, bei Stundenplanänderungen kostenfrei, zum Schulhalbjahr gegen 20 € Gebühr, eine Erhöhung des Umfangs zum Monatswechsel mit 14 Tagen Vorlauf kostenfrei.
 
-**Beiträge:** nach Beitragssatzung des Trägervereins, 11 Monatsraten September–Juli, Anpassung zu Schuljahresbeginn; die konkreten Preise trägt die Verwaltung aus der aktuellen Preisliste in den Vertrag ein (Liste liegt nicht vor, `domains/grenzkarte.md`, „Weiße Flecken"). Ab dem 2. Kind mit Hortbuchung bekommt das **älteste Kind 10 % Ermäßigung** (außer Notfall-/Ferienbetreuung). Eingezogen wird über dasselbe SEPA-Mandat wie das Schulgeld; Mahngebühr 10 € je Mahnung.
+**Beiträge:** nach Beitragssatzung des Trägervereins, 11 Monatsraten September–Juli, Anpassung zu Schuljahresbeginn; die konkreten Preise trägt die Verwaltung aus der aktuellen Preisliste in den Vertrag ein (Liste liegt nicht vor, `grenzkarte.md`, „Weiße Flecken"). Ab dem 2. Kind mit Hortbuchung bekommt das **älteste Kind 10 % Ermäßigung** (außer Notfall-/Ferienbetreuung). Eingezogen wird über dasselbe SEPA-Mandat wie das Schulgeld; Mahngebühr 10 € je Mahnung.
 
 **Mittagessen:** wird **für alle Schüler berechnet, die länger als 13 Uhr betreut werden** — keine eigene Buchung, es folgt aus dem Modul (`schema/mensa-schema.sql`). Preiserhöhungen des Lieferanten werden weitergegeben; Erstattung nur bei Langzeiterkrankung ab der 2. Woche nach Abbestellung.
 
@@ -337,7 +337,7 @@ Der Vertrag erwähnt daneben eine **Notfall- und Ferienbetreuung** (nur als Raba
 - Abgerechnet wird über die Buchhaltung mit dem **SEPA-Mandat aus der Schulanmeldung**.
 - Die Essensberechtigung wird bei der Ausgabe **auf Papier** geprüft — bei den wenigen Kindern heute im Kopf merkbar.
 - **Anmeldeformular (Realschule, „Anmeldung zum Mittagessen"):** Klasse, Schuljahr, `Vorname`, `Nachname`, `Geburtstag`; je Wochentag Mo–Fr eine Ankreuz-Buchung zu je 20 €/Monat samt Summenfeld; „Infos für die Küche": `Vegetarisch`, `Laktosefrei`, `Glutenfrei`, `sonstige Unverträglichkeiten` (Freitext); Datum und Unterschrift eines Erziehungsberechtigten; interner Vermerk „Kopie Buchhaltung" (Datum/Unterschrift).
-- **Regeln laut Formular:** Die Buchungseinheit ist der **Wochentag im Schuljahres-Abo** (Oktober–Juli), nicht der einzelne Tag; kündbar mit vier Wochen Frist zum Schulhalbjahr (31.01.); keine Erstattung bei Krankheit; Realschüler wählen zwischen warmem Essen und eigenem Vesper. Die Unterschrift ermächtigt zugleich zur **Lastschrift** — das ist die Q1-Lastschrift-Erlaubnis aus `domains/grenzkarte.md` (Q3), keine Zahlung in Weltenbaum.
+- **Regeln laut Formular:** Die Buchungseinheit ist der **Wochentag im Schuljahres-Abo** (Oktober–Juli), nicht der einzelne Tag; kündbar mit vier Wochen Frist zum Schulhalbjahr (31.01.); keine Erstattung bei Krankheit; Realschüler wählen zwischen warmem Essen und eigenem Vesper. Die Unterschrift ermächtigt zugleich zur **Lastschrift** — das ist die Q1-Lastschrift-Erlaubnis aus `grenzkarte.md` (Q3), keine Zahlung in Weltenbaum.
 - **Ein Grundschul-Pendant gibt es nicht:** für Hortkinder wird das Mittagessen automatisch berechnet, sobald ein Modul über 13 Uhr gebucht ist (Abschnitt 8) — das RS-Formular ist die einzige eigenständige Essensanmeldung. Die Küchen-Infos landen im Küchenprofil je Kind, getrennt vom Art.-9-Bestand der Domäne 9 (`schema/mensa-schema.sql`).
 
 ---
@@ -501,7 +501,7 @@ Alle fünf stehen auch im Schema: Stammdaten und Putzdienst sind gegen diese Erh
 
 ## 22. Offene Fragen ohne Modellbezug
 
-Die Fristen-gebundenen Punkte stehen in `TODO.md`, die entwurfsgebundenen in `domains/grenzkarte.md`, „Weiße Flecken". Übrig bleibt, was allein aus dieser Erhebung offen ist:
+Die Fristen-gebundenen Punkte stehen in `TODO.md`, die entwurfsgebundenen in `grenzkarte.md`, „Weiße Flecken". Übrig bleibt, was allein aus dieser Erhebung offen ist:
 
 | Frage | Wen fragen | Spätestens vor |
 |---|---|---|

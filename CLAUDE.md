@@ -12,21 +12,23 @@ Antwort auf die falsche Frage.
 | Datei | Entscheidet |
 |---|---|
 | `rules.md` | Die Planungsprinzipien: Lean by Design (§1, **samt der ausdrücklichen Ausnahme für DB-Schema-Design**), Vertrauensgrenze (§2), Boring Technology (§4), Datensparsamkeit (§7) |
-| `domains/grenzkarte.md` | Wem welche Tatsache gehört, die Querschnitts-Entitäten Q1–Q5, die weißen Flecken, die Freeze-Definition |
+| `grenzkarte.md` | Wem welche Tatsache gehört, die Querschnitts-Entitäten Q1–Q5, die weißen Flecken, die Freeze-Definition |
 | `soll-prozesse/` | Wie ein Vorgang künftig läuft — ein Block je Prozess. Die gemeinsamen Hebel in `hebel.md`, Prozessliste und Wegweiser in `README.md` |
 | `schema/` | Das Datenmodell: vierzehn `-schema.sql` mit je einem `-schema-check.sql` |
 | `prozesse.md` | Wie es **heute** läuft, samt der real erhobenen Formularfelder |
 | `fachdomaenen.md` | Scope, Reihenfolge und Stammdaten-Berührung je Fachdomäne |
 | `glossar.md` | Das Rollen-Vokabular, repo-übergreifend gültig — Infra-Admin vs. Admin vs. Verwaltung |
 | `idea/`, `pipeline/`, `project-parts.md` | Infrastruktur: Container, Identität, Backup, DSGVO-Organisation, Repo-Struktur |
-| `TODO.md`, `TODO-SESSIONS.md` | Was offen ist bzw. was die nächste Session anfasst |
+| `TODO.md`, `TODO-SESSIONS.md` | Was reale Konten und Zugänge braucht bzw. was eine Session selbst abarbeiten kann |
+| `prompts/` | Die wiederkehrenden Aufträge. Was für alle gilt, steht einmal in `prompts/gemeinsam.md` |
+| `pruefberichte/` | Archiv der abgeschlossenen Prüfzyklen — ein neuer Lauf liest sie **nicht** |
 
 **Rangfolge bei Widerspruch**, damit „zwei Quellen sagen Verschiedenes" keine Rückfrage wird:
 
 1. Der **Soll-Block** schlägt alles — er ist die jüngste abgestimmte Fassung.
 2. **`soll-prozesse/hebel.md`** schlägt einen einzelnen Block, wo der Block keine Abweichung
    ausschreibt.
-3. **`domains/grenzkarte.md`** schlägt alles Weitere — sie zieht die Grenzen.
+3. **`grenzkarte.md`** schlägt alles Weitere — sie zieht die Grenzen.
 4. **`prozesse.md`** liefert reale Formularfelder, nie eine Struktur.
 
 Aus den Blöcken entsteht das Schema, nie umgekehrt.
@@ -67,7 +69,7 @@ der OTP-Fallback-Pfad für externe Nutzer, die CORS-Policy und alles unter Teams
 (`project-parts.md` §10).
 
 **Datenmodell — geprüft.** Vierzehn Schemata in `schema/`, jedes mit eigenem Prüfskript, aus den
-Soll-Blöcken abgeleitet und durch fünf Prüfzyklen gegangen (`pruefbericht-01.md` … `-05.md`):
+Soll-Blöcken abgeleitet und durch fünf Prüfzyklen gegangen (`pruefberichte/01.md` … `05.md`):
 
 - **Mit Tabellen:** Stammdaten, Querschnitt (Zustimmung, Dokument/Signatur, Zahlungsvorgang,
   Nachzieh-Aufgabe und die vier gemeinsamen Hebel), Putzdienst, Anmeldung (Voranmeldung, Anmeldetag,
@@ -78,7 +80,7 @@ Soll-Blöcken abgeleitet und durch fünf Prüfzyklen gegangen (`pruefbericht-01.
 
 Zwei Soll-Blöcke fehlen noch (`soll-prozesse/README.md`): **17 Lösch-Lauf** und **18
 DSGVO-Auskunft**. Stammdaten sind ab dem Vollimport **Ende August 2026** eingefroren; die Definition
-von „eingefroren" steht in `domains/grenzkarte.md`.
+von „eingefroren" steht in `grenzkarte.md`.
 
 **Nächster Schritt:** Übertragung aller vierzehn Schemata nach SQLAlchemy/Alembic in `wb-backend`
 (`TODO-SESSIONS.md`) — der engere Pfad bis September 2026, nicht der Entwurf. Was daneben stehen
@@ -88,13 +90,13 @@ muss, steht als kritischer Pfad in `fachdomaenen.md` §7 und in `TODO.md`.
 
 Diese Datei wird automatisch geladen; verlinkt werden muss nichts. Je nach Arbeit zusätzlich:
 
-- **Schema oder Domäne:** `rules.md`, `domains/grenzkarte.md`, `soll-prozesse/hebel.md`,
+- **Schema oder Domäne:** `rules.md`, `grenzkarte.md`, `soll-prozesse/hebel.md`,
   `schema/stammdaten-schema.sql`.
 - **Ein Vorgang:** sein Block in `soll-prozesse/`, dazu `hebel.md`. Die Schreibregeln für einen
-  neuen Block stehen in `soll-prozesse/anleitung.md`, der Auftrag dazu in `prozessblock-prompt.md`.
-- **Eine Domäne ins Schema:** `schema-prompt.md`. Gegenprüfen: `schema-pruef-prompt.md` in einer
+  neuen Block stehen in `soll-prozesse/anleitung.md`, der Auftrag dazu in `prompts/block-fuellen.md`.
+- **Eine Domäne ins Schema:** `prompts/schema-bauen.md`. Gegenprüfen: `prompts/schema-pruefen.md` in einer
   **frischen** Session, die den Bau nicht mitgemacht hat. Funde schließen:
-  `schema-reparatur-prompt.md`.
+  `prompts/schema-reparieren.md`. Für alle drei und den Blockprompt gilt `prompts/gemeinsam.md`.
 - **Neue Fachdomäne verstehen:** `fachdomaenen.md`, `prozesse.md` und die vier
   Anmeldetag-Checklisten in `~/Downloads/CHECKLISTEN/`.
 - **Übertragung nach `wb-backend`:** `TODO-SESSIONS.md`, `project-parts.md`,
@@ -106,7 +108,7 @@ Diese Datei wird automatisch geladen; verlinkt werden muss nichts. Je nach Arbei
 
 Zieldatenbank ist **PostgreSQL 18**. Bezeichner englisch, Kommentare deutsch. Die Konventionen für
 Schlüssel, Constraint-Namen und Kommentarform zeigt `schema/stammdaten-schema.sql`; ausgeschrieben
-stehen sie in `schema-prompt.md`.
+stehen sie in `prompts/schema-bauen.md`.
 
 **Die Begründungen stehen als Kommentare in der `.sql`, nicht in der Prosa.** Wer die Struktur ohne
 ihre Kommentare liest, schlägt zuverlässig genau das vor, was schon verworfen wurde. Eine zweite
@@ -128,7 +130,7 @@ auf die `.sql`, statt es zu wiederholen.
 **Eine Schemaänderung ist erst fertig, wenn alles mitgezogen ist** — diese Liste steht nur hier:
 
 `…-schema.sql` → das zugehörige `-schema-check.sql` **samt Sollstand im Kopfkommentar** → die
-betroffenen `.md` → `domains/grenzkarte.md`.
+betroffenen `.md` → `grenzkarte.md`.
 
 **Eine Regel ohne Gegenprobe gilt als nicht gebaut.** Der Constraint allein zählt nicht; das
 Prüfskript muss den realen Fall abweisen, den der Block verbietet.
@@ -159,8 +161,12 @@ Alle `.md` in diesem Repo bilden ausschließlich den **aktuellen Stand** ab — 
 Changelogs, keine Formulierungen wie „früher", „vorher hatten wir", „wurde ersetzt durch". Beim
 Ändern wird der alte Stand ersetzt, nicht ergänzt. Kurz, klar, präzise, kein Blähtext.
 
-Ausnahme sind die Prüfberichte `pruefbericht-NN.md`: Sie sind Archiv abgeschlossener Zyklen und
-werden nicht nachgezogen.
+Ausnahme ist `pruefberichte/`: Archiv abgeschlossener Zyklen, wird nicht nachgezogen.
+
+Und jede Regel steht **genau einmal**. Was hier steht, wiederholt kein Prompt; was in
+`prompts/gemeinsam.md` steht, wiederholt kein einzelner Prompt; was in `soll-prozesse/hebel.md`
+steht, wiederholt kein Block. Wer eine Regel an zweiter Stelle braucht, nennt sie, statt sie
+abzuschreiben.
 
 ## Git-Identität (gilt für alle Repos)
 

@@ -1,15 +1,18 @@
 # Prompt: das gebaute Schema gegenprüfen
 
-Gegenstück zu [`schema-prompt.md`](schema-prompt.md). Dort entsteht das SQL, hier wird es
+Gegenstück zu [`prompts/schema-bauen.md`](prompts/schema-bauen.md). Dort entsteht das SQL, hier wird es
 angegriffen. **Der Prüfer baut nicht** — er meldet, und du entscheidest.
 
 Der Lauf ist nur etwas wert, wenn er unabhängig ist: eine frische Session, die den Bau nicht
 mitgemacht hat und die Begründungen in den Dateien für Behauptungen hält, nicht für Belege.
 
-Effort `xhigh`. Vorher `git status` sauber: Der Lauf legt genau eine Datei an, `pruefbericht.md`,
+Effort `xhigh`. Vorher `git status` sauber: Der Lauf legt genau eine Datei an, `pruefberichte/aktuell.md`,
 und ändert sonst nichts. Alles unter dem Strich ist der Prompt.
 
 ---
+
+Es gelten [`gemeinsam.md`](gemeinsam.md) (wie du mit mir redest, kein Subagent urteilt) und
+`CLAUDE.md`. Beides liest du zuerst und ich wiederhole es hier nicht.
 
 Wir prüfen das Datenmodell unter `schema/`. Es ist aus den Soll-Blöcken abgeleitet; ob das
 gelungen ist, ist deine Frage. Du änderst nichts und baust nichts nach — auch nicht „nur eben
@@ -37,7 +40,7 @@ steht im nächsten Abschnitt.
 
 1. **`soll-prozesse/hebel.md`** — was für alle Prozesse gilt. Ein Hebel, den das Schema je Domäne
    nachbaut statt einmal, ist ein Fund; ein Hebel, den es gar nicht trägt, auch.
-2. **`rules.md`**, Abschnitte 1, 3 und 7, und **`domains/grenzkarte.md`**.
+2. **`rules.md`**, Abschnitte 1, 3 und 7, und **`grenzkarte.md`**.
 
 **Dann je Domäne**, und die nächste fängst du erst danach an:
 
@@ -45,12 +48,10 @@ steht im nächsten Abschnitt.
    die du prüfen wirst: Zitat, Löschanker, „bewusst KEINE", `[A]`, `[A!]`, `[?]`.
 4. **Die Blöcke in `soll-prozesse/`, die diese Domäne nennt** — vollständig, nicht überflogen.
 
-**Punkte 1 bis 4 liest du selbst, nicht durch einen Subagenten.** Ein zusammengefasster Bericht hat
-den Satz nicht mehr, gegen den du das Zitat hältst.
+**Punkte 1 bis 4 liest du selbst** — aus dem Grund, der in `gemeinsam.md` steht.
 
-**Die Rangfolge bei Widerspruch** ist dieselbe wie beim Bau: Soll-Block schlägt `hebel.md` schlägt
-`grenzkarte.md` schlägt `prozesse.md`. Keine dieser Quellen wird durch das Schema entschieden — dass
-eine Tabelle dasteht, belegt nichts über die Regel, die sie tragen soll.
+**Die Rangfolge bei Widerspruch** steht in `CLAUDE.md`. Sie wird nie durch das Schema entschieden:
+dass eine Tabelle dasteht, belegt nichts über die Regel, die sie tragen soll.
 
 ## Der Lauf überlebt seinen eigenen Kontext
 
@@ -61,9 +62,9 @@ den das Zitat gehalten wird. Deshalb liegt **kein Fund in deinem Gedächtnis**:
 
 - **Eine Domäne ist abgeschlossen, bevor die nächste anfängt.** Lesen, urteilen, Funde
   aufschreiben, dann weiter. Kein Sammelurteil am Ende.
-- **Funde schreibst du sofort nach `pruefbericht.md`**, angehängt, im Format unten, je Domäne unter
+- **Funde schreibst du sofort nach `pruefberichte/aktuell.md`**, angehängt, im Format unten, je Domäne unter
   einer eigenen Überschrift. Das ist die einzige Datei, die dieser Lauf anlegt.
-- **Wo du stehst, sagt `pruefbericht.md`** und nicht deine Erinnerung. Fang nach einer
+- **Wo du stehst, sagt `pruefberichte/aktuell.md`** und nicht deine Erinnerung. Fang nach einer
   Zusammenfassung bei der ersten Domäne an, die dort noch keine Überschrift hat — auch dann, wenn
   du meinst, sie schon gelesen zu haben.
 - **Den Schlussbericht erzeugst du aus der Datei**, nicht aus dem Kopf.
@@ -123,24 +124,14 @@ nichts. Vier Fallen, drei davon sind hier schon zugeschnappt:
 
 ## Wie du läufst
 
-Postgres ist hier nicht installiert, Podman schon:
+Aufruf, `ON_ERROR_STOP=1` und Ladereihenfolge stehen in `CLAUDE.md`. Drei Schritte, in dieser Folge:
 
-```
-podman run --rm -d --name wb-pruef -e POSTGRES_PASSWORD=x docker.io/library/postgres:18
-podman exec -i wb-pruef psql -U postgres -v ON_ERROR_STOP=1 -q < schema/stammdaten-schema.sql
-```
-
-**`-v ON_ERROR_STOP=1` ist kein Beiwerk.** Die Skripte melden über `RAISE EXCEPTION`; ohne den
-Schalter liest psql darüber hinweg und endet mit Rückgabewert 0 — dann ist jeder Lauf grün, auch
-der gescheiterte. Nimm den Rückgabewert je Skript in den Bericht, nicht den Text auf dem Schirm.
-
-1. **Alle `schema/*-schema.sql` in eine leere Datenbank**, in dieser Reihenfolge: `stammdaten`,
-   dann `querschnitt`, dann der Rest in beliebiger Folge — außer an diesen beiden hängt keine
-   Domäne an einer anderen. `ags`, `klassenbildung`, `m365` und `selfservice` legen keine Tabellen
-   an; sie zu laden ist ein Nichts. Scheitert der Ladelauf **in dieser Reihenfolge**, ist das ein
-   Fund und kein Bedienfehler.
+1. **Alle `schema/*-schema.sql` in eine leere Datenbank.** `ags`, `klassenbildung`, `m365` und
+   `selfservice` legen keine Tabellen an; sie zu laden ist ein Nichts. Scheitert der Ladelauf **in
+   der dokumentierten Reihenfolge**, ist das ein Fund und kein Bedienfehler.
 2. **Alle Prüfskripte gegen diese vollständige Datenbank**, nicht einzeln gegen ihre
-   Voraussetzungen. Jedes rollt am Ende zurück, keines stört also das nächste.
+   Voraussetzungen. Jedes rollt am Ende zurück, keines stört also das nächste. In den Bericht kommt
+   der Rückgabewert je Skript, nicht der Text auf dem Schirm.
 3. **Danach greifst du das Schema selbst an.** Schreib eigene `INSERT`s für die Fälle, die dir beim
    Lesen der Blöcke aufgefallen sind — besonders für Klasse 2 oben. Was durchgeht und nicht sollte,
    ist ein Fund; was abgewiesen wird und dürfte, ebenso.
@@ -169,7 +160,7 @@ Vorschlag: partieller Index über … statt UNIQUE.
 
 **Erst sammeln, dann sortieren.** Was dir auffällt, kommt in die Datei — auch das, von dem du beim
 Aufschreiben noch nicht weißt, ob es trägt. Aussortiert und nach Gewicht gebracht wird am Ende, in
-einem eigenen Durchgang über `pruefbericht.md`. Der umgekehrte Weg, schon beim Lesen zu entscheiden,
+einem eigenen Durchgang über `pruefberichte/aktuell.md`. Der umgekehrte Weg, schon beim Lesen zu entscheiden,
 ob etwas den Bericht wert ist, kostet zuverlässig die leisen Funde — und die leisen sind hier die
 teuren: Ein falsches Zitat bricht nirgends im Betrieb.
 
@@ -191,30 +182,22 @@ querschnitt · `signatures` ohne Gegenprobe im eigenen Skript — sie steht in
 - **Die Sortierung nach Gewicht nennt die Nummern**, nicht nur die Domänen — sonst ist die Liste,
   aus der die Reparatur ihre Pakete schneidet, nicht auf die Funde zurückzuführen.
 
-## Zwischenmeldungen und Länge
+## Zwischenmeldungen
 
-Ich lese den Lauf nicht mit. Je abgeschlossener Domäne **eine Zeile** — Name, Zahl der Funde,
-Prüfskript grün oder rot. Sonst nichts: kein Vorlesen dessen, was du gerade liest, keine
-Ankündigung jedes Schritts, keine Zwischenzusammenfassung.
-
-Am Ende ist der Bericht die Datei plus höchstens zehn Zeilen Prosa drumherum. Die beiden Listen
-zählen nicht mit und werden nie gekürzt, um ein Budget zu halten — ein unterschlagener Fund kostet
-mich mehr als zehn Zeilen. Kein Schlussabsatz, der das Ergebnis würdigt, keine „nächsten Schritte":
-Der nächste Schritt ist, dass ich lese.
+Je abgeschlossener Domäne **eine Zeile** — Name, Zahl der Funde, Prüfskript grün oder rot. Am Ende
+ist der Bericht die Datei plus höchstens zehn Zeilen Prosa drumherum; die beiden Listen zählen nicht
+mit.
 
 ## Was du nicht tust
 
-- **Nichts ändern außer `pruefbericht.md`.** Keine `.sql`, kein Commit, kein „ich hab's gleich mit
+- **Nichts ändern außer `pruefberichte/aktuell.md`.** Keine `.sql`, kein Commit, kein „ich hab's gleich mit
   repariert". Auch das Prüfskript nicht, dessen Lücke du gefunden hast.
-- **Keinen `pruefbericht-NN.md` liest du** — heute sind das `pruefbericht-01.md` bis
-  `pruefbericht-05.md`, morgen mehr. Das sind die Berichte früherer Zyklen, deren Funde alle
+- **Keinen `pruefberichte/NN.md` liest du** — heute sind das `pruefberichte/01.md` bis
+  `pruefberichte/05.md`, morgen mehr. Das sind die Berichte früherer Zyklen, deren Funde alle
   geschlossen sind. Wer sie aufschlägt, sucht danach dort, wo schon einmal gesucht wurde — und
   übersieht, was seither dazugekommen ist. Findest du unabhängig wieder, was dort stand, ist das
   ein Rückschritt und wiegt schwer; das merkst du aber nur, wenn du sie nicht gelesen hast. Die
-  Datei ohne Nummer, `pruefbericht.md`, ist dagegen deine eigene und existiert am Anfang nicht.
-- **Keinen Subagenten das Schema prüfen lassen.** Suchen darf er — eine Fundstelle in einer Datei,
-  ein Spaltenname über alle Dateien. Urteilen nicht, und nachprüfen, was du selbst geurteilt hast,
-  schon gar nicht.
+  Datei ohne Nummer, `pruefberichte/aktuell.md`, ist dagegen deine eigene und existiert am Anfang nicht.
 - **Den Marken `[A]`, `[A!]` und `[?]` nicht widersprechen.** Sie sind bewusst offen; dass sie
   offen sind, ist kein Fund. Ein Fund ist, wenn eine davon etwas offenlässt, das ein Block längst
   entscheidet — bei `[A!]` wiegt das schwer, denn an ihr hängt der Schnitt der Domäne und nicht

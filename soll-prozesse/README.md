@@ -9,9 +9,8 @@ Gegenstück zu `../prozesse.md`: dort steht, wie es **heute** läuft, samt der r
 | [`hebel.md`](hebel.md) | Die gemeinsamen Hebel — was für **alle** Prozesse gilt. Jeder steht genau einmal; die Blöcke nennen ihn, statt ihn zu wiederholen. Erste Anlaufstelle. |
 | [`anleitung.md`](anleitung.md) | Wie ein Block gefüllt wird: die Schreibregeln, die fünf Fragen, die Vorlage zum Kopieren. Steuert das Schreiben, nicht das System. |
 | `NN-name.md` | Je ein Prozess. Die Nummer ist die aus der Liste unten. |
-| [`../prozessblock-prompt.md`](../prozessblock-prompt.md) | Der Prompt, mit dem der nächste Block gefüllt wird. |
-| [`../schema-prompt.md`](../schema-prompt.md) | Der Prompt, mit dem aus den fertigen Blöcken das SQL-Schema wird — eine Fachdomäne je Durchgang, im Gespräch. |
-| [`../schema-bau-prompt.md`](../schema-bau-prompt.md) | Derselbe Auftrag für alle Domänen in einem autonomen Zug: Die Session fragt nichts, schreibt nach `../schema/` und committet je Domäne. |
+| [`../prompts/block-fuellen.md`](../prompts/block-fuellen.md) | Der Prompt, mit dem der nächste Block gefüllt wird. |
+| [`../prompts/schema-bauen.md`](../prompts/schema-bauen.md) | Der Prompt, mit dem aus den fertigen Blöcken das SQL-Schema wird — eine Fachdomäne je Durchgang, im Gespräch. |
 
 ## Prozessliste
 
@@ -85,4 +84,4 @@ Drei Festlegungen, damit die Zeit bis dahin definiert ist:
 - **Leer heißt „noch nicht nachgetragen", nicht „nein".** Wo [08](08-schulvertrag.md) sagt, es gebe kein leeres Feld, gilt das für alles, was durch seine Strecke gelaufen ist; ein Bestandskind ist daran erkennbar, dass sie bei ihm nie lief. Auch die Notfallnummer-Pflicht ([02](02-datenaenderung.md)) greift deshalb für neue Verträge und sperrt bei einem Bestandskind nichts — sie ist Teil des Nachtrags.
 - **Beim Fotoeinverständnis fällt das nicht ins Gewicht**, denn offen zählt dort ohnehin wie Nein ([08](08-schulvertrag.md)): Ein Bestandskind wird bis zu seinem Nachtrag nicht fotografiert. Das ist die sichere Seite und zugleich der einzige Druck, den diese Liste braucht.
 
-Aus den ausgefüllten Blöcken leite ich das Schema ab — je Prozess: welche Dinge es gibt, was von wem festgehalten wird, welche Unterscheidung tragen muss. Es entsteht **neu** unter `../schema/`: Die Schemata in `wb-docs/domains/` sind ein Vorentwurf, jeder gegen den Blockstand seines Tages gebaut und keiner gegen den ganzen Prozess. Zurück kommt daraus nur, was dort steht und in keinem Block eine Grundlage hat — das kann Formularwissen sein, das die Blöcke nicht kennen. Die `[?]`-Marken werden die Fragenliste für die Gespräche in der Schule.
+Aus den ausgefüllten Blöcken leite ich das Schema ab — je Prozess: welche Dinge es gibt, was von wem festgehalten wird, welche Unterscheidung tragen muss. Es steht in `../schema/`, aus denselben Blöcken abgeleitet und durch fünf Prüfzyklen gegangen; ein neuer Block wird dort eingefügt, nicht danebengebaut. Die `[?]`-Marken werden die Fragenliste für die Gespräche in der Schule.

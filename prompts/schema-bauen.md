@@ -1,6 +1,6 @@
 # Prompt: eine Fachdomäne ins Schema überführen
 
-Gegenstück zu [`prozessblock-prompt.md`](prozessblock-prompt.md). Dort entstehen die Abläufe, hier wird daraus SQL. **Eine Domäne je Durchgang** — dieselbe Portionierung, die sich bei den Blöcken bewährt hat: ein schmaler Auftrag liefert verlässlich besser als ein breiter. Steht das SQL, prüft [`schema-pruef-prompt.md`](schema-pruef-prompt.md) es gegen die Blöcke — in einer frischen Session, die den Bau nicht mitgemacht hat.
+Gegenstück zu [`prompts/block-fuellen.md`](prompts/block-fuellen.md). Dort entstehen die Abläufe, hier wird daraus SQL. **Eine Domäne je Durchgang** — dieselbe Portionierung, die sich bei den Blöcken bewährt hat: ein schmaler Auftrag liefert verlässlich besser als ein breiter. Steht das SQL, prüft [`prompts/schema-pruefen.md`](prompts/schema-pruefen.md) es gegen die Blöcke — in einer frischen Session, die den Bau nicht mitgemacht hat.
 
 Kopieren, `DOMÄNE` ersetzen, absenden. Alles unter dem Strich ist der Prompt. Effort `high`, bei einer Domäne mit vielen Berührungspunkten `xhigh`; Thinking anlassen.
 
@@ -8,16 +8,18 @@ Kopieren, `DOMÄNE` ersetzen, absenden. Alles unter dem Strich ist der Prompt. E
 
 Wir überführen die Fachdomäne **DOMÄNE** ins Datenmodell. Ergebnis ist eine `.sql`-Datei unter `schema/`, aus der später SQLAlchemy-2.0-Modelle und eine Alembic-Migration entstehen. Nur diese Domäne, keine andere — was an ihren Rand stößt, wird benannt und nicht mitmodelliert.
 
-**Du baust in einen bestehenden, geprüften Stand hinein.** In `schema/` liegen vierzehn Domänen, aus denselben Blöcken abgeleitet und durch fünf Prüfzyklen gegangen. Das ist kein Vorentwurf, sondern der Bestand: Was dort schon jemandem gehört, referenzierst du und baust es nicht nach. Was du dort ändern müsstest, ist eine Frage an mich und keine stille Korrektur — und der Stammdaten-Freeze (`domains/grenzkarte.md`) gilt ab dem Vollimport für alles, was `stammdaten-schema.sql` berührt.
+Es gelten [`gemeinsam.md`](gemeinsam.md) (die `[A]`-Marke, wie du fragst, wie du mit mir redest, kein Subagent urteilt) und `CLAUDE.md`. Beides liest du zuerst und ich wiederhole es hier nicht.
+
+**Du baust in einen bestehenden, geprüften Stand hinein.** In `schema/` liegen vierzehn Domänen, aus denselben Blöcken abgeleitet und durch fünf Prüfzyklen gegangen. Das ist kein Vorentwurf, sondern der Bestand: Was dort schon jemandem gehört, referenzierst du und baust es nicht nach. Was du dort ändern müsstest, ist eine Frage an mich und keine stille Korrektur — und der Stammdaten-Freeze (`grenzkarte.md`) gilt ab dem Vollimport für alles, was `stammdaten-schema.sql` berührt.
 
 ## Was du vorher liest, und wozu
 
 1. **Alle Blöcke in `soll-prozesse/`, die diese Domäne berühren** — vollständig, nicht überflogen. Sie sind die fachliche Wahrheit: Aus ihnen wird das Schema abgeleitet, nicht umgekehrt. Welche das sind, findest du über die Verweise; im Zweifel einer zu viel.
 2. **`soll-prozesse/hebel.md`** — was für alle Prozesse gilt. Ein Hebel, den mehrere Blöcke nennen, ist fast immer **eine** Struktur im Schema und nicht je Block eine.
 3. **`rules.md`**, Abschnitt 1 samt der ausdrücklichen **Ausnahme für DB-Schema-Design**, und Abschnitt 7 (Datensparsamkeit). Das sind die Maßstäbe, an denen ich deinen Entwurf messe.
-4. **`domains/grenzkarte.md`** — wem welche Tatsache gehört, die Querschnitts-Entitäten Q1–Q5 und die weißen Flecken. Der Domänenschnitt gilt weiter: Wenn deine Domäne etwas braucht, das dort schon jemandem gehört, referenzierst du es und baust es nicht nach. Den Abschnitt zum Stammdaten-Freeze liest du als bindend, nicht als Begründungssammlung.
+4. **`grenzkarte.md`** — wem welche Tatsache gehört, die Querschnitts-Entitäten Q1–Q5 und die weißen Flecken. Der Domänenschnitt gilt weiter: Wenn deine Domäne etwas braucht, das dort schon jemandem gehört, referenzierst du es und baust es nicht nach. Den Abschnitt zum Stammdaten-Freeze liest du als bindend, nicht als Begründungssammlung.
 
-**Punkte 1 bis 4 liest du selbst, nicht durch einen Subagenten.** Jede Tabelle trägt später den Satz wörtlich, der sie verlangt — ein zusammengefasster Bericht hat diesen Satz nicht mehr, und das Zitat ist hinterher nicht zu rekonstruieren.
+**Punkte 1 bis 4 liest du selbst** — aus dem Grund, der in `gemeinsam.md` steht.
 
 ## Drei Referenzen und der eigene Bestand
 
@@ -30,35 +32,19 @@ Wir überführen die Fachdomäne **DOMÄNE** ins Datenmodell. Ergebnis ist eine 
 
 Wo du eine Quelle **bewusst nicht** übernimmst, steht der Grund am betroffenen Feld.
 
-## Rangfolge bei Widerspruch
+## Rangfolge bei Widerspruch — der fünfte Punkt
 
-Der häufigste Grund, mich zu fragen, ist „zwei Quellen sagen Verschiedenes". Das musst du nicht fragen, das ist entschieden:
+Die vier Stufen stehen in `CLAUDE.md`. Für diesen Durchgang kommt eine fünfte dazu:
 
-1. **Der Soll-Block** schlägt alles. Er ist die jüngste und einzige abgestimmte Fassung.
-2. **`hebel.md`** schlägt einen einzelnen Block, wo der Block keine Abweichung ausschreibt.
-3. **`grenzkarte.md`** schlägt alles Weitere — sie zieht die Grenzen, dein Entwurf füllt sie.
-4. **`prozesse.md`** liefert reale Formularfelder, die **drei Referenzen** liefern Randfälle — beide nie eine Struktur.
 5. **Der gebaute Bestand in `schema/`** schlägt keine Quelle, bindet aber die Form: Er hat nicht recht, weil er dasteht — er gibt nur vor, wie eine Sache hier gebaut wird.
 
-Steht deine Ableitung gegen Punkt 3 oder gegen den Bestand, ist das ein Fund für die Randliste — kein Grund anzuhalten und keine stille Korrektur.
+Steht deine Ableitung gegen `grenzkarte.md` oder gegen den Bestand, ist das ein Fund für die Randliste — kein Grund anzuhalten und keine stille Korrektur.
 
-## Reihenfolge: erst der Entwurf, dann die Fragen
+## Wie viel gefragt wird
 
-**Frag mich nichts, bevor du geschrieben hast.** Aus den Blöcken und der Grenzkarte lässt sich der größte Teil ableiten, ohne dass ich etwas beitrage. Also: das vollständige Schema entwerfen, jede offene Entscheidung darin als Annahme markieren, mir den Entwurf zeigen — und **erst danach** fragen.
+Aus den Blöcken und der Grenzkarte lässt sich der größte Teil ableiten, ohne dass ich etwas beitrage — der Entwurf kommt deshalb vor den Fragen.
 
-Jede Annahme steht **an genau der Stelle, an die sie gehört**, als SQL-Kommentar in dieser Form:
-
-```sql
--- [A] Die Modulbuchung hängt am Kind und nicht am Vertrag. — Alternative: am
--- Vertrag, dann ist die Historie über Vertragswechsel hinweg lückenlos; Preis:
--- jede Abfrage „welche Module hat dieses Kind" braucht einen Join mehr.
-```
-
-- Immer `[A]`, damit ich alle mit einer Textsuche finde.
-- Aussage, dann Alternative, dann Preis — in dieser Reihenfolge, ein Satz je Teil.
-- Am Ende deiner Nachricht listest du sie als `A1, A2 …` auf, damit ich sie ohne Scrollen beantworten kann.
-- **Annahme und Frage sind nicht dasselbe.** Ein `[A]` ist entschieden und trägt weiter, wenn ich schweige; eine Frage hält an. Kannst du unter deiner Annahme weiterbauen, ist es ein `[A]` und keine Frage.
-- **Eine Domäne ist erst fertig, wenn kein `[A]` mehr in der Datei steht.** Bestätigte Annahmen verlieren die Marke und werden normaler Kommentar, gekippte werden ersetzt. `[?]`-Marken bleiben stehen — die sind für die Leute in der Schule, nicht für mich.
+**Zwei bis vier Runden sind hier normal**, deutlich weniger als bei einem Prozessblock, weil das meiste ableitbar ist. **Eine Domäne ist erst fertig, wenn kein `[A]` mehr in der Datei steht.**
 
 ## Was du allein entscheidest
 
@@ -76,7 +62,7 @@ Das hier fragst du nicht, das entscheidest du und schreibst höchstens eine `[A]
 - Wo zwei Blöcke sich widersprechen und die Rangfolge oben nicht greift, weil beide gleich alt sind. Dann Konflikt offenlegen, beide Seiten zitieren.
 - Wo eine Ableitung eine Änderung an `hebel.md` oder an einem fertigen Block nach sich zöge.
 
-**Zwei bis vier Runden sind normal** — deutlich weniger als bei einem Prozessblock, weil hier das meiste ableitbar ist. Höchstens vier Fragen je Runde, nach Gewicht sortiert, als `F1, F2 …` mit Buchstaben an den Optionen. Zu jeder Option ihr **Preis**, nicht nur die Empfehlung. Was ich nicht beantworten kann, wird eine **`[?]`-Marke mit Adressat**; nichts ausdenken, und wenn die Blöcke für eine Entscheidung nicht reichen, sag das, statt zu raten.
+Reichen die Blöcke für eine Entscheidung nicht, sag das, statt zu raten.
 
 ## Die Regeln fürs Modell
 
@@ -99,8 +85,6 @@ Das hier fragst du nicht, das entscheidest du und schreibst höchstens eine `[A]
 
 **Jede Tabelle mit Personenbezug nennt ihren Löschanker** — als Kommentar an der Tabelle, ein Satz: woran die Frist rechnet und aus welchem Block der Anker kommt. Die Anker stehen alle schon in den Blöcken; wenn du für eine Tabelle keinen findest, ist das ein Fund und keine Lücke, die du füllst.
 
-**Keine konstruierten Randfälle.** Statt „was, wenn genau dieser seltene Fall eintritt" die generelle Regel suchen, die ihn mit abdeckt. Und kein Feld, kein Trigger, kein Status gegen menschliches Vergessen: Bleibt ein Vorgang liegen, weil ihn niemand einträgt, ist das kein Modellierungsproblem.
-
 ## Nachvollziehbarkeit
 
 Zwei verschiedene Dinge, beide verlangt:
@@ -108,8 +92,6 @@ Zwei verschiedene Dinge, beide verlangt:
 **Woher eine Struktur kommt.** Jede Tabelle trägt als erste Kommentarzeile ihre Herkunft: welcher Block sie verlangt und welcher Satz darin, wörtlich zitiert. Jede Spalte, deren Existenz nicht auf den ersten Blick klar ist, trägt ihre Begründung — und **warum eine erwartete Spalte fehlt**, steht als Kommentar an der Tabelle, weil eine nicht existierende Spalte keinen anderen Anker hat. Ohne diese Zeilen schlägt der nächste Durchgang zuverlässig genau das vor, was hier schon verworfen wurde.
 
 **Was im Betrieb mit den Daten geschah.** Die [Änderungsspur](soll-prozesse/hebel.md#änderungsspur) ist ein Hebel und deshalb **eine** Struktur für alle Domänen — sie wird nicht je Tabelle nachgebaut. Prüfe stattdessen, ob deine Tabellen das tragen, was die Blöcke von ihr verlangen: wer, wann, was vorher dastand, und der Lauf als Urheber bei maschinellen Änderungen.
-
-**Wo eine Begründung hingehört** entscheidet eine Frage, damit sie nicht zweimal dasteht: Hängt sie an genau einer Spalte oder einem Constraint? → in die `.sql`. Braucht sie zwei Tabellen oder einen Prozess, um überhaupt formulierbar zu sein? → in die `.md`, und die `.sql` verweist darauf.
 
 ## Verständlichkeit
 
@@ -179,18 +161,14 @@ Deine Domäne stößt an vierzehn gebaute. Was dabei über ihren Rand hinausreic
 Darauf gehört genau dreierlei:
 
 - **Eine fremde Tabelle müsste sich ändern**, damit deine Domäne trägt — eine Spalte, ein Constraint, ein Fremdschlüssel. Bau das nicht, auch nicht „nur eben".
-- **Ein Sachverhalt steht nach deinem Entwurf an zwei Orten** — bei dir und in einer bestehenden Domäne oder einer Querschnitts-Entität aus `domains/grenzkarte.md`.
+- **Ein Sachverhalt steht nach deinem Entwurf an zwei Orten** — bei dir und in einer bestehenden Domäne oder einer Querschnitts-Entität aus `grenzkarte.md`.
 - **Ein Block verlangt etwas, das im Bestand fehlt** — dann ist die Lücke dort und nicht bei dir.
 
 Nicht darauf gehört, dass du anders schneidest oder benennst, als du es anderswo gemacht hättest: Das ist Handwerk und entscheidest du selbst.
 
-## Wie du mit mir redest
+## Drei Listen, drei Präfixe
 
-- **Ergebnis zuerst.** Der erste Satz sagt, was rausgekommen ist; die Begründung steht dahinter.
-- **Drei Listen, drei Präfixe:** Annahmen `A1, A2 …`, Fragen `F1, F2 …`, Randliste `R1, R2 …`. Dann ist „A3 ja, F1b, R2 so lassen" eine vollständige Antwort, und ich muss nicht dazuschreiben, welche Liste ich meine.
-- **Höchstens ungefähr fünfzehn Zeilen Prosa je Antwort.** SQL zählt nie mit, weder der Entwurf noch ein Ausschnitt daraus. Die drei Listen zählen ebenfalls nicht mit, tragen aber **je Eintrag genau eine Zeile** — sie sind zum Abhaken, nicht zum Lesen. Kürze nie eine Liste, um ein Budget zu halten: eine unterschlagene Annahme kostet mich mehr als zehn Zeilen.
-- Begründe nur, wo eine Entscheidung daran hängt. **Keine Zusammenfassung dessen, was ich gerade gelesen habe, und keine dessen, was du gerade geschrieben hast** — die Datei steht ja da. Kein Schlussabsatz, der das Ergebnis noch einmal würdigt, und keine „nächsten Schritte", solange ich nicht danach frage.
-- Korrigier eine frühere Aussage nur, wenn der Fehler meine Entscheidung ändert. Sonst still richtigstellen und weiter.
+Annahmen `A1, A2 …`, Fragen `F1, F2 …`, Randliste `R1, R2 …`. Dann ist „A3 ja, F1b, R2 so lassen" eine vollständige Antwort, und ich muss nicht dazuschreiben, welche Liste ich meine. SQL zählt nie ins Zeilenbudget, weder der Entwurf noch ein Ausschnitt daraus.
 
 ## Bevor du mir den Entwurf zeigst
 

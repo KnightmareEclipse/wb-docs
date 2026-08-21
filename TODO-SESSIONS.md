@@ -1,16 +1,16 @@
 # TODO — Offene Punkte für Entwicklungs-Sessions
 
-Fachliche/technische Punkte, die eine Session in diesem Repo oder in `wb-backend` abarbeiten kann — im Unterschied zu `TODO.md`, das reale Konten/Zugänge und organisatorische Vorbereitungen sammelt. Sortiert nach Dringlichkeit.
+Fachliche und technische Punkte, die eine Session in diesem Repo oder in `wb-backend` abarbeiten kann — im Unterschied zu `TODO.md`, das reale Konten, Zugänge und organisatorische Vorbereitungen sammelt. Sortiert nach Dringlichkeit.
+
+## In diesem Repo
+
+### Die beiden offenen Soll-Blöcke
+
+**17 Lösch-Lauf** (was verschwindet wann, in welcher Reihenfolge) und **18 DSGVO-Auskunft** (wer bekommt was, in welcher Frist) — `prompts/block-fuellen.md`. Kein Nachzügler, sondern Voraussetzung: Jede Tabelle mit Personenbezug nennt im Schema ihren Löschanker, und viele davon zeigen auf einen Lauf, den bisher nur die Anker beschreiben. Solange Block 17 fehlt, ist die Frist selbst nirgends festgelegt.
+
+Aus beiden Blöcken folgt danach ein Schema-Durchgang (`prompts/schema-bauen.md`) — wahrscheinlich ohne eigene Tabellen, aber das ist das Ergebnis der Domäne und keine Annahme.
 
 ## Vor dem ersten Import echter Daten
-
-### Was an Domänenschemata noch offen ist
-
-Gebaut sind Stammdaten, Putzdienst, Anmeldung (samt Q1/Q2/Q3/Q5), Ferienanmeldung, Gesundheitsdaten, der Mensa-Kern (`schema/mensa-schema.sql`) und die Klassenorganisation (`schema/klassenorganisation-schema.sql`) — damit alle Domänen, die vor dem Freeze gegen Stammdaten geprüft wurden, alle fünf Querschnitts-Entitäten und der gesamte Art.-9-Bestand.
-
-Offen sind nur noch die nicht terminlich getriebenen Domänen: **5 Rechnungsfreigabe** (braucht zuerst die Bereichs- und Vorgesetztenstruktur an `employees`, Zuschnitt unbekannt — `domains/grenzkarte.md`, „Weiße Flecken"), **6 AGs** (nichts Konkretes bekannt) und **11 Bonussystem** (ausdrücklich nicht v1); **8 Eltern-Selfservice** und **12 Klassenbildung** brauchen per Festlegung keine eigenen Tabellen.
-
-Keine davon ist vor dem Vollimport fällig, und keine verlangt eine Änderung an einer bestehenden Stammdaten-Spalte.
 
 ### Wie die Anmeldeformulare Kinder nicht doppelt anlegen
 
@@ -57,29 +57,30 @@ Unabhängig vom Textwechsel gehört ein Schritt an den Abschluss selbst: **die S
 
 ### Übertragung nach SQLAlchemy/Alembic: was Modelle nicht können
 
-Tabellen, Spalten, PK/FK/UNIQUE, CHECKs, partielle Indizes und die Ausschluss-Constraints lassen sich als Modell ausdrücken. **Drei Dinge nicht:** die plpgsql-Funktion `set_row_audit()`, die 48 Trigger, die sie über die sieben Schemata anhängen, und die Spalten-GRANTs. Die gehören als `op.execute()` in die Initial-Migration.
+Tabellen, Spalten, PK/FK/UNIQUE, CHECKs, partielle Indizes und die Ausschluss-Constraints lassen sich als Modell ausdrücken. **Zwei Dinge nicht:** die Spalten-GRANTs für den Art.-9-Bestand und die enger geschnittenen DB-Rollen (Liste in `TODO.md`). Die gehören als `op.execute()` in die Initial-Migration.
 
-Das ist kein Tipparbeits-, sondern ein Sicherheitsproblem: Alembics `--autogenerate` **sieht diese drei gar nicht**. Es meldet nicht, dass sie fehlen, und würde sie bei einem späteren Regenerieren stillschweigend aus der Migration lassen. Damit fiele genau das weg, worauf das Schema am stärksten baut — Audit-Trail und Art.-9-Schutz — ohne eine einzige Fehlermeldung.
+Das ist kein Tipparbeits-, sondern ein Sicherheitsproblem: Alembics `--autogenerate` **sieht sie gar nicht**. Es meldet nicht, dass sie fehlen, und würde sie bei einem späteren Regenerieren stillschweigend aus der Migration lassen — ohne eine einzige Fehlermeldung fiele genau der Art.-9-Schutz weg.
 
-Die Doppelung ist dafür überprüfbar statt riskant: die sieben Prüfskripte in `schema/` laufen gegen **jede** Datenbank, auch gegen die von Alembic gebaute. Kommen dort 66/66, 22/22, 60/60, 14/14, 11/11, 4/4 und 3/3 heraus, ist die Übertragung nachweislich treu. Das gehört als fester Schritt hinter die Initial-Migration, nicht als einmalige Sichtprüfung.
+**Die Änderungsspur ist der zweite Fall dieser Art, und der gefährlichere.** `change_log` wird von der **Anwendung** geschrieben, nicht von einem Datenbank-Trigger — bewusst so, weil eine Regel, die nur in der Datenbank lebt, im Code unsichtbar ist (Kopfkommentar in `schema/querschnitt-schema.sql`). Folge: Jeder Schreibpfad, der eine Tabelle dieses Modells ändert, muss die Spur selbst schreiben; wird das an einer Stelle vergessen, fehlt sie dort lautlos, und nichts in der Datenbank meldet es. Die Absicherung ist deshalb eine **gemeinsame Schreibschicht in `wb-backend`, durch die jede Änderung läuft** — kein Punkt, den man nachträglich einzieht. `changed_by` trägt dabei ein Präfix (`entra:`/`guardian:`/`system:`), das ein CHECK erzwingt.
 
-Danach führt `wb-backend` das Schema; die `.sql` in diesem Repo bleibt der Entwurf samt Begründungen und ist nicht mehr die Quelle der Wahrheit.
+Die Doppelung Schema ↔ Modell ist überprüfbar statt riskant: Alle vierzehn Prüfskripte in `schema/` laufen gegen **jede** Datenbank, auch gegen die von Alembic gebaute. Kommt dort je Skript der Sollstand aus seinem Kopfkommentar heraus, ist die Übertragung nachweislich treu. Das gehört als fester Schritt hinter die Initial-Migration, nicht als einmalige Sichtprüfung.
 
-### Dependabot für die Base-Images einschalten
-
-`.github/dependabot.yml` in `wb-backend` mit dem `docker`-Ecosystem auf `Dockerfile` und `docker-compose.yml` (PostgreSQL-, Caddy-, Python-Base-Image), monatliches Intervall passend zum Patch-Rhythmus aus `rules.md` Abschnitt 2. Reine Repo-Datei, kein Konto und kein Token nötig — Dependabot ist in GitHub eingebaut und muss nur in den Repo-Einstellungen aktiviert sein.
-
-Das `pip`-Ecosystem bewusst **nicht** eintragen: es würde `requirements.txt` direkt anfassen, ohne `requirements.in` neu zu kompilieren, und damit die pip-tools-Kette umgehen (`rules.md` Abschnitt 3).
+Danach führt `wb-backend` das Schema; die `.sql` hier bleibt die Begründungsquelle und ist nicht mehr die Quelle der Wahrheit.
 
 ### Constraint-Namen: `naming_convention` vor dem ersten Modell setzen
 
 `MetaData(naming_convention=...)` in SQLAlchemy vergibt jedem Constraint einen deterministischen Namen aus einer Vorlage. Ohne sie benennt Alembic autogenerierte Constraints unvorhersehbar, und eine spätere Migration kann sie nicht sicher per `ALTER TABLE ... DROP CONSTRAINT` greifen — genau der Fall „im laufenden Betrieb anfassen". Muss stehen, **bevor** das erste Modell entsteht, sonst tragen die früh erzeugten Constraints andere Namen als alle späteren.
 
-Im Entwurfsschema sind bereits die mehrspaltigen CHECKs, der Ausschluss-Constraint und die partiellen Unique-Indizes explizit benannt (`schema/stammdaten-schema.sql`); die Konvention muss diese Namen übernehmen, nicht überschreiben.
-
+Im Schema sind bereits die mehrspaltigen CHECKs, der Ausschluss-Constraint und die partiellen Unique-Indizes explizit benannt (`schema/stammdaten-schema.sql`); die Konvention muss diese Namen übernehmen, nicht überschreiben.
 
 ### Art.-9-Spalten-GRANT: Rollenwahl und ORM-Verhalten
 
 - Sobald `backend_runtime` auf `children` kein `SELECT` auf `denomination_id`/`congregation` mehr hat, scheitert jedes Vollobjekt-Laden dieser Tabelle: SQLAlchemy selektiert per Default alle gemappten Spalten, `session.get(Child, id)` läuft in „permission denied for column". Lösung ist klein (`deferred()` auf dem Spaltenpaar oder zwei Mappings), muss aber vor dem ersten Modell dastehen — sonst wird sie unter Zeitdruck durch ein tabellenweites GRANT „gelöst" und der Mechanismus ist weg.
 - Zweite, engere Rolle heißt: zweiter Pool oder `SET LOCAL ROLE` in derselben Transaktion, in der ohnehin `SET LOCAL app.actor` gesetzt wird. Letzteres ist der billigere Weg.
 - `app.actor` muss ab jetzt ein Präfix tragen (`entra:`/`guardian:`/`system:`) — der Trigger weist alles andere ab. Betrifft den Schreibpfad für interne Nutzer: dort stand bisher die nackte Entra-Object-ID.
+
+### Dependabot für die Base-Images einschalten
+
+`.github/dependabot.yml` in `wb-backend` mit dem `docker`-Ecosystem auf `Dockerfile` und `docker-compose.yml` (PostgreSQL-, Caddy-, Python-Base-Image), monatliches Intervall passend zum Patch-Rhythmus aus `rules.md` Abschnitt 2. Reine Repo-Datei, kein Konto und kein Token nötig — Dependabot ist in GitHub eingebaut und muss nur in den Repo-Einstellungen aktiviert sein.
+
+Das `pip`-Ecosystem bewusst **nicht** eintragen: es würde `requirements.txt` direkt anfassen, ohne `requirements.in` neu zu kompilieren, und damit die pip-tools-Kette umgehen (`rules.md` Abschnitt 3).

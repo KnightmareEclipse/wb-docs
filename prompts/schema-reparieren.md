@@ -1,6 +1,6 @@
 # Prompt: die Funde aus dem Prüfbericht schließen
 
-Gegenstück zu [`schema-pruef-prompt.md`](schema-pruef-prompt.md). Dort wird gemeldet, hier wird
+Gegenstück zu [`prompts/schema-pruefen.md`](prompts/schema-pruefen.md). Dort wird gemeldet, hier wird
 repariert. **Der Reparateur baut, was der Block hergibt — und fragt, was er nicht hergibt.**
 
 Ein Paket je Lauf. Beim Absenden nennst du die Kennungen (`F3 F7 F12 …`) oder eine
@@ -19,18 +19,21 @@ Strich ist der Prompt.
 
 ---
 
-Wir schließen Funde aus [`pruefbericht.md`](pruefbericht.md) im Datenmodell unter `schema/`.
-Der Bericht ist die Arbeitsliste, nicht die Anweisung.
+Es gelten [`gemeinsam.md`](gemeinsam.md) (wie du mit mir redest, kein Subagent urteilt) und
+`CLAUDE.md`. Beides liest du zuerst und ich wiederhole es hier nicht.
+
+Wir schließen Funde aus `pruefberichte/aktuell.md` im Datenmodell unter `schema/`. Der Bericht ist
+die Arbeitsliste, nicht die Anweisung.
 
 **Derzeit gibt es hier nichts zu tun.** Die fünf bisherigen Zyklen sind abgeschlossen und liegen
-als Beweisstücke daneben (`pruefbericht-01.md` … `pruefbericht-05.md`); kein Fund wurde verworfen.
+als Beweisstücke daneben (`pruefberichte/01.md` … `pruefberichte/05.md`); kein Fund wurde verworfen.
 Was aus ihnen weiterträgt, steht als Satz an seiner Stelle im Schema und nicht in einer Liste
 daneben — offen ist allein die Frist, nach der eine versandte Mail ohne Person verfällt, als `[?]`
 im Kopf von `schema/querschnitt-schema.sql`.
 
-Ein neuer Prüflauf legt `pruefbericht.md` frisch an; erst dann gibt es hier wieder etwas zu tun, und
-am Ende jenes Zyklus wird die Datei zu `pruefbericht-06.md`. Die Kennungen eines abgeschlossenen
-Berichts gehören zu seinem Lauf und nicht zu einem neuen — `pruefbericht-01.md` trug dabei noch
+Ein neuer Prüflauf legt `pruefberichte/aktuell.md` frisch an; erst dann gibt es hier wieder etwas zu tun, und
+am Ende jenes Zyklus wird die Datei zu `pruefberichte/06.md`. Die Kennungen eines abgeschlossenen
+Berichts gehören zu seinem Lauf und nicht zu einem neuen — `pruefberichte/01.md` trug dabei noch
 domänenbuchstabige (`S11`, `Q6`), erst danach ist die durchlaufende Nummer `[F1]`, `[F2]`, … die eine
 Form.
 
@@ -43,9 +46,6 @@ sich selbst; was nur begründet ist, prüfst du gegen die Quelle, bevor du etwas
 
 Und **der Vorschlag im Fund ist der Vorschlag eines Prüfers.** Er hat das Schema angegriffen,
 nicht gebaut. Trägt er, nimm ihn. Trägt eine kleinere Änderung dieselbe Regel, nimm die kleinere.
-
-Die Rangfolge bei Widerspruch ist dieselbe wie beim Bau: Soll-Block schlägt `hebel.md` schlägt
-`grenzkarte.md` schlägt `prozesse.md`.
 
 ## Wann du baust und wann du fragst
 
@@ -91,20 +91,10 @@ Lösch-Lauf je Domäne als Gegenprobe schließt die Klasse dauerhaft; `gesundhei
 
 ## Wie du läufst
 
-Postgres ist nicht installiert, Podman schon:
-
-```
-podman run --rm -d --name wb-reparatur -e POSTGRES_PASSWORD=x docker.io/library/postgres:18
-podman exec -i wb-reparatur psql -U postgres -v ON_ERROR_STOP=1 -q < schema/stammdaten-schema.sql
-```
-
-`-v ON_ERROR_STOP=1` ist kein Beiwerk: ohne den Schalter endet auch ein gescheiterter Lauf mit
-Rückgabewert 0. Ladereihenfolge `stammdaten`, `querschnitt`, dann der Rest.
-
-Am Ende des Pakets läuft der Ladelauf in eine leere Datenbank und alle vierzehn Prüfskripte
-gegen die vollständige — nicht einzeln gegen ihre Voraussetzungen. Rückgabewert je Skript, nicht
-der Text auf dem Schirm. Geht das nicht, sag es einmal am Anfang und ändere nur, was ohne
-Datenbank entscheidbar ist.
+Aufruf, `ON_ERROR_STOP=1` und Ladereihenfolge stehen in `CLAUDE.md`. Am Ende des Pakets läuft der
+Ladelauf in eine leere Datenbank und alle vierzehn Prüfskripte gegen die vollständige — nicht
+einzeln gegen ihre Voraussetzungen. Rückgabewert je Skript, nicht der Text auf dem Schirm. Geht das
+nicht, sag es einmal am Anfang und ändere nur, was ohne Datenbank entscheidbar ist.
 
 ## Der Commit
 
@@ -126,17 +116,12 @@ Nicht pushen.
   Umbenennung, kein Nachziehen einer Stelle, die dir unsauber vorkommt.
 - **Keine Abstraktion über den Fund hinaus.** Kein Constraint für einen Fall, den kein Block
   nennt; keine Tabelle auf Vorrat; keine Spalte, die erst die nächste Domäne bräuchte.
-- **`pruefbericht.md` bleibt, wie er ist.** Er ist Beweisstück, nicht Arbeitsblatt.
-- **Kein Subagent baut oder urteilt.** Suchen darf er — eine Fundstelle, ein Spaltenname über
-  alle Dateien. Nicht ändern, nicht entscheiden, und nicht nachprüfen, was du geändert hast.
+- **`pruefberichte/aktuell.md` bleibt, wie er ist.** Er ist Beweisstück, nicht Arbeitsblatt.
 
 ## Was du meldest
 
 Je abgeschlossenem Fund **eine Zeile**: Kennung, was geändert wurde, Gegenprobe ja oder nein.
-Kein Vorlesen dessen, was du gerade liest, keine Ankündigung jedes Schritts.
 
 Am Ende höchstens fünfzehn Zeilen: was gebaut ist, was an einer Antwort hängt, was du als Fund
-verworfen hast und warum, und der Rückgabewert von Ladelauf und Prüfskripten. Führe die
-verworfenen und die offenen Funde vollständig auf — die kürze ich nicht gegen ein Budget ein.
-Kein Schlussabsatz, der das Ergebnis würdigt, keine „nächsten Schritte": Der nächste Schritt
-ist, dass ich lese.
+verworfen hast und warum, und der Rückgabewert von Ladelauf und Prüfskripten. Die verworfenen und
+die offenen Funde führst du vollständig auf.
