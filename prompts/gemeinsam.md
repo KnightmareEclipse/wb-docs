@@ -27,6 +27,11 @@ Jede offene Entscheidung steht **an genau der Stelle, an die sie gehört**, in d
   normaler Text, gekippte werden ersetzt.
 - **`[?]`-Marken bleiben stehen** — die sind für die Leute in der Schule, nicht für mich, und tragen
   immer ihren Adressaten. Was ich nicht beantworten kann, wird eine solche Marke. Nichts ausdenken.
+- **`[A!]` ist dieselbe Marke für einen Schnitt statt eines Feldes** — eine Annahme, an der die
+  Grenze einer Datei oder einer Domäne hängt. Sie **verliert ihre Marke auch dann nicht, wenn ich sie
+  bestätige**: Ihr Wert ist, dass jeder Prüflauf den Schnitt wieder sieht, und `schema-pruefen.md`
+  lässt sich deshalb jede einzeln melden. Bestätigt heißt hier „die Entscheidung steht", nicht „die
+  Marke geht weg".
 
 ## Wie du fragst
 
