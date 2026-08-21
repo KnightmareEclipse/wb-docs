@@ -149,22 +149,6 @@ CREATE TABLE kindergarten_recommendations (
     CONSTRAINT uq_kindergarten_recommendations_code UNIQUE (code)
 );
 
--- Herkunft: grenzkarte.md, „Bewertung ist keine eigene Entität" — „eine
--- Einschätzung je Kind auf der Skala Zusage / Eher Ja / Eher Nein / Absage".
--- Kein Löschanker.
-CREATE TABLE assessment_results (
-    assessment_result_id integer GENERATED ALWAYS AS IDENTITY,
-    code                 text NOT NULL,
-    name                 text NOT NULL,
-    -- Deaktiviert statt gelöscht: „is_active = false" nimmt den Wert aus
-    -- jedem Auswahlfeld, lässt aber jede Zeile stehen, die schon auf ihn
-    -- zeigt (rules.md Abschnitt 3).
-    is_active             boolean NOT NULL DEFAULT true,
-
-    CONSTRAINT pk_assessment_results      PRIMARY KEY (assessment_result_id),
-    CONSTRAINT uq_assessment_results_code UNIQUE (code)
-);
-
 -- Herkunft: 06 (Anmeldetag) — „Ebenso ergänzt werden die wahrgenommenen
 -- Angebote aus 05 — Musikarche, Ferienprogramm, Clemens-KITA". Kein Löschanker.
 CREATE TABLE attended_offers (
@@ -595,11 +579,17 @@ CREATE TABLE applications (
     -- Realschule: das amtliche Dokument der abgebenden Schule.
     primary_school_recommendation_id integer,
 
-    -- Bewertung: das konsolidierte Ergebnis, nicht eine Zeile je Lehrkraft.
-    -- Dieses Feld und die beiden darunter haben das engste Zugriffsprofil nach
-    -- den Art.-9-Daten und brauchen ein eigenes Spalten-GRANT (grenzkarte.md).
-    assessment_result_id integer,
-    -- Die eigene Einschätzung des Niveaus, getrennt von der Empfehlung oben —
+    -- Bewusst KEINE Spalte für das konsolidierte Bewertungsergebnis auf der
+    -- Skala Zusage / Eher Ja / Eher Nein / Absage, die grenzkarte.md vorsah:
+    -- „Bewertung, Ranking und Notizen der Lehrkräfte: außerhalb des Systems,
+    -- auch nicht halb und auch nicht als stillgelegtes Feld" (07), und 06
+    -- merkt für 07 dasselbe vor. Der Block schlägt die Karte (Rangfolge in
+    -- CLAUDE.md). Was Weltenbaum vom Ergebnis trägt, ist die
+    -- Aufnahmeentscheidung selbst — Zusage, Warteplatz samt Priorität oder
+    -- Absage — und die steht als `application_status_id` unten.
+    -- Die eigene Einschätzung des Niveaus dagegen hält 06 ausdrücklich fest.
+    -- Sie hat das engste Zugriffsprofil nach den Art.-9-Daten und braucht ein
+    -- eigenes Spalten-GRANT (grenzkarte.md). Getrennt von der Empfehlung oben —
     -- dieselbe Werteliste, aber eine andere Sache: „Die Empfehlung kommt von
     -- der abgebenden Grundschule, die Bewertungstabelle fertigen die Lehrkräfte
     -- am Anmeldetag an, je nachdem, wie sich das Kind dort schlägt. Zwei Felder
@@ -669,8 +659,6 @@ CREATE TABLE applications (
         FOREIGN KEY (primary_school_recommendation_id) REFERENCES school_levels (school_level_id),
     CONSTRAINT fk_applications_assessed_level
         FOREIGN KEY (assessed_level_id) REFERENCES school_levels (school_level_id),
-    CONSTRAINT fk_applications_assessment_result
-        FOREIGN KEY (assessment_result_id) REFERENCES assessment_results (assessment_result_id),
     CONSTRAINT fk_applications_status
         FOREIGN KEY (application_status_id, is_final)
         REFERENCES application_statuses (application_status_id, is_final),

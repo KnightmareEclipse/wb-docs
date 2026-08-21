@@ -1,8 +1,8 @@
 -- Prüfskript zu anmeldung-schema.sql.
 --
--- Sollstand: 21 Tabellen — neun Wertelisten (application_statuses,
+-- Sollstand: 20 Tabellen — acht Wertelisten (application_statuses,
 -- kindergartens, school_levels, enrolment_assessments,
--- kindergarten_recommendations, assessment_results, attended_offers,
+-- kindergarten_recommendations, attended_offers,
 -- care_need_levels, care_modules), dazu care_module_prices, tuition_fees,
 -- enrolment_windows,
 -- application_unlocks, admission_days, admission_day_slots, applications,
@@ -24,7 +24,7 @@ BEGIN
     FROM unnest(ARRAY[
         'application_statuses', 'kindergartens', 'school_levels',
         'enrolment_assessments', 'kindergarten_recommendations',
-        'assessment_results', 'attended_offers', 'care_need_levels', 'care_modules',
+        'attended_offers', 'care_need_levels', 'care_modules',
         'care_module_prices', 'tuition_fees', 'enrolment_windows', 'application_unlocks',
         'admission_days', 'admission_day_slots', 'applications',
         'application_offers', 'contracts', 'contract_responses',
@@ -34,7 +34,33 @@ BEGIN
     IF missing IS NOT NULL THEN
         RAISE EXCEPTION 'Fehlende Tabellen: %', missing;
     END IF;
-    RAISE NOTICE 'ok: alle 21 Tabellen vorhanden';
+    RAISE NOTICE 'ok: alle 20 Tabellen vorhanden';
+END $$;
+
+-- 07: „Bewertung, Ranking und Notizen der Lehrkräfte: außerhalb des Systems,
+-- auch nicht halb und auch nicht als stillgelegtes Feld." Der Block schlägt die
+-- Karte, die eine Skala Zusage / Eher Ja / Eher Nein / Absage vorsah — die
+-- Gegenprobe dazu ist das Fehlen, denn eine Spalte, die es nicht gibt, hat
+-- keinen anderen Anker. `assessed_level_id` ist davon nicht berührt: die eigene
+-- Niveau-Einschätzung hält 06 ausdrücklich fest.
+DO $$
+DECLARE unexpected text;
+BEGIN
+    IF to_regclass('public.assessment_results') IS NOT NULL THEN
+        RAISE EXCEPTION 'Die Werteliste assessment_results steht entgegen Block 07 wieder da';
+    END IF;
+    SELECT string_agg(column_name, ', ') INTO unexpected
+      FROM information_schema.columns
+     WHERE table_name = 'applications'
+       AND column_name IN ('assessment_result_id', 'assessment_rank', 'assessment_note');
+    IF unexpected IS NOT NULL THEN
+        RAISE EXCEPTION 'Die Bewerbung trägt entgegen Block 07 eine Bewertung: %', unexpected;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                    WHERE table_name = 'applications' AND column_name = 'assessed_level_id') THEN
+        RAISE EXCEPTION 'Die eigene Niveau-Einschätzung aus 06 fehlt';
+    END IF;
+    RAISE NOTICE 'ok: kein Bewertungsergebnis, die Niveau-Einschätzung steht';
 END $$;
 
 DO $$
