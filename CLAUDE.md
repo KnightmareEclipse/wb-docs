@@ -14,7 +14,7 @@ Antwort auf die falsche Frage.
 | `rules.md` | Die Planungsprinzipien: Lean by Design (§1, **samt der ausdrücklichen Ausnahme für DB-Schema-Design**), Vertrauensgrenze (§2), Boring Technology (§4), Datensparsamkeit (§7) |
 | `grenzkarte.md` | Wem welche Tatsache gehört, die Querschnitts-Entitäten Q1–Q5, die weißen Flecken, die Freeze-Definition |
 | `soll-prozesse/` | Wie ein Vorgang künftig läuft — ein Block je Prozess. Die gemeinsamen Hebel in `hebel.md`, Prozessliste und Wegweiser in `README.md` |
-| `schema/` | Das Datenmodell: vierzehn `-schema.sql` mit je einem `-schema-check.sql` |
+| `schema/` | Das Datenmodell: je Domäne eine `-schema.sql` mit ihrem `-schema-check.sql` |
 | `prozesse.md` | Wie es **heute** läuft, samt der real erhobenen Formularfelder |
 | `fachdomaenen.md` | Scope, Reihenfolge und Stammdaten-Berührung je Fachdomäne |
 | `glossar.md` | Das Rollen-Vokabular, repo-übergreifend gültig — Infra-Admin vs. Admin vs. Verwaltung |
@@ -69,21 +69,19 @@ direkt auf der VPS) und läuft in `wb-backend` produktiv: Compose-Stack und Fast
 der OTP-Fallback-Pfad für externe Nutzer, die CORS-Policy und alles unter Teams-Apps-Repo
 (`project-parts.md` §10).
 
-**Datenmodell — geprüft.** Vierzehn Schemata in `schema/`, jedes mit eigenem Prüfskript, aus den
-Soll-Blöcken abgeleitet und durch fünf Prüfzyklen gegangen (`pruefberichte/01.md` … `05.md`):
+**Datenmodell — geprüft.** Was in `schema/` liegt, ist gebaut; das `-schema-check.sql` daneben
+belegt es. Abgeleitet aus den Soll-Blöcken, durch die Zyklen in `pruefberichte/` gegangen. Was das
+Dateisystem *nicht* sagt und deshalb hier steht:
 
-- **Mit Tabellen:** Stammdaten, Querschnitt (Zustimmung, Dokument/Signatur, Zahlungsvorgang,
-  Nachzieh-Aufgabe und die vier gemeinsamen Hebel), Putzdienst, Anmeldung (Voranmeldung, Anmeldetag,
-  Schulvertrag samt Hortvertrag und Betreuungsmodulen), Ferienanmeldung, Rechnungsfreigabe, Mensa,
-  Gesundheitsdaten, Elternbonus, Klassenorganisation.
-- **Ohne Tabellen, und das ist ihr Ergebnis:** AGs, M365-Kontenverwaltung, Eltern-Selfservice,
-  Klassenbildung. Ihr Prüfskript belegt genau das — dass nichts auf Verdacht entstanden ist.
+- **Vier Schemata ohne Tabellen, und das ist ihr Ergebnis:** AGs, M365-Kontenverwaltung,
+  Eltern-Selfservice, Klassenbildung. Ihr Prüfskript belegt genau das — dass nichts auf Verdacht
+  entstanden ist.
 
-Zwei Soll-Blöcke fehlen noch (`soll-prozesse/README.md`): **17 Lösch-Lauf** und **18
-DSGVO-Auskunft**. Stammdaten sind ab dem Vollimport **Ende August 2026** eingefroren; die Definition
-von „eingefroren" steht in `grenzkarte.md`.
+Welche Soll-Blöcke noch fehlen, sagt die Liste in `soll-prozesse/README.md`: ein offener Punkt trägt
+dort kein Häkchen und keinen Link. Stammdaten sind ab dem Vollimport **Ende August 2026**
+eingefroren; die Definition von „eingefroren" steht in `grenzkarte.md`.
 
-**Nächster Schritt:** Übertragung aller vierzehn Schemata nach SQLAlchemy/Alembic in `wb-backend`
+**Nächster Schritt:** Übertragung aller Schemata nach SQLAlchemy/Alembic in `wb-backend`
 (`TODO-SESSIONS.md`) — der engere Pfad bis September 2026, nicht der Entwurf. Was daneben stehen
 muss, steht als kritischer Pfad in `fachdomaenen.md` §7 und in `TODO.md`.
 
@@ -151,13 +149,44 @@ podman exec -i wb-pruef psql -U postgres -v ON_ERROR_STOP=1 -q < schema/stammdat
   Schalter liest psql darüber hinweg und endet mit Rückgabewert 0 — dann ist jeder Lauf grün, auch
   der gescheiterte. In den Bericht kommt der Rückgabewert je Datei, nicht der Text auf dem Schirm.
 - **Ladereihenfolge:** `stammdaten`, dann `querschnitt`, dann der Rest in beliebiger Folge.
-- **Alle vierzehn Prüfskripte gegen die vollständige Datenbank**, nicht einzeln gegen ihre
+- **Alle Prüfskripte gegen die vollständige Datenbank**, nicht einzeln gegen ihre
   Voraussetzungen: ein Skript mit erfundenen Fremdschlüssel-Werten läuft grün, solange die
   Zieltabelle fehlt. Jedes rollt am Ende zurück, keines stört das nächste.
 
 Referenzquelle für das amtliche Datenmodell: `~/Documents/projectNightmare/ASV-BW/asv_struktur.sql`
 — der Wert steckt in den `COMMENT ON COLUMN`-Zeilen, die `*Statistikpflichtfeld*` markieren. Sie ist
 eine Quelle für Randfälle, nie für Felder (`rules.md` §7).
+
+## Stand und Begründung
+
+Zwei Sorten Text laufen sonst über: was schon gebaut ist, und warum es so und nicht anders gebaut
+ist. Beide werden nicht erzählt, sondern verankert.
+
+**Stand ist eine Datei-Existenz, kein Satz.** Was in `schema/` liegt, ist gebaut; ein Häkchen in
+`soll-prozesse/README.md` trägt den Link auf den Block, den es behauptet. Daraus folgen zwei Regeln:
+
+- **Eine Standaussage ohne Pfad ist keine.** Die `(gebaut, schema/…)`-Marken in `fachdomaenen.md`
+  tragen ihre Gegenprobe mit sich: Wer den Stand fälscht, hinterlässt einen toten Pfad.
+- **Wird etwas fertig, darf sich höchstens eine Datei ändern.** Müssen zwei, ist die Aussage
+  dupliziert — dann wird sie an einer der beiden Stellen gestrichen, nicht an beiden gepflegt.
+
+**Grenze zwischen Kommentar und `.md`** — dieselbe Mechanik wie die `.sql`/`.md`-Grenze oben, eine
+Ebene höher:
+
+> Der Kommentar am Artefakt trägt, **was gilt**. Die `.md` trägt, **was nicht gilt und warum nicht**.
+
+Ein verworfener Weg hat im Code keinen Anker — es gibt keine Zeile für eine Option, die nie gebaut
+wurde. Der Kommentar trägt deshalb den Nebensatz („rootful, weil rootless die Absenderadresse
+verliert"), die abgewogene Alternative samt Preis steht in `pipeline/` oder `idea/`. Umgekehrt bleibt
+eine Begründung, zu der nie eine Alternative abgewogen wurde, allein am Code.
+
+- **Kein verworfener Weg ohne Preis.** „Wir könnten auch X" ist Blähtext; „X kostet eine
+  Quadlet-Unit neben Compose, HTTP/3 aus und Port 80 trotzdem offen" ist ein Grund. An dieser Regel
+  hört eine `.md` auf zu wachsen.
+- **Der Verweis geht in beide Richtungen, über einen Pfad.** Jede Datei in `pipeline/` und `idea/`
+  nennt im Kopf den Pfad, der sie umsetzt — kein Rollen- oder Skriptname in Prosa. Jeder Mechanismus
+  im Code, dessen Alternative abgewogen wurde, nennt die `.md` beim Pfad: Zusammenfassung plus
+  Verweis, nie eine zweite Vollfassung.
 
 ## Dokumentationsstil
 
