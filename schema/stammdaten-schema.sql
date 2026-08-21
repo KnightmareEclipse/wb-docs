@@ -84,10 +84,11 @@ CREATE TABLE languages (
 );
 
 -- Herkunft: 05 (Bewerbung) — „Geburtsort und -land … Staatsangehörigkeit".
--- [A] Eine Liste trägt beide Bezeichnungen (Land „Deutschland",
--- Staatsangehörigkeit „deutsch") statt zweier Tabellen. — Alternative: getrennte
--- `countries` und `nationalities`; Preis: zwei Listen, die dieselben Staaten
--- führen und beim nächsten Staatszerfall getrennt gepflegt werden müssen.
+-- Eine Liste trägt beide Bezeichnungen (Land „Deutschland",
+-- Staatsangehörigkeit „deutsch") statt zweier Tabellen. — Alternative:
+-- getrennte `countries` und `nationalities`; Preis: zwei Listen, die dieselben
+-- Staaten führen und beim nächsten Staatszerfall getrennt gepflegt werden
+-- müssen.
 CREATE TABLE countries (
     country_id       integer GENERATED ALWAYS AS IDENTITY,
     -- ISO-3166-1 alpha-2, damit ein Import aus ASV-BW ohne Namensabgleich trifft.
@@ -274,9 +275,9 @@ CREATE TABLE phone_types (
 -- vorwärts auf sie, und eine Vorwärtsreferenz nimmt nichts mit. Sie ist deshalb
 -- Stufe 7 des Lösch-Laufs (Kopf von querschnitt-schema.sql), die einzige, die
 -- der Lauf selbst berechnet.
--- [A] Eine eigene Zeile, auf die mehrere Personen zeigen dürfen, statt vier
--- Spalten an `persons`. — Alternative: Anschrift direkt an der Person, dann ist
--- das Häkchen ein Kopiervorgang; Preis: der Umzug einer Familie ist vier
+-- Eine eigene Zeile, auf die mehrere Personen zeigen dürfen, statt vier
+-- Spalten an `persons`. — Alternative: Anschrift direkt an der Person, dann
+-- ist das Häkchen ein Kopiervorgang; Preis: der Umzug einer Familie ist vier
 -- Änderungen statt einer, und eine davon bleibt liegen.
 CREATE TABLE addresses (
     address_id  uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -906,8 +907,8 @@ CREATE TABLE login_codes (
     CONSTRAINT ck_login_codes_attempts CHECK (failed_attempts BETWEEN 0 AND 5)
 );
 
--- [A] Abgelaufene Codes werden nach 24 Stunden gelöscht, damit die Tabelle
--- nicht unbegrenzt wächst. — Alternative: stehenlassen und dem Lösch-Lauf
+-- Abgelaufene Codes werden nach 24 Stunden gelöscht, damit die Tabelle nicht
+-- unbegrenzt wächst. — Alternative: stehenlassen und dem Lösch-Lauf
 -- überlassen; Preis: eine Tabelle, die je Anmeldung eine Zeile sammelt und
 -- deren älteste niemand mehr braucht — nach 15 Minuten ist der Code tot, nach
 -- einer Stunde auch das Ratelimit, das ihn zählt.

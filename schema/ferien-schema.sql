@@ -268,12 +268,12 @@ CREATE TABLE holiday_session_surcharges (
 -- einen Kostenübernahme-Code für eine Mailadresse und ein Programm, dazu ein
 -- Satz, an wen berechnet wird … Der Code gilt für diese eine Anmeldung … und
 -- verfällt nach 14 Tagen." Löschanker: nicht die Frist. hebel.md sagt „Fristen
--- sperren, sie löschen nicht" — die Frist macht den Code ungültig und räumt die
--- Zeile nicht weg, und die trägt eine Mailadresse und den Satz, an wen
--- berechnet wird. Er geht deshalb nach der [A] unten: nicht eingelöst mit
--- seiner Frist, eingelöst mit seiner Buchung. Bewusst KEINE Spalten für
--- Antrag, Bescheid, Bewilligungszeitraum und Teilbeträge: sie „kommen im
--- System nicht vor".
+-- sperren, sie löschen nicht" — die Frist macht den Code ungültig und räumt
+-- die Zeile nicht weg, und die trägt eine Mailadresse und den Satz, an wen
+-- berechnet wird. Er geht deshalb nach der Regel an der Tabelle unten: nicht
+-- eingelöst mit seiner Frist, eingelöst mit seiner Buchung. Bewusst KEINE
+-- Spalten für Antrag, Bescheid, Bewilligungszeitraum und Teilbeträge: sie
+-- „kommen im System nicht vor".
 CREATE TABLE holiday_cost_coverage_codes (
     holiday_cost_coverage_code_id uuid NOT NULL DEFAULT gen_random_uuid(),
     holiday_programme_id          integer NOT NULL,
@@ -306,12 +306,12 @@ CREATE TABLE holiday_cost_coverage_codes (
     CONSTRAINT ck_holiday_cost_coverage_codes_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
--- [A] Ein nicht eingelöster Code wird nach seiner Frist gelöscht, ein
--- eingelöster mit der Buchung, an der er hängt — der Lösch-Lauf räumt erst die
--- Buchung, dann den Code, den `fk_holiday_bookings_coverage_code` bis dahin
--- festhält (NO ACTION, wie `documents` das Kind festhält). — Alternative: die
--- Zeile stehenlassen und allein dem Lösch-Lauf am Kind überlassen; Preis: der
--- nicht eingelöste Code hat gar kein Kind, an dem ein Anker rechnen könnte, und
+-- Ein nicht eingelöster Code wird nach seiner Frist gelöscht, ein eingelöster
+-- mit der Buchung, an der er hängt — der Lösch-Lauf räumt erst die Buchung,
+-- dann den Code, den `fk_holiday_bookings_coverage_code` bis dahin festhält
+-- (NO ACTION, wie `documents` das Kind festhält). — Alternative: die Zeile
+-- stehenlassen und allein dem Lösch-Lauf am Kind überlassen; Preis: der nicht
+-- eingelöste Code hat gar kein Kind, an dem ein Anker rechnen könnte, und
 -- sammelte die Mailadressen von Familien, die nie gebucht haben. Wie bei
 -- `login_codes` (stammdaten-schema.sql) eine Regel des Laufs und kein
 -- Constraint — „Fristen sperren, sie löschen nicht" (hebel.md).
@@ -420,10 +420,10 @@ CREATE INDEX ix_holiday_bookings_session ON holiday_bookings (holiday_session_id
 -- Kind und Programm: Erhoben wird sie in einem Zug mit den Terminen eines
 -- Programms (Schritt 3), gelesen auf dessen Teilnehmerliste (Schritt 7).
 -- Löschanker: geht mit dem Kind.
--- [A] Je Kind und Programm statt je Kind. — Alternative: eine Zeile je Kind über
--- alle Jahre; Preis: die Anmerkung aus einem Ferienprogramm von vor drei Jahren
--- stünde ungefragt auf der Teilnehmerliste der Kochwerkstatt von heute, und
--- gelöscht würde sie nie.
+-- Je Kind und Programm statt je Kind. — Alternative: eine Zeile je Kind über
+-- alle Jahre; Preis: die Anmerkung aus einem Ferienprogramm von vor drei
+-- Jahren stünde ungefragt auf der Teilnehmerliste der Kochwerkstatt von heute,
+-- und gelöscht würde sie nie.
 CREATE TABLE holiday_care_notes (
     holiday_care_note_id uuid NOT NULL DEFAULT gen_random_uuid(),
     child_id             uuid NOT NULL,

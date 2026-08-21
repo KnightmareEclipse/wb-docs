@@ -481,7 +481,7 @@ SELECT pg_temp.expect_reject(
 -- 10: „Der Code gilt für diese eine Anmeldung." Eingelöst hängt er an seiner
 -- Buchung und geht erst nach ihr — `fk_holiday_bookings_coverage_code` hält ihn
 -- bis dahin fest, wie `documents` das Kind festhält. Das ist die Reihenfolge,
--- die die [A] an der Tabelle zusagt.
+-- die der Kommentar an der Tabelle zusagt.
 SELECT pg_temp.expect_reject(
     '10 — eingelöster Code gelöscht, während seine Buchung ihn noch hält',
     $q$DELETE FROM holiday_cost_coverage_codes
