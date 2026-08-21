@@ -1,0 +1,55 @@
+-- Klassenbildung (Domäne 12) — nichts zu bauen.
+--
+-- Das ist das Ergebnis dieser Domäne, keine Auslassung. grenzkarte.md sagt es
+-- selbst: „Klassenbildung (12) braucht keine eigene Tabelle … Die Domäne ist
+-- damit eine Oberfläche, keine Datendomäne: eine Ansicht über alle Kinder einer
+-- künftigen Klassenstufe mit Geschlecht, Wohnort, Geschwistern und Wunschnotiz,
+-- aus der ein Mensch `children.class_id` setzt."
+--
+-- Die heutige Liste für die neuen Klassen 1 und 5 verlangt fünf Angaben. Vier
+-- davon stehen schon; die fünfte wird nicht mehr erhoben:
+--
+--   * **Wohnort und Geschlecht** an `persons` — über `persons.address_id` bzw.
+--     `persons.gender_id` (stammdaten-schema.sql).
+--   * **Geschwister** folgen aus `children.family_id`: „wer an der Schule ist,
+--     steht ohnehin fest" (05).
+--   * **Klassenlehrer:in** als `classes.class_teacher_id` (stammdaten-schema.sql)
+--     — genau eine je Klasse, so von der Schule entschieden.
+--   * **Der Zusammensetzungswunsch** hat keine Spalte mehr. grenzkarte.md wollte
+--     ihn als Freitextfeld an der Bewerbung („Bleibt der Wunsch ‚mit wem möchte
+--     dieses Kind zusammen'"); Block 15 ist jünger und entscheidet anders: „Die
+--     Gründe — Freundschaften, Förderbedarf, Ausgewogenheit — bleiben außerhalb
+--     wie das Ranking in 07" (Schritt 2), und sein „Was dabei erhoben wird"
+--     kennt ihn nicht. Die Ansicht zeigt ihn deshalb nicht; wer den Wunsch
+--     kennt, ist der Mensch, der die Klasse setzt.
+--
+-- Was die Domäne schreibt, ist eine einzige Spalte: `children.class_id`, an
+-- ihre Schulart gebunden durch den zusammengesetzten Fremdschlüssel
+-- `fk_children_class` (rules.md Abschnitt 1). Die beiden Bedingungen aus Block
+-- 15 stehen dort als Constraints: die Einschreibung
+-- (`ck_children_class_needs_entry`) und die passende Schulart.
+--
+-- Vier Dinge bekommen bewusst keine Spalte:
+--
+--   * Eine **Kapazität je Klasse**. „Wie viele Kinder in einer Klasse sitzen,
+--     wird gezeigt, nicht geprüft — die Zielmarke von derzeit 25 steht so wenig
+--     im System wie in 07."
+--   * Die **Stufe und der Anzeigename einer Klasse**. „Stufe und Anzeigename
+--     werden nicht erhoben, sondern gerechnet" — aus Schulart, Startjahr und
+--     laufendem Schuljahr; `school_branches.first_grade_level` trägt dafür den
+--     Anfang.
+--   * Der **Zeitpunkt des Umsetzens**. Ein Klassenwechsel „ist dieselbe
+--     Handlung wie das erste Setzen und braucht keinen eigenen Weg"; wann er
+--     geschah, hält die Änderungsspur fest (querschnitt-schema.sql).
+--   * Der **Zusammensetzungswunsch**, siehe oben — die eine Angabe der heutigen
+--     Liste, die das Schema nicht mehr trägt.
+--
+-- Es gibt deshalb keine CREATE-Anweisung in dieser Datei. Das Prüfskript
+-- daneben belegt, dass die vier verbliebenen Angaben stehen, dass der Wunsch
+-- keine Spalte hat und dass die beiden Bedingungen greifen.
+
+
+-- ---------------------------------------------------------------------------
+-- Offene Fragen an die Schule
+-- ---------------------------------------------------------------------------
+-- Keine. Block 15 lässt für diese Domäne nichts offen, was das Schema betrifft.

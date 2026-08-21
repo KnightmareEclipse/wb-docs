@@ -1,0 +1,63 @@
+-- M365-Kontenverwaltung (Domäne 7) — nichts zu bauen.
+--
+-- Das ist das Ergebnis dieser Domäne, keine Auslassung. Block 13 sagt es
+-- selbst: „Weltenbaum schreibt dabei nichts in den Tenant und liest keine
+-- Gruppen: Dieser Block sagt, woraus die Handarbeit des Admins entsteht und
+-- wann sie fällig ist — getan wird sie weiter von Hand in M365. Er ist deshalb
+-- kein Ablauf im Portal, sondern der Ort, an dem ihr Anstoß entsteht."
+--
+-- Alles, was der Block erhebt, steht bereits — und zwar dort, wo die Tatsache
+-- hingehört:
+--
+--   * Der Mitarbeitendeneintrag mit Name, Haus, Schuladresse, erstem und
+--     letztem Arbeitstag und „an wen die Post künftig geht" — sechs Angaben und
+--     keine siebte — steht als `employees` in stammdaten-schema.sql (Q4).
+--   * Die Schuladresse des Kindes steht als `children.school_email`, ebenfalls
+--     in stammdaten-schema.sql: „Am Kind entsteht genau eine Angabe, seine
+--     Schuladresse, eingetragen und geändert allein vom Admin."
+--   * Anlegen und Offboarding sind Nachzieh-Aufgaben mit dem Ziel M365 und
+--     stehen als `sync_tasks` in querschnitt-schema.sql: „Je Person gibt es
+--     dabei eine Aufgabenart und nicht zwei — die Art ist das Ziel M365 und
+--     nicht der Anlass: Anlegen und Offboarding ersetzen einander, statt sich
+--     zu verdoppeln." Der partielle Unique-Index dort trägt genau diese Regel.
+--   * Die Mitarbeiterrollen — „Mit seinem Ablauf enden alle Mitarbeiterrollen
+--     von selbst" (13) — stehen als `employee_roles` in stammdaten-schema.sql.
+--
+-- Drei Dinge bekommen bewusst keine Spalte:
+--
+--   * Ein **Kontostatus** je Person. Ob ein Konto besteht, ist an der
+--     Schuladresse ablesbar — „Wo die Schuladresse eines Kindes fehlt, ist sein
+--     Konto nicht angelegt" (04). Ein Statusfeld daneben wäre ein zweiter Ort
+--     für dieselbe Tatsache (rules.md Abschnitt 1) und liefe dem Tenant
+--     hinterher, in den Weltenbaum nicht hineinsieht.
+--   * Ein **Offboarding-Schritt** als eigene Entität. „Ein Handgriff für Schüler
+--     wie Mitarbeitende", und dieser Handgriff ist eine Aufgabe.
+--   * Die **sechs Monate bis zur Kontenlöschung**. Sie sind „fest und nirgends
+--     einstellbar", und die Liste der löschbaren Konten ist eine frisch erzeugte
+--     Ansicht über `employees.last_working_day` und `children.exit_date` — „Das
+--     Löschen ist keine Aufgabe, sondern diese Liste." Sie darf der Lösch-Lauf
+--     auch nicht mitnehmen: „Sie stehen im Tenant, nicht in Weltenbaum, und ihre
+--     sechs Monate laufen dort."
+--
+-- grenzkarte.md führt für diese Domäne „Kontostatus, Offboarding-Schritt" als
+-- eigene Entitäten. Beide sind hier bewusst nicht gebaut: Block 13 ist die
+-- jüngere und einzige abgestimmte Fassung und schlägt die Karte (Rangfolge in
+-- schema-prompt.md).
+--
+-- Der Löschanker dieser Domäne steht ebenfalls schon: `employees.last_working_day`
+-- — „nicht der Haken des Admins, sonst hinge die Löschfrist einer Person daran,
+-- dass jemand eine Aufgabe abhakt." Die Schuladresse am Kind hat keine eigene
+-- Frist und geht mit dem Kind.
+--
+-- Es gibt deshalb keine CREATE-Anweisung in dieser Datei. Das Prüfskript
+-- daneben belegt, dass die vier fremden Strukturen tragen, was dieser Block von
+-- ihnen verlangt.
+
+
+-- ---------------------------------------------------------------------------
+-- Offene Fragen an die Schule
+-- ---------------------------------------------------------------------------
+-- [?] Wie lange werden die Daten eines ausgeschiedenen Mitarbeitenden
+--     aufbewahrt? Der Anker steht (`employees.last_working_day`), sein Ziel
+--     nicht — dieselbe Frage wie in 00, hier nicht zweitgestellt. —
+--     Datenschutzbeauftragte

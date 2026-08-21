@@ -1,0 +1,67 @@
+-- Eltern-Selfservice (Domäne 8) — nichts zu bauen.
+--
+-- Das ist das Ergebnis dieser Domäne, keine Auslassung. grenzkarte.md führt sie
+-- mit „keine" eigenen Entitäten und „ja (eigene Daten)" beim Schreiben in die
+-- Stammdaten; Block 02 sagt dasselbe von der anderen Seite: „Dieser Prozess ist
+-- der Schreibpfad für die Stammdaten selbst."
+--
+-- Der Selfservice ist eine Oberfläche auf Strukturen, die anderen Domänen
+-- gehören:
+--
+--   * **Kontaktdaten** — Anschrift, Telefon, Mailadresse — als `addresses`,
+--     `phone_numbers` und `persons.email` (stammdaten-schema.sql).
+--   * **Notfallkontakte und Abholberechtigte** als `family_contacts`, an der
+--     Familie und nicht am Kind: „Eine Änderung, die mehrere Kinder betrifft,
+--     wird einmal an der Familie gemacht, nicht je Kind" (02).
+--   * **Die Stammdaten des Kindes** an `children`. Wer sie ändern darf,
+--     entscheidet „eine Grenze und keine Feldliste": die Freigabe des ersten
+--     Vertrags am Kind — im Schema `contracts.released_at`
+--     (anmeldung-schema.sql), nicht ein Flag daneben. Bei den Kindern des
+--     Vollimports gibt es diese Zeile nie: „Der Vollimport bringt die
+--     eingeschriebenen Kinder mit, aber nicht die Bestände, die 08 und 09 sonst
+--     anlegen" (README), und Block 08 nennt sie „erkennbar daran, dass diese
+--     Strecke bei ihnen nie lief". Ihre Stammdaten hängen trotzdem an ASV-BW,
+--     am Zeugnis und an der Akte. Die Grenze ist deshalb `released_at` **oder**
+--     `children.entry_date` gesetzt — die Einschreibung ist bei ihnen, was
+--     sonst die Freigabe ist.
+--   * **Die Einsichtsstufe** als `family_guardians.access_level_id` auf
+--     `access_levels`, mit ihren drei Zeilen voll / nur lesen / gesperrt
+--     (hebel.md).
+--   * **Der Zugang selbst** als `login_codes` samt `persons.last_login_at`
+--     (stammdaten-schema.sql) und als abgeleitete Frage nach einer laufenden
+--     Verbindung — Bewerbung, Warteplatz, Einschreibung, Hortvertrag,
+--     Ferienbuchung; jede dieser Verbindungen steht in ihrer eigenen Domäne.
+--
+-- Drei Dinge bekommen bewusst keine Struktur:
+--
+--   * Ein **Zustand „hat Zugang"** je Familie. Er folgt aus den laufenden
+--     Verbindungen und wäre als Feld ein zweiter Ort für dieselbe Tatsache
+--     (rules.md Abschnitt 1) — „wann das eintritt, entscheidet der jeweilige
+--     Prozess und nicht dieser" (00).
+--   * Eine **Feldliste je Einsichtsstufe**. „Die Stufe hängt an der Person,
+--     nicht an einzelnen Angaben — es gibt keine Feldliste, die jemand pflegen
+--     müsste" (hebel.md).
+--   * Ein **Antrag oder Formular** für eine Rechteänderung. „Im System gibt es
+--     für beides kein Formular und keinen Antrag" (02); der Nachweis kommt
+--     außerhalb an, „im System steht nur, dass einer vorlag" — und das trägt die
+--     Änderungsspur (querschnitt-schema.sql), nicht ein eigenes Feld.
+--
+-- Es gibt deshalb keine CREATE-Anweisung in dieser Datei. Das Prüfskript
+-- daneben belegt, dass die fünf Strukturen tragen, was dieser Block von ihnen
+-- verlangt.
+
+
+-- ---------------------------------------------------------------------------
+-- Offene Fragen an die Schule
+-- ---------------------------------------------------------------------------
+-- Keine. 02: „Die drei Stufen genügen den Beschlüssen, die uns heute erreichen;
+-- die Schule rechnet damit, dass später weitere Fälle dazukommen, benennen
+-- lässt sich davon aber noch keiner. Gebaut wird deshalb nichts auf Vorrat."
+-- Was ein solcher Fall dann kostet, steht in 02 und hängt an seiner Art. Ein
+-- vierter Grad derselben Achse ist eine Zeile in `access_levels` und die Stelle
+-- im Portal, die ihn beachtet — keine Migration; die Stufe ist eine Werteliste
+-- und keine CHECK-Liste, weil sie über keine andere Spalte derselben Zeile
+-- entscheidet (rules.md Abschnitt 3, stammdaten-schema.sql). Ein
+-- Beschluss, der je Bereich oder je Kind unterscheidet, wäre dagegen eine
+-- zweite Achse und keine vierte Stufe — das ist die Feldliste je Stufe, die
+-- oben aus hebel.md ausgeschlossen ist, und sie wäre eine eigene Struktur.
