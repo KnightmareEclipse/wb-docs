@@ -233,7 +233,11 @@ CREATE UNIQUE INDEX ix_health_traits_unique
 -- 9." Löschanker: geht mit dem Kind (03). Bewusst KEINE Q2-Zeile: „Es entsteht
 -- also gar kein Dokument, Q2 trägt den Nachweis nicht." Fehlt er, bleibt das
 -- als fehlende Zeile sichtbar — auch nach der Freigabe, weil die Meldepflicht
--- des Trägers nicht mit ihr endet (09).
+-- des Trägers nicht mit ihr endet (09). Bewusst KEINE Spalte für die erfolgte
+-- Meldung ans Gesundheitsamt: Der Meldefall ist genau der ohne Zeile, an der
+-- sie hängen könnte. Sie wird deshalb eine Q5-Aufgabe beim Sekretariat mit dem
+-- Kind als Bezug (09, `querschnitt-schema.sql`) — eine Aufgabenart ohne
+-- Fremdsystem dahinter.
 CREATE TABLE measles_proofs (
     measles_proof_id             uuid NOT NULL DEFAULT gen_random_uuid(),
     child_id                     uuid NOT NULL,

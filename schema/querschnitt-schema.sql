@@ -213,7 +213,11 @@ CREATE TABLE document_types (
 -- System ohnehin pflegt: Sekretariat ASV-BW, Buchhaltung Optigem, Admin M365."
 -- Kein Löschanker: keine Personendaten. Die zuständige Rolle steht hier und
 -- nicht an der Aufgabe: „die zuständige Stelle folgt daraus und wird nicht
--- eigens festgehalten" (02).
+-- eigens festgehalten" (02). Ein Ziel ist dabei nicht zwingend ein System, das
+-- die Schule pflegt: Die Meldung eines fehlenden Masernnachweises ans
+-- Gesundheitsamt ist eine eigene Aufgabenart, deren Ziel Weltenbaum nie
+-- anfasst — sie hält allein fest, dass die gesetzliche Meldung erledigt ist
+-- (09, hebel.md).
 CREATE TABLE sync_targets (
     sync_target_id integer GENERATED ALWAYS AS IDENTITY,
     -- Eine Zeile ist eine Aufgabenart, nicht der Anlass: „Umzug und Abgang

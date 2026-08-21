@@ -34,7 +34,7 @@ Aufgaben, die reale Konten/Zugänge brauchen und die reine Konzept-Doku (`idea/`
 - [x] Mensa-Anmeldeformular beim Sekretariat bzw. der Hausdienstverwaltung anfordern — **liegt vor** (`~/Downloads/25_26_RS_Mittagessen.pdf`, Realschule 25/26); Feldliste und Regeln ausgewertet in `prozesse.md` Abschnitt 9. Offen bleibt, ob ein Grundschul-Pendant existiert — hier und sonst nirgends geführt
 - [ ] `wb-backend`-Grundgerüst (Compose-Skeleton, FastAPI-Grundgerüst) ist nicht selbst geschrieben und noch nicht gegen `wb-backend/CLAUDE.md` durchgesehen
 - [x] Wer den Dublettenhinweis an einer eingehenden Anmeldung abarbeitet („Verdacht auf vorhandenes Kind", `TODO-SESSIONS.md`): **das Sekretariat**. Der Hinweis hängt bewusst an der Bewerbung/Buchung, die ohnehin gesichtet wird, und nicht an einer eigenen Liste — er begleitet den Vorgang damit, statt ihn anzuhalten
-- [x] Klären, ob §20 Abs. 9 IfSG eine Meldung ans Gesundheitsamt verlangt, wenn kein Masernnachweis vorgelegt wird — **ja**: die Infektionsschutz-Anlage des Betreuungsvertrags hält die Meldung ausdrücklich fest. Im Schema steht davon bisher nur, **ob und wie** der Nachweis vorlag (`measles_proofs` samt der Werteliste `measles_presentation_types`); eine Spalte für die erfolgte Meldung gibt es nicht (`schema/gesundheit-schema.sql`) — siehe unten, „Zwei Widersprüche"
+- [x] Klären, ob §20 Abs. 9 IfSG eine Meldung ans Gesundheitsamt verlangt, wenn kein Masernnachweis vorgelegt wird — **ja**: die Infektionsschutz-Anlage des Betreuungsvertrags hält die Meldung ausdrücklich fest. Das Schema hält weiterhin nur fest, **ob und wie** der Nachweis vorlag (`measles_proofs` samt der Werteliste `measles_presentation_types`); die erfolgte Meldung trägt keine Spalte, sondern eine Q5-Aufgabe beim Sekretariat — der Meldefall ist genau der ohne Nachweiszeile, an der eine Spalte hängen könnte (`soll-prozesse/09-hortvertrag.md`, `schema/gesundheit-schema.sql`)
 - [ ] Nach dem Produktivstart klären, ob der **Hort eigenen Dateizugriff** bekommt (Hortleitung, Sekretariat) — vorerst führt er nichts Eigenes neben Hortverträgen und Ferienprogramm, seine Gesundheitsangaben bekommt er als Zeilen aus Weltenbaum (`grenzkarte.md`, Q2)
 - [ ] **Drei Vertragstexte anpassen** (Geschäftsführung) — jeder ist Vorbedingung für seinen Prozess, nicht Beiwerk: Solange der Text die alte Mechanik beschreibt, kann der digitale Ablauf nicht laufen, ohne dem Unterschriebenen zu widersprechen.
   - **Betreuungsvertrag**, drei Anpassungen: Ende zum Ende der Klasse 4 bzw. 5 **ohne Kündigung**, die Schriftform, und die dritte im Block (`soll-prozesse/09-hortvertrag.md`, `schema/anmeldung-schema.sql`) — vor Domäne 2/4
@@ -65,12 +65,6 @@ Aufgaben, die reale Konten/Zugänge brauchen und die reine Konzept-Doku (`idea/`
   - **Bestätigen, dass die übrigen Betriebsdaten keiner Aufbewahrungspflicht unterliegen** — `soll-prozesse/03-irregulaerer-abgang.md`
 
 - [ ] **Wer den Lösch-Lauf anstößt und bestätigt** (Schulleitung und Datenschutzbeauftragte:r) — der Lauf löscht nicht von selbst, und wer ihn auslöst, ist nirgends benannt (`soll-prozesse/04-schuljahreswechsel.md`). Gehört in dasselbe Gespräch wie die Fristen darüber, vor Block 17
-
-## Widerspruch im Bestand, der eine Entscheidung braucht
-
-Beim Richten der Bezeichner oben aufgefallen. Kein Tippfehler, sondern eine Sachentscheidung — und ein Fall für einen Reparaturlauf (`prompts/schema-reparieren.md`), nicht für eine Textänderung.
-
-- [ ] **Wo steht, dass eine fehlende Masernvorlage ans Gesundheitsamt gemeldet wurde?** Die Meldepflicht ist bestätigt (oben), das Schema hält aber nur fest, **ob und wie** der Nachweis vorlag. Zwei Wege: eine Spalte an `measles_proofs`, oder die Feststellung, dass die Meldung eine Verwaltungshandlung außerhalb Weltenbaums bleibt — dann gehört der Satz dorthin, wo er heute fehlt. Solange keiner von beiden entschieden ist, behauptet der abgehakte Punkt oben mehr, als das Schema hergibt
 
 ## Wiederkehrend / Ablauf-Termine
 

@@ -2,7 +2,9 @@
 --
 -- Sollstand: 5 Tabellen — health_trait_types, measles_presentation_types,
 -- child_health_records, health_traits und measles_proofs, dazu ein
--- Unique-Index gegen dieselbe Angabe zweimal.
+-- Unique-Index gegen dieselbe Angabe zweimal. Dazu die Gegenprobe, dass die
+-- Meldung ans Gesundheitsamt keine Spalte am Nachweis ist, sondern eine
+-- Q5-Aufgabe (09).
 --
 -- Setzt stammdaten-schema.sql und querschnitt-schema.sql voraus:
 --   psql -v ON_ERROR_STOP=1 -f gesundheit-schema-check.sql
@@ -332,6 +334,34 @@ SELECT pg_temp.expect_reject(
     '06 — Masernnachweis ohne Vorlageart',
     $q$INSERT INTO measles_proofs (child_id, presented_on, created_by)
        VALUES ('44444444-4444-4444-4444-444444444441', DATE '2026-11-14', 'system:check')$q$);
+
+-- 09: „Das Fehlen wird deshalb eine Aufgabe beim Sekretariat, das die Meldung
+-- außerhalb erledigt und sie hier abhakt." Zwei Seiten, beide zu belegen: Der
+-- Nachweis trägt dafür KEINE Spalte — der Meldefall ist genau der ohne Zeile,
+-- an der sie hängen könnte —, und die Aufgabe kommt ohne neue Struktur aus, mit
+-- dem Kind als Bezug und einem Ziel, das kein Fremdsystem ist.
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns
+                WHERE table_name = 'measles_proofs'
+                  AND column_name IN ('reported_at', 'reported_to_authority_at',
+                                      'notified_at', 'report_sent_at')) THEN
+        RAISE EXCEPTION 'Der Nachweis trägt eine Meldespalte, obwohl der Meldefall gar keine Zeile hat';
+    END IF;
+    RAISE NOTICE 'ok: keine Meldespalte am Nachweis';
+END $$;
+
+INSERT INTO roles (code, name, created_by)
+    VALUES ('secretariat', 'Sekretariat', 'system:check');
+INSERT INTO sync_targets (code, name, role_id, created_by)
+    VALUES ('measles_report', 'Meldung ans Gesundheitsamt',
+            (SELECT role_id FROM roles WHERE code = 'secretariat'), 'system:check');
+SELECT pg_temp.expect_accept(
+    '09 — die Meldung ans Gesundheitsamt ist eine Aufgabe am Kind',
+    $q$INSERT INTO sync_tasks (sync_target_id, child_id, task_text, created_by)
+       VALUES ((SELECT sync_target_id FROM sync_targets WHERE code = 'measles_report'),
+               '44444444-4444-4444-4444-444444444441',
+               'Fehlenden Masernnachweis dem Gesundheitsamt melden', 'system:check')$q$);
 
 -- grenzkarte.md, Q2: „Eine verwaiste Datei in SharePoint ist genauso ein
 -- DSGVO-Verstoß wie eine verwaiste Zeile" — deshalb blockiert ein Attest das
