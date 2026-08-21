@@ -1,5 +1,9 @@
 # Prompt: alle offenen Domänen bauen, in einem Zug
 
+> **Ausgeführt — sein Ergebnis ist der Stand in `schema/`.** Er liegt als Beleg daneben, wie die
+> Prüfberichte, und wird nicht nachgezogen. Für eine weitere Domäne nimmst du
+> [`schema-prompt.md`](schema-prompt.md).
+
 Einmal absenden, dann läuft es durch. Die Session fragt nichts, schreibt die Dateien selbst und committet je Domäne. Du liest hinterher.
 
 Für eine einzelne Domäne im Gespräch — etwa eine Nachbesserung nach der Abnahme — nimmst du [`schema-prompt.md`](schema-prompt.md); zum Gegenprüfen des fertigen Laufs [`schema-pruef-prompt.md`](schema-pruef-prompt.md). Der Preis dieser Betriebsart: Entscheidungen, die du sonst vorher beantwortet hättest, prüfst du hinterher. Sie stehen als `[A!]` im Schlussbericht und in den Dateien.

@@ -1,69 +1,179 @@
 # yggdrasil
 
-Konzept- und Architektur-Doku für einen selbstverwalteten, DSGVO-konformen Datenbank-/API-VPS (Hetzner) für Schulprozesse — Container-Netzwerk-Isolation, externer OIDC-Identitätsanbieter, verschlüsselte Backups. Das VPS/Host-Setup (Firewall, Härtung auf Debian 13) und die Container-Runtime (Podman, rootful) sind umgesetzt und automatisiert. Die App-Stack-Ebene darüber ist architektonisch fixiert (Datenbank: PostgreSQL, Backend: FastAPI, Reverse-Proxy: Caddy, Backup: `pg_dump`+`age`, Identitätsanbieter: M365/Entra-ID, kein externes CI/CD — Git-Push-Auslöser direkt auf der VPS) und wird im App-Stack-Repo (`wb-backend`) umgesetzt: Compose-Stack und Backend-Grundgerüst laufen produktiv auf der VPS, ausgelöst per Git-Push. Details in `idea/`, `pipeline/`, `project-parts.md`, `fachdomaenen.md`, `prozesse.md`, `domains/`. Die Planungsprinzipien, denen alle drei folgen, stehen in `rules.md` — jede neue Entscheidung in diesem Repo hält sich daran, insbesondere die dort explizit benannte Vertrauensgrenze (Abschnitt 2): Root-Admins und Hetzner selbst gelten als vertrauenswürdig, das Bedrohungsmodell zielt auf externe Angreifer.
+Konzept- und Architektur-Doku für einen selbstverwalteten, DSGVO-konformen Datenbank-/API-VPS
+(Hetzner) für die Prozesse einer Schule ohne eigenes IT-Personal. Hier wird entschieden und
+dokumentiert; gebaut wird in den Umsetzungs-Repos (`wb-vps`, `wb-backend`).
 
-Umsetzung erfolgt in getrennten Repos (VPS-Repo, App-Stack-Repo, Teams-Apps-Repo, Static-Web-App-Repos) — siehe „Repo-Struktur" in `project-parts.md`.
+## Wo was steht
+
+Jede Datei entscheidet genau eine Sorte Frage. Wer die falsche aufschlägt, bekommt eine plausible
+Antwort auf die falsche Frage.
+
+| Datei | Entscheidet |
+|---|---|
+| `rules.md` | Die Planungsprinzipien: Lean by Design (§1, **samt der ausdrücklichen Ausnahme für DB-Schema-Design**), Vertrauensgrenze (§2), Boring Technology (§4), Datensparsamkeit (§7) |
+| `domains/grenzkarte.md` | Wem welche Tatsache gehört, die Querschnitts-Entitäten Q1–Q5, die weißen Flecken, die Freeze-Definition |
+| `soll-prozesse/` | Wie ein Vorgang künftig läuft — ein Block je Prozess. Die gemeinsamen Hebel in `hebel.md`, Prozessliste und Wegweiser in `README.md` |
+| `schema/` | Das Datenmodell: vierzehn `-schema.sql` mit je einem `-schema-check.sql` |
+| `prozesse.md` | Wie es **heute** läuft, samt der real erhobenen Formularfelder |
+| `fachdomaenen.md` | Scope, Reihenfolge und Stammdaten-Berührung je Fachdomäne |
+| `glossar.md` | Das Rollen-Vokabular, repo-übergreifend gültig — Infra-Admin vs. Admin vs. Verwaltung |
+| `idea/`, `pipeline/`, `project-parts.md` | Infrastruktur: Container, Identität, Backup, DSGVO-Organisation, Repo-Struktur |
+| `TODO.md`, `TODO-SESSIONS.md` | Was offen ist bzw. was die nächste Session anfasst |
+
+**Rangfolge bei Widerspruch**, damit „zwei Quellen sagen Verschiedenes" keine Rückfrage wird:
+
+1. Der **Soll-Block** schlägt alles — er ist die jüngste abgestimmte Fassung.
+2. **`soll-prozesse/hebel.md`** schlägt einen einzelnen Block, wo der Block keine Abweichung
+   ausschreibt.
+3. **`domains/grenzkarte.md`** schlägt alles Weitere — sie zieht die Grenzen.
+4. **`prozesse.md`** liefert reale Formularfelder, nie eine Struktur.
+
+Aus den Blöcken entsteht das Schema, nie umgekehrt.
 
 ## Leitprinzip: Stupidly Simple, aber sicher
 
-Ziel jeder Entscheidung in diesem Repo: so einfach wie möglich, dabei sicher genug für echte personenbezogene Daten einer Schule ohne eigenes IT-Personal. Ausführliche Prüfleiter in `rules.md` Abschnitt 1 („Lean by Design") und Abschnitt 2 („Secure by Design"), hier die Kurzfassung, an der sich jeder neue Vorschlag messen lassen muss:
+So einfach wie möglich, dabei sicher genug für echte personenbezogene Daten. Ausführlich in
+`rules.md` §1 und §2, hier die Kurzfassung, an der sich jeder Vorschlag messen lässt:
 
-- **Kein Mechanismus ohne konkreten, aktuell vorliegenden Bedarf** — keine Komplexität „für später" oder „für den Fall dass". Bei jeder neuen Idee zuerst die Ladder aus `rules.md` Abschnitt 1 durchgehen und am ersten tragfähigen Punkt stehenbleiben.
-- **Vertrauensgrenze** (`rules.md` Abschnitt 2): Root-Admins und Hetzner selbst gelten als vertrauenswürdig — abgesichert über Bus-Faktor-Regeln bzw. die AVV, nicht durch zusätzliche Technik gegen die eigene Root-Ebene. Schutz zielt auf externe Angreifer und kompromittierte Drittanbieter-Credentials (z. B. ein CI-Deploy-Key). Vor jedem neuen Sicherheitsmechanismus prüfen: schützt das wirklich vor einem Angreifer außerhalb dieser Grenze, oder nur gefühlt?
-- **Alles, was wiederkehrt, wird automatisiert** — Ausnahme nur, wo ein Mensch zwingend ein bewusst nur ihm bekanntes Geheimnis eingeben muss oder echtes Urteilsvermögen braucht. Ziel: Das System läuft weiter und bleibt wartbar, auch wenn der aktuelle Betreiber weg ist.
-- **Bei Zweifel gewinnt die einfachere Lösung**, solange sie das Sicherheits- und Automatisierungsniveau nicht senkt — nicht die technisch elegantere oder vollständigere.
+- **Kein Mechanismus ohne konkreten, aktuell vorliegenden Bedarf.** Keine Komplexität „für später".
+  Bei jeder neuen Idee zuerst die Ladder aus `rules.md` §1 durchgehen und am ersten tragfähigen
+  Punkt stehenbleiben.
+- **Vertrauensgrenze** (`rules.md` §2): Root-Admins und Hetzner selbst gelten als vertrauenswürdig —
+  abgesichert über Bus-Faktor-Regeln bzw. die AVV, nicht durch Technik gegen die eigene Root-Ebene.
+  Vor jedem neuen Sicherheitsmechanismus prüfen: schützt das vor einem Angreifer **außerhalb** dieser
+  Grenze, oder nur gefühlt?
+- **Alles, was wiederkehrt, wird automatisiert** — Ausnahme nur, wo ein Mensch ein bewusst nur ihm
+  bekanntes Geheimnis eingeben muss oder echtes Urteilsvermögen braucht.
+- **Bei Zweifel gewinnt die einfachere Lösung**, solange sie das Sicherheits- und
+  Automatisierungsniveau nicht senkt.
 
-## Git-Identität (gilt für alle Repos)
+Zwei Regeln, die hier wiederholt gekostet haben:
 
-Commits in allen Repos (VPS-Repo, App-Stack-Repo, Teams-Apps-Repo, Static-Web-App-Repos, dieses Repo) laufen unter Pseudonym, nie Klarname oder private/Uni-Mail: GitHub-Nutzername `KnightmareEclipse`, E-Mail die von GitHub gestellte Noreply-Adresse (`312991717+KnightmareEclipse@users.noreply.github.com`, GitHub-Kontoeinstellungen → Emails). Gesetzt als repo-lokale `user.name`/`user.email` (nie global) — andere, projektfremde Repos auf derselben Maschine bleiben unberührt.
+- **Keine konstruierten Randfälle.** Statt „was, wenn genau dieser seltene Fall eintritt" die
+  generelle Regel suchen, die ihn mit abdeckt. Wer durchs Raster fällt, hat eben Glück.
+- **Kein Netz gegen menschliches Vergessen.** Bleibt ein Vorgang liegen, weil ihn niemand einträgt,
+  ist das kein Modellierungsproblem und kein Befund.
 
-## Aktueller Fokus: VPS fertig, App-Stack-Repo im Aufbau
+## Stand
 
-Das VPS-Repo ist in Phase 1–3 automatisiert: Phase 1 über das `hcloud`-CLI in `wb-vps/infra/`, Phase 2 als Ansible-Rolle `hardening`, Phase 3 (Podman, rootful) als Rolle `podman_rootful` — ein `site.yml`-Lauf richtet beide ein.
+**Infrastruktur — steht.** VPS-Repo in Phase 1–3 automatisiert: Phase 1 über `hcloud` in
+`wb-vps/infra/`, Phase 2 als Ansible-Rolle `hardening`, Phase 3 (Podman, rootful) als Rolle
+`podman_rootful`; ein `site.yml`-Lauf richtet beide ein. Der App-Stack ist architektonisch fixiert
+(PostgreSQL, FastAPI, Caddy, `pg_dump`+`age`, M365/Entra-ID, kein externes CI/CD — Git-Push-Auslöser
+direkt auf der VPS) und läuft in `wb-backend` produktiv: Compose-Stack und FastAPI-Grundgerüst
+(Health-Endpoint, JWT-Validierung, Alembic) über die echte Domäne mit automatischem HTTPS. Offen:
+der OTP-Fallback-Pfad für externe Nutzer, die CORS-Policy und alles unter Teams-Apps-Repo
+(`project-parts.md` §10).
 
-Die App-Stack-Architektur ist fixiert (`project-parts.md`) und wird im App-Stack-Repo (`wb-backend`) umgesetzt: Compose-Stack (DB/Backend/Caddy) und FastAPI-Grundgerüst (Health-Endpoint, JWT-Validierung, Alembic) laufen lokal wie produktiv auf der VPS, dort per Git-Push ausgelöst und über die echte Domäne mit automatischem HTTPS erreichbar. Noch nicht implementiert ist der OTP-Fallback-Pfad für externe Nutzer; offen bleiben die CORS-Policy und alles unter Teams-Apps-Repo (`project-parts.md` Abschnitt 10).
+**Datenmodell — geprüft.** Vierzehn Schemata in `schema/`, jedes mit eigenem Prüfskript, aus den
+Soll-Blöcken abgeleitet und durch fünf Prüfzyklen gegangen (`pruefbericht-01.md` … `-05.md`):
 
-Gebaut sind **vierzehn Schemata** in `schema/`, jedes mit eigenem Prüfskript: **Stammdaten**, der **Querschnitt** (Zustimmung, Dokument/Signatur, Zahlungsvorgang, Nachzieh-Aufgabe und die vier gemeinsamen Hebel), **Putzdienst**, **Anmeldung** (Voranmeldung/Anmeldetag/Schulvertrag samt Hortvertrag und Betreuungsmodulen), **Ferienanmeldung**, **Rechnungsfreigabe**, **Mensa** (Küchenprofil; die Buchung läuft über die Betreuungsmodul-Tabellen), **Gesundheitsdaten**, **Elternbonus** und **Klassenorganisation** (Elternvertretung) — dazu die vier Domänen, deren Ergebnis „nichts zu bauen" lautet und deren Prüfskript genau das gegenprüft: **AGs**, **M365-Kontenverwaltung**, **Eltern-Selfservice** und **Klassenbildung**. Der Stand ist aus den Soll-Blöcken in `soll-prozesse/` gebaut, gegen sie geprüft und durch fünf Prüfzyklen gegangen (`pruefbericht-01.md` … `pruefbericht-05.md`). Die Entitäten- und Zuständigkeitsgrenzen **aller** Fachdomänen stehen vorab in `domains/grenzkarte.md` — bewusst ohne Spalten: eine Spalte lässt sich nachtragen, eine falsch gezogene Grenze nicht, und ohne diese Karte modellieren mehrere Domänen denselben Sachverhalt je einmal. Jedes neue Domänenschema entsteht gegen sie; Stammdaten sind ab dem Vollimport Ende August 2026 eingefroren (Definition dort).
+- **Mit Tabellen:** Stammdaten, Querschnitt (Zustimmung, Dokument/Signatur, Zahlungsvorgang,
+  Nachzieh-Aufgabe und die vier gemeinsamen Hebel), Putzdienst, Anmeldung (Voranmeldung, Anmeldetag,
+  Schulvertrag samt Hortvertrag und Betreuungsmodulen), Ferienanmeldung, Rechnungsfreigabe, Mensa,
+  Gesundheitsdaten, Elternbonus, Klassenorganisation.
+- **Ohne Tabellen, und das ist ihr Ergebnis:** AGs, M365-Kontenverwaltung, Eltern-Selfservice,
+  Klassenbildung. Ihr Prüfskript belegt genau das — dass nichts auf Verdacht entstanden ist.
 
-**Nächster Schritt:** Übertragung aller vierzehn Schemata nach SQLAlchemy/Alembic in `wb-backend` (`TODO-SESSIONS.md`) — der engere Pfad bis September 2026, nicht der Entwurf. Was daneben bis dahin stehen muss, steht als kritischer Pfad in `fachdomaenen.md` Abschnitt 7 und in `TODO.md`; der Datenmodell-Entwurf blockiert nicht darauf, da lokale Entwicklung gegen den Compose-Stack läuft (`rules.md` Abschnitt 9).
+Zwei Soll-Blöcke fehlen noch (`soll-prozesse/README.md`): **17 Lösch-Lauf** und **18
+DSGVO-Auskunft**. Stammdaten sind ab dem Vollimport **Ende August 2026** eingefroren; die Definition
+von „eingefroren" steht in `domains/grenzkarte.md`.
+
+**Nächster Schritt:** Übertragung aller vierzehn Schemata nach SQLAlchemy/Alembic in `wb-backend`
+(`TODO-SESSIONS.md`) — der engere Pfad bis September 2026, nicht der Entwurf. Was daneben stehen
+muss, steht als kritischer Pfad in `fachdomaenen.md` §7 und in `TODO.md`.
 
 ## Einstieg in eine Session
 
-Diese Datei wird automatisch geladen — verlinkt werden muss nichts, es genügt, in dieser Reihenfolge zu lesen:
+Diese Datei wird automatisch geladen; verlinkt werden muss nichts. Je nach Arbeit zusätzlich:
 
-- **Immer bei Schema- oder Domänenarbeit:** `rules.md` (die Maßstäbe, besonders die Ladder aus §1 **samt der ausdrücklichen Ausnahme für DB-Schema-Design**), `domains/grenzkarte.md` (wem welche Tatsache gehört, Freeze-Definition, weiße Flecken), `soll-prozesse/hebel.md` (was für alle Prozesse gilt) und `schema/stammdaten-schema.sql`.
-- **Begriffe:** `glossar.md` — Rollen (Infra-Admin vs. Admin vs. Verwaltung) und Kernbegriffe, repo-übergreifend gültig. Kurz, aber die einzige Quelle für das Rollen-Vokabular.
-- **Neue Fachdomäne:** dazu `fachdomaenen.md` (Scope und Stammdaten-Berührung je Domäne), `prozesse.md` (Ist-Ablauf und die realen Formularfeldlisten je Prozess) und die vier Anmeldetag-Checklisten in `~/Downloads/CHECKLISTEN/`.
-- **Wie ein Vorgang künftig läuft:** `soll-prozesse/` — ein Block je Prozess, Wegweiser und Prozessliste in `soll-prozesse/README.md`, die gemeinsamen Hebel in `soll-prozesse/hebel.md`, die Schreibregeln in `soll-prozesse/anleitung.md`. Aus diesen Blöcken entsteht das Schema, nicht umgekehrt.
-- **Datenmodell einer Domäne:** `schema/<domäne>-schema.sql` samt `schema/<domäne>-schema-check.sql`; Ladereihenfolge, Aufruf und Sollstand stehen im Kopfkommentar des jeweiligen Prüfskripts. `stammdaten` und `querschnitt` werden zuerst geladen, alles Übrige danach.
-- **Übertragung nach `wb-backend`:** `TODO-SESSIONS.md`, `project-parts.md`, `idea/04-identitaet-zugriff.md`.
-- **Infrastruktur:** `pipeline/runbook.md`, `idea/03-container-anwendung.md`, `idea/05-backup-recovery.md`, `TODO.md`.
+- **Schema oder Domäne:** `rules.md`, `domains/grenzkarte.md`, `soll-prozesse/hebel.md`,
+  `schema/stammdaten-schema.sql`.
+- **Ein Vorgang:** sein Block in `soll-prozesse/`, dazu `hebel.md`. Die Schreibregeln für einen
+  neuen Block stehen in `soll-prozesse/anleitung.md`, der Auftrag dazu in `prozessblock-prompt.md`.
+- **Eine Domäne ins Schema:** `schema-prompt.md`. Gegenprüfen: `schema-pruef-prompt.md` in einer
+  **frischen** Session, die den Bau nicht mitgemacht hat. Funde schließen:
+  `schema-reparatur-prompt.md`.
+- **Neue Fachdomäne verstehen:** `fachdomaenen.md`, `prozesse.md` und die vier
+  Anmeldetag-Checklisten in `~/Downloads/CHECKLISTEN/`.
+- **Übertragung nach `wb-backend`:** `TODO-SESSIONS.md`, `project-parts.md`,
+  `idea/04-identitaet-zugriff.md`.
+- **Infrastruktur:** `pipeline/runbook.md`, `idea/03-container-anwendung.md`,
+  `idea/05-backup-recovery.md`, `TODO.md`.
 
-Die Begründungen des Datenmodells stehen als **Kommentare in der `.sql`**, nicht in der Prosa — wer nur `domains/stammdaten-schema-plain.sql` liest, sieht dieselbe Struktur ohne jedes „warum" und schlägt zuverlässig vor, was bereits verworfen wurde. Die `-plain.sql` ist abgeleitet und nie die Lesefassung. Eine zweite Darstellung des Schemas wird nicht **gepflegt** — abgeleitet werden darf sie. Sie geht gegen eine Wegwerf-Datenbank und nie gegen eine Handfassung: fürs vollständige Diagramm lädt pgModeler die Schemata dort hinein (Befehle im Kopf der Prüfskripte).
+## Schemaarbeit
 
-**Grenze zwischen `.sql` und `.md`** — sie entscheidet, wo eine Begründung hingehört, und verhindert, dass dieselbe zweimal dasteht:
+Zieldatenbank ist **PostgreSQL 18**. Bezeichner englisch, Kommentare deutsch. Die Konventionen für
+Schlüssel, Constraint-Namen und Kommentarform zeigt `schema/stammdaten-schema.sql`; ausgeschrieben
+stehen sie in `schema-prompt.md`.
 
-> Hängt die Begründung an genau einer Spalte oder einem Constraint? → **`.sql`**.
-> Braucht sie zwei Tabellen oder einen Prozess, um überhaupt formulierbar zu sein? → **`.md`**.
+**Die Begründungen stehen als Kommentare in der `.sql`, nicht in der Prosa.** Wer die Struktur ohne
+ihre Kommentare liest, schlägt zuverlässig genau das vor, was schon verworfen wurde. Eine zweite
+Darstellung des Schemas wird deshalb **nicht gepflegt** — abgeleitet werden darf sie, aber immer
+gegen eine Wegwerf-Datenbank und nie gegen eine Handfassung (fürs Diagramm lädt pgModeler die
+Schemata dort hinein).
 
-In die `.sql` gehören damit Typwahl, CHECK-Begründungen, nullable-ja/nein, Lookup-statt-Freitext an dieser Stelle, die Vergleiche gegen ASV-BW/SVWS/Gibbon und **warum eine Spalte bewusst fehlt** (als Kommentar an der betroffenen Tabelle — eine nicht existierende Spalte hat keinen anderen Anker). In die `.md` gehören Modelle über mehrere Tabellen hinweg (Familie, Ownership), Zugriffs- und Sichtbarkeitsregeln, Abläufe (Jahreslauf, Löschmechanik, Import) und die Domänengrenzen. Die `.md` sagt bei einem Feld *was* gilt und verweist fürs *warum* auf die `.sql`, statt es zu wiederholen. Referenzquelle für Fragen zum amtlichen Datenmodell: `~/Documents/projectNightmare/ASV-BW/asv_struktur.sql` — der Wert steckt in den `COMMENT ON COLUMN`-Zeilen, die `*Statistikpflichtfeld*` markieren.
+**Grenze zwischen `.sql` und `.md`** — sie entscheidet, wo eine Begründung hingehört:
 
-## Pflichten bei jeder Schemaänderung
+> Hängt sie an genau einer Spalte oder einem Constraint? → **`.sql`**.
+> Braucht sie zwei Tabellen oder einen Prozess, um formulierbar zu sein? → **`.md`**.
 
-Zieldatenbank ist **PostgreSQL 18** (19 erscheint erst um September/Oktober 2026 und kommt für den Produktivstart zu spät — `rules.md` Abschnitt 4, Boring Technology).
+In die `.sql` gehören damit Typwahl, CHECK-Begründungen, nullable-ja/nein, Lookup-statt-Freitext und
+**warum eine Spalte bewusst fehlt** (als Kommentar an der Tabelle — eine nicht existierende Spalte
+hat keinen anderen Anker). In die `.md` gehören Modelle über mehrere Tabellen (Familie, Ownership),
+Zugriffsregeln, Abläufe und die Domänengrenzen. Die `.md` sagt *was* gilt und verweist fürs *warum*
+auf die `.sql`, statt es zu wiederholen.
 
-Eine Schemaänderung ist erst fertig, wenn alle abhängigen Dateien mitgezogen sind — diese Liste steht nur hier, und eine vergessene Datei fällt sonst monatelang nicht auf:
+**Eine Schemaänderung ist erst fertig, wenn alles mitgezogen ist** — diese Liste steht nur hier:
 
-`…-schema.sql` → `-plain.sql` (regenerieren, nie von Hand — `sed`-Befehl in `domains/stammdaten.md`) → Prüfskript **samt Sollstand** → `domains/stammdaten-schema-benchmark.md` und die Dateien in `domains/stammdaten-benchmark/` → die betroffenen `.md` → `domains/grenzkarte.md`.
+`…-schema.sql` → das zugehörige `-schema-check.sql` **samt Sollstand im Kopfkommentar** → die
+betroffenen `.md` → `domains/grenzkarte.md`.
 
-Danach **einmal** validieren, nicht nach jedem Einzelpunkt: alle sieben Prüfskripte in Ladereihenfolge — Stammdaten (66/66), Putzdienst (22/22), Anmeldung (60/60), Ferien (14/14), Gesundheit (11/11), Mensa (4/4), Klassenorganisation (3/3); Aufruf und Sollstand stehen im jeweiligen Kopfkommentar. Bei Spaltenänderungen an Stammdaten zusätzlich der Benchmark-Generator mit `n_children=500`/`n_classes=20` — die Zeilenzahlen müssen denen aus `domains/stammdaten-schema-benchmark.md` (Durchlauf 1) entsprechen.
+**Eine Regel ohne Gegenprobe gilt als nicht gebaut.** Der Constraint allein zählt nicht; das
+Prüfskript muss den realen Fall abweisen, den der Block verbietet.
+
+Validiert wird **einmal am Ende**, nicht nach jedem Einzelpunkt — Postgres ist hier nicht
+installiert, Podman schon:
+
+```
+podman run --rm -d --name wb-pruef -e POSTGRES_PASSWORD=x docker.io/library/postgres:18
+podman exec -i wb-pruef psql -U postgres -v ON_ERROR_STOP=1 -q < schema/stammdaten-schema.sql
+```
+
+- **`-v ON_ERROR_STOP=1` ist kein Beiwerk.** Die Skripte melden über `RAISE EXCEPTION`; ohne den
+  Schalter liest psql darüber hinweg und endet mit Rückgabewert 0 — dann ist jeder Lauf grün, auch
+  der gescheiterte. In den Bericht kommt der Rückgabewert je Datei, nicht der Text auf dem Schirm.
+- **Ladereihenfolge:** `stammdaten`, dann `querschnitt`, dann der Rest in beliebiger Folge.
+- **Alle vierzehn Prüfskripte gegen die vollständige Datenbank**, nicht einzeln gegen ihre
+  Voraussetzungen: ein Skript mit erfundenen Fremdschlüssel-Werten läuft grün, solange die
+  Zieltabelle fehlt. Jedes rollt am Ende zurück, keines stört das nächste.
+
+Referenzquelle für das amtliche Datenmodell: `~/Documents/projectNightmare/ASV-BW/asv_struktur.sql`
+— der Wert steckt in den `COMMENT ON COLUMN`-Zeilen, die `*Statistikpflichtfeld*` markieren. Sie ist
+eine Quelle für Randfälle, nie für Felder (`rules.md` §7).
 
 ## Dokumentationsstil
 
-Alle `.md`-Dateien in diesem Repo bilden ausschließlich den **aktuellen Stand** ab — keine Historie, keine Changelogs, keine Formulierungen wie „früher", „vorher hatten wir", „wurde ersetzt durch". Beim Ändern von Inhalten wird der alte Stand ersetzt, nicht ergänzt oder als Verlauf stehen gelassen.
+Alle `.md` in diesem Repo bilden ausschließlich den **aktuellen Stand** ab — keine Historie, keine
+Changelogs, keine Formulierungen wie „früher", „vorher hatten wir", „wurde ersetzt durch". Beim
+Ändern wird der alte Stand ersetzt, nicht ergänzt. Kurz, klar, präzise, kein Blähtext.
 
-Kurz, klar, präzise — kein Blähtext, keine Inhalte, die nur die Länge aufblasen ohne neue Information zu liefern.
+Ausnahme sind die Prüfberichte `pruefbericht-NN.md`: Sie sind Archiv abgeschlossener Zyklen und
+werden nicht nachgezogen.
+
+## Git-Identität (gilt für alle Repos)
+
+Commits laufen unter Pseudonym, nie Klarname oder private/Uni-Mail: GitHub-Nutzername
+`KnightmareEclipse`, E-Mail die von GitHub gestellte Noreply-Adresse
+(`312991717+KnightmareEclipse@users.noreply.github.com`). Gesetzt als repo-lokale
+`user.name`/`user.email`, **nie global** — projektfremde Repos auf derselben Maschine bleiben
+unberührt.
 
 ## Geltungsbereich dieser Datei
 
-Dieses Root-Repo (`yggdrasil`) ist reine Konzept-/Architektur-Doku, ausschließlich für mich als alleinigen Betreiber. Die Umsetzungs-Repos (VPS-Repo, App-Stack-Repo, Teams-Apps-Repo, Static-Web-App-Repos) sind für weitere Personen gedacht — Programmierstil-Regeln (Sprache, Skript-Aufbau, Naming, Fehlerbehandlung etc.) stehen deshalb nicht hier, sondern in der `CLAUDE.md` des jeweiligen Umsetzungs-Repos (aktuell `wb-vps/CLAUDE.md`) — eigenständig, ohne Bezug auf dieses Repo, damit die Umsetzungs-Repos unabhängig funktionieren.
+Dieses Repo ist reine Konzept-/Architektur-Doku, ausschließlich für mich als alleinigen Betreiber.
+Die Umsetzungs-Repos (VPS-Repo, App-Stack-Repo, Teams-Apps-Repo, Static-Web-App-Repos) sind für
+weitere Personen gedacht — Programmierstil-Regeln stehen deshalb nicht hier, sondern in der
+`CLAUDE.md` des jeweiligen Umsetzungs-Repos (aktuell `wb-vps/CLAUDE.md`), eigenständig und ohne
+Bezug auf dieses Repo.

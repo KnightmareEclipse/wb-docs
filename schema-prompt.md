@@ -1,36 +1,34 @@
 # Prompt: eine Fachdomäne ins Schema überführen
 
-Gegenstück zu [`prozessblock-prompt.md`](prozessblock-prompt.md). Dort entstehen die Abläufe, hier wird daraus SQL. **Eine Domäne je Durchgang** — dieselbe Portionierung, die sich bei den Blöcken bewährt hat: ein schmaler Auftrag liefert verlässlich besser als ein breiter. Für alle Domänen ohne Rückfragen gibt es [`schema-bau-prompt.md`](schema-bau-prompt.md); der sagt auch, welche Abschnitte hier dann nicht gelten. Steht das SQL, prüft [`schema-pruef-prompt.md`](schema-pruef-prompt.md) es gegen die Blöcke — in einer frischen Session, die den Bau nicht mitgemacht hat.
+Gegenstück zu [`prozessblock-prompt.md`](prozessblock-prompt.md). Dort entstehen die Abläufe, hier wird daraus SQL. **Eine Domäne je Durchgang** — dieselbe Portionierung, die sich bei den Blöcken bewährt hat: ein schmaler Auftrag liefert verlässlich besser als ein breiter. Steht das SQL, prüft [`schema-pruef-prompt.md`](schema-pruef-prompt.md) es gegen die Blöcke — in einer frischen Session, die den Bau nicht mitgemacht hat.
 
 Kopieren, `DOMÄNE` ersetzen, absenden. Alles unter dem Strich ist der Prompt. Effort `high`, bei einer Domäne mit vielen Berührungspunkten `xhigh`; Thinking anlassen.
 
 ---
 
-Wir überführen die Fachdomäne **DOMÄNE** ins Datenmodell. Ergebnis ist eine `.sql`-Datei unter `schema/` **in diesem Repo** (`wb-brainstorming`), aus der später SQLAlchemy-2.0-Modelle und eine Alembic-Migration entstehen. Nur diese Domäne, keine andere — was an ihren Rand stößt, wird benannt und nicht mitmodelliert.
+Wir überführen die Fachdomäne **DOMÄNE** ins Datenmodell. Ergebnis ist eine `.sql`-Datei unter `schema/`, aus der später SQLAlchemy-2.0-Modelle und eine Alembic-Migration entstehen. Nur diese Domäne, keine andere — was an ihren Rand stößt, wird benannt und nicht mitmodelliert.
 
-**Das ist ein Neubau, keine Fortschreibung.** Die Schemata in `wb-docs/domains/` sind ein Vorentwurf, den dieser Durchgang ersetzt (siehe unten); dort wird nichts geändert. Auch der dortige Stammdaten-Freeze bindet diesen Entwurf nicht — hier ist noch alles beweglich.
+**Du baust in einen bestehenden, geprüften Stand hinein.** In `schema/` liegen vierzehn Domänen, aus denselben Blöcken abgeleitet und durch fünf Prüfzyklen gegangen. Das ist kein Vorentwurf, sondern der Bestand: Was dort schon jemandem gehört, referenzierst du und baust es nicht nach. Was du dort ändern müsstest, ist eine Frage an mich und keine stille Korrektur — und der Stammdaten-Freeze (`domains/grenzkarte.md`) gilt ab dem Vollimport für alles, was `stammdaten-schema.sql` berührt.
 
 ## Was du vorher liest, und wozu
 
 1. **Alle Blöcke in `soll-prozesse/`, die diese Domäne berühren** — vollständig, nicht überflogen. Sie sind die fachliche Wahrheit: Aus ihnen wird das Schema abgeleitet, nicht umgekehrt. Welche das sind, findest du über die Verweise; im Zweifel einer zu viel.
 2. **`soll-prozesse/hebel.md`** — was für alle Prozesse gilt. Ein Hebel, den mehrere Blöcke nennen, ist fast immer **eine** Struktur im Schema und nicht je Block eine.
-3. **`~/Documents/projects/weltenbaum/wb-docs/rules.md`**, Abschnitt 1 samt der ausdrücklichen **Ausnahme für DB-Schema-Design**, und Abschnitt 7 (Datensparsamkeit). Das sind die Maßstäbe, an denen ich deinen Entwurf messe.
-4. **`wb-docs/domains/grenzkarte.md`** — wem welche Tatsache gehört, die Querschnitts-Entitäten Q1–Q5 und die weißen Flecken. Der Domänenschnitt gilt weiter: Wenn deine Domäne etwas braucht, das dort schon jemandem gehört, referenzierst du es und baust es nicht nach. Den Abschnitt zum Stammdaten-Freeze liest du als Begründungssammlung — er beschreibt einen Stichtag des anderen Repos und bindet diesen Entwurf nicht.
+3. **`rules.md`**, Abschnitt 1 samt der ausdrücklichen **Ausnahme für DB-Schema-Design**, und Abschnitt 7 (Datensparsamkeit). Das sind die Maßstäbe, an denen ich deinen Entwurf messe.
+4. **`domains/grenzkarte.md`** — wem welche Tatsache gehört, die Querschnitts-Entitäten Q1–Q5 und die weißen Flecken. Der Domänenschnitt gilt weiter: Wenn deine Domäne etwas braucht, das dort schon jemandem gehört, referenzierst du es und baust es nicht nach. Den Abschnitt zum Stammdaten-Freeze liest du als bindend, nicht als Begründungssammlung.
 
 **Punkte 1 bis 4 liest du selbst, nicht durch einen Subagenten.** Jede Tabelle trägt später den Satz wörtlich, der sie verlangt — ein zusammengefasster Bericht hat diesen Satz nicht mehr, und das Zitat ist hinterher nicht zu rekonstruieren.
 
-## Drei Referenzen und ein Vorentwurf
+## Drei Referenzen und der eigene Bestand
 
-Vier vorhandene Schemata dienen als Inspiration, **keines als Vorlage** — und sie sind nicht gleich viel wert.
+**Die drei Referenzen** — ASV-BW (`~/Documents/projectNightmare/ASV-BW/asv_struktur.sql`, der Wert steckt in den `COMMENT ON COLUMN`-Zeilen), SVWS-NRW, GibbonEdu — dienen **einem** Zweck: Randfälle nicht neu zu erfinden. Sie laufen seit Jahren produktiv, ihre Kanten sind echt. Sie sind aber keine Feldquelle: Dass ASV-BW allein im Schülerstamm rund 170 Spalten führt, begründet keine einzige davon bei uns (`rules.md` Abschnitt 7). Ihre Namenskonventionen übernehmen wir ausdrücklich nicht — Gibbons `gibbonPersonID` ist das Gegenbeispiel, nicht das Vorbild. Hier darfst du delegieren: In allen dreien suchst du Fundstellen und Randfälle, keine Zitate, und ASV-BW allein hat sechsstellige Zeilenzahl.
 
-**Die drei Referenzen** — ASV-BW (`~/Documents/projectNightmare/ASV-BW/asv_struktur.sql`, der Wert steckt in den `COMMENT ON COLUMN`-Zeilen), SVWS-NRW, GibbonEdu — dienen **einem** Zweck: Randfälle nicht neu zu erfinden. Sie laufen seit Jahren produktiv, ihre Kanten sind echt. Sie sind aber keine Feldquelle: Dass ASV-BW allein im Schülerstamm rund 170 Spalten führt, begründet keine einzige davon bei uns (`rules.md` Abschnitt 7). Ihre Namenskonventionen übernehmen wir ausdrücklich nicht — Gibbons `gibbonPersonID` ist das Gegenbeispiel, nicht das Vorbild.
+**Der eigene Bestand in `schema/`** ist etwas anderes als eine Referenz — er ist verbindlich, und zwar zweifach:
 
-**Der Vorentwurf** — `wb-docs/domains/*-schema.sql` — steht **unter** den dreien und ist die Quelle, der du am wenigsten glaubst: Domäne für Domäne entstanden, jede gegen den Blockstand ihres Tages, die späteren Blöcke gab es damals nicht. Das sind Einzelentscheidungen, die den ganzen Prozess nie zusammen gesehen haben — der Grund für diesen Neubau, nicht sein Ausgangspunkt. Zwei Dinge nimmst du trotzdem daraus, und nur diese zwei:
+- **Die Konventionen sind gesetzt.** `stammdaten-schema.sql` zeigt, wie Kommentare, Schlüssel, Constraint-Namen und Begründungen in diesem Projekt aussehen; `querschnitt-schema.sql` zeigt, wie ein Hebel genau einmal gebaut wird. Du folgst ihnen, statt eine zweite Form daneben zu setzen.
+- **Präzedenz schlägt Geschmack.** Tragen zwei Bauformen dieselbe Regel, nimm die, die im Bestand schon vorkommt. Eine dritte Form für denselben Sachverhalt ist ein Fund, den der nächste Prüflauf meldet.
 
-- **Die Konventionen**, unverändert: `stammdaten-schema.sql` zeigt, wie Kommentare, Schlüssel, Constraint-Namen und Begründungen in diesem Projekt aussehen. Daran hängt keine fachliche Entscheidung, also hängt daran auch kein Fehler.
-- **Felder ohne Blockgrundlage als Hinweis, nie als Übernahme.** Dahinter kann echtes Formularwissen stecken — oder eine Erfindung von damals. Auseinanderhalten kannst du das nicht, also übernimmst du es nicht, sondern schreibst eine Zeile in die Abweichungsliste.
-
-Wo du eine Quelle **bewusst nicht** übernimmst, steht der Grund am betroffenen Feld. Hier darfst du delegieren: In allen vier suchst du Fundstellen und Randfälle, keine Zitate, und ASV-BW allein hat sechsstellige Zeilenzahl.
+Wo du eine Quelle **bewusst nicht** übernimmst, steht der Grund am betroffenen Feld.
 
 ## Rangfolge bei Widerspruch
 
@@ -40,9 +38,9 @@ Der häufigste Grund, mich zu fragen, ist „zwei Quellen sagen Verschiedenes". 
 2. **`hebel.md`** schlägt einen einzelnen Block, wo der Block keine Abweichung ausschreibt.
 3. **`grenzkarte.md`** schlägt alles Weitere — sie zieht die Grenzen, dein Entwurf füllt sie.
 4. **`prozesse.md`** liefert reale Formularfelder, die **drei Referenzen** liefern Randfälle — beide nie eine Struktur.
-5. **Der Vorentwurf in `wb-docs`** schlägt gar nichts. Er widerspricht dir nicht, er hat nur eine andere Antwort gegeben.
+5. **Der gebaute Bestand in `schema/`** schlägt keine Quelle, bindet aber die Form: Er hat nicht recht, weil er dasteht — er gibt nur vor, wie eine Sache hier gebaut wird.
 
-Steht deine Ableitung gegen Punkt 3, ist das ein Fund für die Abweichungsliste — kein Grund anzuhalten. Steht sie gegen den Vorentwurf, ist das der erwartete Normalfall dieses Durchgangs und **keine** Meldung wert; berichtenswert ist dort allein ein Feld, für das du in keinem Block eine Grundlage findest.
+Steht deine Ableitung gegen Punkt 3 oder gegen den Bestand, ist das ein Fund für die Randliste — kein Grund anzuhalten und keine stille Korrektur.
 
 ## Reihenfolge: erst der Entwurf, dann die Fragen
 
@@ -119,7 +117,7 @@ Das Schema wird von Menschen abgenommen, die es nicht gebaut haben. Deshalb:
 
 - Die Datei beginnt mit einem **Lesepfad**: drei bis fünf Sätze, welche Tabellen man zuerst versteht und in welcher Reihenfolge der Rest daran hängt.
 - Bezeichner sind englisch, Kommentare deutsch — so steht es im Bestand, und zwei Sprachen im selben Namen wären schlimmer als eine falsche.
-- Keine Abkürzung, die nicht im [Glossar](../wb-docs/glossar.md) steht. Was in den Blöcken einen Namen hat, heißt hier genauso.
+- Keine Abkürzung, die nicht im [Glossar](glossar.md) steht. Was in den Blöcken einen Namen hat, heißt hier genauso.
 - Nichts, was SQLAlchemy nicht sauber ausdrücken kann: keine Datenbank-Trigger, keine Stored Procedures, keine Regel, die nur in der Datenbank lebt und im Code unsichtbar ist.
 
 ## Länge
@@ -170,22 +168,26 @@ CREATE TABLE employees (
 
 **Datei anfassen erst nach meinem OK.** Bis dahin steht alles in deiner Antwort, nichts auf der Platte.
 
-1. **Den Entwurf für `schema/<domäne>-schema.sql`** — in diesem Repo, nicht in `wb-docs`. Vollständig, so wie oben: kein Auszug, keine Auslassungszeichen, keine „hier analog weiter"-Stelle. `<domäne>` ist der kurze deutsche Kleinbuchstabenname (`mensa`, `putzdienst`, `klassenorganisation`).
-2. **Die Abweichungsliste** (siehe unten) als eigener Abschnitt deiner Antwort, nie in der Datei.
+1. **Den Entwurf für `schema/<domäne>-schema.sql`.** Vollständig, so wie oben: kein Auszug, keine Auslassungszeichen, keine „hier analog weiter"-Stelle. `<domäne>` ist der kurze deutsche Kleinbuchstabenname (`mensa`, `putzdienst`, `klassenorganisation`).
+2. **Die Randliste** (siehe unten) als eigener Abschnitt deiner Antwort, nie in der Datei.
 3. **Erst nach meinem OK zum Schema: das Prüfskript** `schema/<domäne>-schema-check.sql` mit Sollstand im Kopfkommentar. Es prüft, ob jede Tabelle existiert und jedes Constraint greift, und belegt jede Regel aus den Blöcken, die im Schema stehen soll, mit einem fehlschlagenden `INSERT` — eine Regel ohne Gegenprobe gilt als nicht gebaut. Lauf es gegen eine Wegwerf-Datenbank, wenn du eine Postgres-Instanz hast; sonst sag, dass es ungeprüft ist. Vorher schreibst du es nicht: ein Prüfskript zu einem Entwurf, der sich noch ändert, schreibst du zweimal.
 
-## Die Abweichungsliste
+## Die Randliste
 
-Gibt es die Domäne im Vorentwurf schon, legst du ihn **einmal** daneben — nicht um dich anzugleichen, sondern für **eine** Frage: Steht dort etwas, für das du in keinem Block eine Grundlage findest? Das kann aus einem Formular stammen, das ich kenne und du nicht, und wäre das Einzige, was bei einem Neubau wirklich verlorengehen kann.
+Deine Domäne stößt an vierzehn gebaute. Was dabei über ihren Rand hinausreicht, kommt auf diese Liste statt in den Entwurf — je Eintrag eine Zeile: was du gefunden hast, wo, dein Vorschlag.
 
-Je Fund eine Zeile: was dort steht, wo du gesucht hast, dein Vorschlag. Nicht stillschweigend weglassen, aber auch nicht ungefragt übernehmen — es entscheidet sich in meiner Antwort, nicht in deinem Entwurf.
+Darauf gehört genau dreierlei:
 
-Alles andere gehört **nicht** auf die Liste: dass du anders schneidest, anders benennst oder eine Tabelle mehr oder weniger hast, ist der Zweck dieses Durchgangs und keine Abweichung, über die ich lesen muss.
+- **Eine fremde Tabelle müsste sich ändern**, damit deine Domäne trägt — eine Spalte, ein Constraint, ein Fremdschlüssel. Bau das nicht, auch nicht „nur eben".
+- **Ein Sachverhalt steht nach deinem Entwurf an zwei Orten** — bei dir und in einer bestehenden Domäne oder einer Querschnitts-Entität aus `domains/grenzkarte.md`.
+- **Ein Block verlangt etwas, das im Bestand fehlt** — dann ist die Lücke dort und nicht bei dir.
+
+Nicht darauf gehört, dass du anders schneidest oder benennst, als du es anderswo gemacht hättest: Das ist Handwerk und entscheidest du selbst.
 
 ## Wie du mit mir redest
 
 - **Ergebnis zuerst.** Der erste Satz sagt, was rausgekommen ist; die Begründung steht dahinter.
-- **Drei Listen, drei Präfixe:** Annahmen `A1, A2 …`, Fragen `F1, F2 …`, Abweichungen `W1, W2 …`. Dann ist „A3 ja, F1b, W2 so lassen" eine vollständige Antwort, und ich muss nicht dazuschreiben, welche Liste ich meine.
+- **Drei Listen, drei Präfixe:** Annahmen `A1, A2 …`, Fragen `F1, F2 …`, Randliste `R1, R2 …`. Dann ist „A3 ja, F1b, R2 so lassen" eine vollständige Antwort, und ich muss nicht dazuschreiben, welche Liste ich meine.
 - **Höchstens ungefähr fünfzehn Zeilen Prosa je Antwort.** SQL zählt nie mit, weder der Entwurf noch ein Ausschnitt daraus. Die drei Listen zählen ebenfalls nicht mit, tragen aber **je Eintrag genau eine Zeile** — sie sind zum Abhaken, nicht zum Lesen. Kürze nie eine Liste, um ein Budget zu halten: eine unterschlagene Annahme kostet mich mehr als zehn Zeilen.
 - Begründe nur, wo eine Entscheidung daran hängt. **Keine Zusammenfassung dessen, was ich gerade gelesen habe, und keine dessen, was du gerade geschrieben hast** — die Datei steht ja da. Kein Schlussabsatz, der das Ergebnis noch einmal würdigt, und keine „nächsten Schritte", solange ich nicht danach frage.
 - Korrigier eine frühere Aussage nur, wenn der Fehler meine Entscheidung ändert. Sonst still richtigstellen und weiter.

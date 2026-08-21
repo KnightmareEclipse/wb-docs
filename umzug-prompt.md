@@ -1,5 +1,8 @@
 # Prompt: der Umzug — ein Repo statt zwei
 
+> **Ausgeführt — `wb-brainstorming` ist in dieses Repo aufgelöst.** Er liegt als Beleg daneben und
+> wird nicht nachgezogen; die Pfade darin nennen den Vorentwurf, den er gelöscht hat.
+
 Einmalig, kein Zyklus. Danach ist dieser Prompt erledigt und wandert mit.
 
 `wb-brainstorming` heißt so, ist es aber nicht mehr: dort liegen 100 Commits, fünf abgeschlossene

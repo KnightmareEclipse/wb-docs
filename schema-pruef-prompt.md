@@ -1,6 +1,6 @@
 # Prompt: das gebaute Schema gegenprüfen
 
-Gegenstück zu [`schema-bau-prompt.md`](schema-bau-prompt.md). Dort entsteht das SQL, hier wird es
+Gegenstück zu [`schema-prompt.md`](schema-prompt.md). Dort entsteht das SQL, hier wird es
 angegriffen. **Der Prüfer baut nicht** — er meldet, und du entscheidest.
 
 Der Lauf ist nur etwas wert, wenn er unabhängig ist: eine frische Session, die den Bau nicht
@@ -11,9 +11,9 @@ und ändert sonst nichts. Alles unter dem Strich ist der Prompt.
 
 ---
 
-Wir prüfen das Datenmodell unter `schema/` **in diesem Repo** (`wb-brainstorming`). Es wurde in
-einem Zug aus den Soll-Blöcken abgeleitet; ob das gelungen ist, ist deine Frage. Du änderst nichts
-und baust nichts nach — auch nicht „nur eben schnell".
+Wir prüfen das Datenmodell unter `schema/`. Es ist aus den Soll-Blöcken abgeleitet; ob das
+gelungen ist, ist deine Frage. Du änderst nichts und baust nichts nach — auch nicht „nur eben
+schnell".
 
 ## Die eine Regel, aus der der Rest folgt
 
@@ -37,8 +37,7 @@ steht im nächsten Abschnitt.
 
 1. **`soll-prozesse/hebel.md`** — was für alle Prozesse gilt. Ein Hebel, den das Schema je Domäne
    nachbaut statt einmal, ist ein Fund; ein Hebel, den es gar nicht trägt, auch.
-2. **`~/Documents/projects/weltenbaum/wb-docs/rules.md`**, Abschnitte 1, 3 und 7, und
-   **`wb-docs/domains/grenzkarte.md`**.
+2. **`rules.md`**, Abschnitte 1, 3 und 7, und **`domains/grenzkarte.md`**.
 
 **Dann je Domäne**, und die nächste fängst du erst danach an:
 
@@ -50,8 +49,8 @@ steht im nächsten Abschnitt.
 den Satz nicht mehr, gegen den du das Zitat hältst.
 
 **Die Rangfolge bei Widerspruch** ist dieselbe wie beim Bau: Soll-Block schlägt `hebel.md` schlägt
-`grenzkarte.md` schlägt `prozesse.md`. Der Vorentwurf in `wb-docs/domains/*-schema.sql` schlägt gar
-nichts — dass das Schema anders schneidet als er, ist der Zweck des Neubaus und **kein Fund**.
+`grenzkarte.md` schlägt `prozesse.md`. Keine dieser Quellen wird durch das Schema entschieden — dass
+eine Tabelle dasteht, belegt nichts über die Regel, die sie tragen soll.
 
 ## Der Lauf überlebt seinen eigenen Kontext
 
@@ -127,7 +126,7 @@ nichts. Vier Fallen, drei davon sind hier schon zugeschnappt:
 Postgres ist hier nicht installiert, Podman schon:
 
 ```
-podman run --rm -d --name wb-pruef -e POSTGRES_PASSWORD=x docker.io/library/postgres:17
+podman run --rm -d --name wb-pruef -e POSTGRES_PASSWORD=x docker.io/library/postgres:18
 podman exec -i wb-pruef psql -U postgres -v ON_ERROR_STOP=1 -q < schema/stammdaten-schema.sql
 ```
 

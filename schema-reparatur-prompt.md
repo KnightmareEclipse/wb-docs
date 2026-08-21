@@ -22,36 +22,17 @@ Strich ist der Prompt.
 Wir schließen Funde aus [`pruefbericht.md`](pruefbericht.md) im Datenmodell unter `schema/`.
 Der Bericht ist die Arbeitsliste, nicht die Anweisung.
 
-**Derzeit gibt es hier nichts zu tun.** Alle fünf bisherigen Berichtszyklen sind abgeschlossen
-und liegen als Beweisstücke daneben:
+**Derzeit gibt es hier nichts zu tun.** Die fünf bisherigen Zyklen sind abgeschlossen und liegen
+als Beweisstücke daneben (`pruefbericht-01.md` … `pruefbericht-05.md`); kein Fund wurde verworfen.
+Was aus ihnen weiterträgt, steht als Satz an seiner Stelle im Schema und nicht in einer Liste
+daneben — offen ist allein die Frist, nach der eine versandte Mail ohne Person verfällt, als `[?]`
+im Kopf von `schema/querschnitt-schema.sql`.
 
-- [`pruefbericht-01.md`](pruefbericht-01.md) — 84 Funde aus drei Läufen, alle geschlossen.
-- [`pruefbericht-02.md`](pruefbericht-02.md) — 33 Funde aus zwei unabhängigen Läufen, alle
-  geschlossen; dazu sechs Stellen, an denen das Schema eine Antwort der Schule behauptete, die ihr
-  Block noch offen stellte — die Antworten stehen inzwischen in den Blöcken.
-- [`pruefbericht-03.md`](pruefbericht-03.md) — 18 Funde aus einem Lauf, alle geschlossen; sieben
-  der vierzehn Domänen kamen ohne Fund durch. Keiner wurde verworfen. Offen blieb eine einzige
-  Sachfrage, die kein Block entscheidet: die Frist, nach der eine versandte Mail ohne Person
-  verfällt — sie steht als `[?]` im Kopf von `schema/querschnitt-schema.sql`.
-- [`pruefbericht-04.md`](pruefbericht-04.md) — 7 Funde aus einem Lauf, alle geschlossen; zehn der
-  vierzehn Domänen kamen ohne Fund durch. Keiner wurde verworfen. Die eine Sachfrage, die kein
-  Block entschied — was der Jahreslauf mit einem Warteplatz am Ende seiner Schulart tut —, hat die
-  Schule beantwortet: Er endet zum 31. Juli wie der Jahrgang in 04, und die Antwort steht an
-  `ck_applications_grade_level` in `schema/anmeldung-schema.sql`.
-- [`pruefbericht-05.md`](pruefbericht-05.md) — 13 Funde aus einem unabhängigen Gegenlauf, alle
-  geschlossen; fünf der vierzehn Domänen kamen ohne Fund durch. Keiner wurde verworfen, und keine
-  Sachfrage blieb offen — jeden Fund entschied ein Block. Zwei Entscheidungen ziehen weiter als
-  ihr Fund: der Putzdienst-Jahreslauf räumt die Einzel-Freikäufe seither selbst, weil
-  `fk_cleaning_slot_buyouts_assignment` sie mit NO ACTION festhält (F7), und `login_codes` hat
-  einen Fremdschlüssel auf `persons`, wo vorher „bewusst KEINER" stand (F1) — beides steht als
-  Satz an seiner Stelle im Schema. Was der Lauf nicht prüfen konnte, liegt weiter nicht im Repo:
-  Betreuungsvertrag und Preislisten, und damit die Zitate daraus.
-
-Die Kennungen in einem abgeschlossenen Bericht gehören zu seinem Lauf und nicht zu einem neuen —
-`pruefbericht-01.md` trug dabei noch domänenbuchstabige (`S11`, `Q6`), erst danach ist die
-durchlaufende Nummer `[F1]`, `[F2]`, … die eine Form.
-Ein neuer Prüflauf legt `pruefbericht.md` frisch an; erst dann gibt es hier wieder etwas zu tun,
-und am Ende jenes Zyklus wird die Datei zu `pruefbericht-06.md`.
+Ein neuer Prüflauf legt `pruefbericht.md` frisch an; erst dann gibt es hier wieder etwas zu tun, und
+am Ende jenes Zyklus wird die Datei zu `pruefbericht-06.md`. Die Kennungen eines abgeschlossenen
+Berichts gehören zu seinem Lauf und nicht zu einem neuen — `pruefbericht-01.md` trug dabei noch
+domänenbuchstabige (`S11`, `Q6`), erst danach ist die durchlaufende Nummer `[F1]`, `[F2]`, … die eine
+Form.
 
 ## Die eine Regel, aus der der Rest folgt
 
@@ -64,7 +45,7 @@ Und **der Vorschlag im Fund ist der Vorschlag eines Prüfers.** Er hat das Schem
 nicht gebaut. Trägt er, nimm ihn. Trägt eine kleinere Änderung dieselbe Regel, nimm die kleinere.
 
 Die Rangfolge bei Widerspruch ist dieselbe wie beim Bau: Soll-Block schlägt `hebel.md` schlägt
-`grenzkarte.md` schlägt `prozesse.md`. Der Vorentwurf in `wb-docs/domains/` schlägt gar nichts.
+`grenzkarte.md` schlägt `prozesse.md`.
 
 ## Wann du baust und wann du fragst
 
@@ -113,7 +94,7 @@ Lösch-Lauf je Domäne als Gegenprobe schließt die Klasse dauerhaft; `gesundhei
 Postgres ist nicht installiert, Podman schon:
 
 ```
-podman run --rm -d --name wb-reparatur -e POSTGRES_PASSWORD=x docker.io/library/postgres:17
+podman run --rm -d --name wb-reparatur -e POSTGRES_PASSWORD=x docker.io/library/postgres:18
 podman exec -i wb-reparatur psql -U postgres -v ON_ERROR_STOP=1 -q < schema/stammdaten-schema.sql
 ```
 
@@ -148,7 +129,6 @@ Nicht pushen.
 - **`pruefbericht.md` bleibt, wie er ist.** Er ist Beweisstück, nicht Arbeitsblatt.
 - **Kein Subagent baut oder urteilt.** Suchen darf er — eine Fundstelle, ein Spaltenname über
   alle Dateien. Nicht ändern, nicht entscheiden, und nicht nachprüfen, was du geändert hast.
-- **`wb-docs` wird nur gelesen.**
 
 ## Was du meldest
 

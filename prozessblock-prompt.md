@@ -1,6 +1,6 @@
 # Prompt: den nächsten Prozessblock füllen
 
-Kopieren, `NN` und `NAME` durch den nächsten offenen Prozess aus `soll-prozesse/README.md` ersetzen, absenden. Alles unter dem Strich ist der Prompt.
+Kopieren, `NN` und `NAME` durch den nächsten offenen Prozess aus `soll-prozesse/README.md` ersetzen, absenden. Effort `high`; Thinking anlassen. Alles unter dem Strich ist der Prompt.
 
 ---
 
