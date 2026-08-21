@@ -126,7 +126,7 @@ Die **Putzdienst-Strafzahlung** bei Nichterscheinen liegt ebenfalls außerhalb v
 
 **Der Beschäftigungszeitraum ist beidseitig nötig, nicht nur das Ende.** Eine `employees`-Zeile entsteht regelmäßig vor dem ersten Arbeitstag, weil die M365-Konten des neuen Schuljahres Ende Juli angelegt werden — ohne `first_working_day` gälte die Person ab dem Anlegen als beschäftigt und bekäme Lehrkraft-Zugriff Wochen zu früh; eine früh eingetragene Kündigung entzöge ihn spiegelverkehrt zu früh. „Beschäftigt" ist deshalb das vollständige Zeitraum-Prädikat (`stammdaten-schema.sql`, `employees`) und darf nirgends auf „`last_working_day IS NULL`" verkürzt werden. Pflicht ist der erste Arbeitstag trotzdem nicht — Block 13 stellt ihn frei, „weil an ihm nichts hängt" und ihn beim Import ohnehin niemand heraussucht; wo er fehlt, trägt das Prädikat nur das Ende. **Gegen welchen Stichtag es geprüft wird, entscheidet der fragende Prozess und nicht diese Tabelle:** Zugriffsentscheidungen fragen den aktuellen Tag, die Putzdienst-Befreiung dagegen das Buchungsfenster ihres Zyklus — dort wird die Pflicht einmal ermittelt, und wer danach mitten im Schuljahr ausscheidet, bleibt für diesen Zyklus befreit (`schema/putzdienst-schema.sql`). Weitere Personalfelder (Funktion, Stundenumfang) gibt es nicht: die Personaldatenquelle der Schule existiert, wird aber bewusst **nicht** nach Weltenbaum übertragen — kommt sie später, ist jedes Feld daraus eine nullable Spalte und vom Freeze nicht berührt.
 
-**Die Bereichs- und Vorgesetztenstruktur wird derzeit nicht gebraucht** (`fachdomaenen.md` Abschnitt 5) — geklärt, nicht offen. Mit der Rechnungsfreigabe erneut zu prüfen; bis dahin wäre raten teurer als später ergänzen.
+**Die Bereichs- und Vorgesetztenstruktur wird nicht gebraucht** (`fachdomaenen.md` Abschnitt 5) — geklärt, nicht offen, und mit der gebauten Rechnungsfreigabe bestätigt: Sie wählt ihre Führungskraft je Beleg-Teil als Person (`expense_claim_items.approver_employee_id`) und führt bewusst keine Zuständigkeitsliste Projekt→Führungskraft, „das Haus ist klein genug, dass jeder weiß, wen er wählt" (`schema/rechnungsfreigabe-schema.sql`).
 
 ### Q5 — Nachzieh-Aufgabe
 
@@ -151,7 +151,7 @@ Nummerierung wie `fachdomaenen.md` Abschnitt 6.
 | **6 Mensa** (gebaut, `schema/mensa-schema.sql`; die Buchung ist eine Betreuungsmodul-Buchung aus 2/4, Katalogzeile „Mittagessen") | Küchenprofil je Kind (Varianten, Küchen-Hinweis), 1 Werteliste | Q1 (Lastschrift-Erlaubnis) | nein |
 | **6 AGs** (gebaut) | **keine** — es ist nichts bekannt, was zu bauen wäre | — | nein |
 | **9 Gesundheitsdaten** (gebaut) | Gesundheitsbestand je Kind, Gesundheitsmerkmal, Masernschutznachweis, 2 Wertelisten | Q1, Q2 | nein |
-| **5 Rechnungsfreigabe** (gebaut, `schema/rechnungsfreigabe-schema.sql`) | Beleg, Freigabeschritt, Aufteilung, Vorlage, Lieferant, 2 Wertelisten | Q2, Q4 | nein |
+| **5 Rechnungsfreigabe** (gebaut, `schema/rechnungsfreigabe-schema.sql`) | Beleg, Freigabeschritt, Aufteilung, Vorlage, Lieferant, 2 weitere Wertelisten | Q2, Q4 | nein |
 | **7 M365-Kontenverwaltung** (gebaut) | **keine** — Mitarbeitendeneintrag, Schuladresse und Offboarding stehen bereits, Anstoß ist eine Q5-Aufgabe | Q4, Q5 | ja (`children.school_email`) |
 | **8 Eltern-Selfservice** (gebaut) | **keine** | — | ja (eigene Daten) |
 | **11 Bonussystem Elternmitarbeit** (gebaut, `schema/elternbonus-schema.sql`) | geleistete Stunde je Familie und Schuljahr samt Bestätigung | — (Rückzahlung läuft über Optigem) | nein |
