@@ -76,6 +76,10 @@ INSERT INTO guardian_relations (guardian_relation_id, code, name) OVERRIDING SYS
     VALUES (1, 'mother', 'Mutter'), (2, 'father', 'Vater');
 INSERT INTO access_levels (access_level_id, code, name) OVERRIDING SYSTEM VALUE
     VALUES (1, 'full', 'voll'), (2, 'read_only', 'nur lesen'), (3, 'blocked', 'gesperrt');
+-- Explizit gesetzte Schlüssel bewegen die Identitätssequenz nicht. Ohne diese
+-- Zeile vergibt die Gegenprobe „der vierte Grad ist eine Zeile" unten die 1 ein
+-- zweites Mal und scheitert an `pk_access_levels` statt an ihrer Regel.
+SELECT setval(pg_get_serial_sequence('access_levels', 'access_level_id'), 3);
 INSERT INTO addresses (address_id, street, house_number, postal_code, city, country_id, created_by)
     VALUES ('11111111-1111-1111-1111-111111111111', 'Hauptstr.', '1', '12345',
             'Musterstadt', 1, 'guardian:11111111-1111-1111-1111-111111111111');
