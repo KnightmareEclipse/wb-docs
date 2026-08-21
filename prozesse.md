@@ -272,7 +272,7 @@ Derselbe Satz wird zusätzlich auf allen vier Anmeldetag-Checklisten und im Hort
 
 Drei Festlegungen dazu:
 
-- **Das Unterschriftsdatum ist wichtig** — gedeckt durch die Q2-Signatur am Mandat (`signatures.sepa_mandate_id`), nicht durch eine eigene Spalte: der Namenszug hätte daneben keinen Platz (`schema/stammdaten-schema.sql`).
+- **Das Unterschriftsdatum ist wichtig** — gedeckt durch die Q2-Signatur am Mandat (`signatures.sepa_mandate_id`, `schema/querschnitt-schema.sql`), nicht durch eine eigene Spalte: der Namenszug hätte daneben keinen Platz (`schema/stammdaten-schema.sql`).
 - **Die BIC bleibt**, aber nur für **nicht-deutsche Konten**: Optigem verlangt sie. `sepa_mandates.bic` ist damit nicht streichbar (`schema/stammdaten-schema.sql`).
 - **Das SEPA-Mandat ist für alle Neuanmeldungen Pflicht, weil es an das Kind gebunden ist:** Verlässt das erste Kind die Schule, verfällt es auch für die noch eingeschriebenen Geschwister. Je Kind wird deshalb ausdrücklich ein eigenes Mandat eingesammelt — im Schema je eine `sepa_mandates`-Zeile, die die Bankverbindung selbst trägt (`schema/stammdaten-schema.sql`).
 

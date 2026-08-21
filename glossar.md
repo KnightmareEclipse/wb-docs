@@ -46,7 +46,7 @@ Für **Hortverträge nicht zuständig** — die laufen vollständig über den Ho
 _Avoid_: Admin
 
 **Geschäftsführung**:
-Operativer Kopf des Trägervereins (`fachdomaenen.md` Abschnitt 5). Sieht wie Verwaltung und Buchhaltung **alle** Schüler — diese drei brauchen den Gesamtüberblick, alle übrigen Rollen sehen nur einen Teil der Schüler oder einen Teil der Daten. Drei eigene Zugriffe: Straf-Aussetzung und Pflicht-Erlass beim Putzdienst (gemeinsam mit der Schulleitung), direkter Zugriff auf die Dateibibliotheken (`grenzkarte.md`, Q2) und als Einzige das Hochladen der Vertragsvorlagen (`schema/anmeldung-schema.sql`) — sie verantwortet die Verwaltung und besonders die Verträge.
+Operativer Kopf des Trägervereins (`fachdomaenen.md` Abschnitt 5). Sieht wie Verwaltung und Buchhaltung **alle** Schüler — diese drei brauchen den Gesamtüberblick, alle übrigen Rollen sehen nur einen Teil der Schüler oder einen Teil der Daten. Drei eigene Zugriffe: Straf-Aussetzung und Pflicht-Erlass beim Putzdienst (gemeinsam mit der Schulleitung), direkter Zugriff auf die Dateibibliotheken (`grenzkarte.md`, Q2) und als Einzige das Hochladen der Vertragsvorlagen (`contract_texts`, `schema/querschnitt-schema.sql`) — sie verantwortet die Verwaltung und besonders die Verträge.
 
 **Klassenlehrer:in**:
 Die Lehrkraft, auf die `classes.class_teacher_id` ihrer Klasse zeigt. Sieht den vollen Gesundheitssatz der Kinder dieser Klasse und formuliert daraus den handlungsrelevanten Hinweis, den alle unterrichtenden Personen sehen (`schema/gesundheit-schema.sql`).
