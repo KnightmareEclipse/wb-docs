@@ -581,17 +581,61 @@ CREATE TABLE children (
 
 -- Herkunft: 05 (Bewerbung) — „Je Sorgeberechtigtem Name, Geschlecht, Verhältnis
 -- zum Kind, Konfession, Beruf, Staatsangehörigkeit, Telefon, Mailadresse und
--- Anschrift". Löschanker: geht mit der Familie (03). Bewusst KEIN Geburtsdatum
--- und keine Demografie über diese Felder hinaus — kein Formular erhebt sie und
--- kein Prozess liest sie (rules.md Abschnitt 7).
+-- Anschrift". Die Rollentabelle zu dieser Aufzählung: Beruf, Konfession und
+-- Staatsangehörigkeit sind Angaben über den Menschen und nicht über seine
+-- Sorgeberechtigung in einer bestimmten Familie — sie stehen deshalb hier und
+-- nicht an `family_guardians`, deren Schlüssel `(family_id, person_id)` ist.
+-- „Familie heißt die Eltern, nicht der Haushalt" (hebel.md): Ein Elternteil mit
+-- Kindern aus zwei Beziehungen ist Zeile in zwei `families` (so auch
+-- idea/04-identitaet-zugriff.md, „Ist eine Person Mitglied mehrerer Familien
+-- (Patchwork)"), und an `family_guardians` stünde sein Beruf dann zweimal —
+-- gepflegt würde einer davon (rules.md Abschnitt 1).
+-- Löschanker: geht mit der Person (Cascade, Stufe 6 des Lösch-Laufs) und nicht
+-- mit der Familie; ein Mensch behält seinen Beruf, wenn eine seiner Familien
+-- geht.
+-- Bewusst KEIN Fremdschlüssel von `family_guardians` hierher und keine
+-- Pflichtzeile: alle drei Angaben sind freiwillig, und eine Zeile mit drei
+-- leeren Spalten trüge keinen Sachverhalt. Sie entsteht mit der ersten
+-- erhobenen Angabe — dieselbe Bauform wie `child_meal_profiles`
+-- (mensa-schema.sql), wo die fehlende Zeile selbst die Aussage ist.
+-- — Alternative: die drei Spalten an `persons`; Preis: `children` trägt
+-- Konfession und Staatsangehörigkeit schon selbst, und ein Kind ist eine
+-- Person — es gäbe für dieselbe Tatsache sofort wieder zwei Orte, diesmal
+-- zwischen `persons` und `children`.
+-- Bewusst KEIN Geburtsdatum und keine Demografie über diese Felder hinaus —
+-- kein Formular erhebt sie und kein Prozess liest sie (rules.md Abschnitt 7).
+CREATE TABLE guardians (
+    guardian_id            uuid NOT NULL DEFAULT gen_random_uuid(),
+    person_id              uuid NOT NULL,
+    occupation             text,
+    denomination_id        integer,
+    nationality_country_id integer,
+    created_at             timestamptz NOT NULL DEFAULT now(),
+    created_by             text NOT NULL,
+
+    CONSTRAINT pk_guardians        PRIMARY KEY (guardian_id),
+    CONSTRAINT fk_guardians_person FOREIGN KEY (person_id) REFERENCES persons (person_id) ON DELETE CASCADE,
+    CONSTRAINT fk_guardians_denomination
+        FOREIGN KEY (denomination_id) REFERENCES denominations (denomination_id),
+    CONSTRAINT fk_guardians_nationality
+        FOREIGN KEY (nationality_country_id) REFERENCES countries (country_id),
+    -- Der ganze Zweck dieser Tabelle: je Mensch genau eine Zeile, gleich in wie
+    -- vielen Familien er sorgeberechtigt ist.
+    CONSTRAINT uq_guardians_person UNIQUE (person_id),
+    CONSTRAINT ck_guardians_occupation CHECK (occupation <> ''),
+    CONSTRAINT ck_guardians_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
+);
+
+-- Herkunft: 05 (Bewerbung), dieselbe Aufzählung — hier steht, was an *dieser*
+-- Sorgeberechtigung hängt und nicht am Menschen: das Verhältnis zum Kind, die
+-- Einsichtsstufe, die Briefanschrift der Amtsvormundschaft und das Postflag.
+-- Die drei personenweiten Angaben stehen an `guardians` darüber.
+-- Löschanker: geht mit der Familie (03).
 CREATE TABLE family_guardians (
     family_guardian_id   uuid NOT NULL DEFAULT gen_random_uuid(),
     family_id            uuid NOT NULL,
     person_id            uuid NOT NULL,
     guardian_relation_id integer NOT NULL,
-    occupation           text,
-    denomination_id      integer,
-    nationality_country_id integer,
     -- hebel.md, „Einsichtsstufe": vom Sekretariat auf Vorlage eines Beschlusses
     -- gesetzt. Als Werteliste und ohne Vorgabewert: „voll" ist der Standard, und
     -- den setzt, wer die Zeile anlegt — eine Vorgabe wäre hier ein fester
@@ -612,10 +656,6 @@ CREATE TABLE family_guardians (
     CONSTRAINT fk_family_guardians_person FOREIGN KEY (person_id) REFERENCES persons (person_id),
     CONSTRAINT fk_family_guardians_relation
         FOREIGN KEY (guardian_relation_id) REFERENCES guardian_relations (guardian_relation_id),
-    CONSTRAINT fk_family_guardians_denomination
-        FOREIGN KEY (denomination_id) REFERENCES denominations (denomination_id),
-    CONSTRAINT fk_family_guardians_nationality
-        FOREIGN KEY (nationality_country_id) REFERENCES countries (country_id),
     CONSTRAINT uq_family_guardians UNIQUE (family_id, person_id),
     CONSTRAINT fk_family_guardians_access_level
         FOREIGN KEY (access_level_id) REFERENCES access_levels (access_level_id),
@@ -688,6 +728,12 @@ CREATE TABLE sepa_mandates (
     iban             text NOT NULL,
     -- Nur bei einem nicht-deutschen Konto, „weil Optigem sie dort verlangt".
     bic              text,
+    -- Der Name, den der Kontoinhaber beim Unterschreiben angegeben hat, und
+    -- nicht der heutige: Er folgt zwar aus der Bankleitzahl in der IBAN, aber
+    -- Banken fusionieren und benennen sich um, und das Mandat „bleibt mit
+    -- seinem Unterschriftsdatum stehen" (08). Nachgeführt wird er deshalb nie —
+    -- eine festgehaltene Tatsache wie `outbound_emails.recipient_email`, keine
+    -- vergessene Ableitung.
     credit_institution text NOT NULL,
     mandate_reference text NOT NULL,
     -- Gesetzt, sobald ein neues Mandat dieses ablöst; das abgelöste bleibt

@@ -102,7 +102,7 @@ Ausdrücklich benannt, weil ohne Zweck kein Feld bleibt (`rules.md` Abschnitt 7)
 - **Kirchengemeinde** — Interesse, kein benannter Verarbeitungszweck.
 - **Geschwister und wahrgenommene Angebote** (Musikarche, Ferienprogramm, Clemens-KITA) — geben einen **Bonus bei der Zusage** und sind damit entscheidungsrelevant, nicht dekorativ.
 
-Alle vier Felder werden gespeichert — Konfession und Staatsangehörigkeit auch bei den Erziehungsberechtigten (`schema/stammdaten-schema.sql`). Entschieden mit bekanntem Preis: Konfession ist ein Art.-9-Datum, und ein Feld ohne beschlossenen Zweck mit echten Personendaten zu füllen, schließt `rules.md` Abschnitt 7 eigentlich aus. Ausschlaggebend war die Gegenrichtung — eine Spalte zu streichen ist ein `DROP COLUMN`, ein beim Vollimport nicht erhobener Wert ist nicht nacherhebbar. **Der Zweck-Beschluss bleibt damit fällig, und zwar vor dem Vollimport** (`TODO.md`); das Schema trägt die Absicherung bereits (Spalten-GRANT auf den Konfessionsspalten an `children` und `family_guardians`).
+Alle vier Felder werden gespeichert — Konfession und Staatsangehörigkeit auch bei den Erziehungsberechtigten (`schema/stammdaten-schema.sql`). Entschieden mit bekanntem Preis: Konfession ist ein Art.-9-Datum, und ein Feld ohne beschlossenen Zweck mit echten Personendaten zu füllen, schließt `rules.md` Abschnitt 7 eigentlich aus. Ausschlaggebend war die Gegenrichtung — eine Spalte zu streichen ist ein `DROP COLUMN`, ein beim Vollimport nicht erhobener Wert ist nicht nacherhebbar. **Der Zweck-Beschluss bleibt damit fällig, und zwar vor dem Vollimport** (`TODO.md`); das Schema trägt die Absicherung bereits (Spalten-GRANT auf den Konfessionsspalten an `children` und `guardians`).
 
 ### 3.4 Bruchstellen
 

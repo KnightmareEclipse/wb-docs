@@ -1,13 +1,16 @@
 -- Prüfskript zu stammdaten-schema.sql.
 --
--- Sollstand: 24 Tabellen — 12 Wertelisten (salutations, genders, denominations,
+-- Sollstand: 25 Tabellen — 12 Wertelisten (salutations, genders, denominations,
 -- languages, countries, guardian_relations, access_levels, previous_schools,
 -- school_branches,
 -- houses, roles, phone_types), Person und Erreichbarkeit (addresses, persons,
 -- phone_numbers),
--- Familie und Kind (families, classes, children, family_guardians,
+-- Familie und Kind (families, classes, children, guardians, family_guardians,
 -- family_contacts, sepa_mandates), Q4 (employees, employee_roles) und der
 -- Zugang (login_codes); die Klassenlehrkraft steht als Spalte an `classes`.
+-- `guardians` trägt die personenweiten Angaben eines Sorgeberechtigten,
+-- `family_guardians` daneben allein, was an einer einzelnen Sorgeberechtigung
+-- hängt.
 -- Dazu zwei partielle bzw.
 -- unterstützende Indizes (ix_sepa_mandates_current, ix_login_codes_email_created).
 --
@@ -30,7 +33,8 @@ BEGIN
         'guardian_relations', 'access_levels', 'previous_schools',
         'school_branches', 'houses',
         'roles', 'addresses', 'persons', 'phone_numbers', 'families', 'classes',
-        'children', 'family_guardians', 'family_contacts', 'sepa_mandates',
+        'children', 'guardians', 'family_guardians', 'family_contacts',
+        'sepa_mandates',
         'employees', 'employee_roles', 'login_codes', 'phone_types'
     ]) AS t
     WHERE to_regclass('public.' || t) IS NULL;
@@ -38,7 +42,7 @@ BEGIN
     IF missing IS NOT NULL THEN
         RAISE EXCEPTION 'Fehlende Tabellen: %', missing;
     END IF;
-    RAISE NOTICE 'ok: alle 24 Tabellen vorhanden';
+    RAISE NOTICE 'ok: alle 25 Tabellen vorhanden';
 END $$;
 
 -- ---------------------------------------------------------------------------
@@ -68,7 +72,9 @@ BEGIN
         'fk_phone_numbers_type', 'ck_children_repeats_needs_entry',
         'uq_school_branches_grades', 'uq_roles_branch_bound',
         'fk_employee_roles_role', 'ck_employee_roles_branch_bound',
-        'uq_employee_roles', 'uq_family_contacts'
+        'uq_employee_roles', 'uq_family_contacts',
+        'pk_guardians', 'fk_guardians_person', 'uq_guardians_person',
+        'fk_guardians_denomination', 'fk_guardians_nationality'
     ]) AS c
     WHERE NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = c);
 
@@ -453,6 +459,67 @@ SELECT pg_temp.expect_reject(
                (SELECT access_level_id FROM access_levels WHERE code='full'),
                'system:check')$q$);
 
+-- ---------------------------------------------------------------------------
+-- Beruf, Konfession und Staatsangehörigkeit hängen am Menschen, nicht an der
+-- Sorgeberechtigung. Die drei Gegenproben dazu.
+-- ---------------------------------------------------------------------------
+
+-- Die Spalten stehen nicht mehr an `family_guardians` — eine Spalte, die es
+-- nicht geben darf, hat keinen anderen Anker als diese Probe.
+DO $$
+DECLARE stray text;
+BEGIN
+    SELECT string_agg(column_name, ', ') INTO stray
+    FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'family_guardians'
+      AND column_name IN ('occupation', 'denomination_id', 'nationality_country_id');
+    IF stray IS NOT NULL THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — personenweite Angabe an der Sorgeberechtigung: %', stray;
+    END IF;
+    RAISE NOTICE 'ok: Beruf, Konfession und Staatsangehörigkeit stehen nicht an `family_guardians`';
+END $$;
+
+-- hebel.md: „Familie heißt die Eltern, nicht der Haushalt." Ein Elternteil mit
+-- Kindern aus zwei Beziehungen ist Zeile in zwei Familien — das ist erlaubt.
+INSERT INTO families (family_id, created_by)
+    VALUES ('33333333-3333-3333-3333-333333333334', 'system:check');
+SELECT pg_temp.expect_accept(
+    'hebel.md — dieselbe Person ist in zwei Familien sorgeberechtigt',
+    $q$INSERT INTO family_guardians (family_id, person_id, guardian_relation_id,
+                                     access_level_id, created_by)
+       VALUES ('33333333-3333-3333-3333-333333333334',
+               '22222222-2222-2222-2222-222222222222',
+               (SELECT guardian_relation_id FROM guardian_relations WHERE code='mother'),
+               (SELECT access_level_id FROM access_levels WHERE code='full'),
+               'system:check')$q$);
+
+INSERT INTO guardians (person_id, occupation, nationality_country_id, created_by)
+    VALUES ('22222222-2222-2222-2222-222222222222', 'Lehrerin',
+            (SELECT country_id FROM countries WHERE code = 'DE'), 'system:check');
+
+-- Und ihr Beruf steht dabei genau einmal: eine zweite Zeile für denselben
+-- Menschen wäre der zweite Ort, den `uq_guardians_person` verhindert.
+SELECT pg_temp.expect_reject(
+    'rules.md 1 — zweite Sorgeberechtigten-Zeile für denselben Menschen',
+    $q$INSERT INTO guardians (person_id, occupation, created_by)
+       VALUES ('22222222-2222-2222-2222-222222222222', 'Ärztin', 'system:check')$q$);
+
+DO $$
+DECLARE n integer;
+BEGIN
+    SELECT count(*) INTO n FROM family_guardians
+     WHERE person_id = '22222222-2222-2222-2222-222222222222';
+    IF n <> 2 THEN
+        RAISE EXCEPTION 'Aufbau falsch — die Person ist in % statt zwei Familien sorgeberechtigt', n;
+    END IF;
+    SELECT count(*) INTO n FROM guardians
+     WHERE person_id = '22222222-2222-2222-2222-222222222222';
+    IF n <> 1 THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — der Beruf steht % mal statt einmal', n;
+    END IF;
+    RAISE NOTICE 'ok: zwei Sorgeberechtigungen, ein Beruf';
+END $$;
+
 -- 02: ein Kontakt ist Notfallkontakt, abholberechtigt oder beides — nie keines.
 SELECT pg_temp.expect_reject(
     '02 — Kontakt ohne Rolle',
@@ -826,7 +893,12 @@ BEGIN
     IF EXISTS (SELECT 1 FROM family_guardians) OR EXISTS (SELECT 1 FROM family_contacts) THEN
         RAISE EXCEPTION 'REGEL NICHT GEBAUT — Sorgerecht oder Kontakt überlebt seine Familie';
     END IF;
-    RAISE NOTICE 'ok (erlaubt): 03 — weder Sorgerecht noch Kontakt überlebt seine Familie';
+    -- Die Angaben über den Menschen hängen dagegen an der Person und nicht an
+    -- der Familie: sie bleiben stehen, bis die Person selbst geht.
+    IF NOT EXISTS (SELECT 1 FROM guardians) THEN
+        RAISE EXCEPTION 'ZU VIEL GELÖSCHT — der Beruf ging mit einer der beiden Familien';
+    END IF;
+    RAISE NOTICE 'ok (erlaubt): 03 — weder Sorgerecht noch Kontakt überlebt seine Familie, der Beruf bleibt';
 END $$;
 
 -- 13: „Löschanker: `last_working_day` — ab ihm rechnet der Lösch-Lauf" — die
@@ -845,6 +917,9 @@ DO $$
 BEGIN
     IF EXISTS (SELECT 1 FROM phone_numbers) THEN
         RAISE EXCEPTION 'REGEL NICHT GEBAUT — eine Telefonnummer überlebt ihre Person';
+    END IF;
+    IF EXISTS (SELECT 1 FROM guardians) THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — die Sorgeberechtigten-Angaben überleben ihre Person';
     END IF;
     IF EXISTS (SELECT 1 FROM employee_roles) THEN
         RAISE EXCEPTION 'REGEL NICHT GEBAUT — eine Rolle überlebt ihren Mitarbeitendeneintrag';

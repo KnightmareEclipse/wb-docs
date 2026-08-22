@@ -481,6 +481,9 @@ CREATE TABLE admission_day_slots (
     CONSTRAINT fk_admission_day_slots_day
         FOREIGN KEY (admission_day_id) REFERENCES admission_days (admission_day_id) ON DELETE CASCADE,
     CONSTRAINT uq_admission_day_slots UNIQUE (admission_day_id, starts_at),
+    -- Trägt den zusammengesetzten Fremdschlüssel der Bewerbung: er bindet das
+    -- gebuchte Zeitfenster an den Tag, der daneben steht (rules.md Abschnitt 1).
+    CONSTRAINT uq_admission_day_slots_id_day UNIQUE (admission_day_slot_id, admission_day_id),
     CONSTRAINT ck_admission_day_slots_places CHECK (places_override > 0),
     CONSTRAINT ck_admission_day_slots_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
@@ -645,8 +648,19 @@ CREATE TABLE applications (
         FOREIGN KEY (local_school_id) REFERENCES previous_schools (previous_school_id),
     CONSTRAINT fk_applications_care_need_level
         FOREIGN KEY (care_need_level_id) REFERENCES care_need_levels (care_need_level_id),
+    -- Zusammengesetzt mit dem Tag, weil `admission_day_id` aus dem Zeitfenster
+    -- folgt: Das Zeitfenster gehört genau einem Tag, und einspaltig prüfte hier
+    -- niemand, ob es derselbe ist, der eine Zeile weiter steht. Für dasselbe
+    -- Ziel gibt es mehr als einen Anmeldetag — der Sondertermin ist „der
+    -- kleinste Anmeldetag" (06) —, und `fk_applications_admission_day` unten
+    -- bindet den Tag nur ans Ziel, nicht ans Zeitfenster: eine Umbuchung, die
+    -- allein das Zeitfenster setzt, ginge sonst durch, und die Einladung nennte
+    -- den falschen Tag. MATCH SIMPLE genügt, weil
+    -- `ck_applications_slot_and_day` unten schon erzwingt, dass beide Spalten
+    -- zusammen stehen oder gar nicht.
     CONSTRAINT fk_applications_slot
-        FOREIGN KEY (admission_day_slot_id) REFERENCES admission_day_slots (admission_day_slot_id),
+        FOREIGN KEY (admission_day_slot_id, admission_day_id)
+        REFERENCES admission_day_slots (admission_day_slot_id, admission_day_id),
     -- Bindet den gebuchten Tag an das Ziel der Bewerbung (rules.md Abschnitt 1).
     CONSTRAINT fk_applications_admission_day
         FOREIGN KEY (admission_day_id, school_branch_id, target_grade_level, target_school_year)
@@ -662,6 +676,9 @@ CREATE TABLE applications (
     CONSTRAINT fk_applications_status
         FOREIGN KEY (application_status_id, is_final)
         REFERENCES application_statuses (application_status_id, is_final),
+    -- Trägt den zusammengesetzten Fremdschlüssel des Schulvertrags und ist
+    -- deshalb zusätzlich zum Primärschlüssel nötig (rules.md Abschnitt 1).
+    CONSTRAINT uq_applications_id_child UNIQUE (application_id, child_id),
     CONSTRAINT ck_applications_source CHECK (source IN ('pre_registration', 'lateral_entry')),
     -- „dieselbe Angabe … hier um den Umfang ergänzt" (06): ein Umfang ohne
     -- Bedarf wäre der zweite Ort für dieselbe Tatsache (rules.md Abschnitt 1).
@@ -804,8 +821,20 @@ CREATE TABLE contracts (
 
     CONSTRAINT pk_contracts       PRIMARY KEY (contract_id),
     CONSTRAINT fk_contracts_child FOREIGN KEY (child_id) REFERENCES children (child_id),
+    -- Zusammengesetzt mit dem Kind, weil `child_id` beim Schulvertrag aus der
+    -- Bewerbung folgt (`applications.child_id` ist NOT NULL, und ein
+    -- Schulvertrag hat immer eine Bewerbung). Zwillinge sind zwei Bewerbungen
+    -- und zwei Verträge mit demselben Ziel und derselben Familie; einspaltig
+    -- ginge der Vertrag mit der Bewerbung des Geschwisters durch, und der
+    -- Lösch-Lauf bliebe danach in Stufe 1 an genau diesem Fremdschlüssel
+    -- stehen. Dieselbe Bindung wie `fk_children_class` und
+    -- `fk_applications_admission_day` (rules.md Abschnitt 1).
+    -- MATCH SIMPLE und nicht MATCH FULL: Der Hortvertrag trägt sein Kind ohne
+    -- Bewerbung („ein Hortvertrag hängt am Kind", 09) — MATCH FULL wiese ihn
+    -- ab, weil dort eine der beiden Spalten leer ist.
     CONSTRAINT fk_contracts_application
-        FOREIGN KEY (application_id) REFERENCES applications (application_id),
+        FOREIGN KEY (application_id, child_id)
+        REFERENCES applications (application_id, child_id),
     CONSTRAINT fk_contracts_text
         FOREIGN KEY (contract_text_id) REFERENCES contract_texts (contract_text_id),
     CONSTRAINT fk_contracts_document

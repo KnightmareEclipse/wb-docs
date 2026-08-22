@@ -8,7 +8,10 @@
 -- application_unlocks, admission_days, admission_day_slots, applications,
 -- application_offers, contracts, contract_responses, care_module_agreements und
 -- care_module_bookings. Dazu drei partielle Unique-Indizes und die beiden
--- Querschnitts-Fremdschlüssel auf `contracts` und `applications`. Hier stehen
+-- Querschnitts-Fremdschlüssel auf `contracts` und `applications`. Zwei
+-- Fremdschlüssel dieser Datei sind zusammengesetzt, obwohl sie einspaltig
+-- aussehen: `fk_applications_slot` bindet das Zeitfenster an seinen Tag,
+-- `fk_contracts_application` den Schulvertrag an das Kind seiner Bewerbung. Hier stehen
 -- außerdem die Gegenproben zu `signatures` (Q2), deren Fremdschlüssel auf den
 -- Vertragsvorgang erst mit dieser Datei entsteht.
 --
@@ -93,6 +96,8 @@ BEGIN
         'ck_contracts_care_home_alone', 'ck_contracts_care_admission',
         'fk_applications_local_school', 'fk_applications_care_need_level',
         'ck_applications_care_need',
+        'fk_applications_slot', 'uq_admission_day_slots_id_day',
+        'fk_contracts_application', 'uq_applications_id_child',
         'uq_care_need_levels_code', 'uq_tuition_fees', 'fk_tuition_fees_branch',
         'ck_tuition_fees_amount', 'ck_tuition_fees_rank',
         'fk_signatures_contract', 'fk_signatures_agreement', 'fk_payments_application'
@@ -492,6 +497,30 @@ SELECT pg_temp.expect_accept(
         WHERE application_id IN ('77777777-7777-7777-7777-777777777771',
                                  '77777777-7777-7777-7777-777777777772')$q$);
 
+-- Das Zeitfenster gehört genau einem Tag, und beide Anmeldetage oben tragen
+-- dasselbe Ziel — der Sondertermin ist „der kleinste Anmeldetag" (06). Der
+-- zusammengesetzte Fremdschlüssel auf `admission_day_slots` ist deshalb die
+-- einzige Stelle, an der eine halbe Umbuchung auffällt: `fk_applications_
+-- admission_day` bindet den Tag nur ans Ziel, und das Ziel stimmt hier.
+SELECT pg_temp.expect_reject(
+    '06 — umgebucht, aber nur das Zeitfenster gesetzt (der Tag bleibt der alte)',
+    $q$UPDATE applications
+          SET admission_day_slot_id = '66666666-6666-6666-6666-666666666661'
+        WHERE application_id = '77777777-7777-7777-7777-777777777771'$q$);
+
+SELECT pg_temp.expect_accept(
+    '06 — dieselbe Umbuchung mit Tag und Zeitfenster zusammen',
+    $q$UPDATE applications
+          SET admission_day_id      = '55555555-5555-5555-5555-555555555551',
+              admission_day_slot_id = '66666666-6666-6666-6666-666666666661'
+        WHERE application_id = '77777777-7777-7777-7777-777777777771'$q$);
+
+-- Zurück auf den Stand, den die folgenden Proben vorfinden.
+UPDATE applications
+   SET admission_day_id      = '55555555-5555-5555-5555-555555555552',
+       admission_day_slot_id = '66666666-6666-6666-6666-666666666662'
+ WHERE application_id = '77777777-7777-7777-7777-777777777771';
+
 -- 05: „Öffnet die Voranmeldung je Schulart" — je Ziel genau ein Fenster.
 INSERT INTO enrolment_windows (school_branch_id, target_grade_level,
                                first_grade_level, final_grade_level, target_school_year,
@@ -600,6 +629,27 @@ INSERT INTO contracts (contract_id, child_id, contract_type, application_id,
     VALUES ('88888888-8888-8888-8888-888888888881',
             '44444444-4444-4444-4444-444444444444', 'school',
             '77777777-7777-7777-7777-777777777772', 1, 'system:check');
+
+-- 08: „Zwillinge sind zwei Verträge" — zwei Bewerbungen mit demselben Ziel,
+-- derselben Familie und demselben Vertragstext. Ohne den zusammengesetzten
+-- Fremdschlüssel ginge der Vertrag mit der Bewerbung des Geschwisters durch,
+-- und der Lösch-Lauf bliebe später an genau ihm stehen.
+SELECT pg_temp.expect_reject(
+    '08 — Schulvertrag am einen Kind, Bewerbung am anderen',
+    $q$INSERT INTO contracts (child_id, contract_type, application_id,
+                              contract_text_id, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444444', 'school',
+               '77777777-7777-7777-7777-77777777777a', 1, 'system:check')$q$);
+
+-- Die Gegenrichtung, die MATCH SIMPLE offenhalten muss: „ein Hortvertrag hängt
+-- am Kind" (09) und trägt keine Bewerbung. MATCH FULL wiese ihn ab.
+SELECT pg_temp.expect_accept(
+    '09 — Hortvertrag ohne Bewerbung geht weiter durch',
+    $q$INSERT INTO contracts (contract_id, child_id, contract_type, contract_text_id,
+                              may_walk_home_alone, created_by)
+       VALUES ('88888888-8888-8888-8888-88888888888f',
+               '44444444-4444-4444-4444-444444444445', 'care', 2, false, 'system:check');
+       DELETE FROM contracts WHERE contract_id = '88888888-8888-8888-8888-88888888888f'$q$);
 
 -- 08/09: ein Schulvertrag entsteht aus einer Zusage, ein Hortvertrag nie.
 SELECT pg_temp.expect_reject(

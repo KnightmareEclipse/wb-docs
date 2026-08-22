@@ -20,8 +20,8 @@ kein Subagent urteilt) und `CLAUDE.md`. Beides liest du zuerst und ich wiederhol
 
 ## Die eine Regel, aus der der Rest folgt
 
-**Eine Route entsteht aus einer Handlung, nie aus einer Tabelle.** Das Schema hat neunundneunzig
-Tabellen; es hat nicht neunundneunzig Ressourcen. Wo du eine Route nicht auf eine Zeile in der
+**Eine Route entsteht aus einer Handlung, nie aus einer Tabelle.** Das Schema hat hundert
+Tabellen; es hat nicht hundert Ressourcen. Wo du eine Route nicht auf eine Zeile in der
 Ablauftabelle eines Blocks zurückführen kannst, gibt es sie nicht — und wo eine Zeile dort keine
 Route hat, fehlt eine. Beides prüfst du am Ende in beide Richtungen.
 

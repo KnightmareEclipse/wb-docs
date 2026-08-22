@@ -74,8 +74,9 @@
 --   5. `employees`, ab `last_working_day` (13). Die Rollen gehen mit; was
 --      seinen Namen anderswo trägt, überlebt ihn (Beleg 12, Mitarbeitsstunde
 --      14) und braucht den Namen vorher gesetzt.
---   6. `persons`. Telefonnummern, kindlose Zustimmungen, versandte Mails,
---      Aufgaben, Spur und das Elternvertretungsamt gehen mit.
+--   6. `persons`. Telefonnummern, die Sorgeberechtigten-Angaben (`guardians`),
+--      kindlose Zustimmungen, versandte Mails, Aufgaben, Spur und das
+--      Elternvertretungsamt gehen mit.
 --   7. Die verwaisten `addresses` — die, auf die danach weder eine Person noch
 --      ein Mandat zeigt. Die Anschrift hat keinen eigenen Anker („eine
 --      Anschrift verschwindet mit der letzten Person, die auf sie zeigt",
@@ -93,7 +94,7 @@
 --      Cascade erreicht diese Zeilen, weil sie an keiner Person, keinem Kind und
 --      keiner Familie hängen. Sie gehen deshalb nach der Aufbewahrungsfrist der
 --      Tabelle, auf die ihr `table_name` zeigt — nicht mit einem Menschen.
---      Betroffen sind rund siebzig der neunundneunzig Tabellen; bei sechs steht
+--      Betroffen sind rund siebzig der hundert Tabellen; bei sechs steht
 --      in der Spur ein unmittelbares Personendatum (`addresses` die Anschrift,
 --      `application_unlocks` und `holiday_cost_coverage_codes` eine Mailadresse,
 --      `expense_claims` Name, Zweck und Fremd-IBAN, dazu `expense_claim_items`
@@ -571,6 +572,16 @@ CREATE TABLE payments (
     cleaning_slot_buyout_id uuid,
     application_id          uuid,
     holiday_booking_id      uuid,
+    -- Der Betrag, der zur Zahlung galt, und nicht der heutige: Freikauf und
+    -- Bearbeitungsgebühr folgen aus `configured_values` („cleaning_buyout_cents",
+    -- „application_fee_cents") zu ihrem Gültigkeitstag, und „eine spätere
+    -- Änderung rechnet nichts rückwirkend um" (hebel.md). Eine festgehaltene
+    -- Tatsache also, keine vergessene Ableitung. Beim vierten Anlass steht er
+    -- zusätzlich unter `fk_payments_holiday_booking` (ferien-schema.sql): dort
+    -- trägt die Buchung denselben Betrag, und zwei Orte für dieselbe Zahl
+    -- werden zusammengehalten statt auseinanderlaufen gelassen (rules.md
+    -- Abschnitt 1). Bei den drei übrigen gibt es keinen zweiten Ort, den ein
+    -- Schlüssel binden könnte.
     amount_cents   integer NOT NULL,
     -- Offen oder bestätigt, zahlungswegneutral: neben Stripe bleibt die
     -- manuelle Bestätigung durch die Buchhaltung für Überweisung und Bargeld.

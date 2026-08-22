@@ -81,8 +81,9 @@ Welche Soll-Blöcke noch fehlen, sagt die Liste in `soll-prozesse/README.md`: ei
 dort kein Häkchen und keinen Link. Stammdaten sind ab dem Vollimport **Ende August 2026**
 eingefroren; die Definition von „eingefroren" steht in `grenzkarte.md`.
 
-**Backend — übertragen.** Alle 99 Tabellen stehen in `wb-backend` als SQLAlchemy-Modelle
-(`app/models/`, ein Modul je Domäne) und als zehn Migrationen (`app/alembic/versions/`); die
+**Backend — übertragen.** Alle 100 Tabellen stehen in `wb-backend` als SQLAlchemy-Modelle
+(`app/models/`, ein Modul je Domäne) und als zehn Domänen-Migrationen (`app/alembic/versions/`),
+denen der Werteliste-Anfangsbestand und die Normalform-Korrekturen folgen; die
 Spalten-Rechte und die sieben engen Rollen entstehen in der Migration ihrer Domäne, weil
 `--autogenerate` beides nicht sieht. Jede ORM-Änderung läuft durch die Schreibschicht
 (`app/db/changelog.py`), die `change_log` aus Session-Events schreibt, den Aktor je Transaktion

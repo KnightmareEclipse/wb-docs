@@ -16,7 +16,7 @@ Ab dem **Vollimport Ende August 2026** gilt deshalb: eingefroren heißt **keine 
 
 Der Stichtag trägt die Regel, nicht das Schema: davor ist eine Änderung ein Texteingriff in einen Entwurf, danach eine Migration auf echten Personendaten, und die externe Abnahme liegt ebenfalls davor. Wer nach dem Stichtag eine bestehende Spalte ändern zu müssen glaubt, prüft zuerst, ob eine neue Tabelle dasselbe leistet.
 
-**Zwei Spalten sind dagegen noch dazugekommen, und zwar bewusst vor dem Stichtag:** `family_guardians` trägt jetzt Konfession und Staatsangehörigkeit, die beide Voranmeldeformulare ohnehin erheben. Der Zweck-Beschluss dazu steht weiterhin aus (`TODO.md`), die Richtung ist aber entschieden — erst erheben, später streichen, weil ein `DROP COLUMN` billig ist und ein beim Vollimport nicht erhobener Wert nicht nacherhebbar. Nach dem Stichtag wäre genau diese Reihenfolge nicht mehr möglich gewesen.
+**Zwei Spalten sind dagegen noch dazugekommen, und zwar bewusst vor dem Stichtag:** Konfession und Staatsangehörigkeit der Sorgeberechtigten, die beide Voranmeldeformulare ohnehin erheben. Sie stehen samt dem Beruf an `guardians`, der Rollentabelle zum Menschen, und nicht an `family_guardians`: Wer in zwei Familien sorgeberechtigt ist, trüge sie dort zweimal (`schema/stammdaten-schema.sql`). Der Zweck-Beschluss dazu steht weiterhin aus (`TODO.md`), die Richtung ist aber entschieden — erst erheben, später streichen, weil ein `DROP COLUMN` billig ist und ein beim Vollimport nicht erhobener Wert nicht nacherhebbar. Nach dem Stichtag wäre genau diese Reihenfolge nicht mehr möglich gewesen.
 
 Drei Befunde aus dieser Prüfung sind keine Schemaänderung, sondern Festlegungen, die den Freeze überhaupt erst halten — sie stehen an ihrer jeweiligen Stelle und sind hier nur genannt, damit sie nicht als „noch offen" wieder aufgemacht werden: der Kindergarten bekommt eine eigene Werteliste statt `previous_schools` (unten), die Geburtsurkunde bleibt eine reine Q2-Zeile ohne Datumsfeld (unten), und die Notfallnummer bekommt kein eigenes Feld (`schema/stammdaten-schema.sql`).
 
@@ -236,7 +236,7 @@ Was diese Karte offenlässt, ist selbst Ergebnis: es sind die Fragen, die vor de
 
 | Was fehlt | Wen fragen | Spätestens vor |
 |---|---|---|
-| Zweck der Voranmeldefelder Beruf, Konfession, Staatsangehörigkeit, Kirchengemeinde — die Spalten stehen (an `children` und `family_guardians`), der Beschluss dazu nicht (`prozesse.md` Abschnitt 3.3). Fällt er negativ aus, ist es ein `DROP COLUMN` plus ein Feld weniger im Import | Schulleitung, Datenschutzbeauftragte:r | **Vollimport Ende August 2026** |
+| Zweck der Voranmeldefelder Beruf, Konfession, Staatsangehörigkeit, Kirchengemeinde — die Spalten stehen (an `children` und `guardians`), der Beschluss dazu nicht (`prozesse.md` Abschnitt 3.3). Fällt er negativ aus, ist es ein `DROP COLUMN` plus ein Feld weniger im Import | Schulleitung, Datenschutzbeauftragte:r | **Vollimport Ende August 2026** |
 | Elternfragebogen der GS-Anmeldetag-Checkliste — Inhalt unbekannt, könnte vorab digital laufen (`prozesse.md` Abschnitt 5.2) | Sekretariat, Grundschulleitung | erster Anmeldetag mit Weltenbaum |
 | Welche zwei SharePoint-Bibliotheken die Dateien tragen und wer sie einrichtet — Form ist entschieden (`Sites.Selected`, App-only, je Bibliothek gegrantet), offen sind die konkreten Sites | zweiter Admin | Domäne 4 |
 | Ob der Hort eigenen Dateizugriff bekommt — vorerst führt er nichts Eigenes, seine Gesundheitsangaben kommen als Zeilen | Hortleitung, Sekretariat | nach dem Produktivstart |
