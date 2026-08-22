@@ -17,9 +17,9 @@ Fachlogik, und keines davon lässt sich später nachziehen, ohne dass jemand in 
 Abkürzung nimmt.
 
 **Du arbeitest durch, ohne mich zu fragen.** Jede offene Entscheidung wird eine `[A]`-Marke nach
-[`gemeinsam.md`](gemeinsam.md) und trägt weiter. Jeder Wert, den kein Dokument nennt, wird eine
-`[?]`-Marke mit Adressat — **nichts ausdenken**. Kommst du an eine Stelle, an der auch eine Annahme
-nicht trägt, hältst du nur dort an, arbeitest alles andere fertig und schreibst am Ende hin, was
+[`gemeinsam.md`](gemeinsam.md) und trägt weiter. Woher der Inhalt einer Werteliste kommen darf und
+wann sie stattdessen leer bleibt, steht unten als vier Wege — **erfinden ist keiner davon**. Kommst
+du an eine Stelle, an der auch eine Annahme nicht trägt, hältst du nur dort an, arbeitest alles andere fertig und schreibst am Ende hin, was
 blockiert ist und warum.
 
 ## Was du zuerst liest
@@ -75,12 +75,31 @@ und die vier Preistabellen: Namen, Beträge und Graph-Kennungen, die Geschäftsf
 Buchhaltung oder der Admin pflegen (`TODO.md`). **Eine leere Tabelle ist dort der richtige Zustand**
 — prüf trotzdem jede einzeln gegen ihren Kommentar, statt der Aufzählung hier zu glauben.
 
-**Woher der Inhalt kommt:** aus den Dokumenten, wo sie ihn nennen. Die sechzehn Rollen und die drei
-Einsichtsstufen stehen in `hebel.md`, die Häuser und die beiden Schularten samt Stufengrenzen in
-ihren Kommentaren, die Zwecke der Zustimmung in `grenzkarte.md` Q1. Nennt keine Quelle die Werte
-einer Liste, **bleibt sie leer** und die Frage geht als `[?]`-Zeile mit Adressat nach
-`../wb-docs/fragen.md`. Eine erfundene Zeile ist schlimmer als eine leere Tabelle: Sie sieht aus wie
-eine Entscheidung.
+**Woher der Inhalt kommt — vier Wege, und nur der letzte landet bei mir:**
+
+1. **Aus den Dokumenten**, wo sie ihn nennen, und das ist der Regelfall. Die sechzehn Rollen und die
+   drei Einsichtsstufen stehen in `hebel.md`, die Häuser und die beiden Schularten samt
+   Stufengrenzen in ihren Kommentaren, die Zwecke der Zustimmung in `grenzkarte.md` Q1, die
+   Betreuungsmodule samt Zeiten, die Merkmalsarten der Gesundheitsdaten, die Termin- und
+   Anmeldestatus in ihren Blöcken.
+2. **Aus einer Norm, die die `.sql` selbst benennt.** `countries.code` sagt ISO-3166-1 alpha-2 und
+   sagt auch warum. Abschreiben ist kein Ausdenken — **der Umfang** ist trotzdem eine Entscheidung
+   und wird eine `[A]`-Marke: alle Staaten oder die, die real vorkommen.
+3. **Als `[A]`, wo der Wert reine Konvention ist** und eine falsche Zeile nichts kostet als eine
+   Korrektur: `salutations` und `phone_types`. Setz einen kleinen Satz und markier ihn; ich kippe
+   ihn mit einem Wort. Bei `phone_types` sagt die `.sql` „Die Aufteilung in Arten folgt ASV-BW" —
+   das amtliche Modell führt dort eine Werteliste, ihre Zeilen stehen im Strukturdump aber nicht
+   (`CLAUDE.md`, Referenzquelle). Der Abgleich gehört an den Import, nicht in diese Migration.
+4. **Als `[?]` mit Adressat, und die Tabelle bleibt leer**, wo eine Entscheidung dranhängt und keine
+   Norm sie abnimmt: `genders` (Statistikpflichtfeld — eine falsche Liste heißt ein falscher
+   ASV-BW-Export), `denominations` (Art.-9-Werteliste, und ihr Zweckbeschluss steht ohnehin aus,
+   `TODO.md`), `guardian_relations`, `measles_presentation_types` („viele Wege" — welche, sagt kein
+   Dokument) und `languages` (weder Norm noch Umfang benannt).
+
+Der Unterschied zwischen Weg 3 und Weg 4 ist der ganze Punkt: **eine erfundene Zeile ist schlimmer
+als eine leere Tabelle**, weil sie aussieht wie eine Entscheidung. Bei 3 ist sie eine Konvention,
+die ich überfliege; bei 4 wäre sie eine, die niemand getroffen hat. Prüf die fünf Listen aus Weg 4
+trotzdem selbst gegen die Dokumente — findet sich doch eine Quelle, gilt Weg 1.
 
 **Wie die Zeilen hineinkommen:**
 
@@ -165,8 +184,8 @@ Höchstens zwanzig Zeilen Prosa; Listen und Code zählen nicht mit.
 
 - **Die Rückgabewerte:** vierzehn Prüfskripte, `alembic check`, die vier Werkzeuge, die zwei
   Gegenproben. Je einer eine Zeile.
-- **Je Werteliste eine Zeile:** kommt sie mit der Migration, bleibt sie leer, oder wartet sie auf
-  eine Antwort — und im dritten Fall, auf welche.
+- **Je Werteliste eine Zeile:** kommt sie mit der Migration (auf welchem der drei Wege), bleibt sie
+  einem Menschen überlassen, oder wartet sie auf eine Antwort — und dann auf welche.
 - **Die Annahmen** `A1, A2 …` — jede mit Aussage, Alternative, Preis, und jede außerdem als
   `[A]`-Zeile an ihrer Stelle.
 - **Die Fragen** `?1, ?2 …`, die du nach `fragen.md` geschrieben hast, je mit Adressat.
