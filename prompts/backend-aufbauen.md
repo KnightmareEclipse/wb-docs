@@ -59,10 +59,21 @@ bauartbedingt. Vier Haken, alle gegen Postgres 18 vorgemessen:
   Endpunkte committen damit nicht mehr selbst: Änderung, Spur und `app.actor` sind eine Einheit
   oder keine.
 - **`before_flush`** setzt `created_by` an jeder neuen Zeile aus dem Aktor. Hier, weil die Objekte
-  noch veränderbar sind.
-- **`after_flush`** schreibt die `change_log`-Zeilen. Hier, weil die Schlüssel erst danach stehen —
-  gemessen: der Haken sieht `insert` mit vergebenem Schlüssel, `update` mit Alt- und Neuwert je
-  Spalte (`get_history`) und `delete`.
+  noch veränderbar sind — und weil die Löschspur denselben Haken braucht, siehe unten.
+- **`after_flush`** schreibt die Spur für **Anlegen und Ändern**. Hier, weil die Schlüssel erst
+  danach stehen — gemessen: der Haken sieht `insert` mit vergebenem Schlüssel und `update` mit Alt-
+  und Neuwert je Spalte (`get_history`).
+- **`before_flush`** schreibt zusätzlich die Spur für **das Löschen**, und zwar dort und nicht im
+  Haken darüber. Gemessen: eine `change_log`-Zeile, die auf einen im selben Flush gelöschten Anker
+  zeigt, verletzt den Fremdschlüssel und reißt die Transaktion ab — SQLAlchemy löscht die
+  Ankerzeile zuletzt, `after_flush` käme also immer zu spät. Vorher geschrieben gelingt sie, und
+  **die Kaskade entscheidet, was überlebt**: verschwindet das Kind, verschwindet seine Spur mit ihm
+  (Art. 17, Kopfkommentar von `querschnitt-schema.sql`), bleibt die Person, bleibt die Spur ihres
+  entzogenen Rollen-Eintrags. Die Regel steht damit an einer Stelle — im Schema — und wird nicht in
+  Python nachgebaut (`rules.md` Abschnitt 1).
+  **Folge für die Modelle:** kein ORM-seitiges `cascade="all, delete-orphan"`. Die Kaskade steht im
+  Schema; ein zweites Mal im Modell hieße, dass die ORM-Löschungen erst im Flush entstehen und
+  `before_flush` sie nicht sieht.
 - **`do_orm_execute`** wirft, wenn ein `update()`/`delete()` gegen eine gemappte Tabelle läuft. Das
   ist der einzige Weg am ORM vorbei, und er wird damit laut statt still.
 
@@ -87,7 +98,15 @@ Wert nicht enthält.
 **Die Zeilenform** folgt den CHECKs in `querschnitt-schema.sql`: je geänderter Spalte eine Zeile mit
 `column_name`, `old_value`, `new_value`; `insert` und `delete` je eine Zeile ohne `column_name`, mit
 dem neuen bzw. alten Stand als kompaktes JSON der Zeile ohne die geschützten und ohne die
-Audit-Spalten. Nicht nur der Schlüssel: den trägt `row_id` schon, ein zweites Mal daneben wäre ein
+Audit-Spalten. **Dieselbe Spalte trägt damit zweierlei** — beim Ändern einen einzelnen Spaltenwert,
+beim Anlegen und Löschen eine ganze Zeile —, und wer die Spur liest, muss auf `operation`
+verzweigen. Das ist die Form, die die CHECKs vorgeben (`ck_change_log_column_scope` verbietet einen
+Spaltennamen außerhalb von `update`, `ck_change_log_values` verlangt trotzdem einen Wert), und
+deshalb keine Wahl, sondern eine Feststellung: **auf die Findungsliste damit**, wenn dir beim Bauen
+auffällt, dass ein eigenes Snapshot-Feld im Schema die bessere Form gewesen wäre. Ändere die `.sql`
+nicht.
+
+Nicht nur der Schlüssel: den trägt `row_id` schon, ein zweites Mal daneben wäre ein
 zweiter Ort für dieselbe Tatsache (`rules.md` Abschnitt 1) und ließe `ck_change_log_values` leer
 laufen, dessen Kommentar ausdrücklich „das Anlegen trägt den neuen Stand, das Löschen den alten"
 verlangt. Nach dem Löschen einer `employee_roles`-Zeile wäre sonst auch nicht mehr feststellbar,
