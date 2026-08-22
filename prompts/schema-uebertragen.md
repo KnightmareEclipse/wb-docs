@@ -23,13 +23,13 @@ Es gelten die `CLAUDE.md` von `wb-backend` (Code-Stil, verbindlich — **alle `�
 
 **Das liest du selbst** — aus dem Grund, der in `gemeinsam.md` steht. Ein Subagent darf eine Fundstelle suchen, nicht urteilen.
 
-## Der erste Durchgang trägt zusätzlich die Konvention
+## Was schon steht, und worauf du dich verlassen kannst
 
-Nur beim allerersten Mal, und **bevor das erste Modell entsteht**:
+Der Gerüst-Durchgang hat drei Dinge erledigt, die früher zu diesem Auftrag gehörten:
 
-- **`naming_convention` auf `Base.metadata` setzen.** Ohne sie benennt Alembic autogenerierte Constraints unvorhersehbar, und eine spätere Migration kann sie nicht per `DROP CONSTRAINT` greifen. Steht sie erst nach dem ersten Modell, tragen die früh erzeugten Constraints andere Namen als alle späteren.
-- Sie muss die **im Schema bereits explizit benannten** Constraints übernehmen, nicht überschreiben — die mehrspaltigen `CHECK`s, den Ausschluss-Constraint und die partiellen Unique-Indizes. Die Gegenprobe dafür ist billig: Die erzeugte Migration nennt dieselben Namen wie die `.sql`.
-- **Wo das Modellmodul einer Domäne liegt**, entscheidest du einmal und hältst es durch (`CLAUDE.md` §3: ein Modul je Domäne, nie ein Sammel-`models.py`). Schreib eine `[A]`-Zeile dazu.
+- **`naming_convention` steht** auf `Base.metadata` (`app/db/base.py`). Sie enthält bewusst kein `%(constraint_name)s` — ein ausdrücklich gesetzter Name kommt deshalb **wörtlich** durch. Trag die Namen aus der `.sql` genau so ins Modell, dann liest der Handabgleich beide Seiten als denselben String. Nur Namenloses bekommt die Vorlage.
+- **Das Modellmodul liegt in `app/models/DOMÄNE.py`.** `app/db/base.py` liest jedes Modul dort automatisch ein; es gibt keine Importliste, in die du dich eintragen müsstest.
+- **`btree_gist` legt `db/init-roles.sh` bei der Clustererstellung an.** Die `CREATE EXTENSION IF NOT EXISTS`-Zeile aus der `.sql` darf trotzdem mit in die Migration — sie läuft beim Migrator als No-op durch.
 
 ## Was das Modell trägt — und was ausdrücklich nicht
 
@@ -41,8 +41,8 @@ Nur beim allerersten Mal, und **bevor das erste Modell entsteht**:
 
 Sie sind der eigentliche Grund, warum dieser Auftrag Handarbeit ist. Alembic meldet nicht, dass sie fehlen; es ließe sie beim nächsten Regenerieren stillschweigend weg.
 
-**1. Die Spalten-Rechte auf dem Art.-9-Bestand — und der Mechanismus dahinter.**
-`db/init-roles.sh` hat `backend_runtime` über `ALTER DEFAULT PRIVILEGES` **tabellenweit** CRUD auf alles gegeben, was der Migrator anlegt. Ein zusätzlicher `GRANT` auf einzelne Spalten ändert daran **nichts** — das Recht ist schon da. Du musst auf Tabellenebene widerrufen und danach die erlaubten Spalten einzeln gewähren. Das gehört als `op.execute()` in die Migration, direkt hinter die Tabelle, für die es gilt. **Beleg es mit einer Gegenprobe, statt es zu behaupten:** ein `SELECT` auf die geschützte Spalte als `backend_runtime` muss scheitern.
+**1. Sämtliche Tabellenrechte, nicht nur die auf dem Art.-9-Bestand.**
+`backend_runtime` startet seit dem Gerüst-Durchgang **ohne jedes Tabellenrecht** — es gibt keine Default-Privilegien mehr. Jede Tabelle deiner Domäne braucht deshalb ihren `GRANT` als `op.execute()` in der Migration, direkt hinter der Tabelle, für die er gilt. Zwei Regeln dabei, beide aus `idea/03-container-anwendung.md`: **`UPDATE` immer spaltenweise**, nie tabellenweit — daran hängt auch die Unveränderlichkeit der Schlüsselspalten —, und für eine geschützte Spalte gehört sie schlicht nicht in die Liste der gewährten. Ein vergessener `GRANT` fällt als „permission denied" auf; ein zu breiter fällt in `tests/test_privileges.py` auf. **Beleg das Ergebnis mit einer Gegenprobe:** ein `SELECT` auf die geschützte Spalte als `backend_runtime` muss scheitern.
 
 **2. Die enger geschnittenen Rollen selbst.** Die Liste steht in `../wb-docs/TODO-SESSIONS.md`, Abschnitt „Art.-9-Spalten-GRANT". Sie entstehen **in derselben Migration** wie ihre Spalten-Rechte: `NOLOGIN`, ohne Passwort, erreichbar allein über `GRANT <rolle> TO backend_runtime WITH INHERIT FALSE, SET TRUE` und ein `SET LOCAL ROLE` in der Transaktion, die sie braucht. `db/init-roles.sh` legt keine davon an — es läuft nur bei der ersten Initialisierung eines Clusters und erreicht eine bestehende Datenbank nicht mehr; `backend_migrator` trägt dafür `CREATEROLE`.
 
@@ -66,11 +66,12 @@ Sie sind der eigentliche Grund, warum dieser Auftrag Handarbeit ist. Alembic mel
 
 Nicht mit Augenmaß, sondern mit Rückgabewerten. Drei Läufe, alle drei nennst du am Ende:
 
-1. **`mypy --strict app` und `ruff check .`** — beide sauber.
+1. **`ruff check .`, `ruff format --check .`, `mypy app tests` und `pytest`** — alle vier sauber. `pytest` schließt `tests/test_privileges.py` ein: es meldet jedes Tabellenrecht, das zu breit vergeben ist.
 2. **`alembic upgrade head` gegen eine frische Datenbank.** Die Migration liest du vorher **von Hand durch**; `--autogenerate` ist ein Entwurf und kein Ergebnis (`CLAUDE.md` §6).
 3. **Das Prüfskript der Domäne gegen die von Alembic gebaute Datenbank**, mit `-v ON_ERROR_STOP=1`. Ohne den Schalter endet auch ein gescheiterter Lauf mit 0, und dann ist jeder Lauf grün. Kommt der Sollstand aus dem Kopfkommentar heraus, ist die Übertragung nachweislich treu — das ist der Punkt der ganzen Übung.
 
 ```
+docker compose --profile tools run --rm test sh -c 'ruff check . && ruff format --check . && mypy app tests && pytest -q'
 docker compose --profile tools run --rm migrate
 docker compose exec -T db psql -U backend_migrator -d weltenbaum -v ON_ERROR_STOP=1 -q \
     < ../wb-docs/schema/DOMÄNE-schema-check.sql ; echo "rc=$?"
