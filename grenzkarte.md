@@ -12,7 +12,7 @@ Stammdaten sind gegen die Rückwirkung der Domänen 2/4, 3 und 9 geprüft — de
 
 **Eine Spalte hat diese Prüfung nicht überstanden, und zwar rechtzeitig:** das SEPA-Mandat lag am Zahler. Die Schule sammelt es aber je Kind ein — verlässt das erste Kind die Schule, trägt sein Mandat die Geschwister nicht weiter (`prozesse.md` Abschnitt 7.4). Es steht deshalb als eigene Tabelle `sepa_mandates` am Kind, die die Bankverbindung selbst trägt und ein abgelöstes Mandat mit seinem Unterschriftsdatum stehen lässt; eine Zahler-Entität daneben gibt es nicht (`schema/stammdaten-schema.sql`). Das ist genau der Fall, für den der Stichtag da ist: davor ein Texteingriff in einen Entwurf, danach eine Migration auf echten Personendaten — und in einer produktiven Datenbank hätte der Fehler erst beim ersten Geschwisterkind gezogen, dessen Einzug ins Leere läuft.
 
-Ab dem **Vollimport Ende August 2026** gilt deshalb: eingefroren heißt **keine Änderung an bestehenden Spalten, Typen oder Constraints**. Neue Tabellen, die Stammdaten nur referenzieren, bleiben jederzeit erlaubt und stören keine lesende Domäne.
+Ab dem **Vollimport** gilt deshalb: eingefroren heißt **keine Änderung an bestehenden Spalten, Typen oder Constraints**. Neue Tabellen, die Stammdaten nur referenzieren, bleiben jederzeit erlaubt und stören keine lesende Domäne.
 
 Der Stichtag trägt die Regel, nicht das Schema: davor ist eine Änderung ein Texteingriff in einen Entwurf, danach eine Migration auf echten Personendaten, und die externe Abnahme liegt ebenfalls davor. Wer nach dem Stichtag eine bestehende Spalte ändern zu müssen glaubt, prüft zuerst, ob eine neue Tabelle dasselbe leistet.
 

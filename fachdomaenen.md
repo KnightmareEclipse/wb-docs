@@ -175,7 +175,7 @@ Explizit **nicht** in dieser Liste, jeweils mit Grund:
 
 ## 7. Erste Fachdomäne
 
-**Putzdienst** — zeitlich dringendster Prozess (Abschnitt 1), Ziel: produktiv nutzbar bis Schulanfang September 2026, kleiner Spielraum vorhanden, aber ausdrücklich ohne Abstriche bei Sicherheit/Automatisierung (`rules.md` §1–3). Prozessbeschreibung, Familie-Modell, Zyklus-Konfiguration und offene Punkte: `schema/putzdienst-schema.sql`.
+**Putzdienst** — zeitlich dringendster Prozess (Abschnitt 1) und deshalb die erste. Produktiv geht er, wenn er fertig ist — **ausdrücklich ohne Abstriche bei Sicherheit und Automatisierung, um ein Datum zu halten** (`rules.md` §1–3); die Schule wartet, das ist billiger als ein Prozess, der auf echten Elterndaten nachgebessert wird. Prozessbeschreibung, Familie-Modell, Zyklus-Konfiguration und offene Punkte: `schema/putzdienst-schema.sql`.
 
 Kritischer Pfad bis dahin:
 
@@ -184,7 +184,7 @@ Kritischer Pfad bis dahin:
 - Redirect-URI der bestehenden Entra-ID-App-Registrierung nachtragen (`pipeline/runbook.md` Schritt 5, `TODO.md`) — steht erst mit der Frontend-/Domain-Struktur fest, wie die CORS-Policy (`idea/04-identitaet-zugriff.md`). Der interne Login wird zwingend gebraucht: die Verwaltung startet den Prozess und pflegt die Putztermine intern, kein reiner Eltern-Self-Service
 
 *Auth/Zugriff für Eltern:*
-- OTP-Fallback tatsächlich implementieren (E-Mail-Check mit Enumeration-Schutz, Code-Speicherung/Ablauf/Rate-Limiting) — dazu die Application Access Policy auf das Absenderpostfach setzen (`idea/04-identitaet-zugriff.md`, `TODO.md`), sonst sendet die Anwendung tenantweit
+- OTP-Fallback (gebaut, `wb-backend/app/routers/auth.py`) — offen bleibt allein die Application Access Policy auf das Absenderpostfach (`idea/04-identitaet-zugriff.md`, `TODO.md`): ohne sie sendet die Anwendung tenantweit, und der Pfad darf nicht live gehen
 - Externes Frontend (Azure Static Web App + Function, `project-parts.md` Abschnitt 9) erstmals aufsetzen — CORS-Policy wird dadurch jetzt konkret
 
 *Fachlich:*

@@ -66,9 +66,11 @@ Zwei Regeln, die hier wiederholt gekostet haben:
 `podman_rootful`; ein `site.yml`-Lauf richtet beide ein. Der App-Stack ist architektonisch fixiert
 (PostgreSQL, FastAPI, Caddy, `pg_dump`+`age`, M365/Entra-ID, kein externes CI/CD — Git-Push-Auslöser
 direkt auf der VPS) und läuft in `wb-backend` produktiv: Compose-Stack und FastAPI-Grundgerüst
-(Health-Endpoint, JWT-Validierung, Alembic) über die echte Domäne mit automatischem HTTPS. Offen:
-der OTP-Fallback-Pfad für externe Nutzer, die CORS-Policy und alles unter Teams-Apps-Repo
-(`project-parts.md` §10).
+(Health-Endpoint, JWT-Validierung, Alembic) über die echte Domäne mit automatischem HTTPS. Der
+Elternzugang steht daneben: Anmeldecode anfordern, einlösen und wählen, als wer man weitermacht
+(`wb-backend/app/routers/auth.py`), samt dem Token, das der Dienst dafür selbst ausstellt — beide
+Türen enden in derselben `CurrentUser`, und eine Eltern-Sitzung trägt keine Rolle. Offen: die
+CORS-Policy und alles unter Teams-Apps-Repo (`project-parts.md` §10).
 
 **Datenmodell — geprüft.** Was in `schema/` liegt, ist gebaut; das `-schema-check.sql` daneben
 belegt es. Abgeleitet aus den Soll-Blöcken, durch die Zyklen in `pruefberichte/` gegangen. Was das
@@ -79,8 +81,9 @@ Dateisystem *nicht* sagt und deshalb hier steht:
   entstanden ist.
 
 Welche Soll-Blöcke noch fehlen, sagt die Liste in `soll-prozesse/README.md`: ein offener Punkt trägt
-dort kein Häkchen und keinen Link. Stammdaten sind ab dem Vollimport **Ende August 2026**
-eingefroren; die Definition von „eingefroren" steht in `grenzkarte.md`.
+dort kein Häkchen und keinen Link. Stammdaten sind ab dem Vollimport eingefroren; die
+Definition von „eingefroren" steht in `grenzkarte.md`. **Ein Datum trägt der Import nicht** — er
+folgt dem Stand der Entwicklung, und keine Fachdomäne wird gegen einen Kalender gebaut.
 
 **Backend — übertragen.** Alle 100 Tabellen stehen in `wb-backend` als SQLAlchemy-Modelle
 (`app/models/`, ein Modul je Domäne) und als zehn Domänen-Migrationen (`app/alembic/versions/`),

@@ -46,7 +46,7 @@ verkürzt die Fristen möglicherweise erheblich — entscheiden muss es trotzdem
 Konfession ist ein Datum nach Art. 9 DSGVO; „das hatten wir immer schon" trägt dafür nicht.
 
 **Daran hängt:** Vor dem Vollimport ist ein Nein ein `DROP COLUMN`. Danach ist es eine Migration auf
-echten und teils besonders geschützten Personendaten. **Deshalb vor Ende August 2026, nicht danach.**
+echten und teils besonders geschützten Personendaten. **Deshalb vor dem Vollimport, nicht danach.**
 
 **Die Kirchengemeinde gehört ausdrücklich nicht in diese Frist** — sie wird weiter erhoben, und ob
 sie bleibt, wird erst einige Monate nach dem Import entschieden. Sie steht hier nur, damit klar ist,
