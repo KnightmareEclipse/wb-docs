@@ -110,8 +110,12 @@ Diese Datei wird automatisch geladen; verlinkt werden muss nichts. Je nach Arbei
   **frischen** Session, die den Bau nicht mitgemacht hat. Funde schließen:
   `prompts/schema-reparieren.md`. Nach `wb-backend` tragen: `prompts/schema-uebertragen.md`. Für
   alle vier und den Blockprompt gilt `prompts/gemeinsam.md`.
+- **Das Schema auf Normalform prüfen:** `prompts/schema-normalform.md` — eigener Lauf, eine einzige
+  Frage, und nicht mit dem Prüflauf gegen die Blöcke zu vermischen.
 - **Neue Fachdomäne verstehen:** `fachdomaenen.md`, `prozesse.md` und die vier
   Anmeldetag-Checklisten in `~/Downloads/CHECKLISTEN/`.
+- **Eine Domäne zur API planen:** `prompts/api-planen.md` — eine Domäne je Durchgang, wie beim
+  Schema. Der Plan entsteht hier, gebaut wird danach in `wb-backend`.
 - **Endpunkte in `wb-backend`:** `TODO-SESSIONS.md`, `project-parts.md`,
   `idea/04-identitaet-zugriff.md`, dazu `CLAUDE.md` und `README.md` dort. Die Schreibschicht steht
   und ist nicht optional: ein Endpunkt, der an ihr vorbei schreibt, kommt nicht durch.
