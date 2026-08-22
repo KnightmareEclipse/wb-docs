@@ -38,7 +38,7 @@ Nicht als Liste zum Abhaken — das sind die Stellen, an denen die nächste Sitz
 - **`app/core/config.py`** — hält die `<NAME>_FILE`-Konvention aus §4 wirklich, und gibt es irgendwo ein `os.environ` daneben (§5)?
 - **`app/core/security.py`** — Token-Validierung genau **einmal**, als Dependency (§7). Landet nie ein Claim in einem Log, auch nicht im Fehlerfall?
 - **`docker-compose.yml`** — §16 Punkt für Punkt: non-root, read-only Rootfs samt `tmpfs`, CPU-/Speichergrenzen, `backend` und `db` nur im internen Netz, Secrets als Dateien, voll qualifizierte Images, `:z` an Bind-Mounts.
-- **`db/init-roles.sh`** — es legt drei Rollen an und läuft **nur bei der Erstinitialisierung eines Clusters**. Die enger geschnittenen Rollen (Liste in `../wb-docs/TODO.md`) fehlen noch. Sag mir, was das bedeutet, sobald irgendwo eine Datenbank steht, die nicht mehr leer ist.
+- **`db/init-roles.sh`** — es legt drei Rollen an und läuft **nur bei der Erstinitialisierung eines Clusters**. Dass die enger geschnittenen Rollen fehlen, ist **kein Fund** — sie entstehen je Domäne in deren Migration und nicht hier (`../wb-docs/TODO-SESSIONS.md`).
 - **`Dockerfile`, `requirements*.in/.txt`** — die pip-tools-Kette (§2): Ist `requirements.txt` wirklich aus `requirements.in` kompiliert, und kann jemand sie versehentlich direkt bearbeiten?
 - **`tests/`** — ein Test für einen Health-Endpoint. §12 verlangt echte Postgres statt Mock und einen Test je nicht-trivialem Zweig. Was fehlt, das **jetzt** fehlen darf, und was nicht?
 

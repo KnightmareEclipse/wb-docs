@@ -49,7 +49,7 @@ daran (`soll-prozesse/15-klassenbildung.md`, `soll-prozesse/README.md`).
 Das Schema trägt Einzel-Freikauf und Straf-Aussetzung (`schema/putzdienst-schema.sql`). Zwei Dinge daneben sind bewusst nicht als Constraint gebaut und dürfen deshalb beim Implementieren nicht untergehen:
 
 - **Die Frist des Einzel-Freikaufs** („nur vor dem Termindatum") ist eine Backend-Prüfung, weil das Datum an `cleaning_slots` hängt. Sie muss an derselben Stelle sitzen, die die Zahlung auslöst — sonst entsteht ein bezahlter Freikauf für einen bereits gelaufenen Termin.
-- **Die enge Berechtigung** für Straf-Aussetzung und Pflicht-Erlass ist ein Spalten-GRANT plus Rollenwahl, kein Anwendungs-`if`. Auslösen dürfen beides Geschäftsführung und Schulleitung — eine Schreib- und keine Lesebeschränkung: Buchhaltung, Buchungsansicht und Solver lesen beide Stellen weiter, eng gelesen wird allein der Grund der Abweichung (`TODO.md`).
+- **Die enge Berechtigung** für Straf-Aussetzung und Pflicht-Erlass ist ein Spalten-GRANT plus Rollenwahl, kein Anwendungs-`if`. Auslösen dürfen beides Geschäftsführung und Schulleitung — eine Schreib- und keine Lesebeschränkung: Buchhaltung, Buchungsansicht und Solver lesen beide Stellen weiter, eng gelesen wird allein der Grund der Abweichung.
 - **Freigekaufte Zuteilungen gehören nicht auf die Übertragungsliste der Anwesenheit:** `no_show` auf einer einzeln freigekauften Zeile wäre eine Strafe auf einem bezahlten Termin. Wie die Frist eine Bedingung über zwei Tabellen — die Übernahme der Papierliste muss sie ausnehmen.
 
 ### Was am Vertragsvorgang im Backend liegt, nicht im Schema
@@ -65,7 +65,7 @@ Unabhängig vom Textwechsel gehört ein Schritt an den Abschluss selbst: **die S
 
 ### Übertragung nach SQLAlchemy/Alembic: was Modelle nicht können
 
-Tabellen, Spalten, PK/FK/UNIQUE, CHECKs, partielle Indizes und die Ausschluss-Constraints lassen sich als Modell ausdrücken. **Zwei Dinge nicht:** die Spalten-GRANTs für den Art.-9-Bestand und die enger geschnittenen DB-Rollen (Liste in `TODO.md`). Die gehören als `op.execute()` in die Initial-Migration.
+Tabellen, Spalten, PK/FK/UNIQUE, CHECKs, partielle Indizes und die Ausschluss-Constraints lassen sich als Modell ausdrücken. **Zwei Dinge nicht:** die Spalten-GRANTs für den Art.-9-Bestand und die enger geschnittenen DB-Rollen (Liste unten). Die gehören als `op.execute()` in die Initial-Migration.
 
 Das ist kein Tipparbeits-, sondern ein Sicherheitsproblem: Alembics `--autogenerate` **sieht sie gar nicht**. Es meldet nicht, dass sie fehlen, und würde sie bei einem späteren Regenerieren stillschweigend aus der Migration lassen — ohne eine einzige Fehlermeldung fiele genau der Art.-9-Schutz weg.
 
@@ -84,8 +84,17 @@ Im Schema sind bereits die mehrspaltigen CHECKs, der Ausschluss-Constraint und d
 ### Art.-9-Spalten-GRANT: Rollenwahl und ORM-Verhalten
 
 - Sobald `backend_runtime` auf `children` kein `SELECT` auf `denomination_id`/`congregation` mehr hat, scheitert jedes Vollobjekt-Laden dieser Tabelle: SQLAlchemy selektiert per Default alle gemappten Spalten, `session.get(Child, id)` läuft in „permission denied for column". Lösung ist klein (`deferred()` auf dem Spaltenpaar oder zwei Mappings), muss aber vor dem ersten Modell dastehen — sonst wird sie unter Zeitdruck durch ein tabellenweites GRANT „gelöst" und der Mechanismus ist weg.
-- Zweite, engere Rolle heißt: zweiter Pool oder `SET LOCAL ROLE` in derselben Transaktion, in der ohnehin `SET LOCAL app.actor` gesetzt wird. Letzteres ist der billigere Weg.
+- Die engere Rolle wird per `SET LOCAL ROLE` in derselben Transaktion gewählt, in der ohnehin `SET LOCAL app.actor` gesetzt wird — kein zweiter Pool. Sie ist `NOLOGIN` und hat kein Passwort; der `GRANT` an `backend_runtime` trägt **`WITH INHERIT FALSE, SET TRUE`**. Ohne `INHERIT FALSE` hält `backend_runtime` die Rechte schlicht selbst, und der Mechanismus ist weg — beides gegen Postgres 18 gegengeprüft, samt der Gegenkontrolle. Zwei Rollen trägt `stammdaten`: `backend_sensitive` (Konfession) und `backend_finance` (`sepa_mandates.iban`/`bic`), jede weitere kommt mit ihrer Domäne.
 - `app.actor` muss ab jetzt ein Präfix tragen (`entra:`/`guardian:`/`system:`) — der CHECK je Tabelle weist alles andere ab. Betrifft den Schreibpfad für interne Nutzer: dort stand bisher die nackte Entra-Object-ID.
+
+Welche Spalte welche Rolle bekommt — die Liste ist mit den zuletzt gebauten Domänen gewachsen, jeder Eintrag ist die Rolle **einer** Domäne und entsteht in deren Migration:
+
+- Konfession als Art.-9-Spalten: `children.denomination_id`/`congregation` **und** `family_guardians.denomination_id` (`schema/stammdaten-schema.sql`)
+- Bankverbindung: `sepa_mandates.iban`/`bic`, nur Buchhaltung — sie überträgt sie einmal nach Optigem (`schema/stammdaten-schema.sql`, `glossar.md`)
+- Gesundheitsmerkmale, **zweistufig**: voller Satz für Verwaltung, Klassenlehrer:in und Hort gegen `child_health_records.action_note` für alle unterrichtenden Personen — die Laufzeit-Rolle darf auf `health_traits` kein tabellenweites `SELECT`/`UPDATE` bekommen. Schreibend ist der Hinweis enger als lesend: `UPDATE (action_note)` auf `child_health_records` bekommt allein die Klassenlehrer:in, die ihn formuliert (`schema/gesundheit-schema.sql`, `glossar.md`)
+- Niveau-Einschätzung der Bewerbung: `applications.assessed_level_id`, standardmäßig nicht breit sichtbar (`schema/anmeldung-schema.sql`). Das konsolidierte Bewertungsergebnis, einen Rang und eine Notiz gibt es nicht — Block 07 schließt alle drei aus, auch als stillgelegtes Feld
+- Küchenprofil: eigene Rolle für Küche/Hausdienstverwaltung auf `child_meal_profiles` (`schema/mensa-schema.sql`). Das ist nur die **Variante** — die Unverträglichkeit auf der Tagesliste kommt aus `health_traits` über das Kennzeichen `health_trait_types.is_kitchen_relevant` und ist damit ein Art.-9-Zugriff, kein Mensa-Zugriff (`schema/gesundheit-schema.sql`)
+- Straf-Aussetzung und Pflicht-Erlass: als Einziger dieser Liste eine **Schreib**beschränkung — `UPDATE` auf `cleaning_assignments.penalty_waived_at`/`penalty_waived_by` und Schreibzugriff auf `cleaning_family_quotas` nur für Geschäftsführung und Schulleitung. Gelesen werden beide weiter von der Laufzeit-Rolle: die Buchhaltung erkennt an `penalty_waived_at` die entfallende Forderung (`grenzkarte.md`, Q3), Buchungsansicht und Solver brauchen `required_count` — sonst sieht eine erlassene Familie die Standardpflicht. **Eine Lesebeschränkung entfällt:** einen Grund der Abweichung führt das Schema bewusst nicht, „der Grund liegt außerhalb" (`schema/putzdienst-schema.sql`)
 
 ### Dependabot für die Base-Images einschalten
 
