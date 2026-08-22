@@ -15,6 +15,7 @@ Antwort auf die falsche Frage.
 | `grenzkarte.md` | Wem welche Tatsache gehört, die Querschnitts-Entitäten Q1–Q5, die weißen Flecken, die Freeze-Definition |
 | `soll-prozesse/` | Wie ein Vorgang künftig läuft — ein Block je Prozess. Die gemeinsamen Hebel in `hebel.md`, Prozessliste und Wegweiser in `README.md` |
 | `schema/` | Das Datenmodell: je Domäne eine `-schema.sql` mit ihrem `-schema-check.sql` |
+| `api/` | Die Routen je Domäne: eine `-api.md` je Fachdomäne, das Gemeinsame in `api/gemeinsam.md`. Geplant wird hier, gebaut in `wb-backend` |
 | `prozesse.md` | Wie es **heute** läuft, samt der real erhobenen Formularfelder |
 | `fachdomaenen.md` | Scope, Reihenfolge und Stammdaten-Berührung je Fachdomäne |
 | `glossar.md` | Das Rollen-Vokabular, repo-übergreifend gültig — Infra-Admin vs. Admin vs. Verwaltung |
