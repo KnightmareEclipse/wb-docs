@@ -36,6 +36,17 @@ Familien der Person, und die Route prüft gegen diese Menge.
 Listen- und Exportrouten kennen keinen Ownership-Check und gehen deshalb **nie** über den OTP-Pfad
 (`idea/04-identitaet-zugriff.md`, „Bulk-Zugriff"): Sie stehen ausschließlich internen Rollen offen.
 
+`[A]` **Admin erbt die Rechte der Verwaltung** — an jeder Route, ohne dass eine Domänendatei ihn
+nennt; er ist ihre Obermenge (`glossar.md`). Der Grund ist der Betrieb und nicht die Bequemlichkeit:
+Das Sekretariat braucht laufend Hilfe, und wer sich dafür jedes Mal eine Rolle zuweist und wieder
+entzieht, hat den Zugriff nicht enger gemacht, sondern nur unbeobachtbarer. — Alternative: Admin je
+Domäne freischalten; Preis: eine Rolle mehr an jeder Route, und die Aushilfe hängt an einer
+Rollenvergabe, die im Zweifel stehen bleibt.
+
+**Zweierlei bekommt er damit nicht**, weil beides nicht am Rollen-Claim hängt: die engen Spalten
+(Art. 9, IBAN) liegen hinter eigenen DB-Rollen, und was einer Person zur Entscheidung zugewiesen ist
+— Freigabe, Gegenzeichnung, Straf-Aussetzung —, bleibt bei ihr: „wer entscheidet, trägt ein".
+
 ## Einsichtsstufe
 
 Sie hängt an der Person, nicht am Feld (`hebel.md`), und wirkt deshalb an **einer** Stelle: bei der
@@ -98,6 +109,19 @@ ist für alle drei derselbe und steht deshalb hier:
 2. **Der Zahlungsdienst ruft die Bestätigungsroute** — `POST /payments/callback`, eine für alle drei
    Anlässe. Sie ist der einzige Ort, an dem `payments` und der bezahlte Vorgang entstehen, in
    **einer** Transaktion, Aktor `system:payments`.
+
+Drei Bedingungen an der Rückrufroute, keine davon verhandelbar:
+
+- **Sie prüft die Signatur des Zahlungsdienstes** (`stripe-signature` samt Webhook-Secret). Sie ist
+  die einzige Route ohne Anmeldung; ohne diese Prüfung genügt ein POST, um eine Zahlung zu behaupten.
+- **Sie ist idempotent.** Stripe wiederholt ein Ereignis, bis es eine 2xx bekommt; die zweite
+  Zustellung darf den Vorgang nicht ein zweites Mal anlegen. Anker ist `payments.payment_reference`
+  — die Spalte steht, ein UNIQUE darauf fehlt und kommt als Migration in `wb-backend`. Es gilt nur
+  für belegte Werte: bei der manuellen Bestätigung der Buchhaltung bleibt sie leer.
+- **Sie prüft die Bedingung des Vorgangs erneut.** Weil zwischen Schritt 1 und 2 nichts in der
+  Datenbank steht, hält Schritt 1 auch nichts fest — zwei parallel eröffnete Sitzungen kämen sonst
+  beide durch. Wo ein eindeutiger Schlüssel das ohnehin abfängt (`uq_cleaning_slot_buyouts`),
+  braucht es nichts weiter.
 
 **Der Vorgang entsteht mit der bestätigten Zahlung, nicht mit der Rückkehr des Browsers.** Wer das
 verwechselt, verliert bei jedem Abbruch das Geld und den Vorgang. Die Rückkehr-Adresse zeigt deshalb

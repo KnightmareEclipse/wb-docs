@@ -31,10 +31,6 @@ trotzdem an jeder Route, damit ihr Fehlen eine Aussage bleibt und keine Auslassu
 seine ID. — Alternative: `cleaning_cycle_id`; Preis: jede Adresse braucht einen Nachschlag, und in
 jedem Gespräch heißt der Zyklus ohnehin bei seinem Jahr.
 
-`[A]` `admin` bekommt in dieser Domäne keine Route. — Alternative: Admin liest überall mit; Preis:
-eine Rolle mehr an 27 Stellen ohne heutigen Anlass. `hebel.md` nennt ihn im Putzdienst nirgends,
-`glossar.md` nur „perspektivisch".
-
 ## Putzdienstjahr und Termine
 
 | Handlung | Herkunft | Wer darf | Worauf eingeschränkt | Schreibt/liest | Enge Rolle |
