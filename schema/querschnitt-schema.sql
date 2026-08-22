@@ -34,7 +34,7 @@
 -- Löschanker; die Abfolge über alle Domänen nennt keine, und ohne sie kommt der
 -- Lauf beim ersten Versuch nicht durch: `DELETE FROM children` scheitert an
 -- sieben Fremdschlüsseln, die das Kind mit Absicht festhalten. Sie steht
--- deshalb hier, weil sie keiner Domäne gehört. Sieben Stufen:
+-- deshalb hier, weil sie keiner Domäne gehört. Acht Stufen:
 --
 --   1. Die Vorgänge am Kind, jeder erst, wenn seine eigene Frist abgelaufen
 --      ist: `child_file_folders` (die Datei in SharePoint zuerst, „eine
@@ -81,11 +81,26 @@
 --      Anschrift verschwindet mit der letzten Person, die auf sie zeigt",
 --      stammdaten-schema.sql), und keine Cascade bringt sie dorthin:
 --      `persons.address_id` und `sepa_mandates.account_holder_address_id`
---      zeigen vorwärts auf sie. Deshalb ist sie die einzige Stufe, die nicht
---      aus einem Fremdschlüssel folgt, sondern nur aus ihrem Löschanker — und
---      die einzige, die der Lauf selbst berechnen muss. Ohne sie läuft er über
+--      zeigen vorwärts auf sie. Deshalb folgt sie — wie Stufe 8 — nicht aus
+--      einem Fremdschlüssel, sondern allein aus ihrem Löschanker, und der Lauf
+--      muss sie selbst berechnen. Ohne sie läuft er über
 --      alle sechs Stufen davor sauber durch und lässt genau eine Zeile stehen:
 --      Straße, Hausnummer, PLZ und Ort.
+--   8. Die `change_log`-Zeilen ohne Anker. Wo der Löschanker einer Tabelle erst
+--      über einen Join zu finden ist, trägt ihre Spur keinen: Die Schreibschicht
+--      setzt ihn aus einem direkten Attribut der geänderten Zeile, und was dort
+--      nicht steht, kann sie nicht setzen (`wb-backend/app/db/base.py`). Keine
+--      Cascade erreicht diese Zeilen, weil sie an keiner Person, keinem Kind und
+--      keiner Familie hängen. Sie gehen deshalb nach der Aufbewahrungsfrist der
+--      Tabelle, auf die ihr `table_name` zeigt — nicht mit einem Menschen.
+--      Betroffen sind rund siebzig der neunundneunzig Tabellen; bei sechs steht
+--      in der Spur ein unmittelbares Personendatum (`addresses` die Anschrift,
+--      `application_unlocks` und `holiday_cost_coverage_codes` eine Mailadresse,
+--      `expense_claims` Name, Zweck und Fremd-IBAN, dazu `expense_claim_items`
+--      und `travel_details`), bei den übrigen ein Fremdschlüssel auf eine Zeile,
+--      die längst fort ist. Das Recht dazu hat heute niemand: `backend_runtime`
+--      liest und schreibt die Spur und löscht sie nicht — welche Rolle dieser
+--      Lauf benutzt, entscheidet Block 17 mit der Frist.
 --
 -- Gebaut ist daran nichts — die Reihenfolge folgt aus den Fremdschlüsseln, die
 -- schon stehen. Damit sie es bleibt, prüft `querschnitt-schema-check.sql` sie

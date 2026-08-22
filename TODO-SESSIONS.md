@@ -8,6 +8,8 @@ Fachliche und technische Punkte, die eine Session in diesem Repo oder in `wb-bac
 
 **17 Lösch-Lauf** (was verschwindet wann, in welcher Reihenfolge) und **18 DSGVO-Auskunft** (wer bekommt was, in welcher Frist) — `prompts/block-fuellen.md`. Kein Nachzügler, sondern Voraussetzung: Jede Tabelle mit Personenbezug nennt im Schema ihren Löschanker, und viele davon zeigen auf einen Lauf, den bisher nur die Anker beschreiben. Solange Block 17 fehlt, ist die Frist selbst nirgends festgelegt.
 
+Zwei Punkte muss Block 17 zusätzlich entscheiden, beide seit der Übertragung nach `wb-backend` benannt und beide in Stufe 8 des Lösch-Laufs beschrieben (Kopf von `schema/querschnitt-schema.sql`): welche Frist für eine `change_log`-Zeile ohne Anker gilt — rund siebzig Tabellen erreichen ihren Löschanker nur über einen Join und geben der Spur deshalb keinen mit —, und welche Rolle sie löschen darf. `backend_runtime` liest und schreibt die Spur heute und löscht sie nicht, damit eine Änderungsspur nicht von der Anwendung tilgbar ist.
+
 Aus beiden Blöcken folgt danach ein Schema-Durchgang (`prompts/schema-bauen.md`) — wahrscheinlich ohne eigene Tabellen, aber das ist das Ergebnis der Domäne und keine Annahme.
 
 ## Vor dem ersten Import echter Daten
