@@ -87,9 +87,11 @@ Wert nicht enthält.
 **Die Zeilenform** folgt den CHECKs in `querschnitt-schema.sql`: je geänderter Spalte eine Zeile mit
 `column_name`, `old_value`, `new_value`; `insert` und `delete` je eine Zeile ohne `column_name`, mit
 dem neuen bzw. alten Stand als kompaktes JSON der Zeile ohne die geschützten und ohne die
-Audit-Spalten. `[A]` Nur den Schlüssel statt des JSON wäre billiger — dann zeigt die Spur beim
-Anlegen einer `employee_roles`-Zeile aber nicht, welche Rolle vergeben wurde, und genau dafür steht
-`operation` laut Schema-Kommentar da.
+Audit-Spalten. Nicht nur der Schlüssel: den trägt `row_id` schon, ein zweites Mal daneben wäre ein
+zweiter Ort für dieselbe Tatsache (`rules.md` Abschnitt 1) und ließe `ck_change_log_values` leer
+laufen, dessen Kommentar ausdrücklich „das Anlegen trägt den neuen Stand, das Löschen den alten"
+verlangt. Nach dem Löschen einer `employee_roles`-Zeile wäre sonst auch nicht mehr feststellbar,
+welche Rolle entzogen wurde — und genau dafür steht `operation` laut Schema-Kommentar da.
 
 **Die enge Rolle** kommt über einen Kontextmanager, der `SET LOCAL ROLE` und danach `RESET ROLE` in
 der laufenden Transaktion fährt — **kein zweiter Pool**. Der Rollenname kommt aus einem Enum und nie
