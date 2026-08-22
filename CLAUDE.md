@@ -81,9 +81,22 @@ Welche Soll-Blöcke noch fehlen, sagt die Liste in `soll-prozesse/README.md`: ei
 dort kein Häkchen und keinen Link. Stammdaten sind ab dem Vollimport **Ende August 2026**
 eingefroren; die Definition von „eingefroren" steht in `grenzkarte.md`.
 
-**Nächster Schritt:** Übertragung aller Schemata nach SQLAlchemy/Alembic in `wb-backend`
-(`TODO-SESSIONS.md`) — der engere Pfad bis September 2026, nicht der Entwurf. Was daneben stehen
-muss, steht als kritischer Pfad in `fachdomaenen.md` §7 und in `TODO.md`.
+**Backend — übertragen.** Alle 99 Tabellen stehen in `wb-backend` als SQLAlchemy-Modelle
+(`app/models/`, ein Modul je Domäne) und als zehn Migrationen (`app/alembic/versions/`); die
+Spalten-Rechte und die sieben engen Rollen entstehen in der Migration ihrer Domäne, weil
+`--autogenerate` beides nicht sieht. Jede ORM-Änderung läuft durch die Schreibschicht
+(`app/db/changelog.py`), die `change_log` aus Session-Events schreibt, den Aktor je Transaktion
+setzt und Massenoperationen abweist. Belegt ist die Treue nicht mit Augenmaß: der Katalog der von
+Alembic gebauten Datenbank ist zeilengleich mit dem einer Datenbank, in die die vierzehn `.sql`
+geladen wurden, und alle vierzehn Prüfskripte laufen gegen sie mit Rückgabewert 0.
+
+**Damit führt `wb-backend` das Schema.** Die `.sql` hier bleibt die Begründungsquelle und ist nicht
+mehr die Quelle der Wahrheit; eine Strukturänderung beginnt ab jetzt als Migration und wird hier
+nachgezogen, nicht umgekehrt.
+
+**Nächster Schritt:** Die ersten Endpunkte in `wb-backend`. Was davor stehen muss, steht in
+`TODO-SESSIONS.md`, Abschnitt „Für `wb-backend`". Was daneben stehen muss, steht als kritischer
+Pfad in `fachdomaenen.md` §7 und in `TODO.md`.
 
 ## Einstieg in eine Session
 
@@ -95,14 +108,13 @@ Diese Datei wird automatisch geladen; verlinkt werden muss nichts. Je nach Arbei
   neuen Block stehen in `soll-prozesse/anleitung.md`, der Auftrag dazu in `prompts/block-fuellen.md`.
 - **Eine Domäne ins Schema:** `prompts/schema-bauen.md`. Gegenprüfen: `prompts/schema-pruefen.md` in einer
   **frischen** Session, die den Bau nicht mitgemacht hat. Funde schließen:
-  `prompts/schema-reparieren.md`. Für alle drei und den Blockprompt gilt `prompts/gemeinsam.md`.
+  `prompts/schema-reparieren.md`. Nach `wb-backend` tragen: `prompts/schema-uebertragen.md`. Für
+  alle vier und den Blockprompt gilt `prompts/gemeinsam.md`.
 - **Neue Fachdomäne verstehen:** `fachdomaenen.md`, `prozesse.md` und die vier
   Anmeldetag-Checklisten in `~/Downloads/CHECKLISTEN/`.
-- **Übertragung nach `wb-backend`:** davor einmalig `geruest-prompt.md` — das Grundgerüst dort ist
-  nicht selbst geschrieben und noch nie gegen seine eigene `CLAUDE.md` gelesen worden; der Prompt
-  wird nach dem Lauf gelöscht. Dann `prompts/schema-uebertragen.md` — eine Domäne je Durchgang, in
-  der Ladereihenfolge des Schemas. Dazu `TODO-SESSIONS.md`, `project-parts.md`,
-  `idea/04-identitaet-zugriff.md`.
+- **Endpunkte in `wb-backend`:** `TODO-SESSIONS.md`, `project-parts.md`,
+  `idea/04-identitaet-zugriff.md`, dazu `CLAUDE.md` und `README.md` dort. Die Schreibschicht steht
+  und ist nicht optional: ein Endpunkt, der an ihr vorbei schreibt, kommt nicht durch.
 - **Infrastruktur:** `pipeline/runbook.md`, `idea/03-container-anwendung.md`,
   `idea/05-backup-recovery.md`, `TODO.md`.
 
