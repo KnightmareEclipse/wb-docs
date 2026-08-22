@@ -1,10 +1,10 @@
 # Prompt: eine Fachdomäne nach SQLAlchemy und Alembic übertragen
 
-Gegenstück zu [`prompts/schema-bauen.md`](schema-bauen.md). Dort entsteht das SQL, hier wird daraus Code. **Eine Domäne je Durchgang**, in der Ladereihenfolge des Schemas: `stammdaten`, dann `querschnitt`, dann der Rest in beliebiger Folge — dieselbe Portionierung wie beim Bau, und aus demselben Grund.
+Gegenstück zu [`prompts/schema-bauen.md`](schema-bauen.md). Dort entsteht das SQL, hier wird daraus Code. **Eine Domäne je Durchgang** — dieselbe Portionierung wie beim Bau, und aus demselben Grund. Die vierzehn Domänen des ersten Bestands sind übertragen; dieser Prompt gilt der fünfzehnten.
 
 Dieser Auftrag läuft in **`wb-backend`**, nicht hier. `wb-docs` ist dabei Quelle und wird nur gelesen.
 
-Kopieren, `DOMÄNE` ersetzen, absenden. Alles unter dem Strich ist der Prompt. Effort `high`, bei `stammdaten`, `querschnitt` und `anmeldung` `xhigh`; Thinking anlassen.
+Kopieren, `DOMÄNE` ersetzen, absenden. Alles unter dem Strich ist der Prompt. Effort `high`, bei einer Domäne mit vielen Berührungspunkten `xhigh`; Thinking anlassen.
 
 ---
 
@@ -18,18 +18,19 @@ Es gelten die `CLAUDE.md` von `wb-backend` (Code-Stil, verbindlich — **alle `�
 
 1. **`../wb-docs/schema/DOMÄNE-schema.sql`** — vollständig, samt aller Kommentare. Sie tragen die Begründungen, und ohne sie baust du zuverlässig genau das, was dort schon verworfen wurde.
 2. **`../wb-docs/schema/DOMÄNE-schema-check.sql`** — der Sollstand im Kopfkommentar ist dein Abnahmekriterium, und die Gegenproben sagen dir, welche Regeln tatsächlich greifen müssen.
-3. **`../wb-docs/TODO-SESSIONS.md`**, Abschnitt „Übertragung nach SQLAlchemy/Alembic" — dort stehen die Fallen dieses Auftrags ausgeschrieben.
+3. **`../wb-docs/TODO-SESSIONS.md`**, Abschnitt „Was eine Schemaänderung dort mitziehen muss" — die drei Dinge, die `--autogenerate` nicht sieht.
 4. **Die schon übertragenen Domänen** in diesem Repo. Präzedenz schlägt Geschmack: Tragen zwei Formen dieselbe Sache, nimm die, die hier schon vorkommt.
 
 **Das liest du selbst** — aus dem Grund, der in `gemeinsam.md` steht. Ein Subagent darf eine Fundstelle suchen, nicht urteilen.
 
 ## Was schon steht, und worauf du dich verlassen kannst
 
-Der Gerüst-Durchgang hat drei Dinge erledigt, die früher zu diesem Auftrag gehörten:
-
 - **`naming_convention` steht** auf `Base.metadata` (`app/db/base.py`). Sie enthält bewusst kein `%(constraint_name)s` — ein ausdrücklich gesetzter Name kommt deshalb **wörtlich** durch. Trag die Namen aus der `.sql` genau so ins Modell, dann liest der Handabgleich beide Seiten als denselben String. Nur Namenloses bekommt die Vorlage.
 - **Das Modellmodul liegt in `app/models/DOMÄNE.py`.** `app/db/base.py` liest jedes Modul dort automatisch ein; es gibt keine Importliste, in die du dich eintragen müsstest.
-- **`btree_gist` legt `db/init-roles.sh` bei der Clustererstellung an.** Die `CREATE EXTENSION IF NOT EXISTS`-Zeile aus der `.sql` darf trotzdem mit in die Migration — sie läuft beim Migrator als No-op durch.
+- **`btree_gist` legt `db/init-roles.sh` bei der Clustererstellung an.** Die `CREATE EXTENSION IF NOT EXISTS`-Zeile aus der `.sql` braucht die Migration deshalb nicht; ohne die Extension scheitert ein Ausschluss-Constraint von selbst und laut.
+- **Die Schreibschicht steht** (`app/db/changelog.py`). Jedes neue Modell schuldet ihr `__change_anchor__` und `__protected_columns__`, sonst wirft sie beim ersten Flush. Der Anker ist ein **direktes** Attribut der Zeile — ist er nur über einen Join zu finden, ist er `None` und ein Fund, keine stille Erweiterung.
+- **Kein ORM-seitiges `cascade="all, delete-orphan"`.** Die Kaskade steht im Schema; ein zweites Mal im Modell hieße, dass die ORM-Löschungen erst im Flush entstehen und `before_flush` sie nicht sieht.
+- **Der Dateiname der Revision** kommt aus `file_template` in `alembic.ini`. Nicht umbenennen.
 
 ## Was das Modell trägt — und was ausdrücklich nicht
 
@@ -42,15 +43,15 @@ Der Gerüst-Durchgang hat drei Dinge erledigt, die früher zu diesem Auftrag geh
 Sie sind der eigentliche Grund, warum dieser Auftrag Handarbeit ist. Alembic meldet nicht, dass sie fehlen; es ließe sie beim nächsten Regenerieren stillschweigend weg.
 
 **1. Sämtliche Tabellenrechte, nicht nur die auf dem Art.-9-Bestand.**
-`backend_runtime` startet seit dem Gerüst-Durchgang **ohne jedes Tabellenrecht** — es gibt keine Default-Privilegien mehr. Jede Tabelle deiner Domäne braucht deshalb ihren `GRANT` als `op.execute()` in der Migration, direkt hinter der Tabelle, für die er gilt. Zwei Regeln dabei, beide aus `idea/03-container-anwendung.md`: **`UPDATE` immer spaltenweise**, nie tabellenweit — daran hängt auch die Unveränderlichkeit der Schlüsselspalten —, und für eine geschützte Spalte gehört sie schlicht nicht in die Liste der gewährten. Ein vergessener `GRANT` fällt als „permission denied" auf; ein zu breiter fällt in `tests/test_privileges.py` auf. **Beleg das Ergebnis mit einer Gegenprobe:** ein `SELECT` auf die geschützte Spalte als `backend_runtime` muss scheitern.
+`backend_runtime` startet **ohne jedes Tabellenrecht** — es gibt keine Default-Privilegien mehr. Jede Tabelle deiner Domäne braucht deshalb ihren `GRANT` als `op.execute()` in der Migration, direkt hinter der Tabelle, für die er gilt. Zwei Regeln dabei, beide aus `idea/03-container-anwendung.md`: **`UPDATE` immer spaltenweise**, nie tabellenweit — daran hängt auch die Unveränderlichkeit der Schlüsselspalten —, und für eine geschützte Spalte gehört sie schlicht nicht in die Liste der gewährten. Ein vergessener `GRANT` fällt als „permission denied" auf; ein zu breiter fällt in `tests/test_privileges.py` auf. **Beleg das Ergebnis mit einer Gegenprobe:** ein `SELECT` auf die geschützte Spalte als `backend_runtime` muss scheitern.
 
-**2. Die enger geschnittenen Rollen selbst.** Die Liste steht in `../wb-docs/TODO-SESSIONS.md`, Abschnitt „Art.-9-Spalten-GRANT". Sie entstehen **in derselben Migration** wie ihre Spalten-Rechte: `NOLOGIN`, ohne Passwort, erreichbar allein über `GRANT <rolle> TO backend_runtime WITH INHERIT FALSE, SET TRUE` und ein `SET LOCAL ROLE` in der Transaktion, die sie braucht. `db/init-roles.sh` legt keine davon an — es läuft nur bei der ersten Initialisierung eines Clusters und erreicht eine bestehende Datenbank nicht mehr; `backend_migrator` trägt dafür `CREATEROLE`.
+**2. Eine enger geschnittene Rolle, falls die Domäne eine braucht.** Welche es gibt und welche Spalte an welcher hängt, liest du an `__protected_columns__` der bestehenden Modelle und an den `GRANT`s ihrer Migrationen; die bindenden Bedingungen stehen in `../wb-docs/idea/03-container-anwendung.md`. Eine neue entsteht **in derselben Migration** wie ihre Spalten-Rechte: `NOLOGIN`, ohne Passwort, erreichbar allein über `GRANT <rolle> TO backend_runtime WITH INHERIT FALSE, SET TRUE` und ein `SET LOCAL ROLE` in der Transaktion, die sie braucht. `db/init-roles.sh` legt keine davon an — es läuft nur bei der ersten Initialisierung eines Clusters und erreicht eine bestehende Datenbank nicht mehr; `backend_migrator` trägt dafür `CREATEROLE`.
 
-**3. `deferred()` auf `children.denomination_id` und `congregation`.** Sobald Punkt 1 sitzt, scheitert jedes Vollobjekt-Laden dieser Tabelle an „permission denied for column", weil SQLAlchemy per Default alle gemappten Spalten selektiert. Die Lösung ist klein und muss trotzdem **vor** dem Modell dastehen — sonst wird sie später unter Zeitdruck durch ein tabellenweites `GRANT` „gelöst", und der ganze Mechanismus ist weg.
+**3. `deferred=True` auf jeder geschützten Spalte.** Fehlt es, scheitert jedes Vollobjekt-Laden dieser Tabelle an „permission denied for column", weil SQLAlchemy per Default alle gemappten Spalten selektiert. Dieselben Spalten stehen in `__protected_columns__` — und eine geschützte Spalte ist eine **Lese**beschränkung: sie fällt aus der `SELECT`-Liste der Laufzeit-Rolle und geht an die enge Rolle, `INSERT` und `UPDATE` bleiben. Wird sie auch schreibend entzogen, liefe der Spur-Insert der Schreibschicht unter der engen Rolle und scheiterte an `change_log` statt an der Spalte. Die einzige Ausnahme benennt `TODO-SESSIONS.md`.
 
 ## Was nicht in diesen Durchgang gehört
 
-- **Die gemeinsame Schreibschicht für `change_log`.** Eigener Auftrag. Sie muss vor dem ersten Schreibpfad stehen, aber nicht vor dem ersten Modell — und wer sie nebenher baut, baut sie halb.
+- **Änderungen an der Schreibschicht.** Sie steht und trägt vierzehn Domänen; eine fünfzehnte fügt sich ein oder meldet einen Fund.
 - **Router, Endpunkte, Pydantic-Modelle.** Erst wenn die Domäne steht.
 - **Jede Änderung an `wb-docs`.** Auch keine „offensichtliche" Korrektur in der `.sql`. Was dort falsch aussieht, kommt auf die Findungsliste.
 
@@ -64,20 +65,25 @@ Sie sind der eigentliche Grund, warum dieser Auftrag Handarbeit ist. Alembic mel
 
 ## Die Abnahme
 
-Nicht mit Augenmaß, sondern mit Rückgabewerten. Drei Läufe, alle drei nennst du am Ende:
+Nicht mit Augenmaß, sondern mit Rückgabewerten. Vier Läufe, alle vier nennst du am Ende:
 
 1. **`ruff check .`, `ruff format --check .`, `mypy app tests` und `pytest`** — alle vier sauber. `pytest` schließt `tests/test_privileges.py` ein: es meldet jedes Tabellenrecht, das zu breit vergeben ist.
-2. **`alembic upgrade head` gegen eine frische Datenbank.** Die Migration liest du vorher **von Hand durch**; `--autogenerate` ist ein Entwurf und kein Ergebnis (`CLAUDE.md` §6).
-3. **Das Prüfskript der Domäne gegen die von Alembic gebaute Datenbank**, mit `-v ON_ERROR_STOP=1`. Ohne den Schalter endet auch ein gescheiterter Lauf mit 0, und dann ist jeder Lauf grün. Kommt der Sollstand aus dem Kopfkommentar heraus, ist die Übertragung nachweislich treu — das ist der Punkt der ganzen Übung.
+2. **`alembic upgrade head` gegen eine frische Datenbank**, danach `alembic check` — es meldet jede Abweichung zwischen Modell und Datenbank. Die Migration liest du vorher **von Hand durch**; `--autogenerate` ist ein Entwurf und kein Ergebnis (`CLAUDE.md` §6).
+3. **Alle Prüfskripte gegen die von Alembic gebaute Datenbank**, mit `-v ON_ERROR_STOP=1` — nicht nur das der eigenen Domäne. Ohne den Schalter endet auch ein gescheiterter Lauf mit 0, und dann ist jeder Lauf grün.
+4. **Der Katalogabgleich.** Lade die `.sql` in eine zweite Datenbank desselben Clusters und vergleiche beide Kataloge — Spalten mit Typ, Nullbarkeit, Vorgabe und Identity, Constraints mit `pg_get_constraintdef`, Indizes mit `pg_get_indexdef`, alles sortiert. Kein Unterschied heißt: treu übertragen, und zwar ohne Augenmaß. Ein Prüfskript sieht nur, wonach es fragt; der Abgleich sieht alles.
 
 ```
-docker compose --profile tools run --rm test sh -c 'ruff check . && ruff format --check . && mypy app tests && pytest -q'
-docker compose --profile tools run --rm migrate
-docker compose exec -T db psql -U backend_migrator -d weltenbaum -v ON_ERROR_STOP=1 -q \
-    < ../wb-docs/schema/DOMÄNE-schema-check.sql ; echo "rc=$?"
+docker compose --profile tools down -v && docker compose up -d
+docker compose --profile tools run --rm migrate && docker compose --profile tools run --rm migrate alembic check
+for f in ../wb-docs/schema/*-schema-check.sql; do
+    docker compose exec -T db psql -U backend_migrator -d weltenbaum -v ON_ERROR_STOP=1 -q < "$f"
+    echo "$(basename "$f") rc=$?"
+done
+docker compose --profile tools run --rm test sh -c \
+    'ruff check . && ruff format --check . && mypy app tests && pytest -q'
 ```
 
-**Beim letzten Durchgang laufen alle vierzehn Prüfskripte** gegen die vollständige Datenbank, nicht nur das der eigenen Domäne: Ein Skript mit erfundenen Fremdschlüssel-Werten läuft grün, solange die Zieltabelle fehlt.
+**Alle Prüfskripte, nicht nur das der eigenen Domäne.** Ein Skript mit erfundenen Fremdschlüssel-Werten läuft grün, solange die Zieltabelle fehlt — erst gegen die vollständige Datenbank sagt es etwas aus.
 
 ## Was du lieferst
 
@@ -85,7 +91,7 @@ docker compose exec -T db psql -U backend_migrator -d weltenbaum -v ON_ERROR_STO
 
 1. **Das Modellmodul**, vollständig — kein Auszug, keine „hier analog weiter"-Stelle.
 2. **Die Migration**, samt der `op.execute()`-Blöcke, von dir durchgesehen und nicht bloß erzeugt.
-3. **Die drei Rückgabewerte** aus der Abnahme, je einer in einer Zeile.
+3. **Die Rückgabewerte** aus der Abnahme, je einer in einer Zeile.
 4. **Die Findungsliste** als eigener Abschnitt, nie im Code.
 
 ## Die Findungsliste

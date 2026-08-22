@@ -112,6 +112,9 @@ Diese Datei wird automatisch geladen; verlinkt werden muss nichts. Je nach Arbei
   alle vier und den Blockprompt gilt `prompts/gemeinsam.md`.
 - **Neue Fachdomäne verstehen:** `fachdomaenen.md`, `prozesse.md` und die vier
   Anmeldetag-Checklisten in `~/Downloads/CHECKLISTEN/`.
+- **Vor dem ersten Endpunkt:** einmalig `prompts/vor-der-entwicklung.md` — die echten
+  Tenant-Werte müssen von außen ankommen, die Wertelisten brauchen ihren Anfangsbestand,
+  Dependabot fehlt; der Prompt wird nach dem Lauf gelöscht.
 - **Endpunkte in `wb-backend`:** `TODO-SESSIONS.md`, `project-parts.md`,
   `idea/04-identitaet-zugriff.md`, dazu `CLAUDE.md` und `README.md` dort. Die Schreibschicht steht
   und ist nicht optional: ein Endpunkt, der an ihr vorbei schreibt, kommt nicht durch.
