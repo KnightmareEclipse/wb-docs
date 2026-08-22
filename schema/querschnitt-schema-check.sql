@@ -8,8 +8,9 @@
 -- Die vertragsgebundenen Gegenproben zu `signatures` stehen in
 -- anmeldung-schema-check.sql, weil ihr Fremdschlüssel dort entsteht; die
 -- Unterschrift unter dem SEPA-Mandat steht hier, sie kennt keinen Vertrag.
--- Dazu neun partielle Unique-Indizes (zwei für consents, sieben für sync_tasks)
--- und ein Lese-Index auf change_log.
+-- Dazu zwölf partielle Unique-Indizes (drei für signatures, zwei für consents,
+-- sieben für sync_tasks) und zwei Lese-Indizes, auf outbound_emails und auf
+-- change_log.
 --
 -- Setzt stammdaten-schema.sql voraus. Läuft in einer Transaktion, die am Ende
 -- zurückgerollt wird:

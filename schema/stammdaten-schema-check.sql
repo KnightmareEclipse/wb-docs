@@ -1,7 +1,8 @@
 -- Prüfskript zu stammdaten-schema.sql.
 --
--- Sollstand: 23 Tabellen — 11 Wertelisten (salutations, genders, denominations,
--- languages, countries, guardian_relations, previous_schools, school_branches,
+-- Sollstand: 24 Tabellen — 12 Wertelisten (salutations, genders, denominations,
+-- languages, countries, guardian_relations, access_levels, previous_schools,
+-- school_branches,
 -- houses, roles, phone_types), Person und Erreichbarkeit (addresses, persons,
 -- phone_numbers),
 -- Familie und Kind (families, classes, children, family_guardians,
@@ -26,7 +27,8 @@ BEGIN
     SELECT string_agg(t, ', ') INTO missing
     FROM unnest(ARRAY[
         'salutations', 'genders', 'denominations', 'languages', 'countries',
-        'guardian_relations', 'previous_schools', 'school_branches', 'houses',
+        'guardian_relations', 'access_levels', 'previous_schools',
+        'school_branches', 'houses',
         'roles', 'addresses', 'persons', 'phone_numbers', 'families', 'classes',
         'children', 'family_guardians', 'family_contacts', 'sepa_mandates',
         'employees', 'employee_roles', 'login_codes', 'phone_types'
@@ -36,7 +38,7 @@ BEGIN
     IF missing IS NOT NULL THEN
         RAISE EXCEPTION 'Fehlende Tabellen: %', missing;
     END IF;
-    RAISE NOTICE 'ok: alle 23 Tabellen vorhanden';
+    RAISE NOTICE 'ok: alle 24 Tabellen vorhanden';
 END $$;
 
 -- ---------------------------------------------------------------------------
