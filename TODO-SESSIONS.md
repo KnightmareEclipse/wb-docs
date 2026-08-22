@@ -75,16 +75,24 @@ Das Datenmodell ist übertragen (`CLAUDE.md`, „Stand"). Drei Dinge daran sieht
 
 Die Gegenprobe bleibt dieselbe: Alle vierzehn Prüfskripte in `schema/` laufen gegen **jede** Datenbank, auch gegen die von Alembic gebaute — als fester Schritt hinter jedem Migrationslauf, nicht als einmalige Sichtprüfung.
 
-### Die Wertelisten sind leer, und niemand ist dafür zuständig
+**Gegen die von Alembic gebaute Datenbank braucht dieser Schritt seit dem Anfangsbestand einen Vorspann**, sonst scheitern dreizehn der vierzehn an einem doppelten Schlüssel: Jedes Skript legt die Wertelisten selbst an, die es braucht, und rechnet dafür mit einer leeren Datenbank („die Datenbank bleibt danach leer", Kopf jedes Skripts). Die Lösung braucht keine Änderung an den Skripten — sie rollen ohnehin alles zurück, also darf der Vorspann in derselben Transaktion räumen:
 
-Einunddreißig Wertelisten stehen als Tabelle da und tragen keine Zeile — von `salutations`, `genders` und `roles` über `document_types`, `consent_purposes` und `sync_targets` bis zu `care_modules`, `application_statuses` und `health_trait_types`. Dazu die Werte im System und die Preislisten: `configured_values`, `contract_texts`, `care_module_prices`, `tuition_fees`, `meal_prices`, `holiday_module_prices`, `sharepoint_libraries`. Ohne sie kann kein Endpunkt etwas tun: `family_guardians.access_level_id` ist Pflicht und zeigt auf eine leere Liste, ein Kind ohne `school_branches`-Zeile lässt sich nicht einschreiben, und `payments` ohne `configured_values` weiß keinen Betrag.
+```
+{ echo "BEGIN; TRUNCATE <die gesäten Listen> CASCADE;"; cat "$f"; } \
+    | docker compose exec -T db psql -U backend_migrator -d weltenbaum -v ON_ERROR_STOP=1 -q
+```
 
-Zu entscheiden ist eines, und es ist keine Fachfrage, sondern eine Bauform: **wo diese Zeilen herkommen.** Eine Migration je Liste hält sie im selben Lauf wie das Schema und macht jede Änderung zur Migration; eine eigene Ladeprozedur trennt Struktur und Inhalt, braucht aber einen zweiten Weg auf die Datenbank; von Hand eingetragen fehlt beides und ein zweiter Cluster steht anders da als der erste. Die Codes selbst sind großenteils schon benannt — im Kommentar an der jeweiligen Tabelle und, für die Werte im System, an `configured_values` in `schema/querschnitt-schema.sql`.
+Das `ROLLBACK;` am Ende des Skripts nimmt das `TRUNCATE` mit zurück, der Anfangsbestand steht danach unverändert da. Die Liste der Tabellen führt die Seed-Revision als `SEEDED_TABLES`.
 
-Hier steht der Weg, nicht der Inhalt: **wer** welche Zahl einträgt, steht in `TODO.md` (die drei Preislisten pflegt die Geschäftsführung selbst), und wo ein Wert noch an einer Antwort der Schule hängt, steht die Frage in `fragen.md`. Die Beträge selbst liegen vor und stehen ausgeschrieben in den Kommentaren ihrer Tabellen.
+Und der Rückgabewert wird **vor** jeder anderen Auswertung in eine Variable geschrieben: `rc=$?` direkt hinter dem Aufruf. Steht davor eine Kommando-Ersetzung wie `echo "$(basename "$f") rc=$?"`, trägt `$?` den Rückgabewert von `basename` — der Lauf ist dann grün, auch der gescheiterte, genau wie ohne `ON_ERROR_STOP=1`.
 
-### Dependabot für die Base-Images einschalten
+### Was von den Wertelisten noch offen ist
 
-`.github/dependabot.yml` in `wb-backend` mit dem `docker`-Ecosystem auf `Dockerfile`, `caddy/Dockerfile` und `docker-compose.yml` (PostgreSQL-, Caddy-, Python-Base-Image — das Caddy-Image liegt seit dem Gerüst-Durchgang hinter einer eigenen dünnen Dockerfile, weil das offizielle als Root läuft), monatliches Intervall passend zum Patch-Rhythmus aus `rules.md` Abschnitt 2. Reine Repo-Datei, kein Konto und kein Token nötig — Dependabot ist in GitHub eingebaut und muss nur in den Repo-Einstellungen aktiviert sein.
+Der Anfangsbestand steht: Die Wertelisten, auf deren `code` der Anwendungscode verzweigt, kommen als Revision in der Migrationskette (`wb-backend/app/alembic/versions/`, „value list seed"), und `wb-backend/tests/test_seed.py` führt die Namensliste, gegen die eine frische Datenbank grün laufen muss. Nicht mitgekommen sind zwei Sorten, beide bewusst:
 
-Das `pip`-Ecosystem bewusst **nicht** eintragen: es würde `requirements.txt` direkt anfassen, ohne `requirements.in` neu zu kompilieren, und damit die pip-tools-Kette umgehen (`rules.md` Abschnitt 3).
+- **Inhalt, den ein Mensch pflegt** — `kindergartens`, `previous_schools`, `payees`, `cost_projects`, `ledger_accounts`, `sharepoint_libraries`, `contract_texts`, `configured_values` und die vier Preistabellen. Wer welche Zahl einträgt, steht in `TODO.md`; die Beträge selbst liegen vor und stehen ausgeschrieben in den Kommentaren ihrer Tabellen und in `soll-prozesse/hebel.md`.
+- **Eine Liste, deren Werte offen sind** — `denominations`. Sie hängt nicht am Inhalt, sondern am Zweckbeschluss des Feldes selbst (`fragen.md`, Frage 1): Fällt das Feld, fällt die Liste mit ihm, und ein Anfangsbestand wäre vorher eine Entscheidung, die niemand getroffen hat. Die übrigen vier — `genders`, `guardian_relations`, `measles_presentation_types`, `languages` — sind entschieden und kommen mit.
+
+Solange eine der beiden Sorten leer ist, hält sie ihren Vorgang an — `family_guardians.access_level_id` zeigt inzwischen auf eine gefüllte Liste, `payments` ohne `configured_values` weiß aber weiterhin keinen Betrag.
+
+Zwei Listen sind nicht abgeschrieben, sondern normiert: `countries` trägt alle 249 ISO-3166-1-Einträge, `languages` die 183 mit ISO-639-1-Code, beide mit den deutschen Namen aus dem `iso-codes`-Katalog des Systems. Die Staatsangehörigkeitsbezeichnung steht in keinem Katalog und ist von Hand geschrieben — sie will vor dem Vollimport einmal gelesen werden, mehr nicht.

@@ -52,6 +52,11 @@ echten und teils besonders geschützten Personendaten. **Deshalb vor Ende August
 sie bleibt, wird erst einige Monate nach dem Import entschieden. Sie steht hier nur, damit klar ist,
 dass sie bewusst draußen ist.
 
+**An dieser Frage hängt zusätzlich die Werteliste `denominations`** — sie steht als einzige der
+Wertelisten leer und bekommt keinen Anfangsbestand, solange der Zweck des Feldes nicht beschlossen
+ist. Bleibt das Feld, ist die zweite Frage, welche Konfessionen darin auswählbar sein sollen; das
+beantwortet dann das Sekretariat, nicht dieses Gespräch. Fällt das Feld, fällt die Liste mit ihm.
+
 *Steht in* `schema/stammdaten-schema.sql:929` · `soll-prozesse/05-bewerbung.md:19` · `TODO.md`
 
 ### 2. Bewerbungen, die zu keiner Aufnahme geführt haben
