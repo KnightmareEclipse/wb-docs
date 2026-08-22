@@ -46,22 +46,66 @@ wäre ein tabellenweites `GRANT`, das den ganzen Mechanismus abräumt.
 **Schritt 2 — `querschnitt`.** Bringt `change_log` und damit die Voraussetzung für Schritt 3.
 
 **Schritt 3 — die Schreibschicht.** Vor allen weiteren Domänen, weil sie kein Punkt ist, den man
-nachträglich einzieht (`TODO-SESSIONS.md`). Sie besteht aus zwei Teilen, die zusammengehören:
+nachträglich einzieht (`TODO-SESSIONS.md`). **Der Entwurf steht, du baust ihn** — nicht deiner.
 
-- **`app/db/session.py` umbauen.** `get_db()` hat heute weder eine ausdrückliche
-  Transaktionsgrenze noch Zugriff auf den Aufrufer. Beides braucht es: `SET LOCAL app.actor` je
-  Transaktion, und `SET LOCAL ROLE` für eine enge Rolle im selben Block. **Kein zweiter Pool** —
-  die enge Rolle ist `NOLOGIN` und wird in der laufenden Transaktion gewählt. Der Aktor trägt ein
-  Präfix (`entra:`/`guardian:`/`system:`), das je Tabelle ein CHECK erzwingt; er kommt aus
-  `CurrentUser` (`app/core/security.py`) und für Systemläufe von der aufrufenden Stelle.
-- **Eine gemeinsame Stelle, durch die jede Änderung läuft**, die `created_by` setzt und die Zeile
-  in `change_log` schreibt. Ein Schreibpfad daran vorbei hinterlässt keine Spur und meldet nichts —
-  deshalb ist die Stelle die einzige, nicht die bequemste. Wie sie geschnitten ist, entscheidest du;
-  schreib eine `[A]`-Zeile dazu.
+Sie hängt an **SQLAlchemy-Session-Events und nicht an einer Repository-API**. Der Grund ist der
+Zweck der Schicht: Eine API mit `writer.update(...)` ist umgehbar, weil `session.add()` daneben
+weiter funktioniert und nichts meldet, wenn jemand sie nimmt. Ein Event sieht jede ORM-Änderung
+bauartbedingt. Vier Haken, alle gegen Postgres 18 vorgemessen:
 
-Baue sie so klein, wie sie sein kann (§14). Sie hat heute genau einen Abnehmer — die Tests, die du
-für sie schreibst —, und ihr Wert liegt darin, dass die vierzehn Domänen danach keine Wahl mehr
-haben.
+- **`get_db()`** öffnet **eine** Transaktion je Anfrage, setzt darin den Aktor über
+  `select set_config('app.actor', :actor, true)` — der dritte Parameter ist `SET LOCAL`, und nur
+  diese Form nimmt einen gebundenen Wert (§6) — und legt ihn zusätzlich in `session.info`. Die
+  Endpunkte committen damit nicht mehr selbst: Änderung, Spur und `app.actor` sind eine Einheit
+  oder keine.
+- **`before_flush`** setzt `created_by` an jeder neuen Zeile aus dem Aktor. Hier, weil die Objekte
+  noch veränderbar sind.
+- **`after_flush`** schreibt die `change_log`-Zeilen. Hier, weil die Schlüssel erst danach stehen —
+  gemessen: der Haken sieht `insert` mit vergebenem Schlüssel, `update` mit Alt- und Neuwert je
+  Spalte (`get_history`) und `delete`.
+- **`do_orm_execute`** wirft, wenn ein `update()`/`delete()` gegen eine gemappte Tabelle läuft. Das
+  ist der einzige Weg am ORM vorbei, und er wird damit laut statt still.
+
+**Zwei Verträge, die jedes Modell erfüllt.** Fehlt einer, wirft die Schicht beim Flush — ein Modell
+kann sie also nicht vergessen:
+
+- `__change_anchor__: ClassVar[str | None]` — `"person_id"`, `"child_id"`, `"family_id"` oder
+  ausdrücklich `None`. Die Schicht liest das gleichnamige Attribut und setzt daraus den Löschanker;
+  `None` heißt „ohne Personenbezug" und gilt für Wertelisten. `ck_change_log_single_anchor` lässt
+  höchstens einen zu. **Grenze, benannt:** gelesen wird ein direktes Attribut. Eine Tabelle, deren
+  Anker erst über einen Join zu finden ist, ist ein Fund und keine stille Erweiterung.
+- `__protected_columns__: ClassVar[frozenset[str]]` — dieselben Spalten, die `deferred()` tragen.
+  Ihre Werte gehen **nicht** in die Spur, sondern als Platzhalter hinein.
+
+Der letzte Punkt ist keine Vorsicht, sondern eine Lücke, die sonst offen bliebe: `change_log` trägt
+keine enge Rolle, `backend_runtime` liest es tabellenweit. Schriebe die Schicht den Konfessionswert
+in `old_value`, wäre das Spalten-GRANT auf `children` über die Spur umgangen — und
+`tests/test_privileges.py` sähe es nicht, weil an `change_log` keine enge Rolle hängt. **Bau die
+Gegenprobe dazu:** eine Änderung an einer geschützten Spalte hinterlässt eine Spurzeile, die den
+Wert nicht enthält.
+
+**Die Zeilenform** folgt den CHECKs in `querschnitt-schema.sql`: je geänderter Spalte eine Zeile mit
+`column_name`, `old_value`, `new_value`; `insert` und `delete` je eine Zeile ohne `column_name`, mit
+dem neuen bzw. alten Stand als kompaktes JSON der Zeile ohne die geschützten und ohne die
+Audit-Spalten. `[A]` Nur den Schlüssel statt des JSON wäre billiger — dann zeigt die Spur beim
+Anlegen einer `employee_roles`-Zeile aber nicht, welche Rolle vergeben wurde, und genau dafür steht
+`operation` laut Schema-Kommentar da.
+
+**Die enge Rolle** kommt über einen Kontextmanager, der `SET LOCAL ROLE` und danach `RESET ROLE` in
+der laufenden Transaktion fährt — **kein zweiter Pool**. Der Rollenname kommt aus einem Enum und nie
+aus einem String: `SET ROLE` nimmt keinen gebundenen Wert.
+
+**Der Aktor** trägt sein Präfix (`entra:`/`guardian:`/`system:`) und wird **im Code** geprüft, bevor
+er gesetzt wird — sonst schlägt er erst als CHECK-Verletzung beim Insert auf, und dann steht der
+Fehler weit weg von der Ursache. Er kommt aus `CurrentUser` (`app/core/security.py`), bei einem
+maschinellen Lauf als `system:<name>` von der aufrufenden Stelle.
+
+**Der Preis, ausdrücklich:** Massenoperationen sind damit verboten. Der Schuljahreswechsel und der
+Lösch-Lauf gehen später Objekt für Objekt durchs ORM oder melden sich ausdrücklich ab und schreiben
+ihre Spur selbst. Das ist die Absicht — nicht ein Versehen, das später jemand „optimiert".
+
+Wohnort: `app/db/changelog.py` für die Schicht, `app/db/session.py` für Aktor und
+Transaktionsgrenze, die beiden Verträge an `Base` (`app/db/base.py`). Sonst nichts (§14).
 
 **Schritt 4 — die übrigen elf Domänen**, in beliebiger Folge, solange die Fremdschlüssel tragen.
 Je Domäne ein eigener Durchlauf nach `schema-uebertragen.md`, ein eigener Commit.
