@@ -66,10 +66,20 @@ Die Unit führt ein root-eigenes Skript aus: Auschecken des letzten Push, Secret
 
 Compose bleibt auch produktiv. `rules.md` Abschnitt 9 verlangt, dass dieselbe Datei lokal läuft, und „ein Ort pro Sachverhalt" verbietet eine zweite Beschreibung desselben Stacks. Quadlet gäbe beides auf, um eine systemd-Integration zu kaufen, die hier bereits vorhanden ist: `podman-restart.service` bringt nach einem Reboot jeden Container mit Restart-Policy genau `always` zurück.
 
-Zwei Eigenheiten von `podman-compose`, beide im Deploy-Skript berücksichtigt:
+**`podman-compose` ist die schwächste Stelle der Boring-Technology-Wahl** — `rules.md` Abschnitt 4
+misst an der Debugbarkeit durch einen Nachfolger, und der kennt `docker compose`, nicht dessen
+Reimplementierung. Die beiden Eigenheiten unten sind erst im Betrieb aufgefallen und kosten je einen
+Schalter im Deploy-Skript. Es bleibt trotzdem: die naheliegende Alternative, `docker compose` gegen
+`podman.socket`, kauft Compose-Treue mit genau dem dauerhaft laufenden root-äquivalenten Socket,
+wegen dessen Abwesenheit Podman überhaupt gewählt wurde — dazu mit Dockers Fremd-Repo, das mit der
+Runtime-Wahl gerade entfallen ist. **Neu zu bewerten beim dritten Workaround** — oder sobald eine Eigenheit nicht mehr mit einem
+Schalter zu beheben ist.
+
+Drei Eigenheiten von `podman-compose` — die ersten beiden im Deploy-Skript aufgefangen, die dritte in der Compose-Datei selbst:
 
 *   `up -d` erkennt ein neu gebautes Image nicht — der Tag bleibt gleich, die Compose-Konfiguration damit auch, und der alte Container läuft weiter. Deshalb `--force-recreate`.
 *   `run` stoppt jeden Dienst, den es nicht selbst startet. Eine fehlgeschlagene Migration hätte damit den gesamten Stack heruntergefahren, statt die laufenden Container unberührt zu lassen (`pipeline/app-stack-repo/04-app-stack-deploy.md`). Deshalb `--no-deps`.
+*   Die **Exec-Form eines Healthchecks** (`test: [CMD, ...]`) wird zu einem Shell-Kommando plattgeklopft, ohne die Argumente zu quoten — `/bin/sh` liest dann die Klammern des Prüfbefehls als eigene Syntax. Der Container antwortet dabei völlig normal; unhealthy ist allein die Prüfung, und der Deploy wartet auf einen Zustand, der nie eintritt. `CMD-SHELL` mit einer ausgeschriebenen Zeichenkette läuft in beiden Laufzeiten durch `sh` und macht das Quoting zur Eigenschaft der Compose-Datei statt der Implementierung, die sie liest.
 
 ## Was die Rolle sonst einrichtet
 

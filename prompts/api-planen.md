@@ -135,7 +135,6 @@ ein Verzeichnis, auf das nichts zeigt, wird nicht geöffnet.
 ## Was nicht in diesen Durchgang gehört
 
 - **Code jeder Art** — Router, Pydantic-Modelle, Migrationen. Das ist der Auftrag danach.
-- **Die CORS-Policy.** Sie hängt am Hosting des Frontends (`project-parts.md` Abschnitt 10).
 - **Der Schnitt der Frontends.** Welche Oberfläche welche Route ruft, entscheidet dieser Plan nicht.
 - **Eine Änderung am Schema.** Fällt dir dort etwas auf, wird es eine Zeile am Ende und kein Eingriff
   — das Schema führt inzwischen `wb-backend` (`CLAUDE.md`).

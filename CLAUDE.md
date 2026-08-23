@@ -68,9 +68,11 @@ Zwei Regeln, die hier wiederholt gekostet haben:
 direkt auf der VPS) und läuft in `wb-backend` produktiv: Compose-Stack und FastAPI-Grundgerüst
 (Health-Endpoint, JWT-Validierung, Alembic) über die echte Domäne mit automatischem HTTPS. Der
 Elternzugang steht daneben: Anmeldecode anfordern, einlösen und wählen, als wer man weitermacht
-(`wb-backend/app/routers/auth.py`), samt dem Token, das der Dienst dafür selbst ausstellt — beide
-Türen enden in derselben `CurrentUser`, und eine Eltern-Sitzung trägt keine Rolle. Offen: die
-CORS-Policy und alles unter Teams-Apps-Repo (`project-parts.md` §10).
+(`wb-backend/app/routers/auth.py`), samt der Sitzung, die der Dienst dafür in `login_sessions`
+führt, im `HttpOnly`-Cookie ausliefert und wieder beenden kann — beide Türen enden in derselben
+`CurrentUser`, und eine Eltern-Sitzung trägt keine Rolle. Beide Oberflächen liegen künftig auf
+eigenen Subdomains derselben VPS (`project-parts.md` §9); offen ist alles unter Teams-Apps-Repo
+(§10).
 
 **Datenmodell — geprüft.** Was in `schema/` liegt, ist gebaut; das `-schema-check.sql` daneben
 belegt es. Abgeleitet aus den Soll-Blöcken, durch die Zyklen in `pruefberichte/` gegangen. Was das
@@ -85,9 +87,9 @@ dort kein Häkchen und keinen Link. Stammdaten sind ab dem Vollimport eingefrore
 Definition von „eingefroren" steht in `grenzkarte.md`. **Ein Datum trägt der Import nicht** — er
 folgt dem Stand der Entwicklung, und keine Fachdomäne wird gegen einen Kalender gebaut.
 
-**Backend — übertragen.** Alle 100 Tabellen stehen in `wb-backend` als SQLAlchemy-Modelle
+**Backend — übertragen.** Alle 101 Tabellen stehen in `wb-backend` als SQLAlchemy-Modelle
 (`app/models/`, ein Modul je Domäne) und als zehn Domänen-Migrationen (`app/alembic/versions/`),
-denen der Werteliste-Anfangsbestand und die Normalform-Korrekturen folgen; die
+denen der Werteliste-Anfangsbestand, die Normalform-Korrekturen und die Sitzungstabelle folgen; die
 Spalten-Rechte und die sieben engen Rollen entstehen in der Migration ihrer Domäne, weil
 `--autogenerate` beides nicht sieht. Jede ORM-Änderung läuft durch die Schreibschicht
 (`app/db/changelog.py`), die `change_log` aus Session-Events schreibt, den Aktor je Transaktion

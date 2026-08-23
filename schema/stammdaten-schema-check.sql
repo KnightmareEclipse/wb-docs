@@ -1,13 +1,14 @@
 -- Prüfskript zu stammdaten-schema.sql.
 --
--- Sollstand: 25 Tabellen — 12 Wertelisten (salutations, genders, denominations,
+-- Sollstand: 26 Tabellen — 12 Wertelisten (salutations, genders, denominations,
 -- languages, countries, guardian_relations, access_levels, previous_schools,
 -- school_branches,
 -- houses, roles, phone_types), Person und Erreichbarkeit (addresses, persons,
 -- phone_numbers),
 -- Familie und Kind (families, classes, children, guardians, family_guardians,
 -- family_contacts, sepa_mandates), Q4 (employees, employee_roles) und der
--- Zugang (login_codes); die Klassenlehrkraft steht als Spalte an `classes`.
+-- Zugang (login_codes, login_sessions); die Klassenlehrkraft steht als Spalte
+-- an `classes`.
 -- `guardians` trägt die personenweiten Angaben eines Sorgeberechtigten,
 -- `family_guardians` daneben allein, was an einer einzelnen Sorgeberechtigung
 -- hängt.
@@ -35,14 +36,14 @@ BEGIN
         'roles', 'addresses', 'persons', 'phone_numbers', 'families', 'classes',
         'children', 'guardians', 'family_guardians', 'family_contacts',
         'sepa_mandates',
-        'employees', 'employee_roles', 'login_codes', 'phone_types'
+        'employees', 'employee_roles', 'login_codes', 'login_sessions', 'phone_types'
     ]) AS t
     WHERE to_regclass('public.' || t) IS NULL;
 
     IF missing IS NOT NULL THEN
         RAISE EXCEPTION 'Fehlende Tabellen: %', missing;
     END IF;
-    RAISE NOTICE 'ok: alle 25 Tabellen vorhanden';
+    RAISE NOTICE 'ok: alle 26 Tabellen vorhanden';
 END $$;
 
 -- ---------------------------------------------------------------------------
@@ -68,6 +69,8 @@ BEGIN
         'ck_employees_working_days', 'ck_school_branches_grades',
         'ck_login_codes_purpose', 'ck_login_codes_attempts',
         'fk_login_codes_person', 'ck_login_codes_person',
+        'uq_login_sessions_token_hash', 'fk_login_sessions_person',
+        'ck_login_sessions_email',
         'ck_persons_created_by', 'uq_employees_entra',
         'fk_phone_numbers_type', 'ck_children_repeats_needs_entry',
         'uq_school_branches_grades', 'uq_roles_branch_bound',
@@ -675,6 +678,49 @@ SELECT pg_temp.expect_accept(
               ('ratelimit@example.org', 'x', 'login'),
               ('ratelimit@example.org', 'x', 'login'),
               ('ratelimit@example.org', 'x', 'login')$q$);
+
+-- 00: „Die Rollen selbst liest das System bei jedem Aufruf frisch" — die
+-- Sitzung trägt deshalb ihre Reichweite nicht mit sich. Stünde sie hier, wäre
+-- sie die eingefrorene Kopie einer Tatsache, die woanders gilt.
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns
+                WHERE table_name = 'login_sessions'
+                  AND column_name IN ('families', 'family_id', 'expires_at')) THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — die Sitzung trägt Reichweite oder Ablauf als Spalte';
+    END IF;
+    RAISE NOTICE 'ok (abgewiesen): 00 — die Sitzung speichert weder Reichweite noch Ablauf';
+END $$;
+
+-- hebel.md: „Das Anmeldefeld antwortet auf jede Adresse gleich" — eine Sitzung
+-- entsteht deshalb auch für eine Adresse, die hier niemandem gehört; sie liest
+-- dann nichts (idea/04).
+SELECT pg_temp.expect_accept(
+    'idea/04 — Sitzung einer Adresse, die die Schule nicht kennt',
+    $q$INSERT INTO login_sessions (email, token_hash)
+       VALUES ('fremd@example.org', 'h1')$q$);
+
+SELECT pg_temp.expect_reject(
+    'idea/04 — zwei Sitzungen mit demselben Sitzungswert',
+    $q$INSERT INTO login_sessions (email, token_hash)
+       VALUES ('a@example.org', 'gleich'), ('b@example.org', 'gleich')$q$);
+
+-- Löschanker: die Sitzung geht mit der Person, wie der Code daneben.
+DO $$
+DECLARE geblieben bigint;
+BEGIN
+    INSERT INTO persons (person_id, last_name, created_by)
+        VALUES ('22222222-2222-2222-2222-2222222222f2', 'Sitzend', 'system:check');
+    INSERT INTO login_sessions (email, token_hash, person_id)
+        VALUES ('sitzend@example.org', 'h2', '22222222-2222-2222-2222-2222222222f2');
+    DELETE FROM persons WHERE person_id = '22222222-2222-2222-2222-2222222222f2';
+    SELECT count(*) INTO geblieben FROM login_sessions
+     WHERE person_id = '22222222-2222-2222-2222-2222222222f2';
+    IF geblieben > 0 THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — die Sitzung überlebt ihre Person';
+    END IF;
+    RAISE NOTICE 'ok (erlaubt): 00 — die Sitzung geht mit ihrer Person';
+END $$;
 
 -- 15: Schularten haben eine Anfangs- und eine Endstufe, in dieser Reihenfolge.
 SELECT pg_temp.expect_reject(

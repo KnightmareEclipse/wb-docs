@@ -969,6 +969,56 @@ CREATE TABLE login_codes (
 CREATE INDEX ix_login_codes_email_created ON login_codes (email, created_at);
 
 
+-- Die offene Sitzung eines Elternteils. Sie entsteht mit dem eingelösten Code
+-- und endet mit dem Abmelden oder mit dem Ablauf der 30 Tage (hebel.md).
+-- Zwei Sätze aus 00 tragen diese Tabelle, und ohne sie wären beide unhaltbar:
+-- „Die Rollen selbst liest das System bei jedem Aufruf frisch, nicht einmalig
+-- beim Anmelden" und „Es gilt sofort, auch mitten in einer laufenden Sitzung".
+-- Ein selbsttragendes Token hätte seine Reichweite eingebacken und wäre 30 Tage
+-- lang weder einzuholen noch zu beenden.
+-- Bewusst KEINE Spalte für die Reichweite: welche Familien die Sitzung sieht,
+-- folgt bei jedem Aufruf aus `email` über `persons` und `family_guardians` —
+-- eine gespeicherte Kopie wäre der zweite Ort für dieselbe Tatsache
+-- (rules.md Abschnitt 1) und genau der Grund, warum es die Tabelle gibt.
+-- Bewusst KEINE Spalte für den letzten Zugriff: sie machte jeden Aufruf zu
+-- einem UPDATE und damit zu einer Zeile in `change_log`. Was 00 wirklich
+-- verlangt, ist die letzte Anmeldung, und die steht an `persons.last_login_at`.
+CREATE TABLE login_sessions (
+    login_session_id uuid NOT NULL DEFAULT gen_random_uuid(),
+    -- Das Postfach, das sich ausgewiesen hat — nicht die Person: eine geteilte
+    -- Adresse löst auf mehrere auf (idea/04), und als wen die Sitzung gerade
+    -- handelt, steht in `person_id`.
+    email            text NOT NULL,
+    -- Als wen die Sitzung weitermacht; leer, solange die Wahl nicht getroffen
+    -- ist oder die Adresse hier niemandem gehört. Bedienführung, keine
+    -- Sicherheitsgrenze (idea/04) — wer das Postfach hat, darf jeden Kandidaten
+    -- wählen, und nur den.
+    person_id        uuid,
+    -- Nur der Hash, wie beim Code: der Klartext liegt im Browser, und eine
+    -- Kopie der Datenbank wäre sonst ein Stapel offener Sitzungen.
+    token_hash       text NOT NULL,
+    created_at       timestamptz NOT NULL DEFAULT now(),
+    -- Bewusst KEINE Spalte für den Ablauf, aus demselben Grund wie bei
+    -- `login_codes`: „Eltern bleiben 30 Tage angemeldet" ist eine der festen
+    -- Zahlen (hebel.md), der Ablauf ist damit `created_at + interval '30 days'`.
+    -- Das Abmelden dagegen ist ein Ereignis und keine Ableitung — es braucht
+    -- seine Spalte.
+    revoked_at       timestamptz,
+
+    CONSTRAINT pk_login_sessions PRIMARY KEY (login_session_id),
+    -- Cascade wie beim Code: die Sitzung ist eine kurzlebige Marke ohne eigenen
+    -- Anker und geht mit der Person (Stufe 6 des Lösch-Laufs,
+    -- querschnitt-schema.sql).
+    CONSTRAINT fk_login_sessions_person
+        FOREIGN KEY (person_id) REFERENCES persons (person_id) ON DELETE CASCADE,
+    -- Zwei Sitzungen mit demselben Hash gäbe es nur, wenn zwei denselben Wert
+    -- gezogen hätten; das UNIQUE ist zugleich der Index, über den jeder Aufruf
+    -- seine Sitzung findet.
+    CONSTRAINT uq_login_sessions_token_hash UNIQUE (token_hash),
+    CONSTRAINT ck_login_sessions_email CHECK (email <> '')
+);
+
+
 -- ---------------------------------------------------------------------------
 -- Offene Fragen an die Schule
 -- ---------------------------------------------------------------------------
