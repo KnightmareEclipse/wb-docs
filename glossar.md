@@ -6,7 +6,7 @@ Fachbegriffe für den DSGVO-konformen Datenbank-/API-Stack einer Schule (technis
 
 ### Rollen
 
-Zwei Ebenen, nie nur eine: **welche** Rolle eine Anfrage bekommt, entscheidet die API anhand des Entra-Rollen-Claims; **welche Spalten** diese Rolle lesen und schreiben darf, entscheidet die DB-Rolle samt Spalten-GRANT (`schema/stammdaten-schema.sql`). Die Rollen hier sind fachlich benannt; welcher Claim und welche DB-Rolle sie tragen, steht in `wb-backend/db/init-roles.sh`, die Liste der anzulegenden DB-Rollen in `TODO.md`.
+Zwei Ebenen, nie nur eine: **welche** Rolle eine Anfrage bekommt, liest die API aus `employee_roles` — vergeben wird sie in Weltenbaum, nicht im Tenant (`idea/04-identitaet-zugriff.md`); **welche Spalten** diese Rolle lesen und schreiben darf, entscheidet die DB-Rolle samt Spalten-GRANT (`schema/stammdaten-schema.sql`). Die Rollen hier sind fachlich benannt; ihr `code` steht als Zeile in `roles`, die DB-Rollen in `wb-backend/db/init-roles.sh`.
 
 **Das sind alle Rollen — diese Liste ist vollständig.** Wer hier fehlt, bekommt keinen Zugang; eine neue Rolle entsteht nur zusammen mit der Domäne, die sie braucht.
 
@@ -32,16 +32,16 @@ Person mit Root-SSH-Zugriff auf die VPS, eigenem Hetzner-API-Token, Zugriff auf 
 _Avoid_: Admin (allein, ohne Präfix — mehrdeutig)
 
 **Admin** (Anwendungs-Rolle):
-Entra-ID-Rollen-Claim, darf perspektivisch alle Fachdomänen exportieren/einsehen — Obermenge von Verwaltung. Unabhängig von Infra-Admin, keine Server-/GitHub-Berechtigung damit verbunden. Wo genau die Rollenzuweisung gepflegt wird, ist noch offen.
+Rolle in Weltenbaum (`roles.code = 'admin'`), darf perspektivisch alle Fachdomänen exportieren/einsehen — Obermenge von Verwaltung. Unabhängig von Infra-Admin, keine Server-/GitHub-Berechtigung damit verbunden. Vergeben wird sie von Admins und Geschäftsführung im Portal (`soll-prozesse/hebel.md`).
 _Avoid_: Infra-Admin, Root
 
 **Verwaltung** (= Sekretariat):
-Entra-ID-Rollen-Claim für Schulsekretariats-Personal, darf Stammdaten aller Schüler exportieren — bewusst nicht automatisch auf künftige Fachdomänen erweitert, jede neue Fachdomäne bekommt bei Bedarf eine eigene Export-Berechtigung. Führt Bewerbung und Schulvertrag samt Vollständigkeitsprüfung (`schema/anmeldung-schema.sql`) und sieht den vollen Gesundheitssatz (`schema/gesundheit-schema.sql`).
+Rolle in Weltenbaum (`roles.code = 'secretariat'`) für Schulsekretariats-Personal, darf Stammdaten aller Schüler exportieren — bewusst nicht automatisch auf künftige Fachdomänen erweitert, jede neue Fachdomäne bekommt bei Bedarf eine eigene Export-Berechtigung. Führt Bewerbung und Schulvertrag samt Vollständigkeitsprüfung (`schema/anmeldung-schema.sql`) und sieht den vollen Gesundheitssatz (`schema/gesundheit-schema.sql`).
 **„Verwaltung" ist der Rollenname, „Sekretariat" die Stelle dahinter — dieselbe Rolle, ein GRANT.** Beide Wörter sind zulässig und stehen so in den Domänen-Dokumenten; im Ist-Ablauf (`prozesse.md`) ist „Sekretariat" ohnehin das richtige, weil es dort um die handelnde Stelle geht und nicht um eine Berechtigung.
 _Avoid_: Admin
 
 **Schulleitung**:
-Je Schulzweig eine — und sieht ausschließlich ihren Zweig, nicht alle Schüler. Gibt den **Schulvertrag** frei und zeichnet ihn gegen, nachdem die Verwaltung ihn geprüft hat (`schema/anmeldung-schema.sql`); dafür braucht sie den Vertrag als Datei, bekommt ihn aber über Weltenbaum statt über die Bibliothek — sonst sähe sie beide Zweige (`grenzkarte.md`, Q2); darf zusammen mit der Geschäftsführung die Putzdienst-Strafe aussetzen und die Pflicht erlassen (`schema/putzdienst-schema.sql`). Der zweite Zugriff hängt an einem eigenen Spalten-GRANT, nicht am Rollen-Claim allein.
+Je Schulzweig eine — und sieht ausschließlich ihren Zweig, nicht alle Schüler. Gibt den **Schulvertrag** frei und zeichnet ihn gegen, nachdem die Verwaltung ihn geprüft hat (`schema/anmeldung-schema.sql`); dafür braucht sie den Vertrag als Datei, bekommt ihn aber über Weltenbaum statt über die Bibliothek — sonst sähe sie beide Zweige (`grenzkarte.md`, Q2); darf zusammen mit der Geschäftsführung die Putzdienst-Strafe aussetzen und die Pflicht erlassen (`schema/putzdienst-schema.sql`). Der zweite Zugriff hängt an einem eigenen Spalten-GRANT, nicht an der Rolle allein.
 Für **Hortverträge nicht zuständig** — die laufen vollständig über den Hort (siehe Hortleitung).
 _Avoid_: Admin
 

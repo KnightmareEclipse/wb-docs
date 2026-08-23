@@ -43,7 +43,7 @@ entzieht, hat den Zugriff nicht enger gemacht, sondern nur unbeobachtbarer. — 
 Domäne freischalten; Preis: eine Rolle mehr an jeder Route, und die Aushilfe hängt an einer
 Rollenvergabe, die im Zweifel stehen bleibt.
 
-**Zweierlei bekommt er damit nicht**, weil beides nicht am Rollen-Claim hängt: die engen Spalten
+**Zweierlei bekommt er damit nicht**, weil beides nicht an der Rolle hängt: die engen Spalten
 (Art. 9, IBAN) liegen hinter eigenen DB-Rollen, und was einer Person zur Entscheidung zugewiesen ist
 — Freigabe, Gegenzeichnung, Straf-Aussetzung —, bleibt bei ihr: „wer entscheidet, trägt ein".
 
@@ -116,9 +116,8 @@ Drei Bedingungen an der Rückrufroute, keine davon verhandelbar:
   die einzige Route ohne Anmeldung; ohne diese Prüfung genügt ein POST, um eine Zahlung zu behaupten.
 - **Sie ist idempotent, und der Schlüssel allein macht sie es nicht.** Stripe wiederholt ein
   Ereignis, bis es eine 2xx bekommt; die zweite Zustellung darf den Vorgang nicht ein zweites Mal
-  anlegen. Anker ist `payments.payment_reference` — die Spalte steht, ein UNIQUE darauf fehlt und
-  kommt als Migration in `wb-backend`. Es gilt nur für belegte Werte: bei der manuellen Bestätigung
-  der Buchhaltung bleibt sie leer. Die Verletzung reißt in Postgres aber die ganze Transaktion ab;
+  anlegen. Anker ist `uq_payments_payment_reference`, gebaut. Es gilt nur für belegte Werte: bei der
+  manuellen Bestätigung der Buchhaltung bleibt die Spalte leer. Die Verletzung reißt in Postgres aber die ganze Transaktion ab;
   antwortete die Route damit 5xx, wiederholte Stripe tagelang genau das Ereignis, das längst
   angekommen ist. Sie **fängt** den Schlüsselfehler, rollt zurück und antwortet 2xx — eine zweite
   Zustellung ist erledigt, nicht gescheitert.
