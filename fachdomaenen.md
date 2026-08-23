@@ -181,15 +181,15 @@ Kritischer Pfad bis dahin:
 
 *Infrastruktur:*
 - NAS-Backup-Bootstrap (`TODO.md`) — muss vor echten Elterndaten laufen, nicht nachträglich
-- Redirect-URI der bestehenden Entra-ID-App-Registrierung nachtragen (`pipeline/runbook.md` Schritt 5, `TODO.md`) — steht erst mit der Frontend-/Domain-Struktur fest, wie die CORS-Policy (`idea/04-identitaet-zugriff.md`). Der interne Login wird zwingend gebraucht: die Verwaltung startet den Prozess und pflegt die Putztermine intern, kein reiner Eltern-Self-Service
+- Redirect-URI der bestehenden Entra-ID-App-Registrierung nachtragen (`pipeline/runbook.md` Schritt 5, `TODO.md`) — der Name steht fest, die Eintragung hängt am Tenant-Zugriff. Der interne Login wird zwingend gebraucht: die Verwaltung startet den Prozess und pflegt die Putztermine intern, kein reiner Eltern-Self-Service
 
 *Auth/Zugriff für Eltern:*
 - OTP-Fallback (gebaut, `wb-backend/app/routers/auth.py`) — offen bleibt allein die Application Access Policy auf das Absenderpostfach (`idea/04-identitaet-zugriff.md`, `TODO.md`): ohne sie sendet die Anwendung tenantweit, und der Pfad darf nicht live gehen
-- Externes Frontend (Azure Static Web App + Function, `project-parts.md` Abschnitt 9) erstmals aufsetzen — CORS-Policy wird dadurch jetzt konkret
+- Elternportal (`portal.clemens.schule`, `project-parts.md` Abschnitt 9) erstmals aufsetzen — samt den beiden DNS-Records und dem Ausliefern durch den Reverse-Proxy
 
 *Fachlich:*
 - Stammdaten- und Putzdienst-Schema als Grundlage — beide stehen samt Prüfskript in `schema/`, Fachbeschreibungen `schema/stammdaten-schema.sql` und `schema/putzdienst-schema.sql`
-- Restplatz-Solver und Erinnerungs-Hintergrundjob bauen (`schema/putzdienst-schema.sql` bzw. „Technischer Punkt") — Letzterer ist in keinem Pipeline-Dokument benannt
+- Restplatz-Solver und Erinnerungs-Lauf bauen (`schema/putzdienst-schema.sql` bzw. „Technischer Punkt") — der Mechanismus für Läufe ist entworfen (`idea/03-container-anwendung.md`), gebaut ist er nicht, und vor dem ersten Lauf stehen vier Schema-Marken (`TODO-SESSIONS.md`); das Modell des Solvers fehlt noch ganz
 - **Nicht** auf dem kritischen Pfad: der Jahreslauf (`schema/stammdaten-schema.sql`). Er liegt Ende Juli, der für den ersten Zyklus maßgebliche ist damit schon von Hand in ASV-BW und M365 gelaufen — der Vollimport bringt den fortgeschriebenen Stand bereits mit. Der Weltenbaum-Job läuft erstmals Ende Juli 2027. Gesetzt sein müssen für September 2026 nur die Einzelfälle daneben (Wiederholer, Quereinsteiger, Zugwechsler), die ohnehin ein Mensch entscheidet
 
 *Organisatorisch:*

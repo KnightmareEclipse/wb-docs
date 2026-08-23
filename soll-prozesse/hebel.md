@@ -81,7 +81,7 @@ Häufen sich bei einem System Aufgaben, die als *war nichts zu tun* abgehakt wer
 
 ## Unzustellbare Mail
 
-Bleibt eine Mail unzustellbar, ist das im System sichtbar, und das Sekretariat geht dem nach. Das gilt für jede Mail aus jedem Prozess.
+Bleibt eine Mail unzustellbar, ist das im System sichtbar, und das Sekretariat geht dem nach. Das gilt für jede Mail aus jedem Prozess — mit **einer** Ausnahme, dem [Anmeldecode](hebel.md#zugang-und-anmeldecode). Er ist die Antwort auf eine soeben gestellte Anfrage; wer ihn nicht bekommt, fordert einen neuen, und eine Zeile je Anforderung legte dafür jede je eingetippte Fremdadresse ab. Sein Fehlschlag ist deshalb kein Fall fürs Sekretariat, sondern eine Betriebsstörung: Er meldet sich beim Betreiber (`idea/03-container-anwendung.md`), nicht in einer Liste.
 
 ## Frisch erzeugte Liste
 
@@ -103,7 +103,7 @@ Jede andere Zahl — Fristen, Vorlaufzeiten, Stichtage — ist **fest und nirgen
 
 Drei Vorgänge werden **sofort online bezahlt**, statt aufs Schulgeld zu laufen: der Freikauf eines Putzdiensttermins (01), die Bearbeitungsgebühr der Voranmeldung (05) und die Ferienbuchung (10) — die Anmeldegebühr des Schulvertrags gehört ausdrücklich nicht dazu, sie wird wie das Schulgeld eingezogen (08). Für alle drei gilt dasselbe, und ein Block schreibt nur, wo er davon abweicht.
 
-Bezahlt wird **im selben Zug wie das Absenden**. Der Vorgang entsteht mit der **bestätigten Zahlung** und nicht mit der Rückkehr aus der Bezahlung — bricht die unterwegs ab, wäre sonst das Geld weg und der Vorgang nie entstanden. Aufs Schulgeld gerechnet wird nichts davon, und die Buchhaltung hat damit nichts zu tun — es sei denn, ein Block stellt einen zweiten Zahlweg **neben** die Sofortzahlung, wie den Kostenübernahme-Code (10). Den Zahlungsbeleg schickt der Zahlungsdienst, derzeit Stripe. Zurückgezahlt wird nur, wo ein Block es ausdrücklich vorsieht.
+Bezahlt wird **im selben Zug wie das Absenden**. Der Vorgang entsteht mit der **bestätigten Zahlung** und nicht mit der Rückkehr aus der Bezahlung — bricht die unterwegs ab, wäre sonst das Geld weg und der Vorgang nie entstanden. Aufs Schulgeld gerechnet wird nichts davon, und die Buchhaltung hat damit nichts zu tun — es sei denn, ein Block stellt einen zweiten Zahlweg **neben** die Sofortzahlung, wie den Kostenübernahme-Code (10). Den Zahlungsbeleg schickt der Zahlungsdienst, derzeit Stripe — die Mailadresse dafür tippt der Elternteil auf dessen Bezahlseite selbst ein, sie geht nicht von hier dorthin (`api/gemeinsam.md`). Die [Standardantwort](hebel.md#standardantworten) „keine Bestätigungsmail für selbst Eingetragenes" bleibt damit unangetastet: Der Beleg über das Geld kommt von dem, der es genommen hat, und was gebucht ist, steht wie immer in der eigenen Übersicht. Zurückgezahlt wird nur, wo ein Block es ausdrücklich vorsieht.
 
 ## Der offizielle Umweg
 

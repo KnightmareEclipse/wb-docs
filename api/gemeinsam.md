@@ -114,14 +114,21 @@ Drei Bedingungen an der Rückrufroute, keine davon verhandelbar:
 
 - **Sie prüft die Signatur des Zahlungsdienstes** (`stripe-signature` samt Webhook-Secret). Sie ist
   die einzige Route ohne Anmeldung; ohne diese Prüfung genügt ein POST, um eine Zahlung zu behaupten.
-- **Sie ist idempotent.** Stripe wiederholt ein Ereignis, bis es eine 2xx bekommt; die zweite
-  Zustellung darf den Vorgang nicht ein zweites Mal anlegen. Anker ist `payments.payment_reference`
-  — die Spalte steht, ein UNIQUE darauf fehlt und kommt als Migration in `wb-backend`. Es gilt nur
-  für belegte Werte: bei der manuellen Bestätigung der Buchhaltung bleibt sie leer.
-- **Sie prüft die Bedingung des Vorgangs erneut.** Weil zwischen Schritt 1 und 2 nichts in der
-  Datenbank steht, hält Schritt 1 auch nichts fest — zwei parallel eröffnete Sitzungen kämen sonst
-  beide durch. Wo ein eindeutiger Schlüssel das ohnehin abfängt (`uq_cleaning_slot_buyouts`),
-  braucht es nichts weiter.
+- **Sie ist idempotent, und der Schlüssel allein macht sie es nicht.** Stripe wiederholt ein
+  Ereignis, bis es eine 2xx bekommt; die zweite Zustellung darf den Vorgang nicht ein zweites Mal
+  anlegen. Anker ist `payments.payment_reference` — die Spalte steht, ein UNIQUE darauf fehlt und
+  kommt als Migration in `wb-backend`. Es gilt nur für belegte Werte: bei der manuellen Bestätigung
+  der Buchhaltung bleibt sie leer. Die Verletzung reißt in Postgres aber die ganze Transaktion ab;
+  antwortete die Route damit 5xx, wiederholte Stripe tagelang genau das Ereignis, das längst
+  angekommen ist. Sie **fängt** den Schlüsselfehler, rollt zurück und antwortet 2xx — eine zweite
+  Zustellung ist erledigt, nicht gescheitert.
+- **Sie prüft die Bedingung des Vorgangs erneut, und zwar sperrend.** Weil zwischen Schritt 1 und 2
+  nichts in der Datenbank steht, hält Schritt 1 auch nichts fest, und zwei parallel eröffnete
+  Sitzungen tragen zwei Sitzungs-IDs — das UNIQUE oben sieht sie nicht. Wo ein eindeutiger Schlüssel
+  den Vorgang selbst hält (`uq_cleaning_slot_buyouts`), braucht es nichts weiter. Wo keiner steht —
+  der mengenweise Freikauf in `cleaning_buyouts` hat bewusst keinen —, zählt die Prüfung gegen
+  Zeilen, die sie dafür sperrt; sonst kommen beide Zahlungen durch und die Familie hat mehr
+  freigekauft, als sie schuldet.
 
 **Der Vorgang entsteht mit der bestätigten Zahlung, nicht mit der Rückkehr des Browsers.** Wer das
 verwechselt, verliert bei jedem Abbruch das Geld und den Vorgang. Die Rückkehr-Adresse zeigt deshalb
@@ -131,6 +138,43 @@ auf eine Ansicht, die den Stand liest, und löst nichts aus.
 Zahlungssitzung als Metadaten. — Alternative: eine Vormerkzeile mit Status `pending`; Preis: ein
 Zustand, den kein Block kennt, plus ein Lauf, der ihn aufräumt — und `hebel.md` zählt abschließend
 auf, was von selbst verfällt.
+
+Vier Festlegungen dazu, die für alle drei Anlässe gelten:
+
+- **Gehostete Zahlungsseite (Checkout Session), kein eigenes Kartenformular.** Kartendaten berühren
+  weder Oberfläche noch API, der Prüfumfang bleibt der kleinste (SAQ A), und die Rückkehr-Adresse ist
+  ein Parameter davon. — Alternative: eigenes Formular über ein Element des Anbieters; Preis: unsere
+  Seite wird Teil des Zahlungsumfelds, für ein Layout, das dreimal im Jahr jemand sieht.
+- **Der Vorgang steht in den Metadaten der Sitzung** — Anlass, Familie und das Gekaufte —, und
+  `payments.payment_reference` trägt die Sitzungs-ID. Sie ist damit der Anker der Idempotenz oben;
+  was der leistet und was nicht, steht dort und nicht ein zweites Mal hier.
+- **Aus dem Bestand gehen Betrag und Referenz an den Zahlungsdienst, kein Name und keine Kennung**
+  (`rules.md` Abschnitt 7). Die **Mailadresse** trägt der Elternteil auf der gehosteten Bezahlseite
+  selbst ein — sie erreicht den Dienst aus dem Browser und nicht aus dieser Datenbank —, und dafür
+  schickt er den Beleg ([`hebel.md`](../soll-prozesse/hebel.md#sofortzahlung)). Kosten entstehen
+  dadurch keine: Der Beleg gehört zur Zahlung, die Transaktionsgebühr ist der ganze Preis
+  (`rules.md` Abschnitt 4); sein Versand ist eine Einstellung im Dashboard und kein Code
+  (`TODO.md`). Der Preis liegt woanders und wird getragen: Der Dienst weiß danach, dass diese
+  Adresse an diese Schule gezahlt hat. — Alternative: gar keine Adresse und ein Beleg aus dem eigenen
+  Versand; Preis: eine Mail, die das System selbst zustellen und belegen muss, und zwei Sätze in
+  `hebel.md` und [01](../soll-prozesse/01-putzdienst.md), die eine Bestätigungsmail heute
+  ausschließen.
+- **Trägt die Bedingung beim Rückruf nicht mehr, wird nichts automatisch erstattet.** Das Geld ist da,
+  der Vorgang unmöglich (der Termin ist weg, das Fenster zu) — daraus entsteht eine
+  [Aufgabe](../soll-prozesse/hebel.md#nachzieh-aufgabe-und-wochenmail) bei der Buchhaltung, denn eine
+  Rückzahlung entscheidet ein Mensch. Der Fall ist selten und darf trotzdem nicht still verschwinden
+  — heute täte er genau das: `ck_payments_single_cause` verlangt genau einen der vier
+  Vorgangs-Schlüssel, ohne Vorgang ist die Zahlung also nicht eintragbar;
+  `ck_sync_tasks_single_subject` verlangt genau einen von sieben Bezügen, und keiner ist eine
+  Zahlung; die sechs `sync_targets` sind ausnahmslos Fremdsysteme. Die drei Schemaergänzungen dazu
+  stehen in `TODO-SESSIONS.md`. Sie entstehen mit der Domäne, die zuerst bezahlt, und die
+  Rückrufroute wird nicht davor gebaut.
+
+Bleibt der Rückruf aus, weil der Zahlungsdienst ihn nicht loswird, wiederholt **er** ihn über Tage —
+aber nicht unbegrenzt: Stripe stellt nach rund drei Tagen ein und schaltet einen dauerhaft
+fehlschlagenden Endpunkt ab. Innerhalb dieses Fensters wird kein eigener Abgleich-Lauf gebaut; wer
+ihn baut, baut die Wiederholung ein zweites Mal. Was danach liegenbleibt, ist derselbe Fall wie oben
+— Geld ohne Zeile — und wird mit ihm gelöst statt mit einem zweiten Mechanismus.
 
 ## Der offizielle Umweg
 
