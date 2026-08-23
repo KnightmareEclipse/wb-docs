@@ -1,8 +1,8 @@
 # Phase 4 — App-Stack-Deploy
 
-`[AUTOMATISIERT — Auslöser in wb-vps/ansible/roles/podman_rootful/, Stack in wb-backend. Offen: der Image-GC unten und der Lauf-Dienst.]`
+`[AUTOMATISIERT — Auslöser in wb-vps/ansible/roles/podman_rootful/, Stack in wb-backend. Offen: der Image-GC unten.]`
 
-Reverse-Proxy (Caddy), Datenbank (PostgreSQL), Backend-Container (eigenes FastAPI-Image) und — sobald gebaut — der Lauf-Dienst daneben (dasselbe Image, Schleife statt Web-Prozess, eigene Grenzen und eigener Überwachungs-Check, `idea/03-container-anwendung.md`) laufen hier — Details `project-parts.md`. Der Backup-Dump wird bei Bedarf vom NAS der Schule abgeholt (`idea/05-backup-recovery.md`), kein eigener Timer auf der VPS. Das Ablaufmuster:
+Reverse-Proxy (Caddy), Datenbank (PostgreSQL), Backend-Container (eigenes FastAPI-Image) und der Lauf-Dienst daneben (dasselbe Image, Schleife statt Web-Prozess, eigene Grenzen und eigener Überwachungs-Check, `idea/03-container-anwendung.md`) laufen hier — Details `project-parts.md`. Der Backup-Dump wird bei Bedarf vom NAS der Schule abgeholt (`idea/05-backup-recovery.md`), kein eigener Timer auf der VPS. Das Ablaufmuster:
 
 ## Build
 

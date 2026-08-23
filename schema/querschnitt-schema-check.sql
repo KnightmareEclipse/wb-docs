@@ -10,7 +10,9 @@
 -- Unterschrift unter dem SEPA-Mandat steht hier, sie kennt keinen Vertrag.
 -- Dazu zwölf partielle Unique-Indizes (drei für signatures, zwei für consents,
 -- sieben für sync_tasks) und zwei Lese-Indizes, auf outbound_emails und auf
--- change_log.
+-- change_log. `payments` trägt außerdem ein UNIQUE auf der Zahlungsreferenz;
+-- seine Gegenprobe steht in putzdienst-schema-check.sql, weil sie wie die
+-- übrigen Q3-Proben einen echten Anlass braucht.
 --
 -- Setzt stammdaten-schema.sql voraus. Läuft in einer Transaktion, die am Ende
 -- zurückgerollt wird:
@@ -56,7 +58,8 @@ BEGIN
         'ck_consents_revoked_after_granted', 'ck_sync_tasks_completed_by',
         'ck_signatures_level',
         'ck_payments_single_cause', 'ck_payments_status', 'ck_payments_confirmed',
-        'ck_payments_amount', 'ck_sync_tasks_single_subject',
+        'ck_payments_amount', 'uq_payments_payment_reference',
+        'ck_sync_tasks_single_subject',
         'ck_sync_tasks_outcome', 'ck_sync_tasks_completed',
         'ck_documents_purpose', 'ck_documents_filed', 'ck_documents_not_required',
         'ck_change_log_values', 'ck_change_log_operation', 'ck_change_log_column_scope',

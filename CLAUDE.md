@@ -74,6 +74,19 @@ führt, im `HttpOnly`-Cookie ausliefert und wieder beenden kann — beide Türen
 eigenen Subdomains derselben VPS (`project-parts.md` §9); offen ist alles unter Teams-Apps-Repo
 (§10).
 
+**Die drei gemeinsamen Mechanismen stehen.** Der Versand läuft über **eine** Stelle
+(`wb-backend/app/services/mail.py`): Sie schreibt die `outbound_emails`-Zeile in einer eigenen
+Transaktion, committet sie und sendet erst dann — in der Anfragetransaktion risse ein Graph-Fehler
+genau die Zeile mit zurück, für die es sie gibt. Der Anmeldecode ist die eine ausgeschriebene
+Ausnahme und meldet seinen Fehlschlag als Alarm; dass es keinen dritten Weg hinaus gibt, prüft
+`tests/test_mail.py` am Quelltext. Daneben der **Lauf-Dienst** als vierter Compose-Dienst
+(`wb-backend/app/runs.py`) mit **leerem Register** — ein Lauf entsteht mit seiner Domäne, und die
+vier Putzdienst-Läufe brauchen davor vier Schema-Marken, die es nicht gibt (`TODO-SESSIONS.md`). Er
+pingt einen **eigenen** healthchecks.io-Check; der des Hosts hat schon einen Herzschlag, und ein
+zweiter daneben entwaffnete den Dead-Man's-Switch in beide Richtungen. Die Sofortzahlung hat ihren
+Schlüssel (`uq_payments_payment_reference`), die Rückrufroute aber bewusst nicht: Konto, AVV und
+Webhook-Secret fehlen (`TODO.md`).
+
 **Datenmodell — geprüft.** Was in `schema/` liegt, ist gebaut; das `-schema-check.sql` daneben
 belegt es. Abgeleitet aus den Soll-Blöcken, durch die Zyklen in `pruefberichte/` gegangen. Was das
 Dateisystem *nicht* sagt und deshalb hier steht:
@@ -89,7 +102,8 @@ folgt dem Stand der Entwicklung, und keine Fachdomäne wird gegen einen Kalender
 
 **Backend — übertragen.** Alle 101 Tabellen stehen in `wb-backend` als SQLAlchemy-Modelle
 (`app/models/`, ein Modul je Domäne) und als zehn Domänen-Migrationen (`app/alembic/versions/`),
-denen der Werteliste-Anfangsbestand, die Normalform-Korrekturen und die Sitzungstabelle folgen; die
+denen der Werteliste-Anfangsbestand, die Normalform-Korrekturen, die Sitzungstabelle und der
+Schlüssel auf der Zahlungsreferenz folgen; die
 Spalten-Rechte und die sieben engen Rollen entstehen in der Migration ihrer Domäne, weil
 `--autogenerate` beides nicht sieht. Jede ORM-Änderung läuft durch die Schreibschicht
 (`app/db/changelog.py`), die `change_log` aus Session-Events schreibt, den Aktor je Transaktion

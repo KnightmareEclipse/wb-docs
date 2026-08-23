@@ -594,6 +594,15 @@ CREATE TABLE payments (
     created_by     text NOT NULL,
 
     CONSTRAINT pk_payments PRIMARY KEY (payment_id),
+    -- Der Anker der Idempotenz an der Rückrufroute (api/gemeinsam.md): Der
+    -- Zahlungsdienst wiederholt ein Ereignis, bis er eine 2xx bekommt, und die
+    -- zweite Zustellung darf keine zweite Zahlung anlegen. Bewusst ein
+    -- schlichtes UNIQUE und kein partieller Index: NULL zählt in Postgres als
+    -- verschieden, der Schlüssel greift also von selbst nur für belegte Werte —
+    -- und leer bleibt die Spalte genau dort, wo die Buchhaltung von Hand
+    -- bestätigt. Er allein macht die Route nicht idempotent; was die Route
+    -- zusätzlich tun muss, steht dort und nicht hier.
+    CONSTRAINT uq_payments_payment_reference UNIQUE (payment_reference),
     -- Genau ein Anlass je Zahlung. Jeder weitere Anlass ist eine Spalte und ein
     -- Summand mehr, nie eine zweite Zahlungstabelle.
     CONSTRAINT ck_payments_single_cause CHECK (

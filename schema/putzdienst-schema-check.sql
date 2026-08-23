@@ -275,6 +275,24 @@ SELECT pg_temp.expect_accept(
        VALUES ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1', 3500, 'confirmed', now(),
                'system:check')$q$);
 
+-- api/gemeinsam.md, „Sofortzahlung": Der Zahlungsdienst wiederholt ein Ereignis,
+-- bis er eine 2xx bekommt — die zweite Zustellung darf keine zweite Zahlung
+-- anlegen. Zwei Zeilen mit derselben Referenz sind genau dieser Fall.
+SELECT pg_temp.expect_reject(
+    'Q3 — dieselbe Zahlungsreferenz zweimal',
+    $q$INSERT INTO payments (cleaning_buyout_id, amount_cents, payment_reference, created_by)
+       VALUES ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1', 3500, 'cs_test_gleich', 'system:check'),
+              ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1', 3500, 'cs_test_gleich', 'system:check')$q$);
+
+-- Die Gegenrichtung, und ohne sie wäre der Schlüssel oben zu scharf gebaut: Bei
+-- der manuellen Bestätigung bleibt die Referenz leer, und beliebig viele solche
+-- Zahlungen müssen nebeneinander stehen dürfen.
+SELECT pg_temp.expect_accept(
+    'Q3 — zwei Zahlungen ohne Referenz nebeneinander',
+    $q$INSERT INTO payments (cleaning_buyout_id, amount_cents, created_by)
+       VALUES ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1', 3500, 'system:check'),
+              ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1', 3500, 'system:check')$q$);
+
 -- 01: „je Termin aber nur ein Angebot".
 INSERT INTO cleaning_swap_offers (cleaning_swap_offer_id, cleaning_assignment_id,
                                   cleaning_slot_type_id, created_by)
