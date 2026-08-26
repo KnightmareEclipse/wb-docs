@@ -29,6 +29,15 @@ CREATE TABLE cleaning_cycles (
     -- Ohne diese Freigabe durch das Sekretariat „erfährt keine Familie ihre
     -- Termine" — die Zuteilung steht dann zwar, wirkt aber noch nicht.
     allocation_released_at timestamptz,
+    -- Die Marke des Laufs „Anmeldefenster offen" (01, Z2): gesetzt, sobald die
+    -- Mail an alle Familien mit Pflichtterminen draußen ist. Sie ist es, die den
+    -- Lauf einmalig macht — er sucht die Zyklen, die keine tragen, und
+    -- `allocation_released_at` taugt dafür nicht: die trägt die Freigabe durch
+    -- das Sekretariat und keinen Lauf. Bewusst OHNE CHECK gegen
+    -- `registration_opens_at`: das Sekretariat verschiebt das Fenster bis zum
+    -- Schließen, und ein nach der Mail vorgezogener Beginn wäre dann eine
+    -- Constraint-Verletzung statt einer Terminänderung.
+    registration_mail_sent_at timestamptz,
     created_at        timestamptz NOT NULL DEFAULT now(),
     created_by        text NOT NULL,
 

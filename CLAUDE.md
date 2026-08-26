@@ -84,9 +84,11 @@ Transaktion, committet sie und sendet erst dann — in der Anfragetransaktion ri
 genau die Zeile mit zurück, für die es sie gibt. Der Anmeldecode ist die eine ausgeschriebene
 Ausnahme und meldet seinen Fehlschlag als Alarm; dass es keinen dritten Weg hinaus gibt, prüft
 `tests/test_mail.py` am Quelltext. Daneben der **Lauf-Dienst** als vierter Compose-Dienst
-(`wb-backend/app/runs.py`) mit **leerem Register** — ein Lauf entsteht mit seiner Domäne, und die
-vier Putzdienst-Läufe brauchen davor vier Schema-Marken, die es nicht gibt (`TODO-SESSIONS.md`). Er
-pingt einen **eigenen** healthchecks.io-Check; der des Hosts hat schon einen Herzschlag, und ein
+(`wb-backend/app/runs.py`), dessen Register seine erste Zeile trägt: die Mail „Anmeldefenster offen"
+(`wb-backend/app/services/cleaning.py`) mit den Pflichtterminen genau dieser Familie, beiden Preisen
+und dem Enddatum — einmalig gemacht durch die eigene Marke am Zyklus, nicht durch eine Zustandsdatei
+daneben. Die drei übrigen Putzdienst-Läufe warten auf die Zuteilung und mit ihr auf ihre Marken
+(`TODO-SESSIONS.md`). Er pingt einen **eigenen** healthchecks.io-Check; der des Hosts hat schon einen Herzschlag, und ein
 zweiter daneben entwaffnete den Dead-Man's-Switch in beide Richtungen. Die Sofortzahlung hat ihren
 Schlüssel (`uq_payments_payment_reference`), die Rückrufroute aber bewusst nicht: Konto, AVV und
 Webhook-Secret fehlen (`TODO.md`).
@@ -119,13 +121,12 @@ geladen wurden, und alle vierzehn Prüfskripte laufen gegen sie mit Rückgabewer
 mehr die Quelle der Wahrheit; eine Strukturänderung beginnt ab jetzt als Migration und wird hier
 nachgezogen, nicht umgekehrt.
 
-**Nächster Schritt** sind die **Lauf-Marken des Putzdienstes** und mit ihnen die erste Zeile im
-Register des Lauf-Dienstes, das bis heute leer ist — welche Marken es sind und warum
-`allocation_released_at` für keine davon taugt, steht in `TODO-SESSIONS.md`, „Was die drei
-gemeinsamen Mechanismen noch brauchen". Der Zyklus und seine Termine stehen jetzt, es gibt also
-erstmals einen Gegenstand, auf den ein Lauf zeigen kann. Sie sind eine Schemaänderung, gehen also
-als Migration in `wb-backend` voran und werden hier nachgezogen. Was daneben stehen muss, steht als
-kritischer Pfad in `fachdomaenen.md` §7 und in `TODO.md`.
+**Nächster Schritt** ist der **Zuteilungslauf** (01, Z4): Er schließt das Anmeldefenster und
+verteilt die offenen Pflichttermine, und an ihm hängen die drei übrigen Läufe der Domäne samt ihren
+Marken — ohne Zuteilung haben Zuteilungsmail und Terminerinnerung keinen Gegenstand
+(`TODO-SESSIONS.md`, „Was die drei gemeinsamen Mechanismen noch brauchen"). Seine Marke ist eine
+Schemaänderung, geht also als Migration in `wb-backend` voran und wird hier nachgezogen. Was daneben
+stehen muss, steht als kritischer Pfad in `fachdomaenen.md` §7 und in `TODO.md`.
 
 ## Einstieg in eine Session
 
