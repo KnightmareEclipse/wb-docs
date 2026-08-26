@@ -89,6 +89,8 @@ Ausnahme und meldet seinen Fehlschlag als Alarm; dass es keinen dritten Weg hina
 genau dieser Familie, beiden Preisen und dem Enddatum, und der **Zuteilungslauf**, der nach dem
 Fensterschluss verteilt, was noch offen ist — jede Familie vollzählig je Art, Reservierungen
 unberührt, die Platzzahl weicht der Vollzähligkeit, der September nur für Familien, die bleiben.
+Verteilt wird als **Min-Cost-Flow** über alle Familien gleichzeitig, nicht Familie für Familie; das
+Zielraster und der Preis des verworfenen Weges stehen in `api/putzdienst-api.md`.
 Jeder der beiden trägt seine eigene Marke am Zyklus, keiner eine Zustandsdatei daneben; die zwei
 übrigen Läufe warten auf die Freigabe der Zuteilung (`TODO-SESSIONS.md`). Er pingt einen **eigenen**
 healthchecks.io-Check; der des Hosts hat schon einen Herzschlag, und ein

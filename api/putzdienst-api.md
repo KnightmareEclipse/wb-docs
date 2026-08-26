@@ -93,6 +93,21 @@ Keine Route, kein Endpunkt von außen ([`gemeinsam.md`](gemeinsam.md#was-keine-r
 | Mail mit den endgültigen Terminen an jede Familie, die welche hat — auch an die, die selbst reserviert hat | [01](../soll-prozesse/01-putzdienst.md) Z6 | die Freigabe, also `POST …/allocation/release` | `system:` |
 | Die zwei Erinnerungen je Termin; zur zweiten die Aufgabe „Anwesenheitsliste drucken" **samt eigener Mail**, weil sie noch in derselben Woche fällig ist. Am 1. jedes Monats **eine** Aufgabe bei der Buchhaltung über alle bis dahin ausgewerteten Strafen; sie setzt `penalty_handed_over_at` | [01](../soll-prozesse/01-putzdienst.md) Z9, Z12 | der vorige Termin bzw. der Termin selbst; der 1. des Monats, ein festes Datum | `system:` |
 
+**Wie der Zuteilungslauf verteilt** — je Terminart ein **Min-Cost-Flow**
+(`wb-backend/app/services/cleaning.py`): Jeder offene Pflichttermin bekommt einen Zielzeitpunkt aus
+einem gleichmäßigen Raster über das Putzdienstjahr, in das die schon gebuchten Termine der Familie
+eingerechnet sind; die Kosten sind der quadrierte Tagesabstand zum Ziel, die Platzzahl ist eine
+Kapazität mit teurer Überlaufkante. Alle Familien werden dabei in **einem** Problem gelöst, nicht
+nacheinander.
+
+`[A!]` — Alternative: Familie für Familie den passendsten freien Termin nehmen. Preis: Wer selbst
+reserviert hat, bekommt den Rest über das ganze Jahr gestreut und damit auch direkt neben seine
+Reservierung; und wo die Plätze knapp sind, bekommt dieselbe Familie in jeder Runde die Reste, weil
+die Reihenfolge feststeht. Beides fällt als „schlecht verteilt" auf, und keine Reihenfolge repariert
+es. Der Preis der gewählten Lösung ist eine Abhängigkeit mehr (`networkx`, reines Python) und ein
+Zielraster, das eine Modellannahme ist und keine Regel des Blocks — es entscheidet, was „über das
+Jahr verteilt" heißt, und ist die Stellschraube, wenn ein Jahrgang schief aussieht.
+
 **Zeile 10 hat keine Route und keinen Lauf:** Eltern und Putzdienstleitung handeln vor Ort auf
 Papier. Die Putzdienstleitung ist „eine eigene Person ohne Rolle" und bekommt keinen Zugang — was sie
 braucht, steht auf der ausgedruckten Liste.
