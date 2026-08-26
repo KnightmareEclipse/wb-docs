@@ -84,11 +84,14 @@ Transaktion, committet sie und sendet erst dann — in der Anfragetransaktion ri
 genau die Zeile mit zurück, für die es sie gibt. Der Anmeldecode ist die eine ausgeschriebene
 Ausnahme und meldet seinen Fehlschlag als Alarm; dass es keinen dritten Weg hinaus gibt, prüft
 `tests/test_mail.py` am Quelltext. Daneben der **Lauf-Dienst** als vierter Compose-Dienst
-(`wb-backend/app/runs.py`), dessen Register seine erste Zeile trägt: die Mail „Anmeldefenster offen"
-(`wb-backend/app/services/cleaning.py`) mit den Pflichtterminen genau dieser Familie, beiden Preisen
-und dem Enddatum — einmalig gemacht durch die eigene Marke am Zyklus, nicht durch eine Zustandsdatei
-daneben. Die drei übrigen Putzdienst-Läufe warten auf die Zuteilung und mit ihr auf ihre Marken
-(`TODO-SESSIONS.md`). Er pingt einen **eigenen** healthchecks.io-Check; der des Hosts hat schon einen Herzschlag, und ein
+(`wb-backend/app/runs.py`) mit zwei Zeilen im Register, beide aus dem Putzdienst
+(`wb-backend/app/services/cleaning.py`): die Mail „Anmeldefenster offen" mit den Pflichtterminen
+genau dieser Familie, beiden Preisen und dem Enddatum, und der **Zuteilungslauf**, der nach dem
+Fensterschluss verteilt, was noch offen ist — jede Familie vollzählig je Art, Reservierungen
+unberührt, die Platzzahl weicht der Vollzähligkeit, der September nur für Familien, die bleiben.
+Jeder der beiden trägt seine eigene Marke am Zyklus, keiner eine Zustandsdatei daneben; die zwei
+übrigen Läufe warten auf die Freigabe der Zuteilung (`TODO-SESSIONS.md`). Er pingt einen **eigenen**
+healthchecks.io-Check; der des Hosts hat schon einen Herzschlag, und ein
 zweiter daneben entwaffnete den Dead-Man's-Switch in beide Richtungen. Die Sofortzahlung hat ihren
 Schlüssel (`uq_payments_payment_reference`), die Rückrufroute aber bewusst nicht: Konto, AVV und
 Webhook-Secret fehlen (`TODO.md`).
@@ -121,12 +124,12 @@ geladen wurden, und alle vierzehn Prüfskripte laufen gegen sie mit Rückgabewer
 mehr die Quelle der Wahrheit; eine Strukturänderung beginnt ab jetzt als Migration und wird hier
 nachgezogen, nicht umgekehrt.
 
-**Nächster Schritt** ist der **Zuteilungslauf** (01, Z4): Er schließt das Anmeldefenster und
-verteilt die offenen Pflichttermine, und an ihm hängen die drei übrigen Läufe der Domäne samt ihren
-Marken — ohne Zuteilung haben Zuteilungsmail und Terminerinnerung keinen Gegenstand
-(`TODO-SESSIONS.md`, „Was die drei gemeinsamen Mechanismen noch brauchen"). Seine Marke ist eine
-Schemaänderung, geht also als Migration in `wb-backend` voran und wird hier nachgezogen. Was daneben
-stehen muss, steht als kritischer Pfad in `fachdomaenen.md` §7 und in `TODO.md`.
+**Nächster Schritt** ist die **Freigabe der Zuteilung** (01, Z5): die beiden Routen aus
+`api/putzdienst-api.md`, Abschnitt „Zuteilung" — das Gesamtbild ansehen und freigeben. An ihr hängen
+die zwei übrigen Läufe der Domäne samt ihren Marken, denn ohne Freigabe „erfährt keine Familie ihre
+Termine", und die Zuteilungsmail ist zugleich die erste Erinnerung an den ersten Termin
+(`TODO-SESSIONS.md`, „Was die drei gemeinsamen Mechanismen noch brauchen"). Was daneben stehen muss,
+steht als kritischer Pfad in `fachdomaenen.md` §7 und in `TODO.md`.
 
 ## Einstieg in eine Session
 

@@ -48,7 +48,8 @@ BEGIN
         'uq_cleaning_assignments_id_type', 'uq_cleaning_swap_offers_id_type',
         'fk_cleaning_assignments_slot', 'fk_cleaning_swap_offers_assignment',
         'fk_cleaning_swap_acceptances_offer', 'fk_cleaning_swap_acceptances_slot',
-        'ck_cleaning_cycles_window', 'ck_cleaning_cycles_release',
+        'ck_cleaning_cycles_window', 'ck_cleaning_cycles_allocated',
+        'ck_cleaning_cycles_release',
         'ck_cleaning_slots_cancelled', 'ck_cleaning_slots_sheet',
         'ck_cleaning_slots_sheet_recorded', 'fk_cleaning_slots_sheet_library',
         'ck_cleaning_assignments_source',
@@ -488,6 +489,16 @@ SELECT pg_temp.expect_reject(
 SELECT pg_temp.expect_reject(
     '01 — Zuteilung freigegeben, bevor das Anmeldefenster schließt',
     $q$UPDATE cleaning_cycles SET allocation_released_at = TIMESTAMPTZ '2026-09-10 08:00+02'
+        WHERE cleaning_cycle_id = 1$q$);
+
+SELECT pg_temp.expect_reject(
+    '01 — Zuteilung gelaufen, bevor das Anmeldefenster schließt',
+    $q$UPDATE cleaning_cycles SET allocated_at = TIMESTAMPTZ '2026-09-10 08:00+02'
+        WHERE cleaning_cycle_id = 1$q$);
+
+SELECT pg_temp.expect_reject(
+    '01 — freigegeben, ohne dass die Zuteilung gelaufen ist',
+    $q$UPDATE cleaning_cycles SET allocation_released_at = TIMESTAMPTZ '2026-09-25 08:00+02'
         WHERE cleaning_cycle_id = 1$q$);
 
 SELECT pg_temp.expect_reject(

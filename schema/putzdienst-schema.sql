@@ -26,6 +26,11 @@ CREATE TABLE cleaning_cycles (
     -- Der Zeitpunkt, zu dem das System die offenen Pflichttermine automatisch
     -- verteilt; bis dahin dürfen Eltern selbst reservieren und umbuchen.
     registration_closes_at timestamptz NOT NULL,
+    -- Die Marke des Zuteilungslaufs (01, Z4): gesetzt, wenn die offenen
+    -- Pflichttermine verteilt sind. Das Fenster schließt derweil ohne Spalte —
+    -- es schließt durch `registration_closes_at`, und wer reservieren will,
+    -- liest die Uhr.
+    allocated_at           timestamptz,
     -- Ohne diese Freigabe durch das Sekretariat „erfährt keine Familie ihre
     -- Termine" — die Zuteilung steht dann zwar, wirkt aber noch nicht.
     allocation_released_at timestamptz,
@@ -45,8 +50,13 @@ CREATE TABLE cleaning_cycles (
     CONSTRAINT uq_cleaning_cycles_year  UNIQUE (start_year),
     CONSTRAINT ck_cleaning_cycles_window
         CHECK (registration_closes_at > registration_opens_at),
+    CONSTRAINT ck_cleaning_cycles_allocated
+        CHECK (allocated_at IS NULL OR allocated_at >= registration_closes_at),
+    -- „Ohne Freigabe erfährt keine Familie ihre Termine" — und ohne Lauf gibt es
+    -- nichts freizugeben: die Freigabe setzt die Zuteilung voraus und folgt ihr.
     CONSTRAINT ck_cleaning_cycles_release
-        CHECK (allocation_released_at IS NULL OR allocation_released_at >= registration_closes_at),
+        CHECK (allocation_released_at IS NULL
+               OR (allocated_at IS NOT NULL AND allocation_released_at >= allocated_at)),
     CONSTRAINT ck_cleaning_cycles_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 

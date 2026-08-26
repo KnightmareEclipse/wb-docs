@@ -53,7 +53,7 @@ jedem Gespräch heißt der Zyklus ohnehin bei seinem Jahr.
 | Handlung | Herkunft | Wer darf | Worauf eingeschränkt | Schreibt/liest | Enge Rolle |
 |---|---|---|---|---|---|
 | `GET /cleaning/cycles/{year}/allocation` — das Gesamtbild, mit den Terminen, an denen die Platzzahl überschritten wurde | [01](../soll-prozesse/01-putzdienst.md) Z5 | `secretariat` | unbeschränkt | liest | — |
-| `POST /cleaning/cycles/{year}/allocation/release` — Zuteilung freigeben; setzt `allocation_released_at` und stößt die Zuteilungsmail an | [01](../soll-prozesse/01-putzdienst.md) Z5 | `secretariat` | erst nach dem Lauf, genau einmal | schreibt, `entra:` | — |
+| `POST /cleaning/cycles/{year}/allocation/release` — Zuteilung freigeben; setzt `allocation_released_at` und stößt die Zuteilungsmail an | [01](../soll-prozesse/01-putzdienst.md) Z5 | `secretariat` | erst nach dem Lauf (`ck_cleaning_cycles_release`), genau einmal | schreibt, `entra:` | — |
 | `POST /cleaning/families/{family_id}/assignments` — einer Familie einen Termin von Hand zuteilen; die Familie bekommt ihre aktuelle Terminliste | [01](../soll-prozesse/01-putzdienst.md) Z5, „Sonderfälle" | `secretariat` | unbeschränkt; `source = 'manual'` | schreibt, `entra:` | — |
 | `PATCH /cleaning/assignments/{assignment_id}` — eine Familie auf einen anderen Termin verschieben | [01](../soll-prozesse/01-putzdienst.md) Z5, „Sonderfälle" | `secretariat` | derselbe Zyklus, dieselbe Art; nicht nach `attendance_recorded_at` | schreibt, `entra:` | — |
 | `DELETE /cleaning/assignments/{assignment_id}` — Termin streichen bzw. eine Reservierung freigeben | [01](../soll-prozesse/01-putzdienst.md) Z3 (Eltern), Z5 und „Sonderfälle" (Sekretariat) | `secretariat`; Erziehungsberechtigte | Eltern: nur die eigene Familie, nur `source = 'reserved'`, nur im offenen Anmeldefenster. Sekretariat: jeder Termin, auch ein selbst reservierter — und dann mit Mail | schreibt, `entra:` / `guardian:` | — |
@@ -89,7 +89,7 @@ Keine Route, kein Endpunkt von außen ([`gemeinsam.md`](gemeinsam.md#was-keine-r
 | Lauf | Herkunft | Auslöser | Aktor |
 |---|---|---|---|
 | Mail „Anmeldefenster offen", mit der Pflichtzahl genau dieser Familie, den Preisen und dem Enddatum; nicht an Familien mit null | [01](../soll-prozesse/01-putzdienst.md) Z2 | `cleaning_cycles.registration_opens_at`, solange `registration_mail_sent_at` leer ist | `system:` |
-| Fenster schließen und die offenen Pflichttermine verteilen, je Art getrennt; Reservierungen bleiben unberührt | [01](../soll-prozesse/01-putzdienst.md) Z4 | `cleaning_cycles.registration_closes_at` | `system:` |
+| Fenster schließen und die offenen Pflichttermine verteilen, je Art getrennt; Reservierungen bleiben unberührt | [01](../soll-prozesse/01-putzdienst.md) Z4 | `cleaning_cycles.registration_closes_at`, solange `allocated_at` leer ist | `system:` |
 | Mail mit den endgültigen Terminen an jede Familie, die welche hat — auch an die, die selbst reserviert hat | [01](../soll-prozesse/01-putzdienst.md) Z6 | die Freigabe, also `POST …/allocation/release` | `system:` |
 | Die zwei Erinnerungen je Termin; zur zweiten die Aufgabe „Anwesenheitsliste drucken" **samt eigener Mail**, weil sie noch in derselben Woche fällig ist. Am 1. jedes Monats **eine** Aufgabe bei der Buchhaltung über alle bis dahin ausgewerteten Strafen; sie setzt `penalty_handed_over_at` | [01](../soll-prozesse/01-putzdienst.md) Z9, Z12 | der vorige Termin bzw. der Termin selbst; der 1. des Monats, ein festes Datum | `system:` |
 
