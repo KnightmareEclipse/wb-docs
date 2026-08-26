@@ -70,7 +70,11 @@ direkt auf der VPS) und läuft in `wb-backend` produktiv: Compose-Stack und Fast
 Elternzugang steht daneben: Anmeldecode anfordern, einlösen und wählen, als wer man weitermacht
 (`wb-backend/app/routers/auth.py`), samt der Sitzung, die der Dienst dafür in `login_sessions`
 führt, im `HttpOnly`-Cookie ausliefert und wieder beenden kann — beide Türen enden in derselben
-`CurrentUser`, und eine Eltern-Sitzung trägt keine Rolle. Beide Oberflächen liegen künftig auf
+`CurrentUser`, und eine Eltern-Sitzung trägt keine Rolle. Die Personal-Tür löst die Rollen bei jedem
+Aufruf aus `employee_roles` auf und ist an einem echten Token des Schul-Tenants gemessen, nicht nur
+getestet. **Die ersten Fachrouten stehen** (`wb-backend/app/routers/cleaning.py`): der Abschnitt
+„Putzdienstjahr und Termine" aus `api/putzdienst-api.md` vollständig, Zyklus samt Pflichtmengen,
+abweichende Pflichtmenge je Familie und die Termine mit Absage. Beide Oberflächen liegen künftig auf
 eigenen Subdomains derselben VPS (`project-parts.md` §9); offen ist alles unter Teams-Apps-Repo
 (§10).
 
@@ -115,10 +119,12 @@ geladen wurden, und alle vierzehn Prüfskripte laufen gegen sie mit Rückgabewer
 mehr die Quelle der Wahrheit; eine Strukturänderung beginnt ab jetzt als Migration und wird hier
 nachgezogen, nicht umgekehrt.
 
-**Nächster Schritt** sind die **vier Lauf-Marken** aus `TODO-SESSIONS.md` — drei an
-`cleaning_cycles`, zwei an `cleaning_slots` — und mit ihnen die erste Zeile im Register des
-Lauf-Dienstes, das bis heute leer ist. Der Zyklus und seine Termine stehen jetzt, es gibt also
-erstmals einen Gegenstand, auf den ein Lauf zeigen kann. Was daneben stehen muss, steht als
+**Nächster Schritt** sind die **Lauf-Marken des Putzdienstes** und mit ihnen die erste Zeile im
+Register des Lauf-Dienstes, das bis heute leer ist — welche Marken es sind und warum
+`allocation_released_at` für keine davon taugt, steht in `TODO-SESSIONS.md`, „Was die drei
+gemeinsamen Mechanismen noch brauchen". Der Zyklus und seine Termine stehen jetzt, es gibt also
+erstmals einen Gegenstand, auf den ein Lauf zeigen kann. Sie sind eine Schemaänderung, gehen also
+als Migration in `wb-backend` voran und werden hier nachgezogen. Was daneben stehen muss, steht als
 kritischer Pfad in `fachdomaenen.md` §7 und in `TODO.md`.
 
 ## Einstieg in eine Session
