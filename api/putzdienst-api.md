@@ -8,7 +8,11 @@ und was dort steht, wiederholt diese Datei nicht.
 Ablaufzeile, **3** eine andere Stelle des Blocks:
 
 - `POST …/cancellation` (Termin absagen) — Abschnitt „Sonderfälle", keine Ablaufzeile: Der Ablauf
-  beschreibt das Putzdienstjahr, die Absage eines einzelnen Termins steht daneben.
+  beschreibt das Putzdienstjahr, die Absage eines einzelnen Termins steht daneben. Die Mail geht
+  hier aus demselben Grund raus wie beim Verschieben: Wer eingeteilt war, erfährt sonst nur beim
+  Blick ins Portal, dass er nicht zu kommen braucht — und ein Termin, zu dem jemand umsonst
+  erscheint, ist teurer als eine Mail. Sie sagt zugleich, dass die Pflicht damit erledigt ist („das
+  geht dann zu Lasten der Schule"), sonst rechnet die Familie weiter mit einem offenen Termin.
 - `PATCH /cleaning/cycles/{year}` — Ablaufzeile 1 legt an; ändern trägt die Standardantwort „Ändern"
   aus [`hebel.md`](../soll-prozesse/hebel.md#standardantworten).
 - `GET /cleaning/families/{family_id}` — Abschnitt „Was dabei erhoben wird": „Eltern sehen ihre
@@ -41,7 +45,7 @@ jedem Gespräch heißt der Zyklus ohnehin bei seinem Jahr.
 | `PUT /cleaning/cycles/{year}/families/{family_id}/quota` — abweichende Pflichtmenge je Art setzen | [01](../soll-prozesse/01-putzdienst.md) Z1 und „Sonderfälle"; [08](../soll-prozesse/08-schulvertrag.md) Z5 | `secretariat`, `school_management`, `executive_management` | Schulleitung nur, wenn ein Kind dieser Familie ihre Schulform trägt (`hebel.md`, „Rollen") | schreibt, `entra:` | — |
 | `POST /cleaning/cycles/{year}/slots` — Termin anlegen: Startzeitpunkt, Art, Hinweistext, abweichende Platzzahl | [01](../soll-prozesse/01-putzdienst.md) Z1, „Sonderfälle" | `secretariat` | unbeschränkt | schreibt, `entra:` | — |
 | `PATCH /cleaning/slots/{slot_id}` — Startzeitpunkt, Art, Hinweistext oder Platzzahl ändern | [01](../soll-prozesse/01-putzdienst.md) Z1, „Sonderfälle" | `secretariat` | Platzzahl nur bis zur Zuteilung; ein belegter Termin löst die Mail an seine Familien aus | schreibt, `entra:` | — |
-| `POST /cleaning/slots/{slot_id}/cancellation` — Termin absagen; die Zuteilungen bleiben sichtbar, die Anwesenheit ist gesperrt | [01](../soll-prozesse/01-putzdienst.md) „Sonderfälle" | `secretariat` | nicht nach `attendance_recorded_at` (`ck_cleaning_slots_cancelled`) | schreibt, `entra:` | — |
+| `POST /cleaning/slots/{slot_id}/cancellation` — Termin absagen; die Zuteilungen bleiben sichtbar, die Anwesenheit ist gesperrt, und ein belegter Termin löst die Mail an seine Familien aus | [01](../soll-prozesse/01-putzdienst.md) „Sonderfälle" | `secretariat` | nicht nach `attendance_recorded_at` (`ck_cleaning_slots_cancelled`) | schreibt, `entra:` | — |
 | `GET /cleaning/slots/{slot_id}` — der Termin samt der eingeteilten Familien | [01](../soll-prozesse/01-putzdienst.md) Z11 | `secretariat` | unbeschränkt | liest | — |
 
 ## Zuteilung
