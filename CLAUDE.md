@@ -115,11 +115,11 @@ geladen wurden, und alle vierzehn Prüfskripte laufen gegen sie mit Rückgabewer
 mehr die Quelle der Wahrheit; eine Strukturänderung beginnt ab jetzt als Migration und wird hier
 nachgezogen, nicht umgekehrt.
 
-**Nächster Schritt** ist die zweite Hälfte desselben Abschnitts in `api/putzdienst-api.md`: die vier
-**Termin-Routen** — anlegen, ändern, absagen, lesen. Erst danach die vier Lauf-Marken und mit ihnen
-die erste Zeile im Lauf-Register; umgekehrt markierten sie Läufe für Vorgänge, die es noch nicht
-gibt, denn ohne Termine ist nichts zuzuteilen und an nichts zu erinnern. Was daneben stehen muss,
-steht als kritischer Pfad in `fachdomaenen.md` §7 und in `TODO.md`.
+**Nächster Schritt** sind die **vier Lauf-Marken** aus `TODO-SESSIONS.md` — drei an
+`cleaning_cycles`, zwei an `cleaning_slots` — und mit ihnen die erste Zeile im Register des
+Lauf-Dienstes, das bis heute leer ist. Der Zyklus und seine Termine stehen jetzt, es gibt also
+erstmals einen Gegenstand, auf den ein Lauf zeigen kann. Was daneben stehen muss, steht als
+kritischer Pfad in `fachdomaenen.md` §7 und in `TODO.md`.
 
 ## Einstieg in eine Session
 
