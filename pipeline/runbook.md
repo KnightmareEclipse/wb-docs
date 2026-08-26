@@ -45,10 +45,10 @@ Reihenfolge für einen kompletten Neuaufbau der VPS von Grund auf (z. B. bei Tot
 
     ```bash
     git remote add prod deploy@<ip>:wb-backend.git   # einmal je Rechner bzw. nach IP-Wechsel
-    git push prod main
+    git push prod main:deploy
     ```
 
-    Der Push löst Auschecken, Secret-Dateien, Build, Migration und Neustart auf der VPS aus; die Ausgabe kommt beim Push zurück. Ein fehlgeschlagener Build oder eine fehlgeschlagene Migration bricht ab, ohne die laufenden Container anzufassen.
+    **Nur `refs/heads/deploy` löst aus** — ein `git push prod main` legt den Commit ab und ändert auf der VPS nichts. Der auslösende Push führt Auschecken, Secret-Dateien, Build, Migration, Neustart und Smoke-Test aus; die Ausgabe kommt beim Push zurück. Ein fehlgeschlagener Build oder eine fehlgeschlagene Migration bricht ab, ohne die laufenden Container anzufassen. Zurück geht es über denselben Zeiger (`pipeline/app-stack-repo/04-app-stack-deploy.md`, Rollback).
 
 **Fertig, wenn** `curl https://api.clemens.schule/health` über IPv4 und IPv6 mit `{"status":"ok"}` antwortet — das setzt Firewall, Runtime, Datenbank, Backend, Reverse-Proxy und automatisches HTTPS gemeinsam voraus. Nach einem Reboot muss dasselbe ohne Handanlegen wieder gelten.
 
