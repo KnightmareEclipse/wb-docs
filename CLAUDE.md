@@ -115,12 +115,11 @@ geladen wurden, und alle vierzehn Prüfskripte laufen gegen sie mit Rückgabewer
 mehr die Quelle der Wahrheit; eine Strukturänderung beginnt ab jetzt als Migration und wird hier
 nachgezogen, nicht umgekehrt.
 
-**Nächster Schritt** sind die ersten Endpunkte in `wb-backend`: die vier Einrichtungsrouten des
-Putzdienstjahres (`api/putzdienst-api.md`, „Putzdienstjahr und Termine"), weil sie an keinem offenen
-Punkt hängen und alles Weitere freischalten — ohne Zyklus ist nichts fällig, also hat der
-Lauf-Dienst nichts zu tun und die Eltern-Routen keinen Gegenstand. Erst danach die vier Lauf-Marken
-und mit ihnen die erste Zeile im Lauf-Register. Was daneben stehen muss, steht als kritischer Pfad
-in `fachdomaenen.md` §7 und in `TODO.md`.
+**Nächster Schritt** ist die zweite Hälfte desselben Abschnitts in `api/putzdienst-api.md`: die vier
+**Termin-Routen** — anlegen, ändern, absagen, lesen. Erst danach die vier Lauf-Marken und mit ihnen
+die erste Zeile im Lauf-Register; umgekehrt markierten sie Läufe für Vorgänge, die es noch nicht
+gibt, denn ohne Termine ist nichts zuzuteilen und an nichts zu erinnern. Was daneben stehen muss,
+steht als kritischer Pfad in `fachdomaenen.md` §7 und in `TODO.md`.
 
 ## Einstieg in eine Session
 
