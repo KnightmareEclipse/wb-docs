@@ -74,17 +74,6 @@ Unabhängig vom Textwechsel gehört ein Schritt an den Abschluss selbst: **die S
 
 ## Für `wb-backend`
 
-### Die Rollen kommen aus der Datenbank, der Code liest sie noch aus dem Token
-
-Entschieden ist es (`idea/04-identitaet-zugriff.md`): M365 sagt, **wer** jemand ist, Weltenbaum, **was** er darf. Gebaut ist es nicht — `app/core/security.py` liest `claims.get("roles")` und füllt `CurrentUser.roles` daraus. Drei Dinge hängen daran, und sie gehören in denselben Durchgang:
-
-- **Die Auflösung geht über `oid`, nicht über `sub`.** `sub` ist paarweise je App vergeben, `oid` ist die Objekt-ID im Verzeichnis — und nur die steht in `employees.entra_object_id` (das UNIQUE ist da). Solange keine zweite App-Registrierung Tokens ausstellt, fällt der Unterschied nicht auf; danach schweigend.
-- **Derselbe Fehler steckt im Aktor.** Der Kopf von `schema/stammdaten-schema.sql` schreibt `entra:<oid>` vor, `security.py` schreibt `entra:<sub>`. Der CHECK prüft nur das Präfix und lässt es durch, also steht in jeder heute von Personal geschriebenen Zeile die falsche Kennung. Betroffen ist noch nichts Echtes — es gibt keinen geschützten Endpunkt —, aber es muss vor dem ersten stimmen, sonst ist die Änderungsspur rückwirkend nicht auflösbar.
-- **Die Abfrage filtert auf `employees.last_working_day`** — genau daran hing die Entscheidung. `hebel.md` sagt, Rollen „enden von selbst mit dem letzten Arbeitstag … ohne dass jemand sie entzieht"; das kann kein Tenant, und wenn der Lookup es auch nicht tut, war die Entscheidung umsonst. Aktiv ist also, wessen letzter Arbeitstag leer ist oder noch nicht vorbei. Offen daneben, und bewusst nicht mitentschieden: ob ein im Voraus angelegter Eintrag vor seinem **ersten** Arbeitstag schon Rollen trägt — `hebel.md` sagt dazu nichts, [13](13-m365-konten.md) führt beide Daten.
-- **Wer keinen `employees`-Eintrag hat, bekommt keine Rolle** und läuft an jeder geschützten Route in 403, auch mit gültigem Token. Das ist gewollt und muss als Fehlerfall benannt sein, nicht als Überraschung im Betrieb.
-
-`employee_roles` ist heute Modell und Tabelle ohne einen einzigen Codepfad; mit diesem Durchgang bekommt es seinen.
-
 ### Was eine Schemaänderung dort mitziehen muss
 
 Das Datenmodell ist übertragen (`CLAUDE.md`, „Stand"). Drei Dinge daran sieht `--autogenerate` nicht, und es meldet ihr Fehlen auch nicht — wer eine Tabelle oder eine Spalte ergänzt, zieht sie von Hand mit:

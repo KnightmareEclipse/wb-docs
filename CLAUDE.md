@@ -115,20 +115,12 @@ geladen wurden, und alle vierzehn Prüfskripte laufen gegen sie mit Rückgabewer
 mehr die Quelle der Wahrheit; eine Strukturänderung beginnt ab jetzt als Migration und wird hier
 nachgezogen, nicht umgekehrt.
 
-**Nächster Schritt, und er steht vor den Endpunkten:** der **Rollen-Lookup** in
-`get_current_user` — `TODO-SESSIONS.md`, Abschnitt „Die Rollen kommen aus der Datenbank, der Code
-liest sie noch aus dem Token". Er ist keine Aufräumarbeit, sondern die Vorbedingung: `require_role`
-prüft heute einen Claim, den der Tenant seit der Rollenentscheidung nicht mehr ausstellt, also
-antwortet **jede** rollengeschützte Route für jeden mit 403. Vier Dinge in einem Durchgang —
-Auflösung über `oid` statt `sub`, Rollen aus `employee_roles` gefiltert auf `last_working_day`,
-Aktor auf `entra:<oid>`, und der benannte 403 für ein gültiges Token ohne `employees`-Eintrag.
-
-**Danach** die ersten Endpunkte in `wb-backend`: die vier Einrichtungsrouten des Putzdienstjahres
-(`api/putzdienst-api.md`, „Putzdienstjahr und Termine"), weil sie an keinem offenen Punkt hängen und
-alles Weitere freischalten — ohne Zyklus ist nichts fällig, also hat der Lauf-Dienst nichts zu tun
-und die Eltern-Routen keinen Gegenstand. Erst danach die vier Lauf-Marken und mit ihnen die erste
-Zeile im Lauf-Register. Was daneben stehen muss, steht als kritischer Pfad in `fachdomaenen.md` §7
-und in `TODO.md`.
+**Nächster Schritt** sind die ersten Endpunkte in `wb-backend`: die vier Einrichtungsrouten des
+Putzdienstjahres (`api/putzdienst-api.md`, „Putzdienstjahr und Termine"), weil sie an keinem offenen
+Punkt hängen und alles Weitere freischalten — ohne Zyklus ist nichts fällig, also hat der
+Lauf-Dienst nichts zu tun und die Eltern-Routen keinen Gegenstand. Erst danach die vier Lauf-Marken
+und mit ihnen die erste Zeile im Lauf-Register. Was daneben stehen muss, steht als kritischer Pfad
+in `fachdomaenen.md` §7 und in `TODO.md`.
 
 ## Einstieg in eine Session
 
