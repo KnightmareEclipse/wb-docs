@@ -74,12 +74,6 @@ Unabhängig vom Textwechsel gehört ein Schritt an den Abschluss selbst: **die S
 
 ## Für `wb-backend`
 
-### Die enge Rolle kann anlegen, aber nichts ändern
-
-`backend_cleaning_waiver` hält auf `cleaning_family_quotas` INSERT, UPDATE und DELETE — und bewusst **kein** SELECT, weil `backend_runtime` die Tabelle tabellenweit liest und `wb-backend/tests/test_privileges.py` genau diese Überschneidung abweist. Ein `UPDATE … WHERE cleaning_family_quota_id = $1` liest diese Spalte aber, und jedes `DELETE` ebenso. **Anlegen geht damit, Ändern und Löschen nicht.** Aufgefallen am ersten Verbraucher (`wb-backend/app/routers/cleaning.py`, `PUT …/quota`); festgehalten als `xfail` mit Begründung im Test, damit der Tag, an dem es geht, auffällt.
-
-Zwei Wege, und beide entscheiden über das Rechtemodell, nicht über die Route: der engen Rolle ein **spaltenweises `SELECT` auf den Primärschlüssel** geben und die Regel im Prüftest entsprechend fassen — oder die Tabelle als **reine Anlege-Tabelle** führen, dann beschreibt eine Korrektur eine neue Zeile und die alte bleibt stehen. Dieselbe Frage trifft die Straf-Aussetzung, sobald sie gebaut wird: sie hängt an derselben Rolle.
-
 ### Was eine Schemaänderung dort mitziehen muss
 
 Das Datenmodell ist übertragen (`CLAUDE.md`, „Stand"). Drei Dinge daran sieht `--autogenerate` nicht, und es meldet ihr Fehlen auch nicht — wer eine Tabelle oder eine Spalte ergänzt, zieht sie von Hand mit:
