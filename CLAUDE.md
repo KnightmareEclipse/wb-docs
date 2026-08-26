@@ -126,12 +126,11 @@ geladen wurden, und alle vierzehn Prüfskripte laufen gegen sie mit Rückgabewer
 mehr die Quelle der Wahrheit; eine Strukturänderung beginnt ab jetzt als Migration und wird hier
 nachgezogen, nicht umgekehrt.
 
-**Nächster Schritt** ist die **Freigabe der Zuteilung** (01, Z5): die beiden Routen aus
-`api/putzdienst-api.md`, Abschnitt „Zuteilung" — das Gesamtbild ansehen und freigeben. An ihr hängen
-die zwei übrigen Läufe der Domäne samt ihren Marken, denn ohne Freigabe „erfährt keine Familie ihre
-Termine", und die Zuteilungsmail ist zugleich die erste Erinnerung an den ersten Termin
-(`TODO-SESSIONS.md`, „Was die drei gemeinsamen Mechanismen noch brauchen"). Was daneben stehen muss,
-steht als kritischer Pfad in `fachdomaenen.md` §7 und in `TODO.md`.
+**Nächster Schritt** ist die **Freigabe der Zuteilung** (01, Z5) und die Zuteilungsmail daran (Z6) —
+ohne Freigabe „erfährt keine Familie ihre Termine", der Zyklus steht also dort. Der Arbeitsauftrag
+dazu, fünf Routen und ein Lauf, steht ausgeschrieben in `TODO-SESSIONS.md`, „Die Freigabe der
+Zuteilung (01, Z5) und die Mail daran (Z6)". Was daneben stehen muss, steht als kritischer Pfad in
+`fachdomaenen.md` §7 und in `TODO.md`.
 
 ## Einstieg in eine Session
 

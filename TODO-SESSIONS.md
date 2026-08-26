@@ -74,6 +74,32 @@ Unabhängig vom Textwechsel gehört ein Schritt an den Abschluss selbst: **die S
 
 ## Für `wb-backend`
 
+### Die Freigabe der Zuteilung (01, Z5) und die Mail daran (Z6)
+
+Der Zuteilungslauf steht; ohne Freigabe „erfährt keine Familie ihre Termine", der Zyklus bleibt also
+an dieser Stelle stehen. Fünf Routen, alle im Abschnitt „Zuteilung" von `api/putzdienst-api.md`,
+alle `secretariat`, keine enge Rolle:
+
+- `GET /cleaning/cycles/{year}/allocation` — das Gesamtbild je Termin und je Familie, **samt der Termine, an denen die Platzzahl überschritten wurde**: Der Lauf darf sie überschreiten, und das Sekretariat entscheidet am Bild, ob es so trägt.
+- `POST /cleaning/cycles/{year}/allocation/release` — setzt `allocation_released_at`, genau einmal. Die Datenbank verlangt vorher `allocated_at` (`ck_cleaning_cycles_release`); die Route antwortet selbst, statt in den Constraint zu laufen.
+- `POST /cleaning/families/{family_id}/assignments` — von Hand zuteilen, `source = 'manual'`; die Familie bekommt ihre aktuelle Terminliste. Das ist der Weg, auf dem Quereinsteiger von ihren Terminen erfahren.
+- `PATCH /cleaning/assignments/{assignment_id}` — verschieben: derselbe Zyklus, dieselbe Art, nicht nach `attendance_recorded_at`.
+- `DELETE /cleaning/assignments/{assignment_id}` — streichen bzw. eine Reservierung freigeben; Eltern nur die eigene Familie, nur `source = 'reserved'`, nur im offenen Fenster, das Sekretariat jeden Termin und dann mit Mail.
+
+**Die Zuteilungsmail (Z6) ist ein Lauf, keine Zeile in der Freigabe-Route.** Sie steht so in der
+Lauf-Tabelle von `api/putzdienst-api.md`, und der Auslöser ist keine Uhr, sondern eine gesetzte
+Spalte: Der Lauf sucht die Zyklen mit Freigabe und ohne Mail-Marke. Das hält die Route kurz und
+kostet ein Mailfehler nicht die Freigabe. Die Marke ist eine Schemaänderung und geht wie die beiden
+bestehenden als Migration in `wb-backend` voran (`schema/putzdienst-schema.sql` zeigt die Form).
+**Sie ist zugleich die erste Erinnerung an den ersten Termin des Jahres** — wer danach Z9 baut, darf
+den ersten nicht doppelt erinnern.
+
+Was dafür schon steht und nicht neu gebaut wird: die Versandschicht mit ihrer einen Stelle nach
+draußen, der Lauf-Dienst samt Register, und in `wb-backend/app/services/cleaning.py` die Bausteine
+`_required` (Pflichtmenge je Familie), `_guardians_by_family` (Adressen je Familie) und `_enrolled`.
+Für den Einstieg: `soll-prozesse/01-putzdienst.md` Z5 und Z6, dann die beiden genannten Abschnitte
+der API-Datei, dann `wb-backend/app/routers/cleaning.py`.
+
 ### Was eine Schemaänderung dort mitziehen muss
 
 Das Datenmodell ist übertragen (`CLAUDE.md`, „Stand"). Drei Dinge daran sieht `--autogenerate` nicht, und es meldet ihr Fehlen auch nicht — wer eine Tabelle oder eine Spalte ergänzt, zieht sie von Hand mit:
