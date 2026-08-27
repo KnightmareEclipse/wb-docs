@@ -128,9 +128,8 @@ stammdaten · `countries.nationality_name` folgt nicht aus `name`: „Deutschlan
 - **Nichts ändern außer `pruefberichte/normalform.md`.** Keine `.sql`, kein Prüfskript, kein
   Modell in `wb-backend`, kein Commit. Das Schema führt inzwischen `wb-backend` (`CLAUDE.md`); eine
   Strukturänderung beginnt dort als Migration und nicht hier als Korrektur.
-- **Keinen `pruefberichte/NN.md` lesen** und auch nicht `pruefberichte/aktuell.md`, falls sie
-  dasteht. Ein Fund, den du unabhängig wiederfindest, wiegt schwer — das merkst du aber nur, wenn du
-  ihn nicht vorher gelesen hast.
+- **Frisch suchen.** Frühere Berichte liegen in der Git-Historie und bleiben dort; ein Fund, den du
+  unabhängig wiederfindest, wiegt schwer.
 - **Die Blöcke nicht gegenprüfen.** Ob eine Spalte fachlich richtig ist, fragt
   [`schema-pruefen.md`](schema-pruefen.md). Hier zählt allein, ob sie an der richtigen Tabelle
   hängt. Lies einen Block nur, wo du die Bedeutung zweier gleichnamiger Spalten sonst nicht

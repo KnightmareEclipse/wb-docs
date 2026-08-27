@@ -25,17 +25,15 @@ Es gelten [`gemeinsam.md`](gemeinsam.md) (wie du mit mir redest, kein Subagent u
 Wir schließen Funde aus `pruefberichte/aktuell.md` im Datenmodell unter `schema/`. Der Bericht ist
 die Arbeitsliste, nicht die Anweisung.
 
-**Derzeit gibt es hier nichts zu tun.** Die fünf bisherigen Zyklen sind abgeschlossen und liegen
-als Beweisstücke daneben (`pruefberichte/01.md` … `pruefberichte/05.md`); kein Fund wurde verworfen.
+**Derzeit gibt es hier nichts zu tun.** Fünf Zyklen sind abgeschlossen, kein Fund wurde verworfen.
 Was aus ihnen weiterträgt, steht als Satz an seiner Stelle im Schema und nicht in einer Liste
 daneben — offen ist allein die Frist, nach der eine versandte Mail ohne Person verfällt, als `[?]`
 im Kopf von `schema/querschnitt-schema.sql`.
 
-Ein neuer Prüflauf legt `pruefberichte/aktuell.md` frisch an; erst dann gibt es hier wieder etwas zu tun, und
-am Ende jenes Zyklus wird die Datei zu `pruefberichte/06.md`. Die Kennungen eines abgeschlossenen
-Berichts gehören zu seinem Lauf und nicht zu einem neuen — `pruefberichte/01.md` trug dabei noch
-domänenbuchstabige (`S11`, `Q6`), erst danach ist die durchlaufende Nummer `[F1]`, `[F2]`, … die eine
-Form.
+Ein neuer Prüflauf legt `pruefberichte/aktuell.md` frisch an; erst dann gibt es hier wieder etwas zu
+tun. **Am Ende des Zyklus wird die Datei gelöscht** — der Beleg, dass ein Fund geschlossen ist, ist
+die reparierte `.sql` samt grünem Prüfskript, und die Git-Historie hält den Bericht. Die Kennungen
+`[F1]`, `[F2]`, … gehören zu ihrem Lauf und nicht zu einem neuen.
 
 ## Die eine Regel, aus der der Rest folgt
 

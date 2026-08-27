@@ -192,12 +192,9 @@ mit.
 
 - **Nichts ändern außer `pruefberichte/aktuell.md`.** Keine `.sql`, kein Commit, kein „ich hab's gleich mit
   repariert". Auch das Prüfskript nicht, dessen Lücke du gefunden hast.
-- **Keinen `pruefberichte/NN.md` liest du** — heute sind das `pruefberichte/01.md` bis
-  `pruefberichte/05.md`, morgen mehr. Das sind die Berichte früherer Zyklen, deren Funde alle
-  geschlossen sind. Wer sie aufschlägt, sucht danach dort, wo schon einmal gesucht wurde — und
-  übersieht, was seither dazugekommen ist. Findest du unabhängig wieder, was dort stand, ist das
-  ein Rückschritt und wiegt schwer; das merkst du aber nur, wenn du sie nicht gelesen hast. Die
-  Datei ohne Nummer, `pruefberichte/aktuell.md`, ist dagegen deine eigene und existiert am Anfang nicht.
+- **`pruefberichte/aktuell.md` ist deine eigene Datei** und existiert am Anfang nicht. Berichte
+  früherer Zyklen liegen nicht im Arbeitsbaum, sondern in der Git-Historie — dort bleiben sie auch:
+  Ein Fund, den du unabhängig wiederfindest, wiegt schwer, und das merkst du nur, wenn du frisch suchst.
 - **Den Marken `[A]`, `[A!]` und `[?]` nicht widersprechen.** Sie sind bewusst offen; dass sie
   offen sind, ist kein Fund. Ein Fund ist, wenn eine davon etwas offenlässt, das ein Block längst
   entscheidet — bei `[A!]` wiegt das schwer, denn an ihr hängt der Schnitt der Domäne und nicht
