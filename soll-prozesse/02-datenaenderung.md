@@ -60,8 +60,8 @@ keine Feldliste**:
   [Nachzieh-Aufgabe](hebel.md#nachzieh-aufgabe-und-wochenmail) — die Fälle, die dort ankommen, sind
   damit genau die, die ohnehin Handarbeit nach draußen bedeuten.
 
-Dieselbe Grenze nimmt sie den Eltern aus der Ansicht ([Sparsame Ansicht](hebel.md#sparsame-ansicht));
-die Anschrift bleibt bei ihnen, weil sie sich wirklich ändert.
+Dieselbe Grenze nimmt sie den Eltern aus der Ansicht ([Sparsame
+Ansicht](hebel.md#sparsame-ansicht)); die Anschrift bleibt bei ihnen, weil sie sich wirklich ändert.
 
 An der Familie die Notfallkontakte und Abholberechtigten (Name, Telefonnummer, Verhältnis zum Kind):
 

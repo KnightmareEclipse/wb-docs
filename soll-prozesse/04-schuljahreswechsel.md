@@ -1,10 +1,43 @@
 # 4. Schuljahreswechsel (Jahreslauf)
 
-**Auslöser** — Drei feste Daten: der **1. Juli** für die Vorarbeit, der **1. August** für den Wechsel selbst — das Schuljahr läuft vom 1. August bis 31. Juli und wird nirgends angelegt, es folgt aus dem Datum —, und der **1. September** für die Arbeit, die erst zum Schulanfang Sinn hat. Niemand löst den Lauf aus, niemand gibt ihn frei, niemand kann ihn aufhalten. Am 1. August läuft **ein zweiter Lauf, und zwar vor diesem**: Der Elternbonus rechnet das beendete Schuljahr ab und braucht dafür die Schularten, wie sie bis zum 31. Juli galten ([14](14-elternbonus.md)); es ist der einzige. Die Grenze zu [03](03-irregulaerer-abgang.md): dort wird gekündigt, hier läuft planmäßig aus.
+## Auslöser
 
-**Beteiligte** — Die Arbeit macht der Lauf. Vorher trägt das Sekretariat ein, wer nicht aufsteigt; danach zieht jede Stelle ihr Fremdsystem nach, [dieselbe Zuordnung wie überall](hebel.md#nachzieh-aufgabe-und-wochenmail). Die Geschäftsführung prüft im Juli die Preise und Beiträge des neuen Jahres, das Sekretariat zum Schulanfang das Putzdienstjahr, die Voranmeldung und den Lösch-Lauf. Die Schulleitung handelt nicht mit, sieht aber die Ansicht und korrigiert mit dem Sekretariat, was der Lauf falsch gesetzt hat. Der Hort hat nichts zu tun, weil Module und Hortvertrag von selbst enden. Der Lauf hängt an der Klassenstufe: wer keine hat, etwa ein externes Hortkind, ist nicht dabei; ein Warteplatz rückt dagegen an seiner Zielstufe auf, die zu seiner Bewerbung gehört und nicht am Kind hängt ([07](07-aufnahmeentscheidung.md)). Ausgelesen wird nur, wer eingeschrieben ist, welche Stufe er hat, ob für das neue Schuljahr ein Schulvertrag freigegeben ist ([08](08-schulvertrag.md)), welche Verträge und Buchungen laufen ([09](09-hortvertrag.md) und [11](11-mensa.md)) und welche Warteplätze bestehen ([07](07-aufnahmeentscheidung.md)).
+Drei feste Daten:
 
-**Ablauf**
+- Der **1. Juli** für die Vorarbeit.
+- Der **1. August** für den Wechsel selbst — das Schuljahr läuft vom 1. August bis 31. Juli und wird
+  nirgends angelegt, es folgt aus dem Datum.
+- Der **1. September** für die Arbeit, die erst zum Schulanfang Sinn hat.
+
+Niemand löst den Lauf aus, niemand gibt ihn frei, niemand kann ihn aufhalten. Am 1. August
+läuft **ein zweiter Lauf, und zwar vor diesem**: Der Elternbonus rechnet das beendete Schuljahr ab
+und braucht dafür die Schularten, wie sie bis zum 31. Juli galten ([14](14-elternbonus.md)); es ist
+der einzige. Die Grenze zu [03](03-irregulaerer-abgang.md): dort wird gekündigt, hier läuft
+planmäßig aus.
+
+## Beteiligte
+
+Die Arbeit macht der Lauf.
+
+- Vorher trägt das Sekretariat ein, wer nicht aufsteigt; danach zieht jede Stelle ihr Fremdsystem
+  nach, [dieselbe Zuordnung wie überall](hebel.md#nachzieh-aufgabe-und-wochenmail).
+- Die Geschäftsführung prüft im Juli die Preise und Beiträge des neuen Jahres, das Sekretariat zum
+  Schulanfang das Putzdienstjahr, die Voranmeldung und den Lösch-Lauf.
+- Die Schulleitung handelt nicht mit, sieht aber die Ansicht und korrigiert mit dem Sekretariat, was
+  der Lauf falsch gesetzt hat.
+- Der Hort hat nichts zu tun, weil Module und Hortvertrag von selbst enden.
+
+Der Lauf hängt an der Klassenstufe: wer keine hat, etwa ein externes Hortkind, ist nicht dabei; ein
+Warteplatz rückt dagegen an seiner Zielstufe auf, die zu seiner Bewerbung gehört und nicht am Kind
+hängt ([07](07-aufnahmeentscheidung.md)). Ausgelesen wird nur,
+
+- wer eingeschrieben ist,
+- welche Stufe er hat,
+- ob für das neue Schuljahr ein Schulvertrag freigegeben ist ([08](08-schulvertrag.md)),
+- welche Verträge und Buchungen laufen ([09](09-hortvertrag.md) und [11](11-mensa.md))
+- und welche Warteplätze bestehen ([07](07-aufnahmeentscheidung.md)).
+
+## Ablauf
 
 | # | wer | tut was | danach steht fest |
 |---|---|---|---|
@@ -13,26 +46,130 @@
 | 3 | Sekretariat, Buchhaltung, Admin | Ziehen ihre Fremdsysteme nach, jede Stelle für sich — die neuen Kinder schon im Juni und Juli, sobald der Jahrgang beisammen ist, den Rest im August; die Ansicht zeigt beides ab Schritt 1. Grundlage ist die Ansicht des Jahreswechsels: wer gegangen ist, wer neu dazugekommen ist, wer in welcher Stufe steht. Sie ist eine [frisch erzeugte Liste](hebel.md#frisch-erzeugte-liste), bleibt das ganze Jahr abrufbar — die Buchhaltung braucht sie auch beim Monatsabschluss — und ist sichtbar für diese drei Stellen und die Schulleitung. Es entsteht keine Aufgabe, es wird nichts abgehakt und **keine Mail** geht dazu raus | nichts — die Arbeit ist getan oder nicht |
 | 4 | System, 1. September, dann Sekretariat | Legt zum Schulanfang drei Erinnerungen als [Nachzieh-Aufgaben](hebel.md#nachzieh-aufgabe-und-wochenmail) an, die das Sekretariat abhakt: Putzdienstjahr einrichten ([01](01-putzdienst.md)), die Voranmeldung für das kommende Schuljahr öffnen ([05](05-bewerbung.md)) und Lösch-Lauf anstoßen (bis 17 es anders regelt). Im August wäre nichts davon zu erledigen, deshalb entstehen sie erst jetzt. **Mail:** keine eigene — sie laufen in der Wochenmail mit, bis sie abgehakt sind | was zum Schulanfang von Hand zu tun ist und dass es erledigt wurde |
 
-> Die letzte Spalte ist die wichtigste: Was weiß das System nach diesem Schritt, das es vorher nicht wusste? Wenn dir dazu nichts einfällt, ist es vermutlich kein eigener Schritt.
+## Was dabei erhoben wird
 
-**Was dabei erhoben wird** — Je Kind die Klassenstufe und die Schulart (Pflicht), sichtbar für alle, die das Kind ohnehin sehen; ändern dürfen sie nur Sekretariat und Schulleitung. **Gesetzt werden sie nicht hier:** Sie entstehen mit der Freigabe des Schulvertrags aus dem Ziel der Bewerbung ([08](08-schulvertrag.md)) und gelten ab dem Eintrittsdatum — dieser Lauf schreibt sie danach fort. Dazu, wer seine Stufe wiederholt — ohne Grund, der fällt außerhalb. Das Eintrittsdatum der neuen Kinder ist der 1. August, das Austrittsdatum des Jahrgangs der 31. Juli, dazu der Grund als Satz wie in [03](03-irregulaerer-abgang.md); beim Wechsler in die eigene Realschule bleibt das erste Eintrittsdatum stehen. Je beendetem Vertrag und je beendeter Buchung das Enddatum. Je Erinnerung dasselbe wie bei jeder [Aufgabe](hebel.md#nachzieh-aufgabe-und-wochenmail). Wer was wann geändert hat, hält die [Änderungsspur](hebel.md#änderungsspur) fest, hier mit dem Lauf als Urheber.
+Je Kind die Klassenstufe und die Schulart (Pflicht), sichtbar für alle, die das Kind ohnehin sehen;
+ändern dürfen sie nur Sekretariat und Schulleitung. **Gesetzt werden sie nicht hier:** Sie entstehen
+mit der Freigabe des Schulvertrags aus dem Ziel der Bewerbung ([08](08-schulvertrag.md)) und gelten
+ab dem Eintrittsdatum — dieser Lauf schreibt sie danach fort. Dazu, wer seine Stufe wiederholt —
+ohne Grund, der fällt außerhalb.
 
-**Entscheidungen** — Drei, alle außerhalb des Systems: wer wiederholt (die Schule entscheidet, das Sekretariat trägt ein), ob Preise und Beiträge sich ändern (Geschäftsführung) und was am Lauf korrigiert wird (Sekretariat und Schulleitung, siehe Sonderfälle). Alles Übrige folgt aus Stufe, Schulart und Vertrag.
+Das Eintrittsdatum der neuen Kinder ist der 1. August, das Austrittsdatum des Jahrgangs der
+31. Juli, dazu der Grund als Satz wie in [03](03-irregulaerer-abgang.md); beim Wechsler in die
+eigene Realschule bleibt das erste Eintrittsdatum stehen.
 
-**Fristen und Termine** — Der 1. Juli, der 1. August und der 1. September, alle drei fest und nirgends einstellbar. Wer einen Wiederholer zu spät einträgt, korrigiert danach von Hand. Die vier Erinnerungen — Preise im Juli, Putzdienstjahr, Voranmeldung und Lösch-Lauf im September — haben wie jede [Aufgabe](hebel.md#nachzieh-aufgabe-und-wochenmail) keine Frist. Sonst keine.
+- Je beendetem Vertrag und je beendeter Buchung das Enddatum.
+- Je Erinnerung dasselbe wie bei jeder [Aufgabe](hebel.md#nachzieh-aufgabe-und-wochenmail).
 
-**Mails und Schreiben** — Vier, sonst keine. Am 1. Juli die Erinnerungen an Sekretariat und Geschäftsführung, jede mit ihrer Sache; die ans Sekretariat genau einmal, es wird nicht nachgefasst. Am 1. August die Mail an alle Sorgeberechtigten eines abgehenden Kindes: welches Kind, zu welchem Tag, dass die Verträge und Buchungen des Schuljahres damit geendet haben, und an wen sie sich wenden; der Portalzugang bleibt, solange die Familie noch eine [laufende Verbindung](hebel.md#laufende-verbindung) hat. **Dieselbe Mail** geht an eine Familie, deren Hortvertrag hier endet, obwohl ihr Kind bleibt — der Viertklässler, der in die eigene Realschule wechselt: Sie sagt, dass die Betreuung zum 31. Juli endet und für Klasse 5 neu abzuschließen ist ([09](09-hortvertrag.md)); sonst erführe niemand von dem Ende, das der Lauf gesetzt hat. Ebenfalls am 1. August die jährliche Rückfrage an jeden aufgerückten Warteplatz, ob das Interesse besteht — Anlass und Text stehen in [07](07-aufnahmeentscheidung.md), der Lauf löst sie nur aus. Dazu die Wochenmail, in der die offenen Erinnerungen mitlaufen — die Preise ab Juli, Putzdienstjahr, Voranmeldung und Lösch-Lauf ab September. Nichts an die Eltern der aufsteigenden und der neu eingeschriebenen Kinder, und nichts zur Handarbeit in den Fremdsystemen. Für [unzustellbare Mails](hebel.md#unzustellbare-mail) gilt der gemeinsame Hebel.
+Wer was wann geändert hat, hält die [Änderungsspur](hebel.md#änderungsspur) fest, hier mit dem Lauf
+als Urheber.
 
-**Dateien** — Keine. Zeugnisse und Bescheinigungen schreibt wie in [03](03-irregulaerer-abgang.md) ein Mensch außerhalb.
+## Entscheidungen
 
-**Sonderfälle** — Der [offizielle Umweg](hebel.md#der-offizielle-umweg): Sekretariat und Schulleitung setzen jede Stufe und jedes Datum von Hand, auch nach dem Lauf. Ein Austritt wird zurückgenommen wie in [03](03-irregulaerer-abgang.md), mit ihm die Enden, die der Lauf gesetzt hat — einen zweiten Lauf gibt es dafür nicht. Ein Rücktritt vor der Freigabe des Schulvertrags ist Sache der Bewerbung ([08](08-schulvertrag.md)), danach ein Abgang wie jeder andere ([03](03-irregulaerer-abgang.md)). Dass der **Hortvertrag** ohne Kündigung endet, setzt eine Anpassung des Betreuungsvertrags voraus — sein Text kennt bisher nur die stillschweigende Verlängerung, und heute kündigt ihn die Hortleitung von Hand: Hortleitung und Geschäftsführung. Wer in Klasse 5 weiter Betreuung braucht, schließt einen neuen ([09](09-hortvertrag.md)).
+Drei, alle außerhalb des Systems:
 
-**Was heute schiefgeht** — Ende Juli zieht der zweite Admin alle Klassen von Hand auf die neue Stufe um, legt die Neuen an und löscht die Abgänger, sofern es ihm mitgeteilt wird; das ASV-BW-CSV deckt nicht alles ab. Künftig steht die neue Stufe am 1. August ohne Zutun, und der Jahreswechsel steht als Ansicht da statt als Zuruf. `[?]` Welche wiederkehrenden Aufgaben des Jahreswechsels fehlen in den drei Erinnerungen? — Sekretariat
+- Wer wiederholt (die Schule entscheidet, das Sekretariat trägt ein).
+- Ob Preise und Beiträge sich ändern (Geschäftsführung).
+- Und was am Lauf korrigiert wird (Sekretariat und Schulleitung, siehe Sonderfälle).
 
-**Fremdsysteme** — Für sie entsteht keine Aufgabe, es gibt nur die Ansicht des Jahreswechsels. **ASV-BW** (Sekretariat): Stufen umziehen, Neue anlegen, Jahrgang abmelden. **M365** (Admin): Konten der Neuen anlegen, Jahrgang offboarden. Klassengruppen und Mailverteiler werden **nicht** mehr umbenannt — sie hängen an der Kennung der Klasse und überstehen den Wechsel von selbst ([15](15-klassenbildung.md)). **Optigem** (Buchhaltung): Neue anlegen, Beiträge des neuen Jahres, Zahlungen des Jahrgangs stoppen und abschließen. Der Preis: für **ASV-BW und Optigem** hält nichts fest, dass es getan wurde; ihre Gegenproben liegen außerhalb — die Schulstatistik, die ASV-BW zieht und nicht wir, und der Monatsabschluss in Optigem. Für **M365** ist die Gegenprobe im Haus: Wo die Schuladresse eines Kindes fehlt, ist sein Konto nicht angelegt ([13](13-m365-konten.md)).
+Alles Übrige folgt aus Stufe, Schulart und Vertrag.
 
-**Löschen** — Kein eigener Vorgang, der Lauf löscht nichts. Die Enden, die er setzt, sind die Anker für 17, samt der Festlegungen aus [03](03-irregulaerer-abgang.md); die Putzdienstdaten folgen [01](01-putzdienst.md). `[?]` Wer stößt den Lösch-Lauf an und bestätigt ihn? — Schulleitung und Datenschutzbeauftragte
+## Fristen und Termine
 
-**Gehört nicht dazu** — Wer in welche Klasse kommt und wie sie heißt: [15](15-klassenbildung.md). Die Kündigung mitten im Jahr: [03](03-irregulaerer-abgang.md). Bewerbung und Vertrag für Klasse 5: [05](05-bewerbung.md) bis 8. Was mit einem Warteplatz außer dem Aufrücken geschieht: [07](07-aufnahmeentscheidung.md). Die Buchungen des neuen Jahres — Module [09](09-hortvertrag.md), Essen [11](11-mensa.md): der Lauf beendet die alten und bucht nichts. Die Ferienbuchungen ([10](10-ferienprogramm.md)) rührt er überhaupt nicht an: Sie hängen am Termin und nicht am Schuljahr, auch die im August. Putzdienstjahr [01](01-putzdienst.md), Lösch-Lauf 17, M365-Offboarding und Kontenlöschfrist [13](13-m365-konten.md), Elternbonus [14](14-elternbonus.md). Die Schulstatistik des Landes: erstellt und gemeldet wird sie in ASV-BW, wir liefern nichts und erinnern nicht daran. Ferien-, Fest- und Terminkalender: nicht im System. Zeugnisse, Noten, Einschulungsfeier.
+Der 1. Juli, der 1. August und der 1. September, alle drei fest und nirgends einstellbar. Wer einen
+Wiederholer zu spät einträgt, korrigiert danach von Hand. Die vier Erinnerungen — Preise im Juli,
+Putzdienstjahr, Voranmeldung und Lösch-Lauf im September — haben wie jede
+[Aufgabe](hebel.md#nachzieh-aufgabe-und-wochenmail) keine Frist. Sonst keine.
 
+## Mails und Schreiben
 
+Vier, sonst keine.
+
+- Am 1. Juli die Erinnerungen an Sekretariat und Geschäftsführung, jede mit ihrer Sache; die ans
+  Sekretariat genau einmal, es wird nicht nachgefasst.
+- Am 1. August die Mail an alle Sorgeberechtigten eines abgehenden Kindes: welches Kind, zu welchem
+  Tag, dass die Verträge und Buchungen des Schuljahres damit geendet haben, und an wen sie sich
+  wenden; der Portalzugang bleibt, solange die Familie noch eine
+  [laufende Verbindung](hebel.md#laufende-verbindung) hat. **Dieselbe Mail** geht an eine Familie,
+  deren Hortvertrag hier endet, obwohl ihr Kind bleibt — der Viertklässler, der in die eigene
+  Realschule
+  wechselt: Sie sagt, dass die Betreuung zum 31. Juli endet und für Klasse 5 neu abzuschließen ist
+  ([09](09-hortvertrag.md)); sonst erführe niemand von dem Ende, das der Lauf gesetzt hat.
+- Ebenfalls am 1. August die jährliche Rückfrage an jeden aufgerückten Warteplatz, ob das Interesse
+  besteht — Anlass und Text stehen in [07](07-aufnahmeentscheidung.md), der Lauf löst sie nur aus.
+- Dazu die Wochenmail, in der die offenen Erinnerungen mitlaufen — die Preise ab Juli,
+  Putzdienstjahr, Voranmeldung und Lösch-Lauf ab September.
+
+Nichts an die Eltern der aufsteigenden und der neu eingeschriebenen Kinder, und nichts zur
+Handarbeit in den Fremdsystemen. Für [unzustellbare Mails](hebel.md#unzustellbare-mail) gilt der
+gemeinsame Hebel.
+
+## Dateien
+
+Keine. Zeugnisse und Bescheinigungen schreibt wie in [03](03-irregulaerer-abgang.md) ein Mensch
+außerhalb.
+
+## Sonderfälle
+
+- Der [offizielle Umweg](hebel.md#der-offizielle-umweg): Sekretariat und Schulleitung setzen jede
+  Stufe und jedes Datum von Hand, auch nach dem Lauf.
+- Ein Austritt wird zurückgenommen wie in [03](03-irregulaerer-abgang.md), mit ihm die Enden, die
+  der Lauf gesetzt hat — einen zweiten Lauf gibt es dafür nicht.
+- Ein Rücktritt vor der Freigabe des Schulvertrags ist Sache der Bewerbung
+  ([08](08-schulvertrag.md)), danach ein Abgang wie jeder andere ([03](03-irregulaerer-abgang.md)).
+- Dass der **Hortvertrag** ohne Kündigung endet, setzt eine Anpassung des Betreuungsvertrags voraus
+  — sein Text kennt bisher nur die stillschweigende Verlängerung, und heute kündigt ihn die
+  Hortleitung von Hand: Hortleitung und Geschäftsführung. Wer in Klasse 5 weiter Betreuung braucht,
+  schließt einen neuen ([09](09-hortvertrag.md)).
+
+## Was heute schiefgeht
+
+Ende Juli zieht der zweite Admin alle Klassen von Hand auf die neue Stufe um, legt die Neuen an und
+löscht die Abgänger, sofern es ihm mitgeteilt wird; das ASV-BW-CSV deckt nicht alles ab. Künftig
+steht die neue Stufe am 1. August ohne Zutun, und der Jahreswechsel steht als Ansicht da statt als
+Zuruf.
+
+`[?]` Welche wiederkehrenden Aufgaben des Jahreswechsels fehlen in den drei Erinnerungen? —
+Sekretariat
+
+## Fremdsysteme
+
+Für sie entsteht keine Aufgabe, es gibt nur die Ansicht des Jahreswechsels.
+
+- **ASV-BW** (Sekretariat): Stufen umziehen, Neue anlegen, Jahrgang abmelden.
+- **M365** (Admin): Konten der Neuen anlegen, Jahrgang offboarden. Klassengruppen und Mailverteiler
+  werden **nicht** mehr umbenannt — sie hängen an der Kennung der Klasse und überstehen den Wechsel
+  von selbst ([15](15-klassenbildung.md)).
+- **Optigem** (Buchhaltung): Neue anlegen, Beiträge des neuen Jahres, Zahlungen des Jahrgangs
+  stoppen und abschließen.
+
+> [!note]- Warum es für ASV-BW und Optigem keine Gegenprobe gibt
+> Der Preis: für **ASV-BW und Optigem** hält nichts fest, dass es getan wurde; ihre Gegenproben
+> liegen außerhalb — die Schulstatistik, die ASV-BW zieht und nicht wir, und der Monatsabschluss in
+> Optigem. Für **M365** ist die Gegenprobe im Haus: Wo die Schuladresse eines Kindes fehlt, ist sein
+> Konto nicht angelegt ([13](13-m365-konten.md)).
+
+## Löschen
+
+Kein eigener Vorgang, der Lauf löscht nichts. Die Enden, die er setzt, sind die Anker für 17, samt
+der Festlegungen aus [03](03-irregulaerer-abgang.md); die Putzdienstdaten folgen
+[01](01-putzdienst.md).
+
+`[?]` Wer stößt den Lösch-Lauf an und bestätigt ihn? — Schulleitung und Datenschutzbeauftragte
+
+## Gehört nicht dazu
+
+- Wer in welche Klasse kommt und wie sie heißt: [15](15-klassenbildung.md).
+- Die Kündigung mitten im Jahr: [03](03-irregulaerer-abgang.md).
+- Bewerbung und Vertrag für Klasse 5: [05](05-bewerbung.md) bis 8.
+- Was mit einem Warteplatz außer dem Aufrücken geschieht: [07](07-aufnahmeentscheidung.md).
+- Die Buchungen des neuen Jahres — Module [09](09-hortvertrag.md), Essen [11](11-mensa.md): der Lauf
+  beendet die alten und bucht nichts.
+- Die Ferienbuchungen ([10](10-ferienprogramm.md)) rührt er überhaupt nicht an: Sie hängen am Termin
+  und nicht am Schuljahr, auch die im August.
+- Putzdienstjahr [01](01-putzdienst.md), Lösch-Lauf 17, M365-Offboarding und Kontenlöschfrist
+  [13](13-m365-konten.md), Elternbonus [14](14-elternbonus.md).
+- Die Schulstatistik des Landes: erstellt und gemeldet wird sie in ASV-BW, wir liefern nichts und
+  erinnern nicht daran.
+- Ferien-, Fest- und Terminkalender: nicht im System.
+- Zeugnisse, Noten, Einschulungsfeier.

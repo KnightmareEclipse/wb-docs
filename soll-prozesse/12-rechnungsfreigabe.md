@@ -1,10 +1,40 @@
 # 12. Rechnungsfreigabe
 
-**Auslöser** — Ein Mitarbeitender hat etwas ausgelegt, oder eine Rechnung an die Schule liegt vor. Zwei Belegarten und keine dritte: **Rechnung** und **Fahrtkosten**, letztere als Ticket oder als gefahrene Strecke. Ganzjährig, ohne Saison — dieser Prozess läuft auch im August weiter, wenn sonst nur das Ferienprogramm läuft ([04](04-schuljahreswechsel.md)). Er ist zugleich der einzige, der im **Kalenderjahr** rechnet und nicht im Schuljahr: Ein Beleg gehört zu dem Jahr, in dem er eingereicht wurde. Und er ist der meistgenutzte im ganzen Haus — derzeit rund tausend Belege im Jahr, jeden Tag welche.
+## Auslöser
 
-**Beteiligte** — **Einreicher** ist jede Person mit einer [Mitarbeiterrolle](hebel.md#rollen), die der Schule wie die der KITA — auch die schlichte Rolle **Mitarbeitende**, die trägt, wer nichts Spezielleres hat; sonst fiele heraus, wer eine Ausgabe hat, aber in keinem anderen Prozess vorkommt. Eltern reichen hier nie etwas ein. Die **Führungskraft** entscheidet über die Ausgabe, die **Buchhaltung** bucht, die **Geschäftsführung** sieht alles, erfährt jede größere Freigabe und fängt jeden Ausfall auf — sie ist hier **immer auch Führungskraft** und wählbar wie jede andere, ohne dass ihr jemand die Rolle geben müsste; sonst könnte sie den Ausfall nicht auffangen, den sie auffangen soll. Alle arbeiten im System, niemand bekommt hier Papier. **Sekretariat und Schulleitung haben hier keine Sonderstellung** — abweichend von der [Standardantwort](hebel.md#standardantworten) sehen sie nur ihre eigenen Belege und die, die auf sie zeigen; sonst stünden IBANs und Fahrtwege des ganzen Kollegiums auf einem Bildschirm, an dem nie jemand damit arbeitet. Der **Admin** sieht hier nichts; seine Rolle sind Rollenvergabe und Kontenverwaltung ([00](00-zugang-und-portal.md), [13](13-m365-konten.md)). Ausgelesen wird allein, wer welche Rolle trägt. **Dieser Prozess kennt keine Familie, kein Kind und keine Klasse** — er ist der einzige, der ohne sie auskommt.
+Ein Mitarbeitender hat etwas ausgelegt, oder eine Rechnung an die Schule liegt vor. Zwei Belegarten
+und keine dritte: **Rechnung** und **Fahrtkosten**, letztere als Ticket oder als gefahrene Strecke.
 
-**Ablauf**
+Ganzjährig, ohne Saison — dieser Prozess läuft auch im August weiter, wenn sonst nur das
+Ferienprogramm läuft ([04](04-schuljahreswechsel.md)). Er ist zugleich der einzige, der
+im **Kalenderjahr** rechnet und nicht im Schuljahr: Ein Beleg gehört zu dem Jahr, in dem er
+eingereicht wurde. Und er ist der meistgenutzte im ganzen Haus — derzeit rund tausend Belege im
+Jahr, jeden Tag welche.
+
+## Beteiligte
+
+- **Einreicher** ist jede Person mit einer [Mitarbeiterrolle](hebel.md#rollen), die der Schule wie
+  die der KITA — auch die schlichte Rolle **Mitarbeitende**, die trägt, wer nichts Spezielleres hat;
+  sonst fiele heraus, wer eine Ausgabe hat, aber in keinem anderen Prozess vorkommt. Eltern reichen
+  hier nie etwas ein.
+- Die **Führungskraft** entscheidet über die Ausgabe, die **Buchhaltung** bucht, die
+  **Geschäftsführung** sieht alles, erfährt jede größere Freigabe und fängt jeden Ausfall auf — sie
+  ist hier **immer auch Führungskraft** und wählbar wie jede andere, ohne dass ihr jemand die Rolle
+  geben müsste; sonst könnte sie den Ausfall nicht auffangen, den sie auffangen soll.
+
+Alle arbeiten im System, niemand bekommt hier Papier.
+
+- **Sekretariat und Schulleitung haben hier keine Sonderstellung** — abweichend von der
+  [Standardantwort](hebel.md#standardantworten) sehen sie nur ihre eigenen Belege und die, die auf
+  sie zeigen; sonst stünden IBANs und Fahrtwege des ganzen Kollegiums auf einem Bildschirm, an dem
+  nie jemand damit arbeitet.
+- Der **Admin** sieht hier nichts; seine Rolle sind Rollenvergabe und Kontenverwaltung
+  ([00](00-zugang-und-portal.md), [13](13-m365-konten.md)).
+
+Ausgelesen wird allein, wer welche Rolle trägt. **Dieser Prozess kennt keine Familie, kein Kind und
+keine Klasse** — er ist der einzige, der ohne sie auskommt.
+
+## Ablauf
 
 | # | wer | tut was | danach steht fest |
 |---|---|---|---|
@@ -13,26 +43,220 @@
 | 3 | Führungskräfte | **Aufteilen** statt entscheiden: auf mindestens zwei Projekte, und die Teilbeträge müssen den Betrag genau treffen. Jede beteiligte Führungskraft entscheidet über ihren Teil wie über einen eigenen Beleg; freigegeben ist der Beleg erst, wenn alle Teile es sind, und lehnt einer ab, ist der ganze Beleg abgelehnt — ein halb freigegebener Beleg ist keiner. **Läuft er über eine Aufteilungsvorlage, entfällt dieser Umlauf**: Der Schlüssel steht fest, die Zustimmung der anderen steht in der Vorlage, und was beim Runden übrig bleibt, fällt auf den größten Anteil. Eine Freigabe, mehrere Buchungen | dass eine Ausgabe mehreren Projekten gehört: **eine** Zahlung mit einer Nummer, aber je Teil ein eigenes Projekt und ein eigenes Konto |
 | 4 | Buchhaltung | Überträgt den freigegebenen Beleg von Hand nach Optigem, hängt die eine PDF dort an, die sie sich dafür erzeugt, und **schließt ihn ab** — oder **storniert** ihn mit Begründung, wenn er so nicht buchbar ist; ein Storno trifft bei einem aufgeteilten Beleg alle Teile. Einen Dublettenhinweis sieht sie hier ein zweites Mal, falls er der Führungskraft entgangen ist. Vor dem Buchen darf sie **das Buchungskonto berichtigen**, das Projekt nicht: Wohin gebucht wird, ist ihr Handwerk, wem die Ausgabe gehört, bleibt die Entscheidung der Führungskraft | dass gebucht ist — oder dass es dabei bleibt: Ein abgelehnter, stornierter oder zurückgezogener Beleg lebt nicht wieder auf; wer ihn anders will, reicht neu ein |
 
-> Die letzte Spalte ist die wichtigste: Was weiß das System nach diesem Schritt, das es vorher nicht wusste? Wenn dir dazu nichts einfällt, ist es vermutlich kein eigener Schritt.
+## Was dabei erhoben wird
 
-**Was dabei erhoben wird** — Bei der **Rechnung**: Zahlungsempfänger, Betrag, Zweck in einem Satz, der Zahlweg und mindestens ein angehängter Beleg (alles Pflicht). Der Zahlweg ist eine feste Auswahl — an mich, an Dritte, direkt an die Firma, Spende mit oder ohne Nachweis, oder: wird abgebucht, das Mandat liegt vor —; nur „an Dritte" verlangt zusätzlich Kontoinhaber und IBAN, und auch die entfällt, wenn die Buchhaltung sie schon hat; für „an mich" wird **keine** Bankverbindung erhoben, die hat sie ohnehin. **Gutschriften sind erlaubt**, der Betrag darf negativ sein. Bei **Fahrtkosten**: Datum der Fahrt, Abfahrts- und Ankunftsort, Zweck — dann entweder Ticketbetrag samt Beleg oder die Strecke, die mit dem Kilometersatz multipliziert wird; **im zweiten Fall gibt es keinen Anhang, weil es keinen gibt**, und die Strecke ist auf 2000 km je Fahrt begrenzt. Zwei [Werte im System](hebel.md#geld-im-system-alles-andere-fest) gehören der Geschäftsführung, beide mit Gültigkeitsdatum: der **Kilometersatz**, derzeit 0,30 € je km, und die **Meldegrenze**, derzeit 250 €, gemessen am ganzen Beleg und nicht am Teil einer Aufteilung; es gilt jeweils der Wert zu der Handlung, die ihn braucht — der Kilometersatz zum Einreichen, die Meldegrenze zur Freigabe. Der **Zahlungsempfänger ist ein Eintrag, kein Text**: Jeder Einreicher darf einen anlegen, den er nicht findet — sonst hielte der Bäcker um die Ecke das Einreichen auf —, und die **Buchhaltung berichtigt einen Eintrag oder führt zwei zusammen**, wenn doch „DB" neben „Deutsche Bahn" steht; die Belege ziehen mit, weil sie auf den Eintrag verweisen und nicht den Namen kopieren. Genau dafür ist die Liste da: Es gibt eine Deutsche Bahn, und danach lässt sich filtern. Ein **Dublettenhinweis** entsteht, wenn Empfänger und Betrag eines anderen Belegs innerhalb von 30 Tagen übereinstimmen — bei einer Fahrt nach Strecke, die keinen Empfänger trägt, treten Datum und Strecke an seine Stelle, denn zweimal abgerechnet wird gerade dort am leichtesten; er nennt den anderen Beleg mit Einreicher und Datum, **sperrt nichts** und schweigt, wenn beide über dieselbe Buchungsvorlage laufen — sonst meldete sich jede monatlich gleiche Rechnung. Bei der Freigabe kommen Projekt, Buchungskonto, „im Budget ja/nein" und eine freiwillige interne Notiz hinzu; jede Korrektur, Ablehnung und Stornierung trägt eine Pflichtbegründung. **Sichtbar** ist ein Beleg für seinen Einreicher, für jede Führungskraft, die ihn hatte, für die Buchhaltung — auch solange er noch bei einer Führungskraft liegt — und für die Geschäftsführung; die Bankverbindung eingeschlossen, ohne sie könnte niemand zahlen. **Geändert wird nur von dem, den der Ablauf nennt** — auch das weicht von der [Standardantwort](hebel.md#standardantworten) ab: Nach dem Absenden ändert der Einreicher nichts mehr, er zieht zurück und reicht die Kopie neu ein, und das Sekretariat ändert hier nichts, weil es hier auch nichts sieht. Den Verlauf trägt die [Änderungsspur](hebel.md#änderungsspur), sichtbar für denselben Kreis und nicht fürs Sekretariat. Jeder wartende Beleg zeigt, **wie lange er schon wartet, gerechnet ab der letzten Handlung** und nicht ab dem Einreichen: Ein gestern freigegebener Beleg liegt seit einem Tag bei der Buchhaltung, nicht seit drei Wochen irgendwo. Ist die Führungskraft, bei der er liegt, **ausgeschieden**, steht das daneben ([13](13-m365-konten.md)): kein Ping, keine Aufgabe, keine Mail — nur die eine Angabe, die eine vielbeschäftigte Führungskraft von einer nicht mehr vorhandenen unterscheidet. Sie folgt aus dem letzten Arbeitstag und wird von niemandem gepflegt.
+- Bei der **Rechnung**: Zahlungsempfänger, Betrag, Zweck in einem Satz, der Zahlweg und mindestens
+  ein angehängter Beleg (alles Pflicht). Der Zahlweg ist eine feste Auswahl — an mich, an Dritte,
+  direkt an die Firma, Spende mit oder ohne Nachweis, oder: wird abgebucht, das Mandat liegt vor —;
+  nur „an Dritte" verlangt zusätzlich Kontoinhaber und IBAN, und auch die entfällt, wenn die
+  Buchhaltung sie schon hat; für „an mich" wird **keine** Bankverbindung erhoben, die hat sie
+  ohnehin. **Gutschriften sind erlaubt**, der Betrag darf negativ sein.
+- Bei **Fahrtkosten**: Datum der Fahrt, Abfahrts- und Ankunftsort, Zweck — dann entweder
+  Ticketbetrag samt Beleg oder die Strecke, die mit dem Kilometersatz multipliziert wird; **im
+  zweiten Fall gibt es keinen Anhang, weil es keinen gibt**, und die Strecke ist auf 2000 km je
+  Fahrt begrenzt.
 
-**Entscheidungen** — Zwei, beide von Menschen. Die **Führungskraft** entscheidet, ob die Ausgabe anerkannt wird und ob sie in ihr Projekt gehört — deshalb gibt es Weiterleiten und Aufteilen. Die **Buchhaltung** entscheidet allein über die Buchbarkeit, nicht über die Sache: Sie storniert, wenn der Beleg fehlt, unlesbar ist oder nicht zum Betrag passt. Eine Wertgrenze, ab der jemand mitzeichnen muss, gibt es nicht, und „im Budget ja/nein" ist eine Feststellung, keine Schranke; über der Meldegrenze wird die Geschäftsführung nach der Freigabe **informiert** und hält nichts auf — gebucht ist zu diesem Zeitpunkt noch nichts, wer eingreifen will, tut es außerhalb. Die Liste der **Projekte und Buchungskonten** pflegt die Buchhaltung; sie folgt dem Kontenrahmen in Optigem, weil dort gebucht wird. **Vorlagen legen zwei Stellen an, jede bei dem, was sie ohnehin verantwortet:** die **Buchhaltung** die Buchungsvorlagen, weil ihr Projekte und Konten gehören, die **Geschäftsführung** die Aufteilungsvorlagen, weil deren Schlüssel die Freigabe der beteiligten Führungskräfte vorwegnimmt. Eine geänderte Vorlage gilt ab dem nächsten Beleg; laufende ändern sich nicht.
+Zwei [Werte im System](hebel.md#geld-im-system-alles-andere-fest) gehören der Geschäftsführung,
+beide mit Gültigkeitsdatum:
 
-**Fristen und Termine** — **Keine.** Kein Beleg verfällt, keine [Aufgabe](hebel.md#nachzieh-aufgabe-und-wochenmail) verfällt, es wird nicht eskaliert. Auch für das Einreichen gibt es keine Frist: Ein Beleg aus dem Vorjahr wird periodenfremd gebucht, dafür hat die Buchhaltung ein eigenes Konto. Der einzige Zeitbezug ist das Kalenderjahr der Einreichung. **Reagiert die gewählte Führungskraft nicht, erinnert im System nichts mehr** — der Einreicher sieht das Alter seines Belegs und spricht sie an — es sei denn, sie ist ausgeschieden, was an seinem Beleg steht —, und die Geschäftsführung kann ihn übernehmen; das ist der Preis dafür, dass hier nichts in der Wochenmail mitläuft.
+- der **Kilometersatz**, derzeit 0,30 € je km,
+- und die **Meldegrenze**, derzeit 250 €, gemessen am ganzen Beleg und nicht am Teil einer
+  Aufteilung;
 
-**Mails und Schreiben** — **In diesem Block geht keine Mail raus.** Ein wartender Beleg ist eine [Aufgabe](hebel.md#nachzieh-aufgabe-und-wochenmail) bei einer **namentlich benannten Person** — der zweite Fall dieser Art neben der Mitarbeitsstunde ([14](14-elternbonus.md)) —, und ihr Anstoß ist ein **Teams-Ping**, der auf den Beleg führt: an die gewählte Führungskraft, sobald einer bei ihr eingeht; an den Einreicher, sobald etwas anders ist als eingereicht — korrigiert, abgelehnt, storniert, mit der Begründung; und an die Geschäftsführung bei jeder Freigabe über der Meldegrenze. Freigabe und Abschluss pingen den Einreicher nicht, sie stehen in seiner Übersicht. **Ein Ping geht an den, der sonst nicht hinsähe, nie an eine Warteschlange, die ohnehin abgearbeitet wird**: Die Buchhaltung bekommt keinen. Und **wer eine Handlung selbst auslöst, bekommt dafür keinen Ping** — die Geschäftsführung meldet sich ihre eigene Freigabe nicht selbst, und die Buchhaltung nicht die Stornierung ihres eigenen Belegs. Abweichend vom Hebel laufen offene Belege **nicht in der Wochenmail** mit — hier ist der Ping der eine Kanal, und der Preis ist, dass nach ihm nichts mehr erinnert; was liegen bleibt, fällt allein in der Übersicht an seinem Alter auf. Für [unzustellbare Mails](hebel.md#unzustellbare-mail) gibt es hier nichts zu regeln.
+es gilt jeweils der Wert zu der Handlung, die ihn braucht — der Kilometersatz zum Einreichen, die
+Meldegrenze zur Freigabe.
 
-**Dateien** — Der **angehängte Beleg selbst** ist das Dokument; niemand unterschreibt etwas. Anhänge lassen sich nach dem Absenden nicht austauschen, auch nicht von der Führungskraft: Wer den falschen angehängt hat, reicht neu ein — sonst stünde am Ende ein freigegebener Betrag über einem anderen Beleg. **Die Buchhaltung erzeugt sich auf Knopfdruck eine einzige PDF** aus allen Anhängen eines Belegs, gleich ob Foto oder PDF eingereicht wurde; sie ist das Dokument, das nach Optigem mitgeht. Gespeichert wird sie nicht, sondern [frisch erzeugt](hebel.md#frisch-erzeugte-liste) wie jede Liste: So trägt sie immer den letzten Stand, es gibt keine zweite Fassung, die jemand aufräumen müsste, und für einen abgelehnten oder stornierten Beleg entsteht sie nie. Bei einer Aufteilung entsteht sie einmal für den ganzen Beleg. Sie trägt ein **Deckblatt**, damit sie in Optigem für sich steht und auch in zehn Jahren ohne Weltenbaum lesbar ist: Belegnummer, Datum, Betrag, Zahlungsempfänger und Einreicher, dazu Projekt, Buchungskonto und Freigeber — bei einem **aufgeteilten** Beleg je Teil, mit seinem Anteil daneben, denn dort gehört eine Zahlung zu mehreren Buchungen und es gibt nicht das eine Projekt. Weil das Deckblatt erst auf Knopfdruck entsteht, steht auch ein von der Buchhaltung berichtigtes Konto richtig darauf. Dazu die **Auswertungen** — Summen je Projekt und Konto, häufigste Empfänger, gefahrene Kilometer, wie lange ein Beleg im Schnitt liegt —, [frisch erzeugt](hebel.md#frisch-erzeugte-liste) und sichtbar für die, die die Belege ohnehin sehen.
+Der **Zahlungsempfänger ist ein Eintrag, kein Text**: Jeder Einreicher darf einen anlegen, den er
+nicht findet — sonst hielte der Bäcker um die Ecke das Einreichen auf —, und die **Buchhaltung
+berichtigt einen Eintrag oder führt zwei zusammen**, wenn doch „DB" neben „Deutsche Bahn" steht; die
+Belege ziehen mit, weil sie auf den Eintrag verweisen und nicht den Namen kopieren. Genau dafür ist
+die Liste da: Es gibt eine Deutsche Bahn, und danach lässt sich filtern.
 
-**Sonderfälle** — Die **KITA** ist ein eigener Betrieb im selben Haus: Ihre Mitarbeitenden reichen ein, gebucht wird auf ihr eigenes Projekt, und dieselbe Buchhaltung schließt ab. **Dies ist der einzige Prozess, in dem die KITA handelt** ([00](00-zugang-und-portal.md)) — in [13](13-m365-konten.md) kommt sie vor, ohne etwas zu tun. Einen eigenen Kreis bildet sie dabei nicht — jede Führungskraft ist für jeden Beleg wählbar, und wer gewählt wird, sieht ihn; die KITA-Leitung ist die Führungskraft ihres Hauses, weil man sie wählt, nicht weil eine Regel es erzwingt. **Sekretariat und Buchhaltung reichen die regulären Rechnungen der Schule** auf demselben Weg ein, nur mit dem Zahlweg „direkt an die Firma" statt einer Erstattung; ein zweites Formular gibt es nicht. Wer **auf Erstattung verzichtet und spendet**, sagt das beim Einreichen und dabei auch, ob er eine Bescheinigung braucht — ausgestellt wird sie außerhalb. Ein abgelehnter, stornierter oder zurückgezogener Beleg lässt sich **als Kopie** neu einreichen, Anhänge inbegriffen — bei tausend Belegen im Jahr wäre alles neu zu tippen Schikane; ein neuer Beleg bleibt es trotzdem. Der [offizielle Umweg](hebel.md#der-offizielle-umweg) ist hier **nicht das Sekretariat, sondern die Geschäftsführung**: Sie übernimmt jeden Beleg, dessen Führungskraft ausfällt, im Urlaub ist oder das Haus verlässt — wie bei jeder Freigabe, für die jemand zeichnet, bleibt die Entscheidung bei der Stelle, die dafür einsteht.
+Ein **Dublettenhinweis** entsteht, wenn Empfänger und Betrag eines anderen Belegs innerhalb von 30
+Tagen übereinstimmen — bei einer Fahrt nach Strecke, die keinen Empfänger trägt, treten Datum und
+Strecke an seine Stelle, denn zweimal abgerechnet wird gerade dort am leichtesten; er nennt den
+anderen Beleg mit Einreicher und Datum, **sperrt nichts** und schweigt, wenn beide über dieselbe
+Buchungsvorlage laufen — sonst meldete sich jede monatlich gleiche Rechnung.
 
-**Was heute schiefgeht** — Der Ablauf selbst läuft; was fehlt, ist der gemeinsame Ort. **Die Rollen liegen in einer eigenen Liste des Beleg-Portals**, neben allem anderen, was die Schule über ihre Leute weiß; künftig gibt es die eine Rollenvergabe in Weltenbaum und keine zweite daneben ([00](00-zugang-und-portal.md)). **Ein Beleg gilt erst als eingereicht, wenn ein zweiter Dienst die Anhänge verschoben hat**; bricht der ab, steht er in einem Fehlerzustand, den es künftig nicht mehr gibt: Weltenbaum legt die Datei gleich dort ab, wo sie bleibt, und der Beleg entsteht mit dem Absenden oder gar nicht. **Projekt und Buchungskonto stehen heute als Text in jedem Beleg** — vier Bezeichnungen enthalten Tippfehler und lassen sich nicht korrigieren, ohne die Altbelege abzuhängen; künftig verweist der Beleg auf den Eintrag, und ein Name lässt sich richtigstellen, ohne dass etwas verlorengeht. Dasselbe gilt für den Zahlungsempfänger. **Projekt und Konto stehen außerdem in der Bemerkung**: Wer einen Beleg anlegt und beides schon weiß, schreibt es sich als Notiz hinein, um es beim Freigeben nicht wieder heraussuchen zu müssen — künftig sind es Felder, und aus dem Freigeben wird ein Bestätigen. Und die Buchhaltung sammelt die Anhänge eines Belegs heute einzeln ein, statt eine Datei zu bekommen.
+Bei der Freigabe kommen Projekt, Buchungskonto, „im Budget ja/nein" und eine freiwillige interne
+Notiz hinzu; jede Korrektur, Ablehnung und Stornierung trägt eine Pflichtbegründung. **Sichtbar**
+ist ein Beleg für seinen Einreicher, für jede Führungskraft, die ihn hatte, für die
+Buchhaltung — auch solange er noch bei einer Führungskraft liegt — und für die Geschäftsführung; die
+Bankverbindung eingeschlossen, ohne sie könnte niemand zahlen. **Geändert wird nur von dem, den der
+Ablauf nennt** — auch das weicht von der [Standardantwort](hebel.md#standardantworten) ab: Nach dem
+Absenden ändert der Einreicher nichts mehr, er zieht zurück und reicht die Kopie neu ein, und das
+Sekretariat ändert hier nichts, weil es hier auch nichts sieht. Den Verlauf trägt die
+[Änderungsspur](hebel.md#änderungsspur), sichtbar für denselben Kreis und nicht fürs Sekretariat.
 
-**Fremdsysteme** — **Optigem** (Buchhaltung): **von Hand, wie heute** — Optigem hat keine Schnittstelle, und Weltenbaum schreibt nichts hinein. Die Buchhaltung überträgt die Angaben und hängt die eine PDF dort an; der freigegebene Beleg **ist** ihre Aufgabe, abgehakt heißt gebucht, und eine zweite Nachzieh-Aufgabe daneben entsteht nicht. **SharePoint** bleibt der Ort der Dateien: Weltenbaum legt sie dort ab und verweist darauf, wie die Schülerakte an ihrer Klassenkennung hängt ([15](15-klassenbildung.md)). **M365** dient der Anmeldung und trägt den Ping nach Teams; in die Kontenverwaltung schreibt Weltenbaum weiterhin nichts ([00](00-zugang-und-portal.md)). **ASV-BW** geht der ganze Prozess nichts an.
+Jeder wartende Beleg zeigt, **wie lange er schon wartet, gerechnet ab der letzten Handlung** und
+nicht ab dem Einreichen: Ein gestern freigegebener Beleg liegt seit einem Tag bei der Buchhaltung,
+nicht seit drei Wochen irgendwo. Ist die Führungskraft, bei der er liegt, **ausgeschieden**, steht
+das daneben ([13](13-m365-konten.md)): kein Ping, keine Aufgabe, keine Mail — nur die eine Angabe,
+die eine vielbeschäftigte Führungskraft von einer nicht mehr vorhandenen unterscheidet. Sie folgt
+aus dem letzten Arbeitstag und wird von niemandem gepflegt.
 
-**Löschen** — Es verschwindet **nichts von selbst**, weder Daten noch Dateien: Die Angaben zum Beleg bleiben zehn Jahre in Weltenbaum, die Anhänge in SharePoint, und was danach mit einem Jahrgang geschieht, entscheidet die **Geschäftsführung** von Hand. Einen Lauf, der es von sich aus täte, gibt es hier nicht. Der Beleg **überlebt seinen Einreicher**: Scheidet er aus, bleibt sein Name daran ([00](00-zugang-und-portal.md)). Ein Eintrag der Empfängerliste bleibt, **solange ein Beleg auf ihn verweist** — auch wenn dahinter eine Person steht und keine Firma.
+## Entscheidungen
 
-**Gehört nicht dazu** — Die **Freigabe vor dem Kauf**: Dieser Prozess weist nach, was ausgegeben wurde, er genehmigt nichts im Voraus, und „im Budget" ist eine Feststellung. Die **Buchung selbst** und die **Auszahlung**: Optigem und Bank — und damit auch alles, was **nach dem Abschließen** noch auffällt: Ein falsch gebuchter Beleg wird dort berichtigt, denn aus einem abgeschlossenen Beleg führt hier kein Weg zurück. Gehälter, Honorare und die Handkasse. Budgetplanung. **Einnahmen** jeder Art — Schulgeld, Hortbeiträge, Essensgeld laufen über ihre eigenen Prozesse. Das Ausstellen der **Spendenbescheinigung**. Die **Bestellung**: Wer was kaufen darf, klärt die Schule wie bisher außerhalb. Die **Belegerkennung**: Betrag, Datum und Empfänger aus dem Foto zu lesen wäre der größte Fehlerkiller und ist ein eigenes Vorhaben, kein Nebensatz hier. Die **Sammelfreigabe** mehrerer Belege in einem Zug: bewusst nicht — jeder Beleg sieht einmal ein Auge. Und eine **Zuständigkeitsliste**, die zu jedem Projekt seine Führungskraft nennt oder gleich vorschlägt: Das Haus ist klein genug, dass jeder weiß, wen er wählt, und weitergeleitet wird selten — eine Liste dafür wäre Pflegeaufwand ohne Ertrag.
+Zwei, beide von Menschen.
+
+- Die **Führungskraft** entscheidet, ob die Ausgabe anerkannt wird und ob sie in ihr Projekt gehört
+  — deshalb gibt es Weiterleiten und Aufteilen.
+- Die **Buchhaltung** entscheidet allein über die Buchbarkeit, nicht über die Sache: Sie storniert,
+  wenn der Beleg fehlt, unlesbar ist oder nicht zum Betrag passt.
+
+Eine Wertgrenze, ab der jemand mitzeichnen muss, gibt es nicht, und „im Budget ja/nein" ist eine
+Feststellung, keine Schranke; über der Meldegrenze wird die Geschäftsführung nach der
+Freigabe **informiert** und hält nichts auf — gebucht ist zu diesem Zeitpunkt noch nichts, wer
+eingreifen will, tut es außerhalb. Die Liste der **Projekte und Buchungskonten** pflegt die
+Buchhaltung; sie folgt dem Kontenrahmen in Optigem, weil dort gebucht wird.
+
+**Vorlagen legen zwei Stellen an, jede bei dem, was sie ohnehin verantwortet:**
+
+- die **Buchhaltung** die Buchungsvorlagen, weil ihr Projekte und Konten gehören,
+- die **Geschäftsführung** die Aufteilungsvorlagen, weil deren Schlüssel die Freigabe der
+  beteiligten Führungskräfte vorwegnimmt.
+
+Eine geänderte Vorlage gilt ab dem nächsten Beleg; laufende ändern sich nicht.
+
+## Fristen und Termine
+
+**Keine.** Kein Beleg verfällt, keine [Aufgabe](hebel.md#nachzieh-aufgabe-und-wochenmail) verfällt,
+es wird nicht eskaliert. Auch für das Einreichen gibt es keine Frist: Ein Beleg aus dem Vorjahr wird
+periodenfremd gebucht, dafür hat die Buchhaltung ein eigenes Konto. Der einzige Zeitbezug ist das
+Kalenderjahr der Einreichung.
+
+**Reagiert die gewählte Führungskraft nicht, erinnert im System nichts mehr** — der Einreicher sieht
+das Alter seines Belegs und spricht sie an — es sei denn, sie ist ausgeschieden, was an seinem Beleg
+steht —, und die Geschäftsführung kann ihn übernehmen; das ist der Preis dafür, dass hier nichts in
+der Wochenmail mitläuft.
+
+## Mails und Schreiben
+
+**In diesem Block geht keine Mail raus.** Ein wartender Beleg ist eine
+[Aufgabe](hebel.md#nachzieh-aufgabe-und-wochenmail) bei einer **namentlich benannten Person** — der
+zweite Fall dieser Art neben der Mitarbeitsstunde ([14](14-elternbonus.md)) —, und ihr Anstoß ist
+ein **Teams-Ping**, der auf den Beleg führt:
+
+- an die gewählte Führungskraft, sobald einer bei ihr eingeht;
+- an den Einreicher, sobald etwas anders ist als eingereicht — korrigiert, abgelehnt, storniert, mit
+  der Begründung;
+- und an die Geschäftsführung bei jeder Freigabe über der Meldegrenze.
+
+Freigabe und Abschluss pingen den Einreicher nicht, sie stehen in seiner Übersicht. **Ein Ping geht
+an den, der sonst nicht hinsähe, nie an eine Warteschlange, die ohnehin abgearbeitet wird**: Die
+Buchhaltung bekommt keinen. Und **wer eine Handlung selbst auslöst, bekommt dafür keinen Ping** —
+die Geschäftsführung meldet sich ihre eigene Freigabe nicht selbst, und die Buchhaltung nicht die
+Stornierung ihres eigenen Belegs.
+
+Abweichend vom Hebel laufen offene Belege **nicht in der Wochenmail** mit — hier ist der Ping der
+eine Kanal, und der Preis ist, dass nach ihm nichts mehr erinnert; was liegen bleibt, fällt allein
+in der Übersicht an seinem Alter auf. Für [unzustellbare Mails](hebel.md#unzustellbare-mail) gibt es
+hier nichts zu regeln.
+
+## Dateien
+
+Der **angehängte Beleg selbst** ist das Dokument; niemand unterschreibt etwas. Anhänge lassen sich
+nach dem Absenden nicht austauschen, auch nicht von der Führungskraft: Wer den falschen angehängt
+hat, reicht neu ein — sonst stünde am Ende ein freigegebener Betrag über einem anderen Beleg.
+
+**Die Buchhaltung erzeugt sich auf Knopfdruck eine einzige PDF** aus allen Anhängen eines Belegs,
+gleich ob Foto oder PDF eingereicht wurde; sie ist das Dokument, das nach Optigem mitgeht.
+Gespeichert wird sie nicht, sondern [frisch erzeugt](hebel.md#frisch-erzeugte-liste) wie jede Liste:
+So trägt sie immer den letzten Stand, es gibt keine zweite Fassung, die jemand aufräumen müsste, und
+für einen abgelehnten oder stornierten Beleg entsteht sie nie. Bei einer Aufteilung entsteht sie
+einmal für den ganzen Beleg.
+
+Sie trägt ein **Deckblatt**, damit sie in Optigem für sich steht und auch in zehn Jahren ohne
+Weltenbaum lesbar ist: Belegnummer, Datum, Betrag, Zahlungsempfänger und Einreicher, dazu Projekt,
+Buchungskonto und Freigeber — bei einem **aufgeteilten** Beleg je Teil, mit seinem Anteil daneben,
+denn dort gehört eine Zahlung zu mehreren Buchungen und es gibt nicht das eine Projekt. Weil das
+Deckblatt erst auf Knopfdruck entsteht, steht auch ein von der Buchhaltung berichtigtes Konto
+richtig darauf.
+
+Dazu die **Auswertungen** — Summen je Projekt und Konto, häufigste Empfänger, gefahrene Kilometer,
+wie lange ein Beleg im Schnitt liegt —, [frisch erzeugt](hebel.md#frisch-erzeugte-liste) und
+sichtbar für die, die die Belege ohnehin sehen.
+
+## Sonderfälle
+
+- Die **KITA** ist ein eigener Betrieb im selben Haus: Ihre Mitarbeitenden reichen ein, gebucht wird
+  auf ihr eigenes Projekt, und dieselbe Buchhaltung schließt ab. **Dies ist der einzige Prozess, in
+  dem die KITA handelt** ([00](00-zugang-und-portal.md)) — in [13](13-m365-konten.md) kommt sie vor,
+  ohne etwas zu tun. Einen eigenen Kreis bildet sie dabei nicht — jede Führungskraft ist für jeden
+  Beleg wählbar, und wer gewählt wird, sieht ihn; die KITA-Leitung ist die Führungskraft ihres
+  Hauses, weil man sie wählt, nicht weil eine Regel es erzwingt.
+- **Sekretariat und Buchhaltung reichen die regulären Rechnungen der Schule** auf demselben Weg ein,
+  nur mit dem Zahlweg „direkt an die Firma" statt einer Erstattung; ein zweites Formular gibt es
+  nicht.
+- Wer **auf Erstattung verzichtet und spendet**, sagt das beim Einreichen und dabei auch, ob er eine
+  Bescheinigung braucht — ausgestellt wird sie außerhalb.
+- Ein abgelehnter, stornierter oder zurückgezogener Beleg lässt sich **als Kopie** neu einreichen,
+  Anhänge inbegriffen — bei tausend Belegen im Jahr wäre alles neu zu tippen Schikane; ein neuer
+  Beleg bleibt es trotzdem.
+- Der [offizielle Umweg](hebel.md#der-offizielle-umweg) ist hier **nicht das Sekretariat, sondern
+  die Geschäftsführung**: Sie übernimmt jeden Beleg, dessen Führungskraft ausfällt, im Urlaub ist
+  oder das Haus verlässt — wie bei jeder Freigabe, für die jemand zeichnet, bleibt die Entscheidung
+  bei der Stelle, die dafür einsteht.
+
+## Was heute schiefgeht
+
+Der Ablauf selbst läuft; was fehlt, ist der gemeinsame Ort.
+
+- **Die Rollen liegen in einer eigenen Liste des Beleg-Portals**, neben allem anderen, was die
+  Schule über ihre Leute weiß; künftig gibt es die eine Rollenvergabe in Weltenbaum und keine zweite
+  daneben ([00](00-zugang-und-portal.md)).
+- **Ein Beleg gilt erst als eingereicht, wenn ein zweiter Dienst die Anhänge verschoben hat**;
+  bricht der ab, steht er in einem Fehlerzustand, den es künftig nicht mehr gibt: Weltenbaum legt
+  die Datei gleich dort ab, wo sie bleibt, und der Beleg entsteht mit dem Absenden oder gar nicht.
+- **Projekt und Buchungskonto stehen heute als Text in jedem Beleg** — vier Bezeichnungen enthalten
+  Tippfehler und lassen sich nicht korrigieren, ohne die Altbelege abzuhängen; künftig verweist der
+  Beleg auf den Eintrag, und ein Name lässt sich richtigstellen, ohne dass etwas verlorengeht.
+  Dasselbe gilt für den Zahlungsempfänger.
+- **Projekt und Konto stehen außerdem in der Bemerkung**: Wer einen Beleg anlegt und beides schon
+  weiß, schreibt es sich als Notiz hinein, um es beim Freigeben nicht wieder heraussuchen zu müssen
+  — künftig sind es Felder, und aus dem Freigeben wird ein Bestätigen.
+- Und die Buchhaltung sammelt die Anhänge eines Belegs heute einzeln ein, statt eine Datei zu
+  bekommen.
+
+## Fremdsysteme
+
+- **Optigem** (Buchhaltung): **von Hand, wie heute** — Optigem hat keine Schnittstelle, und
+  Weltenbaum schreibt nichts hinein. Die Buchhaltung überträgt die Angaben und hängt die eine PDF
+  dort an; der freigegebene Beleg **ist** ihre Aufgabe, abgehakt heißt gebucht, und eine zweite
+  Nachzieh-Aufgabe daneben entsteht nicht.
+- **SharePoint** bleibt der Ort der Dateien: Weltenbaum legt sie dort ab und verweist darauf, wie
+  die Schülerakte an ihrer Klassenkennung hängt ([15](15-klassenbildung.md)).
+- **M365** dient der Anmeldung und trägt den Ping nach Teams; in die Kontenverwaltung schreibt
+  Weltenbaum weiterhin nichts ([00](00-zugang-und-portal.md)).
+- **ASV-BW** geht der ganze Prozess nichts an.
+
+## Löschen
+
+Es verschwindet **nichts von selbst**, weder Daten noch Dateien: Die Angaben zum Beleg bleiben zehn
+Jahre in Weltenbaum, die Anhänge in SharePoint, und was danach mit einem Jahrgang geschieht,
+entscheidet die **Geschäftsführung** von Hand. Einen Lauf, der es von sich aus täte, gibt es hier
+nicht. Der Beleg **überlebt seinen Einreicher**: Scheidet er aus, bleibt sein Name daran
+([00](00-zugang-und-portal.md)). Ein Eintrag der Empfängerliste bleibt, **solange ein Beleg auf ihn
+verweist** — auch wenn dahinter eine Person steht und keine Firma.
+
+## Gehört nicht dazu
+
+- Die **Freigabe vor dem Kauf**: Dieser Prozess weist nach, was ausgegeben wurde, er genehmigt
+  nichts im Voraus, und „im Budget" ist eine Feststellung.
+- Die **Buchung selbst** und die **Auszahlung**: Optigem und Bank — und damit auch alles, was **nach
+  dem Abschließen** noch auffällt: Ein falsch gebuchter Beleg wird dort berichtigt, denn aus einem
+  abgeschlossenen Beleg führt hier kein Weg zurück.
+- Gehälter, Honorare und die Handkasse.
+- Budgetplanung.
+- **Einnahmen** jeder Art — Schulgeld, Hortbeiträge, Essensgeld laufen über ihre eigenen Prozesse.
+- Das Ausstellen der **Spendenbescheinigung**.
+- Die **Bestellung**: Wer was kaufen darf, klärt die Schule wie bisher außerhalb.
+- Die **Belegerkennung**: Betrag, Datum und Empfänger aus dem Foto zu lesen wäre der größte
+  Fehlerkiller und ist ein eigenes Vorhaben, kein Nebensatz hier.
+- Die **Sammelfreigabe** mehrerer Belege in einem Zug: bewusst nicht — jeder Beleg sieht einmal ein
+  Auge.
+- Und eine **Zuständigkeitsliste**, die zu jedem Projekt seine Führungskraft nennt oder gleich
+  vorschlägt: Das Haus ist klein genug, dass jeder weiß, wen er wählt, und weitergeleitet wird
+  selten — eine Liste dafür wäre Pflegeaufwand ohne Ertrag.
 
 > **Vorgemerkt aus [12](12-rechnungsfreigabe.md)**, für die Blöcke, die daran anschließen: **Block 13** muss sagen, wann das M365-Konto eines ausscheidenden Mitarbeitenden wirklich verschwindet und wer das auslöst — ab da kommt er nicht mehr herein ([00](00-zugang-und-portal.md)) und kein Ping erreicht ihn, seine Belege bleiben aber stehen und tragen weiter seinen Namen; und wer erfährt, dass jemand geht, denn genau dort reißt heute der Faden. **Block 17** muss die Belege ausdrücklich **aussparen**: Hier läuft keine Frist ab, die etwas auslöst, und gelöscht wird nur, was die Geschäftsführung nach zehn Jahren selbst freigibt — ein Lösch-Lauf, der sie mitnähme, griffe in die Aufbewahrung ein.
