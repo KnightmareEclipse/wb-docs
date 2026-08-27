@@ -4,12 +4,14 @@ title: 'PUT /cleaning/slots/{slot_id}/attendance — Anwesenheit zurücktragen'
 status: To Do
 assignee: []
 created_date: '2026-08-27 22:44'
+updated_date: '2026-08-27 23:29'
 labels:
   - wb-backend
   - route
   - putzdienst
   - sekretariat
-milestone: m-0
+  - zweiter-zyklus
+milestone: m-5
 dependencies: []
 references:
   - api/putzdienst-api.md

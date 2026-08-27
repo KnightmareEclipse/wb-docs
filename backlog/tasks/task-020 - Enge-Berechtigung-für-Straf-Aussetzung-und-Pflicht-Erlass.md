@@ -4,11 +4,13 @@ title: Enge Berechtigung für Straf-Aussetzung und Pflicht-Erlass
 status: To Do
 assignee: []
 created_date: '2026-08-27 11:35'
+updated_date: '2026-08-27 23:29'
 labels:
   - wb-backend
   - putzdienst
   - rollen
-milestone: m-0
+  - zweiter-zyklus
+milestone: m-5
 dependencies: []
 references:
   - schema/putzdienst-schema.sql

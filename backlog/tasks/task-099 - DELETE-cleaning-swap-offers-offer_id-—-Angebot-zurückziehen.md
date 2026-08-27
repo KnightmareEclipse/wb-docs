@@ -4,12 +4,14 @@ title: 'DELETE /cleaning/swap-offers/{offer_id} — Angebot zurückziehen'
 status: To Do
 assignee: []
 created_date: '2026-08-27 22:43'
+updated_date: '2026-08-27 23:29'
 labels:
   - wb-backend
   - route
   - putzdienst
   - eltern
-milestone: m-0
+  - zweiter-zyklus
+milestone: m-5
 dependencies: []
 references:
   - api/putzdienst-api.md

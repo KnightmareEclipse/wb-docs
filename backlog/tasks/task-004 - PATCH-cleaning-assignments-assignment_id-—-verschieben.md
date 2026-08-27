@@ -4,12 +4,14 @@ title: 'PATCH /cleaning/assignments/{assignment_id} — verschieben'
 status: To Do
 assignee: []
 created_date: '2026-08-27 11:33'
+updated_date: '2026-08-27 23:29'
 labels:
   - wb-backend
   - putzdienst
   - route
 milestone: m-0
-dependencies: []
+dependencies:
+  - TASK-106
 references:
   - api/putzdienst-api.md
   - schema/putzdienst-schema.sql

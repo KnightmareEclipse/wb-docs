@@ -34,9 +34,10 @@ Dienst bleibt trotzdem nötig:** Quartz schreibt Verweise ohne `.html` (`./conta
   Markdown-Verweise.
 - **`--serve` lauscht auf allen Schnittstellen**, und Quartz 5 kennt keinen Schalter dagegen. Die
   Zone `FedoraWorkstation` gibt 1025–65535/tcp frei, also liest jeder im selben Netz mit, solange
-  der Dienst läuft. Preis der Alternativen: eine eigene firewalld-Regel für einen Dienst, der
-  minutenweise läuft, oder ein selbst geschriebener Dateiserver, der die Verweise oben auflöst —
-  beides teurer als der Dienst nach dem Lesen zu beenden. Backlog.md bindet dagegen an 127.0.0.1.
+  der Dienst läuft. **Daraus folgt die Bedienregel: starten, lesen, mit `Strg+C` beenden** — nicht
+  nebenher laufen lassen. Preis der Alternativen: eine dauerhafte firewalld-Regel für einen Dienst,
+  der minutenweise läuft, oder ein selbst geschriebener Dateiserver, der die Verweise oben auflöst
+  — beides teurer als das Beenden. Backlog.md bindet dagegen an 127.0.0.1 und darf stehen bleiben.
 - Weil `content` aus dem Quartz-Verzeichnis heraus in dieses Repo zeigt, liest Quartz die
   Git-Historie nicht: Es warnt je Datei, dass die Daten ungenau sind, und zeigt Änderungsdaten aus
   dem Dateisystem. Kosmetisch, kein Fehler.
@@ -65,6 +66,11 @@ dann entsteht der Anker zuerst, nicht das Ticket.
 Milestones sind die Termine, die in `fachdomaenen.md` und `soll-prozesse/README.md` ohnehin stehen —
 keine erfundenen. Priorität trägt nur, was das Repo selbst so nennt.
 
+**`dependencies:` bleibt leer, außer ein Ticket lässt sich ohne das andere nicht anfangen.** Nicht
+„gehört thematisch dazu" und nicht „kommt danach" — das sagt der Milestone bereits. Gesetzt ist
+heute genau eine Kante: Die fünf Zuteilungs-Routen brauchen `allocated_at`, und gesetzt wird das
+allein vom Solver. Wer eine zweite zieht, sollte denselben Satz über sie sagen können.
+
 ## Verworfene Wege
 
 - **Ein Ticketsystem mit eigener Datenbank** (Forgejo, Vikunja, Wekan, GitHub Issues): Preis — der
@@ -81,8 +87,3 @@ keine erfundenen. Priorität trägt nur, was das Repo selbst so nennt.
   der Roadmap.
 - **Ein selbst geschriebenes Dashboard**: Preis — Code, den nur dieses Projekt hat und den niemand
   pflegt, für eine Ansicht, die zwei fertige Programme mitbringen.
-
-## Offen
-
-Backlog.md schreibt `labels:`, Quartz liest `tags:` — deshalb steht ein Ticket noch nicht auf
-derselben Tag-Seite wie die Doku, die es betrifft. Die Volltextsuche findet beide unabhängig davon.

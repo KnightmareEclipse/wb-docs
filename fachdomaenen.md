@@ -177,6 +177,24 @@ Explizit **nicht** in dieser Liste, jeweils mit Grund:
 
 **Putzdienst** — zeitlich dringendster Prozess (Abschnitt 1) und deshalb die erste. Produktiv geht er, wenn er fertig ist — **ausdrücklich ohne Abstriche bei Sicherheit und Automatisierung, um ein Datum zu halten** (`rules.md` §1–3); die Schule wartet, das ist billiger als ein Prozess, der auf echten Elterndaten nachgebessert wird. Prozessbeschreibung, Familie-Modell, Zyklus-Konfiguration und offene Punkte: `schema/putzdienst-schema.sql`.
 
+**Der erste Zyklus kann weniger als der Block beschreibt.** Nicht als Abstrich an Sicherheit
+oder Automatisierung — die stehen ganz —, sondern als Schnitt an den Vorgängen: Gebaut wird für
+Zyklus eins, dass Eltern im Portal buchen, der Solver zuteilt und die Zuteilungsmail samt
+Erinnerungen hinausgeht. Tausch, Freikauf, Anwesenheit und Strafen bleiben in diesem einen Jahr,
+wie sie heute laufen — Tausch über das Sekretariat, Freikauf per Überweisung, Anwesenheit auf
+Papier, Strafen von Hand.
+
+Das Kriterium war der Rückfallweg: Für diese vier gibt es einen, der heute gelebt wird, für Buchung
+und Zuteilung nicht. Was verschoben ist, trägt im Board die Marke `zweiter-zyklus` und liegt in „Ohne
+Termin"; es fällt damit nicht weg, sondern wartet auf den zweiten Zyklus. Wer den Schnitt
+zurücknimmt, holt die zwanzig Tickets zurück nach `m-0` — die Reihenfolge steht, nur der Umfang war
+die Entscheidung.
+
+Zwei Folgen, die beim Bauen auffallen werden: Die Fenster-offen-Mail nennt heute den Freikaufbetrag,
+darf im ersten Jahr aber keinen Weg versprechen, den es noch nicht gibt — das entscheidet die
+Mailvorlage, nicht das Schema. Und von den elf `configured_values` hält nur ein Teil einen Lauf an,
+solange Freikauf und Strafe außen vor sind.
+
 Kritischer Pfad bis dahin:
 
 *Infrastruktur:*

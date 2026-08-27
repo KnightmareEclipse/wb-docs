@@ -4,12 +4,14 @@ title: Stripe-Konto der Schule anlegen und AVV abschließen
 status: To Do
 assignee: []
 created_date: '2026-08-27 11:37'
+updated_date: '2026-08-27 23:29'
 labels:
   - wartet
   - geschaeftsfuehrung
   - zahlung
   - dsgvo
-milestone: m-0
+  - zweiter-zyklus
+milestone: m-5
 dependencies: []
 references:
   - api/gemeinsam.md

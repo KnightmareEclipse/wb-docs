@@ -4,11 +4,13 @@ title: Frist des Einzel-Freikaufs als Backend-Prüfung
 status: To Do
 assignee: []
 created_date: '2026-08-27 11:35'
+updated_date: '2026-08-27 23:29'
 labels:
   - wb-backend
   - putzdienst
   - zahlung
-milestone: m-0
+  - zweiter-zyklus
+milestone: m-5
 dependencies: []
 references:
   - schema/putzdienst-schema.sql

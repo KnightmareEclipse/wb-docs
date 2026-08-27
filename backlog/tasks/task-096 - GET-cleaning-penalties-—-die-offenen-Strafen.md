@@ -4,12 +4,14 @@ title: GET /cleaning/penalties — die offenen Strafen
 status: To Do
 assignee: []
 created_date: '2026-08-27 22:43'
+updated_date: '2026-08-27 23:29'
 labels:
   - wb-backend
   - route
   - putzdienst
   - buchhaltung
-milestone: m-0
+  - zweiter-zyklus
+milestone: m-5
 dependencies: []
 references:
   - api/putzdienst-api.md
