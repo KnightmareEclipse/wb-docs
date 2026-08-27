@@ -32,7 +32,7 @@ Dienst bleibt trotzdem nötig:** Quartz schreibt Verweise ohne `.html` (`./conta
   kein Markdown und bleiben Sache des Editors.
 - Ein Pfad in Backticks (`` `grenzkarte.md` ``) bleibt Text; klickbar werden nur echte
   Markdown-Verweise.
-- **`--serve` lauscht auf allen Schnittstellen**, und Quartz 4 kennt keinen Schalter dagegen. Die
+- **`--serve` lauscht auf allen Schnittstellen**, und Quartz 5 kennt keinen Schalter dagegen. Die
   Zone `FedoraWorkstation` gibt 1025–65535/tcp frei, also liest jeder im selben Netz mit, solange
   der Dienst läuft. Preis der Alternativen: eine eigene firewalld-Regel für einen Dienst, der
   minutenweise läuft, oder ein selbst geschriebener Dateiserver, der die Verweise oben auflöst —
