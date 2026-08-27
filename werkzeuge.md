@@ -1,7 +1,9 @@
 # Werkzeuge — womit diese Doku gelesen und bearbeitet wird
 
-Zwei Programme, beide quelloffen, beide lokal. Sie halten keinen eigenen Datenbestand: Was sie
-zeigen, sind die Dateien dieses Repos, und Git ist der einzige Weg zwischen zwei Rechnern.
+Zwei Programme, beide quelloffen, beide auf dem eigenen Rechner. Sie halten keinen eigenen
+Datenbestand: Was sie zeigen, sind die Dateien dieses Repos, und Git ist der einzige Weg zwischen
+zwei Rechnern. **Keins von beiden startet von selbst** — nach jedem Neustart von Hand, wenn man sie
+braucht.
 
 | Werkzeug | wozu | Lizenz |
 |---|---|---|
@@ -20,12 +22,24 @@ rm -rf content && ln -s ../wb-docs content
 npx quartz build --serve --port 8080     # → http://127.0.0.1:8080
 ```
 
-Der Bau dauert rund 15 Sekunden und erzeugt statisches HTML unter `public/`. Wer nur lesen will,
-braucht danach keinen laufenden Dienst.
+Der Bau dauert rund zwanzig Sekunden und erzeugt statisches HTML unter `public/`. **Ein laufender
+Dienst bleibt trotzdem nötig:** Quartz schreibt Verweise ohne `.html` (`./container`), und weder
+`file://` noch ein einfacher Dateiserver löst die auf — beides zeigt statt der Seite einen 404.
 
-**Zwei Grenzen, die man kennen muss:** Die rund 30.000 Wörter in den `COMMENT`-Zeilen von
-`schema/*.sql` zeigt Quartz nicht — sie sind kein Markdown und bleiben Sache des Editors. Und ein
-Pfad in Backticks (`` `grenzkarte.md` ``) bleibt Text; klickbar werden nur echte Markdown-Verweise.
+**Vier Grenzen, die man kennen muss:**
+
+- Die rund 30.000 Wörter in den `COMMENT`-Zeilen von `schema/*.sql` zeigt Quartz nicht — sie sind
+  kein Markdown und bleiben Sache des Editors.
+- Ein Pfad in Backticks (`` `grenzkarte.md` ``) bleibt Text; klickbar werden nur echte
+  Markdown-Verweise.
+- **`--serve` lauscht auf allen Schnittstellen**, und Quartz 4 kennt keinen Schalter dagegen. Die
+  Zone `FedoraWorkstation` gibt 1025–65535/tcp frei, also liest jeder im selben Netz mit, solange
+  der Dienst läuft. Preis der Alternativen: eine eigene firewalld-Regel für einen Dienst, der
+  minutenweise läuft, oder ein selbst geschriebener Dateiserver, der die Verweise oben auflöst —
+  beides teurer als der Dienst nach dem Lesen zu beenden. Backlog.md bindet dagegen an 127.0.0.1.
+- Weil `content` aus dem Quartz-Verzeichnis heraus in dieses Repo zeigt, liest Quartz die
+  Git-Historie nicht: Es warnt je Datei, dass die Daten ungenau sind, und zeigt Änderungsdaten aus
+  dem Dateisystem. Kosmetisch, kein Fehler.
 
 ## Backlog.md starten
 
