@@ -4,6 +4,7 @@ title: Personalisierter Link in der Ferienprogramm-Ankündigung
 status: To Do
 assignee: []
 created_date: '2026-08-27 11:35'
+updated_date: '2026-08-27 22:23'
 labels:
   - wb-backend
   - ferien
@@ -11,7 +12,8 @@ labels:
 milestone: m-3
 dependencies: []
 references:
-  - TODO-SESSIONS.md
+  - soll-prozesse/10-ferienprogramm.md
+  - zugang.md
 ordinal: 11000
 ---
 

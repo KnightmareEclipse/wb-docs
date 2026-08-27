@@ -10,7 +10,6 @@ labels:
 milestone: m-4
 dependencies: []
 references:
-  - TODO-SESSIONS.md
   - fachdomaenen.md
 ordinal: 13000
 ---

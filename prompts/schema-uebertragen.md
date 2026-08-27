@@ -18,8 +18,7 @@ Es gelten die `CLAUDE.md` von `wb-backend` (Code-Stil, verbindlich — **alle `�
 
 1. **`../wb-docs/schema/DOMÄNE-schema.sql`** — vollständig, samt aller Kommentare. Sie tragen die Begründungen, und ohne sie baust du zuverlässig genau das, was dort schon verworfen wurde.
 2. **`../wb-docs/schema/DOMÄNE-schema-check.sql`** — der Sollstand im Kopfkommentar ist dein Abnahmekriterium, und die Gegenproben sagen dir, welche Regeln tatsächlich greifen müssen.
-3. **`../wb-docs/TODO-SESSIONS.md`**, Abschnitt „Was eine Schemaänderung dort mitziehen muss" — die drei Dinge, die `--autogenerate` nicht sieht.
-4. **Die schon übertragenen Domänen** in diesem Repo. Präzedenz schlägt Geschmack: Tragen zwei Formen dieselbe Sache, nimm die, die hier schon vorkommt.
+3. **Die schon übertragenen Domänen** in diesem Repo. Präzedenz schlägt Geschmack: Tragen zwei Formen dieselbe Sache, nimm die, die hier schon vorkommt.
 
 **Das liest du selbst** — aus dem Grund, der in `gemeinsam.md` steht. Ein Subagent darf eine Fundstelle suchen, nicht urteilen.
 
@@ -43,11 +42,11 @@ Es gelten die `CLAUDE.md` von `wb-backend` (Code-Stil, verbindlich — **alle `�
 Sie sind der eigentliche Grund, warum dieser Auftrag Handarbeit ist. Alembic meldet nicht, dass sie fehlen; es ließe sie beim nächsten Regenerieren stillschweigend weg.
 
 **1. Sämtliche Tabellenrechte, nicht nur die auf dem Art.-9-Bestand.**
-`backend_runtime` startet **ohne jedes Tabellenrecht** — es gibt keine Default-Privilegien mehr. Jede Tabelle deiner Domäne braucht deshalb ihren `GRANT` als `op.execute()` in der Migration, direkt hinter der Tabelle, für die er gilt. Zwei Regeln dabei, beide aus `idea/03-container-anwendung.md`: **`UPDATE` immer spaltenweise**, nie tabellenweit — daran hängt auch die Unveränderlichkeit der Schlüsselspalten —, und für eine geschützte Spalte gehört sie schlicht nicht in die Liste der gewährten. Ein vergessener `GRANT` fällt als „permission denied" auf; ein zu breiter fällt in `tests/test_privileges.py` auf. **Beleg das Ergebnis mit einer Gegenprobe:** ein `SELECT` auf die geschützte Spalte als `backend_runtime` muss scheitern.
+`backend_runtime` startet **ohne jedes Tabellenrecht** — es gibt keine Default-Privilegien mehr. Jede Tabelle deiner Domäne braucht deshalb ihren `GRANT` als `op.execute()` in der Migration, direkt hinter der Tabelle, für die er gilt. Zwei Regeln dabei, beide aus `container.md`: **`UPDATE` immer spaltenweise**, nie tabellenweit — daran hängt auch die Unveränderlichkeit der Schlüsselspalten —, und für eine geschützte Spalte gehört sie schlicht nicht in die Liste der gewährten. Ein vergessener `GRANT` fällt als „permission denied" auf; ein zu breiter fällt in `tests/test_privileges.py` auf. **Beleg das Ergebnis mit einer Gegenprobe:** ein `SELECT` auf die geschützte Spalte als `backend_runtime` muss scheitern.
 
-**2. Eine enger geschnittene Rolle, falls die Domäne eine braucht.** Welche es gibt und welche Spalte an welcher hängt, liest du an `__protected_columns__` der bestehenden Modelle und an den `GRANT`s ihrer Migrationen; die bindenden Bedingungen stehen in `../wb-docs/idea/03-container-anwendung.md`. Eine neue entsteht **in derselben Migration** wie ihre Spalten-Rechte: `NOLOGIN`, ohne Passwort, erreichbar allein über `GRANT <rolle> TO backend_runtime WITH INHERIT FALSE, SET TRUE` und ein `SET LOCAL ROLE` in der Transaktion, die sie braucht. `db/init-roles.sh` legt keine davon an — es läuft nur bei der ersten Initialisierung eines Clusters und erreicht eine bestehende Datenbank nicht mehr; `backend_migrator` trägt dafür `CREATEROLE`.
+**2. Eine enger geschnittene Rolle, falls die Domäne eine braucht.** Welche es gibt und welche Spalte an welcher hängt, liest du an `__protected_columns__` der bestehenden Modelle und an den `GRANT`s ihrer Migrationen; die bindenden Bedingungen stehen in `../wb-docs/container.md`. Eine neue entsteht **in derselben Migration** wie ihre Spalten-Rechte: `NOLOGIN`, ohne Passwort, erreichbar allein über `GRANT <rolle> TO backend_runtime WITH INHERIT FALSE, SET TRUE` und ein `SET LOCAL ROLE` in der Transaktion, die sie braucht. `db/init-roles.sh` legt keine davon an — es läuft nur bei der ersten Initialisierung eines Clusters und erreicht eine bestehende Datenbank nicht mehr; `backend_migrator` trägt dafür `CREATEROLE`.
 
-**3. `deferred=True` auf jeder geschützten Spalte.** Fehlt es, scheitert jedes Vollobjekt-Laden dieser Tabelle an „permission denied for column", weil SQLAlchemy per Default alle gemappten Spalten selektiert. Dieselben Spalten stehen in `__protected_columns__` — und eine geschützte Spalte ist eine **Lese**beschränkung: sie fällt aus der `SELECT`-Liste der Laufzeit-Rolle und geht an die enge Rolle, `INSERT` und `UPDATE` bleiben. Wird sie auch schreibend entzogen, liefe der Spur-Insert der Schreibschicht unter der engen Rolle und scheiterte an `change_log` statt an der Spalte. Die einzige Ausnahme benennt `TODO-SESSIONS.md`.
+**3. `deferred=True` auf jeder geschützten Spalte.** Fehlt es, scheitert jedes Vollobjekt-Laden dieser Tabelle an „permission denied for column", weil SQLAlchemy per Default alle gemappten Spalten selektiert. Dieselben Spalten stehen in `__protected_columns__` — und eine geschützte Spalte ist eine **Lese**beschränkung: sie fällt aus der `SELECT`-Liste der Laufzeit-Rolle und geht an die enge Rolle, `INSERT` und `UPDATE` bleiben. Wird sie auch schreibend entzogen, liefe der Spur-Insert der Schreibschicht unter der engen Rolle und scheiterte an `change_log` statt an der Spalte. Die einzige Ausnahme — Straf-Aussetzung und Pflicht-Erlass im Putzdienst, eine Schreib- und keine Lesebeschränkung — steht in `schema/putzdienst-schema.sql`.
 
 ## Was nicht in diesen Durchgang gehört
 
@@ -76,12 +75,18 @@ Nicht mit Augenmaß, sondern mit Rückgabewerten. Vier Läufe, alle vier nennst 
 docker compose --profile tools down -v && docker compose up -d
 docker compose --profile tools run --rm migrate && docker compose --profile tools run --rm migrate alembic check
 for f in ../wb-docs/schema/*-schema-check.sql; do
-    docker compose exec -T db psql -U backend_migrator -d weltenbaum -v ON_ERROR_STOP=1 -q < "$f"
-    echo "$(basename "$f") rc=$?"
+    { echo "BEGIN; TRUNCATE <die gesäten Listen> CASCADE;"; cat "$f"; } \
+        | docker compose exec -T db psql -U backend_migrator -d weltenbaum -v ON_ERROR_STOP=1 -q
+    rc=$?
+    echo "$(basename "$f") rc=$rc"
 done
 docker compose --profile tools run --rm test sh -c \
     'ruff check . && ruff format --check . && mypy app tests && pytest -q'
 ```
+
+**Der Vorspann ist kein Beiwerk.** Jedes Prüfskript legt die Wertelisten selbst an, die es braucht, und rechnet dafür mit einer leeren Datenbank („die Datenbank bleibt danach leer", Kopf jedes Skripts). Gegen die von Alembic gebaute Datenbank scheitern dreizehn der vierzehn deshalb an einem doppelten Schlüssel. Die Skripte selbst bleiben unverändert — sie rollen ohnehin alles zurück, also darf der Vorspann in derselben Transaktion räumen, und das `ROLLBACK;` am Ende nimmt das `TRUNCATE` mit zurück. Die Liste der Tabellen führt die Seed-Revision als `SEEDED_TABLES`.
+
+**Und `rc=$?` steht direkt hinter dem Aufruf.** Käme davor eine Kommando-Ersetzung wie `echo "$(basename "$f") rc=$?"`, trüge `$?` den Rückgabewert von `basename` — der Lauf wäre grün, auch der gescheiterte, genau wie ohne `ON_ERROR_STOP=1`.
 
 **Alle Prüfskripte, nicht nur das der eigenen Domäne.** Ein Skript mit erfundenen Fremdschlüssel-Werten läuft grün, solange die Zieltabelle fehlt — erst gegen die vollständige Datenbank sagt es etwas aus.
 

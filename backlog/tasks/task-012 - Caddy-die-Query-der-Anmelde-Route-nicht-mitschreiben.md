@@ -11,9 +11,8 @@ labels:
 milestone: m-3
 dependencies: []
 references:
-  - TODO-SESSIONS.md
   - wb-backend/caddy/Caddyfile
-  - idea/03-container-anwendung.md
+  - container.md
 ordinal: 12000
 ---
 

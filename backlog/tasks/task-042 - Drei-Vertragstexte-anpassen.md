@@ -11,7 +11,6 @@ labels:
 milestone: m-4
 dependencies: []
 references:
-  - TODO.md
   - soll-prozesse/README.md
 priority: high
 ordinal: 42000

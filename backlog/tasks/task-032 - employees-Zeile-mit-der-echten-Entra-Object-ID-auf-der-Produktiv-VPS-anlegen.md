@@ -11,8 +11,7 @@ labels:
 milestone: m-0
 dependencies: []
 references:
-  - TODO.md
-  - idea/04-identitaet-zugriff.md
+  - zugang.md
 ordinal: 32000
 ---
 

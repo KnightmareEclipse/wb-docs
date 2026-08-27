@@ -11,7 +11,6 @@ labels:
 milestone: m-4
 dependencies: []
 references:
-  - TODO.md
   - soll-prozesse/06-anmeldetag.md
 ordinal: 50000
 ---

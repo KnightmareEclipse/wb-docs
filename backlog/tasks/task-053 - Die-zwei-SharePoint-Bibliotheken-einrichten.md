@@ -11,9 +11,8 @@ labels:
 milestone: m-4
 dependencies: []
 references:
-  - TODO.md
   - grenzkarte.md
-  - project-parts.md
+  - oberflaechen.md
 priority: high
 ordinal: 56000
 ---

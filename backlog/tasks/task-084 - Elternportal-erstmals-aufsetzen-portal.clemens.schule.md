@@ -10,8 +10,8 @@ labels:
 milestone: m-0
 dependencies: []
 references:
-  - project-parts.md
-  - idea/04-identitaet-zugriff.md
+  - oberflaechen.md
+  - zugang.md
 priority: high
 ordinal: 96000
 ---

@@ -10,7 +10,6 @@ labels:
 milestone: m-1
 dependencies: []
 references:
-  - TODO-SESSIONS.md
   - schema/stammdaten-schema.sql
 priority: high
 ordinal: 16000

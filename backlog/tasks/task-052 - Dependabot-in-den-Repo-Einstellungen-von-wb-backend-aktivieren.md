@@ -4,6 +4,7 @@ title: Dependabot in den Repo-Einstellungen von wb-backend aktivieren
 status: To Do
 assignee: []
 created_date: '2026-08-27 11:37'
+updated_date: '2026-08-27 22:23'
 labels:
   - wartet
   - betreiber
@@ -11,7 +12,8 @@ labels:
 milestone: m-5
 dependencies: []
 references:
-  - TODO.md
+  - container.md
+  - rules.md
 ordinal: 55000
 ---
 

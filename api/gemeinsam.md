@@ -22,7 +22,7 @@ für die Eltern selbst, die sie aus ihrem Token ableiten könnten. Das ist die B
 
 ## Wer darf, und worauf eingeschränkt
 
-Zwei Prüfungen, nie eine (`idea/04-identitaet-zugriff.md`, `wb-backend/CLAUDE.md` §6):
+Zwei Prüfungen, nie eine (`zugang.md`, `wb-backend/CLAUDE.md` §6):
 
 - **Rolle je Route** — die `code`s aus `roles`, für Eltern der OTP-Scope.
 - **Ownership je Datensatz** — in der Query, nicht davor. Eine korrekte Rollenprüfung allein lässt
@@ -30,11 +30,11 @@ Zwei Prüfungen, nie eine (`idea/04-identitaet-zugriff.md`, `wb-backend/CLAUDE.m
 
 `family_id` aus dem Pfad wird gegen die Familien des Tokens geprüft (`family_guardians` →
 `families`), nie übernommen. **Die Familienauswahl in der Oberfläche ist Bedienführung, keine
-Sicherheitsgrenze** (`idea/04-identitaet-zugriff.md`) — bei Patchwork umfasst der Scope alle
+Sicherheitsgrenze** (`zugang.md`) — bei Patchwork umfasst der Scope alle
 Familien der Person, und die Route prüft gegen diese Menge.
 
 Listen- und Exportrouten kennen keinen Ownership-Check und gehen deshalb **nie** über den OTP-Pfad
-(`idea/04-identitaet-zugriff.md`, „Bulk-Zugriff"): Sie stehen ausschließlich internen Rollen offen.
+(`zugang.md`, „Bulk-Zugriff"): Sie stehen ausschließlich internen Rollen offen.
 
 `[A]` **Admin erbt die Rechte der Verwaltung** — an jeder Route, ohne dass eine Domänendatei ihn
 nennt; er ist ihre Obermenge (`glossar.md`). Der Grund ist der Betrieb und nicht die Bequemlichkeit:
@@ -153,7 +153,7 @@ Vier Festlegungen dazu, die für alle drei Anlässe gelten:
   schickt er den Beleg ([`hebel.md`](../soll-prozesse/hebel.md#sofortzahlung)). Kosten entstehen
   dadurch keine: Der Beleg gehört zur Zahlung, die Transaktionsgebühr ist der ganze Preis
   (`rules.md` Abschnitt 4); sein Versand ist eine Einstellung im Dashboard und kein Code
-  (`TODO.md`). Der Preis liegt woanders und wird getragen: Der Dienst weiß danach, dass diese
+  (`backlog/`). Der Preis liegt woanders und wird getragen: Der Dienst weiß danach, dass diese
   Adresse an diese Schule gezahlt hat. — Alternative: gar keine Adresse und ein Beleg aus dem eigenen
   Versand; Preis: eine Mail, die das System selbst zustellen und belegen muss, und zwei Sätze in
   `hebel.md` und [01](../soll-prozesse/01-putzdienst.md), die eine Bestätigungsmail heute
@@ -166,7 +166,7 @@ Vier Festlegungen dazu, die für alle drei Anlässe gelten:
   Vorgangs-Schlüssel, ohne Vorgang ist die Zahlung also nicht eintragbar;
   `ck_sync_tasks_single_subject` verlangt genau einen von sieben Bezügen, und keiner ist eine
   Zahlung; die sechs `sync_targets` sind ausnahmslos Fremdsysteme. Die drei Schemaergänzungen dazu
-  stehen in `TODO-SESSIONS.md`. Sie entstehen mit der Domäne, die zuerst bezahlt, und die
+  stehen als Ticket in `backlog/`. Sie entstehen mit der Domäne, die zuerst bezahlt, und die
   Rückrufroute wird nicht davor gebaut.
 
 Bleibt der Rückruf aus, weil der Zahlungsdienst ihn nicht loswird, wiederholt **er** ihn über Tage —

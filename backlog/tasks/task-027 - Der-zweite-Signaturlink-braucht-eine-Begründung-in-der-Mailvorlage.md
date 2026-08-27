@@ -4,6 +4,7 @@ title: Der zweite Signaturlink braucht eine Begründung in der Mailvorlage
 status: To Do
 assignee: []
 created_date: '2026-08-27 11:35'
+updated_date: '2026-08-27 22:23'
 labels:
   - wb-backend
   - anmeldung
@@ -11,7 +12,8 @@ labels:
 milestone: m-4
 dependencies: []
 references:
-  - TODO-SESSIONS.md
+  - soll-prozesse/08-schulvertrag.md
+  - schema/anmeldung-schema.sql
 ordinal: 27000
 ---
 

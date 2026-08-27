@@ -40,7 +40,7 @@ den Ablauf ins Frontend, und dann gibt es ihn zweimal.
    Hebel, den die API je Route nachbaut statt einmal, ist der Anfang von zwei Fassungen.
 3. **`schema/<domäne>-schema.sql` samt Kommentaren** — was gespeichert wird und warum. Die Route
    folgt daraus nicht, aber sie darf nichts versprechen, was dort nicht steht.
-4. **`idea/04-identitaet-zugriff.md`** und **`glossar.md`** — wer wie hereinkommt und wie die Rollen
+4. **`zugang.md`** und **`glossar.md`** — wer wie hereinkommt und wie die Rollen
    heißen. Die Rollen stehen inzwischen als Zeilen in `roles` (`wb-backend`, „value list seed"); die
    `code`-Spalte ist der Name, den eine Route nennt.
 5. **`wb-backend/CLAUDE.md`** §3, §6, §7 und `wb-backend/README.md`, Abschnitt „Writing data" — die

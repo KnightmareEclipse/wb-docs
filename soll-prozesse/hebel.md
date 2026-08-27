@@ -81,7 +81,7 @@ Häufen sich bei einem System Aufgaben, die als *war nichts zu tun* abgehakt wer
 
 ## Unzustellbare Mail
 
-Bleibt eine Mail unzustellbar, ist das im System sichtbar, und das Sekretariat geht dem nach. Das gilt für jede Mail aus jedem Prozess — mit **einer** Ausnahme, dem [Anmeldecode](hebel.md#zugang-und-anmeldecode). Er ist die Antwort auf eine soeben gestellte Anfrage; wer ihn nicht bekommt, fordert einen neuen, und eine Zeile je Anforderung legte dafür jede je eingetippte Fremdadresse ab. Sein Fehlschlag ist deshalb kein Fall fürs Sekretariat, sondern eine Betriebsstörung: Er meldet sich beim Betreiber (`idea/03-container-anwendung.md`), nicht in einer Liste.
+Bleibt eine Mail unzustellbar, ist das im System sichtbar, und das Sekretariat geht dem nach. Das gilt für jede Mail aus jedem Prozess — mit **einer** Ausnahme, dem [Anmeldecode](hebel.md#zugang-und-anmeldecode). Er ist die Antwort auf eine soeben gestellte Anfrage; wer ihn nicht bekommt, fordert einen neuen, und eine Zeile je Anforderung legte dafür jede je eingetippte Fremdadresse ab. Sein Fehlschlag ist deshalb kein Fall fürs Sekretariat, sondern eine Betriebsstörung: Er meldet sich beim Betreiber (`container.md`), nicht in einer Liste.
 
 ## Frisch erzeugte Liste
 

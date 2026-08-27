@@ -11,7 +11,6 @@ labels:
 milestone: m-4
 dependencies: []
 references:
-  - TODO-SESSIONS.md
   - schema/anmeldung-schema.sql
 ordinal: 28000
 ---

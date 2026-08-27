@@ -11,8 +11,7 @@ labels:
 milestone: m-1
 dependencies: []
 references:
-  - TODO.md
-  - idea/06-dsgvo-organisatorisch.md
+  - dsgvo.md
 priority: high
 ordinal: 61000
 ---

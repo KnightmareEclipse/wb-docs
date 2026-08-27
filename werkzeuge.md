@@ -40,9 +40,13 @@ Tastenkürzel mit Mac-Symbolen; auf Linux wirkt `Strg` genauso — `Strg+K` öff
 
 ## Ein Ticket verweist, statt zu kopieren
 
-Ein Ticket trägt die **Aufgabe** und in `references:` den Pfad zu der Datei, die die **Begründung**
-trägt. Die Prosa bleibt in `TODO.md`, `TODO-SESSIONS.md` und den Soll-Blöcken und wird nie ins
-Ticket übernommen. Damit gilt weiter, dass sich höchstens eine Datei ändert, wenn etwas fertig wird.
+Ein Ticket trägt die **Aufgabe**, die Abnahmekriterien und so viel Begründung, wie zum Anfangen
+nötig ist. In `references:` steht der Pfad zu der Datei, die die Sache selbst entscheidet — das
+`schema/*.sql`, der Soll-Block, die Architektur-Datei. Was dort steht, wird nicht abgeschrieben:
+Sonst ändert sich beim Fertigwerden mehr als eine Datei, und die zweite läuft still hinterher.
+
+Ein Ticket ohne solchen Verweis ist ein Fund. Es heißt, dass die Aufgabe nirgends verankert ist —
+dann entsteht der Anker zuerst, nicht das Ticket.
 
 Milestones sind die Termine, die in `fachdomaenen.md` und `soll-prozesse/README.md` ohnehin stehen —
 keine erfundenen. Priorität trägt nur, was das Repo selbst so nennt.
@@ -53,8 +57,8 @@ keine erfundenen. Priorität trägt nur, was das Repo selbst so nennt.
   Stand steht dann an zwei Orten, die auseinanderlaufen, und eine Session liest das Repo, nicht die
   Datenbank. Wo Fälligkeiten, Priorität und Verlauf wirklich verwaltet werden müssen, wäre es die
   richtige Wahl; für die Sicht auf den Stand ist es eine Kopie zu viel.
-- **SilverBullet**: Kann Wiki und Aufgaben in einem Programm und indiziert alle 187 Checkboxen des
-  Repos als abhakbare Aufgaben. Preis — es ist ein Editor: ein Klick an der falschen Stelle ändert
+- **SilverBullet**: Kann Wiki und Aufgaben in einem Programm und indiziert jede Checkbox des
+  Repos als abhakbare Aufgabe. Preis — es ist ein Editor: ein Klick an der falschen Stelle ändert
   eine Datei, es liefert kein statisches HTML für Externe, und der Container muss laufen.
 - **Obsidian mit Dataview**: die reichste Abfragesprache über genau diese Dateien. Preis — nicht
   quelloffen.

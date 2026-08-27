@@ -587,7 +587,7 @@ CREATE TABLE children (
 -- nicht an `family_guardians`, deren Schlüssel `(family_id, person_id)` ist.
 -- „Familie heißt die Eltern, nicht der Haushalt" (hebel.md): Ein Elternteil mit
 -- Kindern aus zwei Beziehungen ist Zeile in zwei `families` (so auch
--- idea/04-identitaet-zugriff.md, „Ist eine Person Mitglied mehrerer Familien
+-- zugang.md, „Ist eine Person Mitglied mehrerer Familien
 -- (Patchwork)"), und an `family_guardians` stünde sein Beruf dann zweimal —
 -- gepflegt würde einer davon (rules.md Abschnitt 1).
 -- Löschanker: geht mit der Person (Cascade, Stufe 6 des Lösch-Laufs) und nicht
@@ -986,12 +986,12 @@ CREATE INDEX ix_login_codes_email_created ON login_codes (email, created_at);
 CREATE TABLE login_sessions (
     login_session_id uuid NOT NULL DEFAULT gen_random_uuid(),
     -- Das Postfach, das sich ausgewiesen hat — nicht die Person: eine geteilte
-    -- Adresse löst auf mehrere auf (idea/04), und als wen die Sitzung gerade
+    -- Adresse löst auf mehrere auf (zugang.md), und als wen die Sitzung gerade
     -- handelt, steht in `person_id`.
     email            text NOT NULL,
     -- Als wen die Sitzung weitermacht; leer, solange die Wahl nicht getroffen
     -- ist oder die Adresse hier niemandem gehört. Bedienführung, keine
-    -- Sicherheitsgrenze (idea/04) — wer das Postfach hat, darf jeden Kandidaten
+    -- Sicherheitsgrenze (zugang.md) — wer das Postfach hat, darf jeden Kandidaten
     -- wählen, und nur den.
     person_id        uuid,
     -- Nur der Hash, wie beim Code: der Klartext liegt im Browser, und eine

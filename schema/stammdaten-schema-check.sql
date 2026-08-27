@@ -694,14 +694,14 @@ END $$;
 
 -- hebel.md: „Das Anmeldefeld antwortet auf jede Adresse gleich" — eine Sitzung
 -- entsteht deshalb auch für eine Adresse, die hier niemandem gehört; sie liest
--- dann nichts (idea/04).
+-- dann nichts (zugang.md).
 SELECT pg_temp.expect_accept(
-    'idea/04 — Sitzung einer Adresse, die die Schule nicht kennt',
+    'zugang.md — Sitzung einer Adresse, die die Schule nicht kennt',
     $q$INSERT INTO login_sessions (email, token_hash)
        VALUES ('fremd@example.org', 'h1')$q$);
 
 SELECT pg_temp.expect_reject(
-    'idea/04 — zwei Sitzungen mit demselben Sitzungswert',
+    'zugang.md — zwei Sitzungen mit demselben Sitzungswert',
     $q$INSERT INTO login_sessions (email, token_hash)
        VALUES ('a@example.org', 'gleich'), ('b@example.org', 'gleich')$q$);
 

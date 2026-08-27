@@ -4,6 +4,7 @@ title: Die vierzehn Prüfskripte als fester Schritt hinter jedem Migrationslauf
 status: To Do
 assignee: []
 created_date: '2026-08-27 11:35'
+updated_date: '2026-08-27 22:24'
 labels:
   - wb-backend
   - schema
@@ -11,7 +12,9 @@ labels:
 milestone: m-1
 dependencies: []
 references:
-  - TODO-SESSIONS.md
+  - wb-backend/CLAUDE.md
+  - schema/stammdaten-schema-check.sql
+  - prompts/schema-uebertragen.md
 ordinal: 29000
 ---
 

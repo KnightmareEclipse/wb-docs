@@ -11,7 +11,6 @@ labels:
 milestone: m-0
 dependencies: []
 references:
-  - TODO-SESSIONS.md
   - wb-backend/CLAUDE.md
 priority: high
 ordinal: 25000

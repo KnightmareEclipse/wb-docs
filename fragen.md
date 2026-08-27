@@ -9,7 +9,7 @@ Antwort reicht, und **woran sie hängt**.
 | Datei | trägt |
 |---|---|
 | `[?]` im Soll-Block bzw. im Schema | die Frage an der Stelle, an der sie beißt — dort fällt auf, dass sie fehlt |
-| `TODO.md` | **dass** sie zu klären ist, bis wann und mit welcher Folge |
+| `backlog/` | **dass** sie zu klären ist, bis wann und mit welcher Folge |
 | **hier** | **wie du sie stellst** und wann eine Antwort brauchbar ist |
 
 Hier wird nichts entschieden und nichts festgelegt. Diese Datei bereitet ein Gespräch vor, mehr
@@ -18,7 +18,7 @@ nicht — was aus dem Gespräch zurückkommt, gehört woanders hin.
 ## Wenn eine Antwort da ist
 
 Vier Stellen, in dieser Reihenfolge: **Soll-Block** (er ist die abgestimmte Fassung) → **Schema**,
-wo die `[?]` damit fällt → `TODO.md` abhaken → hier streichen.
+wo die `[?]` damit fällt → das Ticket in `backlog/` abhaken → hier streichen.
 
 Eine beantwortete Frage ist damit immer ein Eingriff an vier Stellen. **Antworten sammeln und in
 einem Zug einarbeiten** ist deshalb billiger als jede einzeln nachzuziehen. Beim Streichen wandern
@@ -57,7 +57,7 @@ Wertelisten leer und bekommt keinen Anfangsbestand, solange der Zweck des Feldes
 ist. Bleibt das Feld, ist die zweite Frage, welche Konfessionen darin auswählbar sein sollen; das
 beantwortet dann das Sekretariat, nicht dieses Gespräch. Fällt das Feld, fällt die Liste mit ihm.
 
-*Steht in* `schema/stammdaten-schema.sql:929` · `soll-prozesse/05-bewerbung.md:19` · `TODO.md`
+*Steht in* `schema/stammdaten-schema.sql:929` · `soll-prozesse/05-bewerbung.md:19` · `backlog/`
 
 ### 2. Bewerbungen, die zu keiner Aufnahme geführt haben
 

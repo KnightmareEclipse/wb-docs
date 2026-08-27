@@ -4,13 +4,14 @@ title: Die Staatsangehörigkeitsbezeichnungen einmal lesen
 status: To Do
 assignee: []
 created_date: '2026-08-27 11:35'
+updated_date: '2026-08-27 22:23'
 labels:
   - wb-backend
   - werteliste
 milestone: m-1
 dependencies: []
 references:
-  - TODO-SESSIONS.md
+  - schema/stammdaten-schema.sql
 ordinal: 31000
 ---
 

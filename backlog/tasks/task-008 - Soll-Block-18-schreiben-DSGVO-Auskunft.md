@@ -11,7 +11,6 @@ labels:
 milestone: m-1
 dependencies: []
 references:
-  - TODO-SESSIONS.md
   - prompts/block-fuellen.md
 ordinal: 8000
 ---

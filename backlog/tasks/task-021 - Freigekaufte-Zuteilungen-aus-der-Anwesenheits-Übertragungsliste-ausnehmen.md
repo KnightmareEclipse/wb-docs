@@ -10,7 +10,6 @@ labels:
 milestone: m-0
 dependencies: []
 references:
-  - TODO-SESSIONS.md
   - schema/putzdienst-schema.sql
 ordinal: 21000
 ---

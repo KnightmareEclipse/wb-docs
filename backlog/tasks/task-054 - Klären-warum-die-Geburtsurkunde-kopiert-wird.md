@@ -11,7 +11,6 @@ labels:
 milestone: m-4
 dependencies: []
 references:
-  - TODO.md
   - schema/gesundheit-schema.sql
 ordinal: 57000
 ---

@@ -10,7 +10,6 @@ labels:
 milestone: m-1
 dependencies: []
 references:
-  - TODO-SESSIONS.md
   - fragen.md
 ordinal: 30000
 ---

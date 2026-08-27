@@ -11,7 +11,6 @@ labels:
 milestone: m-1
 dependencies: []
 references:
-  - TODO.md
   - rules.md
 ordinal: 35000
 ---

@@ -11,7 +11,6 @@ labels:
 milestone: m-1
 dependencies: []
 references:
-  - TODO.md
   - grenzkarte.md
   - schema/stammdaten-schema.sql
 priority: high

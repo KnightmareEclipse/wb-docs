@@ -10,8 +10,8 @@ labels:
 milestone: m-1
 dependencies: []
 references:
-  - project-parts.md
-  - idea/03-container-anwendung.md
+  - container.md
+  - container.md
 ordinal: 98000
 ---
 

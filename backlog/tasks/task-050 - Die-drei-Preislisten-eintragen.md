@@ -11,7 +11,6 @@ labels:
 milestone: m-1
 dependencies: []
 references:
-  - TODO.md
   - soll-prozesse/hebel.md
 priority: high
 ordinal: 53000

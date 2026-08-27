@@ -12,8 +12,7 @@ labels:
 milestone: m-1
 dependencies: []
 references:
-  - TODO.md
-  - idea/05-backup-recovery.md
+  - backup.md
 priority: high
 ordinal: 33000
 ---

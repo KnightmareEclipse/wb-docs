@@ -10,8 +10,7 @@ labels:
 milestone: m-3
 dependencies: []
 references:
-  - TODO-SESSIONS.md
-  - idea/04-identitaet-zugriff.md
+  - zugang.md
 ordinal: 10000
 ---
 

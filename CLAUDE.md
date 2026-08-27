@@ -1,4 +1,4 @@
-# yggdrasil
+# Weltenbaum
 
 Konzept- und Architektur-Doku für einen selbstverwalteten, DSGVO-konformen Datenbank-/API-VPS
 (Hetzner) für die Prozesse einer Schule ohne eigenes IT-Personal. Hier wird entschieden und
@@ -20,9 +20,10 @@ Antwort auf die falsche Frage.
 | `prozesse.md` | Wie es **heute** läuft, samt der real erhobenen Formularfelder |
 | `fachdomaenen.md` | Scope, Reihenfolge und Stammdaten-Berührung je Fachdomäne |
 | `glossar.md` | Das Rollen-Vokabular, repo-übergreifend gültig — Infra-Admin vs. Admin vs. Verwaltung |
-| `idea/`, `pipeline/`, `project-parts.md` | Infrastruktur: Container, Identität, Backup, DSGVO-Organisation, Repo-Struktur |
-| `TODO.md`, `TODO-SESSIONS.md` | Die Begründung offener Punkte — was reale Konten und Zugänge braucht bzw. was eine Session selbst abarbeiten kann |
-| `backlog/` | Dieselben Punkte als Tickets, samt Reihenfolge, Milestone und Abnahmekriterien — der Arbeitsvorrat |
+| `host.md`, `container.md`, `deploy.md`, `runbook.md` | Die Maschine: Server und Firewall, Runtime und Stack, Ausrollen, Neuaufbau von Hand |
+| `zugang.md`, `oberflaechen.md` | Wer wie hereinkommt (Entra-ID, OTP, Rollen) und wo die Oberflächen liegen |
+| `backup.md`, `dsgvo.md`, `repos.md` | Sicherung und Wiederherstellung, die organisatorischen DSGVO-Pflichten, der Schnitt der Repos |
+| `backlog/` | Der **gesamte** Arbeitsvorrat: die Aufgabe, ihre kurze Begründung, Reihenfolge, Milestone und Abnahmekriterien |
 | `fragen.md` | Der Wortlaut der offenen Fragen an die Schule, je Gesprächspartner, samt dem Kriterium, wann eine Antwort reicht |
 | `prompts/` | Die wiederkehrenden Aufträge. Was für alle gilt, steht einmal in `prompts/gemeinsam.md` |
 | `werkzeuge.md` | Womit die Doku gelesen und bearbeitet wird (Quartz, Backlog.md), samt der verworfenen Werkzeuge und ihrem Preis |
@@ -59,8 +60,7 @@ So einfach wie möglich, dabei sicher genug für echte personenbezogene Daten. A
 
 **Stand ist eine Datei-Existenz, kein Satz** — deshalb steht hier keiner. Was in `schema/` liegt,
 ist gebaut; ein Häkchen in `soll-prozesse/README.md` trägt den Link auf den Block, den es behauptet;
-was offen ist, steht als Ticket in `backlog/` und mit seiner Begründung in `TODO.md` bzw.
-`TODO-SESSIONS.md`. Daraus folgt:
+was offen ist, steht als Ticket in `backlog/` — und nur dort. Daraus folgt:
 
 - **Eine Standaussage ohne Pfad ist keine.** Die `(gebaut, schema/…)`-Marken in `fachdomaenen.md`
   tragen ihre Gegenprobe mit sich: Wer den Stand fälscht, hinterlässt einen toten Pfad.
@@ -92,11 +92,10 @@ Diese Datei wird automatisch geladen; verlinkt werden muss nichts. Je nach Arbei
   `schema-normalform.md` ist ein eigener Lauf mit einer einzigen Frage und wird mit dem Prüflauf
   gegen die Blöcke nicht vermischt.
 - **Eine Domäne zur API:** `prompts/api-planen.md`, eine Domäne je Durchgang wie beim Schema.
-- **Endpunkte in `wb-backend`:** dort `CLAUDE.md` und `README.md`, hier `api/`, `project-parts.md`
-  und `idea/04-identitaet-zugriff.md`. Die Schreibschicht dort ist nicht optional: ein Endpunkt, der
+- **Endpunkte in `wb-backend`:** dort `CLAUDE.md` und `README.md`, hier `api/`, `zugang.md`
+  und `oberflaechen.md`. Die Schreibschicht dort ist nicht optional: ein Endpunkt, der
   an ihr vorbeischreibt, kommt nicht durch.
-- **Infrastruktur:** `pipeline/runbook.md`, `idea/03-container-anwendung.md`,
-  `idea/05-backup-recovery.md`, `TODO.md`.
+- **Infrastruktur:** `host.md`, `container.md`, `deploy.md`, `runbook.md`, `backup.md`.
 - **Eine Fachdomäne verstehen:** `fachdomaenen.md`, `prozesse.md` und die vier
   Anmeldetag-Checklisten in `~/Downloads/CHECKLISTEN/`.
 
@@ -151,13 +150,14 @@ hat keinen anderen Anker). In die `.md` gehören Modelle über mehrere Tabellen 
 Zugriffsregeln, Abläufe und die Domänengrenzen; sie sagt *was* gilt und verweist fürs *warum* auf
 die `.sql`, statt es zu wiederholen. Ein verworfener Weg hat im Code keinen Anker — der Kommentar
 trägt deshalb nur den Nebensatz („rootful, weil rootless die Absenderadresse verliert"), die
-abgewogene Alternative samt Preis steht in `pipeline/` oder `idea/`.
+abgewogene Alternative samt Preis steht in der Architektur-Datei, die den Mechanismus trägt.
 
 - **Kein verworfener Weg ohne Preis.** „Wir könnten auch X" ist Blähtext; „X kostet eine
   Quadlet-Unit neben Compose, HTTP/3 aus und Port 80 trotzdem offen" ist ein Grund. An dieser Regel
   hört eine `.md` auf zu wachsen.
-- **Der Verweis geht in beide Richtungen, über einen Pfad.** Jede Datei in `pipeline/` und `idea/`
-  nennt im Kopf den Pfad, der sie umsetzt — kein Rollen- oder Skriptname in Prosa. Jeder Mechanismus
+- **Der Verweis geht in beide Richtungen, über einen Pfad.** Jede Architektur-Datei (`host.md`,
+  `container.md`, `deploy.md`, `zugang.md`, `oberflaechen.md`, `backup.md`) nennt im Kopf den Pfad,
+  der sie umsetzt — kein Rollen- oder Skriptname in Prosa. Jeder Mechanismus
   im Code, dessen Alternative abgewogen wurde, nennt die `.md` beim Pfad: Zusammenfassung plus
   Verweis, nie eine zweite Vollfassung.
 
@@ -168,6 +168,14 @@ keine Formulierungen wie „früher", „vorher hatten wir", „wurde ersetzt du
 alte Stand ersetzt, nicht ergänzt. Kurz, klar, präzise, kein Blähtext. Ein abgeschlossener
 Prüfbericht wird gelöscht, nicht abgelegt: Der Beleg ist die reparierte `.sql` samt grünem
 Prüfskript, und die Git-Historie hält den Bericht.
+
+**`backlog/` ist die eine Ausnahme, und sie ist keine Aufweichung.** Ein Ticketsystem lebt davon,
+dass ein erledigter Punkt erledigt *bleibt* — der Status `Done` und die Ablage unter
+`backlog/completed/` sind Historie mit Absicht, und wer sie räumt, kann eine Frage nicht mehr
+beantworten, die im Gespräch mit der Schule zuverlässig kommt: „das war doch schon entschieden?".
+Die Ausnahme gilt für das Ticket und nur dafür. Aus einem abgeschlossenen Ticket wird nie eine
+Zeile in einer `.md`: Wer den Vorgang wissen will, öffnet das Board, und wer den Stand wissen will,
+sieht die Datei, die dabei entstanden ist.
 
 Und jede Regel steht **genau einmal**. Was hier steht, wiederholt kein Prompt; was in
 `prompts/gemeinsam.md` steht, wiederholt kein einzelner Prompt; was in `soll-prozesse/hebel.md`

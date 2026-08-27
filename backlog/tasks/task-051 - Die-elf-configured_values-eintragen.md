@@ -11,7 +11,6 @@ labels:
 milestone: m-0
 dependencies: []
 references:
-  - TODO.md
   - soll-prozesse/hebel.md
   - schema/querschnitt-schema.sql
 priority: high

@@ -11,7 +11,6 @@ labels:
 milestone: m-1
 dependencies: []
 references:
-  - TODO-SESSIONS.md
   - schema/stammdaten-schema.sql
   - wb-backend/app/runs.py
 priority: high

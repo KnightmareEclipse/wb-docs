@@ -1,12 +1,12 @@
 # Weltenbaum — Domänen-Glossar
 
-Fachbegriffe für den DSGVO-konformen Datenbank-/API-Stack einer Schule (technische Umsetzung: `project-parts.md`, `idea/`). Gilt repo-übergreifend (`wb-backend`, künftige Frontend-/Teams-Apps-Repos) — lebt deshalb hier statt in einem einzelnen Umsetzungs-Repo.
+Fachbegriffe für den DSGVO-konformen Datenbank-/API-Stack einer Schule (technische Umsetzung: `container.md`, `zugang.md`). Gilt repo-übergreifend (`wb-backend`, künftige Frontend-/Teams-Apps-Repos) — lebt deshalb hier statt in einem einzelnen Umsetzungs-Repo.
 
 ## Language
 
 ### Rollen
 
-Zwei Ebenen, nie nur eine: **welche** Rolle eine Anfrage bekommt, liest die API aus `employee_roles` — vergeben wird sie in Weltenbaum, nicht im Tenant (`idea/04-identitaet-zugriff.md`); **welche Spalten** diese Rolle lesen und schreiben darf, entscheidet die DB-Rolle samt Spalten-GRANT (`schema/stammdaten-schema.sql`). Die Rollen hier sind fachlich benannt; ihr `code` steht als Zeile in `roles`, die DB-Rollen in `wb-backend/db/init-roles.sh`.
+Zwei Ebenen, nie nur eine: **welche** Rolle eine Anfrage bekommt, liest die API aus `employee_roles` — vergeben wird sie in Weltenbaum, nicht im Tenant (`zugang.md`); **welche Spalten** diese Rolle lesen und schreiben darf, entscheidet die DB-Rolle samt Spalten-GRANT (`schema/stammdaten-schema.sql`). Die Rollen hier sind fachlich benannt; ihr `code` steht als Zeile in `roles`, die DB-Rollen in `wb-backend/db/init-roles.sh`.
 
 **Das sind alle Rollen — diese Liste ist vollständig.** Wer hier fehlt, bekommt keinen Zugang; eine neue Rolle entsteht nur zusammen mit der Domäne, die sie braucht.
 
@@ -67,10 +67,10 @@ Liest Küchenprofil und Essens-Tagesliste (`schema/mensa-schema.sql`), nie den A
 **Buchhaltung**:
 Bestätigt Zahlungen, die nicht über Stripe hereinkommen (Überweisung, Bargeld — `schema/putzdienst-schema.sql`), und zieht Forderungen in Optigem. In Weltenbaum entsteht keine Buchhaltung (`grenzkarte.md`, Q3).
 **Sieht dafür alle Kinder samt Familienzugehörigkeit** — die dritte Rolle mit vollem Überblick neben Verwaltung und Geschäftsführung. Grund ist die **Höhe des Schulgelds**: sie hängt daran, welche Kinder zu derselben Familie gehören (Geschwister zählen je Familie, nicht je Kind). Gerechnet und abgerechnet wird das in Optigem, aber die einzige gepflegte Wahrheit darüber, wer eine Familie ist, steht in Weltenbaum (`schema/stammdaten-schema.sql`) — deshalb liest sie sie dort und nicht aus einer zweiten Liste. Dieselbe Rolle stellt die Frage „welche Kinder zahlt diese Partei" vor dem Optigem-Übertrag (`sepa_mandates.account_holder_person_id`).
-**Sie hält als Einzige die Bankverbindung** (`sepa_mandates.iban`/`bic`) — eigene, engere DB-Rolle mit Spalten-GRANT wie bei den Art.-9-Spalten, nicht Teil der pauschalen Laufzeit-Rolle (`schema/stammdaten-schema.sql`; `TODO.md`). Sie ist der benannte Abnehmer dieser Spalten: die Bankverbindung wandert einmal von Hand nach Optigem, sobald die Verträge samt Mandat vorliegen (`fachdomaenen.md` Abschnitt 3). Die Mandatsreferenz daneben (`sepa_mandates.mandate_reference`) braucht keinen eigenen GRANT — das Mandat hängt am Kind, und die Kinder sieht sie ohnehin.
+**Sie hält als Einzige die Bankverbindung** (`sepa_mandates.iban`/`bic`) — eigene, engere DB-Rolle mit Spalten-GRANT wie bei den Art.-9-Spalten, nicht Teil der pauschalen Laufzeit-Rolle (`schema/stammdaten-schema.sql`; `backlog/`). Sie ist der benannte Abnehmer dieser Spalten: die Bankverbindung wandert einmal von Hand nach Optigem, sobald die Verträge samt Mandat vorliegen (`fachdomaenen.md` Abschnitt 3). Die Mandatsreferenz daneben (`sepa_mandates.mandate_reference`) braucht keinen eigenen GRANT — das Mandat hängt am Kind, und die Kinder sieht sie ohnehin.
 
 **Erziehungsberechtigte**:
-Externe Nutzer ohne Entra-ID-Zugang (z. B. Eltern), Zugriff über einen OTP-Fallback-Pfad statt Login (`idea/04-identitaet-zugriff.md`) — sehen ausschließlich die Daten der eigenen zugeordneten Schüler. Immer natürliche Personen, nie eine Institution (`schema/stammdaten-schema.sql`).
+Externe Nutzer ohne Entra-ID-Zugang (z. B. Eltern), Zugriff über einen OTP-Fallback-Pfad statt Login (`zugang.md`) — sehen ausschließlich die Daten der eigenen zugeordneten Schüler. Immer natürliche Personen, nie eine Institution (`schema/stammdaten-schema.sql`).
 _Avoid_: Eltern (enger als der rechtliche Personenkreis)
 
 ### Daten
@@ -82,5 +82,5 @@ Ein fachlich abgegrenzter Datenbereich im Backend (z. B. Stammdaten, künftig z.
 Feste Grunddaten einer Person in einer ihrer vier Rollen (Schüler, Erziehungsberechtigte, Kontaktperson, Mitarbeiter). Gemeinsam für alle Rollen an `persons`: Anrede, Name, Geschlecht, Anschrift, Telefonnummern, E-Mail. Alles Rollenspezifische steht an der jeweiligen Rollentabelle und ist für die übrigen Rollen strukturell gar nicht befüllbar. Felder, Begründungen, Sonderfälle und Zugriffsschutz: `schema/stammdaten-schema.sql`.
 
 **Familie**:
-Die Menge Erwachsener, die gemeinsam sorgeberechtigt für ein oder mehrere Kinder sind — **nicht** wer zusammenwohnt. Vom Sekretariat manuell gepflegt, nie algorithmisch hergeleitet. Grundlage des Ownership-Checks: wer Mitglied ist, sieht die Kinder dieser Familie (`idea/04-identitaet-zugriff.md`). Modell und Sonderfälle: `schema/stammdaten-schema.sql`.
+Die Menge Erwachsener, die gemeinsam sorgeberechtigt für ein oder mehrere Kinder sind — **nicht** wer zusammenwohnt. Vom Sekretariat manuell gepflegt, nie algorithmisch hergeleitet. Grundlage des Ownership-Checks: wer Mitglied ist, sieht die Kinder dieser Familie (`zugang.md`). Modell und Sonderfälle: `schema/stammdaten-schema.sql`.
 _Avoid_: Haushalt

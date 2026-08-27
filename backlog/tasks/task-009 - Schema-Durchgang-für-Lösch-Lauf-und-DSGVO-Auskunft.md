@@ -11,7 +11,6 @@ labels:
 milestone: m-1
 dependencies: []
 references:
-  - TODO-SESSIONS.md
   - prompts/schema-bauen.md
 ordinal: 9000
 ---

@@ -102,7 +102,7 @@ Ausdrücklich benannt, weil ohne Zweck kein Feld bleibt (`rules.md` Abschnitt 7)
 - **Kirchengemeinde** — Interesse, kein benannter Verarbeitungszweck.
 - **Geschwister und wahrgenommene Angebote** (Musikarche, Ferienprogramm, Clemens-KITA) — geben einen **Bonus bei der Zusage** und sind damit entscheidungsrelevant, nicht dekorativ.
 
-Alle vier Felder werden gespeichert — Konfession und Staatsangehörigkeit auch bei den Erziehungsberechtigten (`schema/stammdaten-schema.sql`). Entschieden mit bekanntem Preis: Konfession ist ein Art.-9-Datum, und ein Feld ohne beschlossenen Zweck mit echten Personendaten zu füllen, schließt `rules.md` Abschnitt 7 eigentlich aus. Ausschlaggebend war die Gegenrichtung — eine Spalte zu streichen ist ein `DROP COLUMN`, ein beim Vollimport nicht erhobener Wert ist nicht nacherhebbar. **Der Zweck-Beschluss bleibt damit fällig, und zwar vor dem Vollimport** (`TODO.md`); das Schema trägt die Absicherung bereits (Spalten-GRANT auf den Konfessionsspalten an `children` und `guardians`).
+Alle vier Felder werden gespeichert — Konfession und Staatsangehörigkeit auch bei den Erziehungsberechtigten (`schema/stammdaten-schema.sql`). Entschieden mit bekanntem Preis: Konfession ist ein Art.-9-Datum, und ein Feld ohne beschlossenen Zweck mit echten Personendaten zu füllen, schließt `rules.md` Abschnitt 7 eigentlich aus. Ausschlaggebend war die Gegenrichtung — eine Spalte zu streichen ist ein `DROP COLUMN`, ein beim Vollimport nicht erhobener Wert ist nicht nacherhebbar. **Der Zweck-Beschluss bleibt damit fällig, und zwar vor dem Vollimport** (`backlog/`); das Schema trägt die Absicherung bereits (Spalten-GRANT auf den Konfessionsspalten an `children` und `guardians`).
 
 ### 3.4 Bruchstellen
 
@@ -358,7 +358,7 @@ Der Vertrag erwähnt daneben eine **Notfall- und Ferienbetreuung** (nur als Raba
 
 **Stornierung:** läuft per Mail an den Hort, der seine Excel-Datei von Hand nachzieht.
 
-**Offen:** Es gibt **keine Regel, was nach dem Ferienprogramm mit den Daten geschieht.** Schulfremde Kinder haben kein Austrittsdatum als Fristanker (`idea/06-dsgvo-organisatorisch.md`).
+**Offen:** Es gibt **keine Regel, was nach dem Ferienprogramm mit den Daten geschieht.** Schulfremde Kinder haben kein Austrittsdatum als Fristanker (`dsgvo.md`).
 
 ---
 
@@ -446,7 +446,7 @@ Was Weltenbaum nicht abnimmt, bleibt benannt: Bescheinigungen schreibt weiterhin
 
 ## 17. DSGVO-Datenauskunft
 
-- **Kein fixer Prozess definiert** — festzulegen von Schulleitung bzw. Datenschutzbeauftragte:r (`TODO.md`, `idea/06-dsgvo-organisatorisch.md`).
+- **Kein fixer Prozess definiert** — festzulegen von Schulleitung bzw. Datenschutzbeauftragte:r (`backlog/`, `dsgvo.md`).
 - Herausgegeben wird in jedem Fall die **digitale Schülerakte** (SharePoint, geführt vom Sekretariat) mit allen Dokumenten zur Person: Schulvertrag, Gesundheitsdaten, Fotoeinverständnis und was im Lauf der Zeit dazukam. Sie deckt den Datenbankbestand **nicht** ab — der ist über `persons.person_id` bzw. `children.child_id` einsammelbar, sobald Weltenbaum führt.
 
 ---
@@ -501,7 +501,7 @@ Alle fünf stehen auch im Schema: Stammdaten und Putzdienst sind gegen diese Erh
 
 ## 22. Offene Fragen ohne Modellbezug
 
-Die Fristen-gebundenen Punkte stehen in `TODO.md`, die entwurfsgebundenen in `grenzkarte.md`, „Weiße Flecken". Übrig bleibt, was allein aus dieser Erhebung offen ist:
+Die Fristen-gebundenen Punkte stehen als Ticket in `backlog/`, die entwurfsgebundenen in `grenzkarte.md`, „Weiße Flecken". Übrig bleibt, was allein aus dieser Erhebung offen ist:
 
 | Frage | Wen fragen | Spätestens vor |
 |---|---|---|

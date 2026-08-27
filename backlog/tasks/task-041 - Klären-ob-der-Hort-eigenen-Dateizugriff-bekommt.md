@@ -10,7 +10,6 @@ labels:
 milestone: m-5
 dependencies: []
 references:
-  - TODO.md
   - grenzkarte.md
 ordinal: 41000
 ---

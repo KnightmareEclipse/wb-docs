@@ -4,6 +4,7 @@ title: 'Entscheiden: Personenzeilen vor oder nach der Zahlungsbestätigung'
 status: To Do
 assignee: []
 created_date: '2026-08-27 11:35'
+updated_date: '2026-08-27 22:23'
 labels:
   - entscheidung
   - anmeldung
@@ -11,7 +12,8 @@ labels:
 milestone: m-3
 dependencies: []
 references:
-  - TODO-SESSIONS.md
+  - api/gemeinsam.md
+  - schema/stammdaten-schema.sql
 ordinal: 14000
 ---
 

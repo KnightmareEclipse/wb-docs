@@ -11,7 +11,6 @@ labels:
 milestone: m-0
 dependencies: []
 references:
-  - TODO-SESSIONS.md
   - api/gemeinsam.md
   - api/putzdienst-api.md
 priority: high

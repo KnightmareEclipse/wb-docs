@@ -11,7 +11,6 @@ labels:
 milestone: m-1
 dependencies: []
 references:
-  - TODO.md
   - soll-prozesse/07-aufnahmeentscheidung.md
 ordinal: 39000
 ---

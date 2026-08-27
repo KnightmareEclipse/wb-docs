@@ -11,7 +11,6 @@ labels:
 milestone: m-1
 dependencies: []
 references:
-  - TODO.md
   - soll-prozesse/13-m365-konten.md
 priority: high
 ordinal: 40000

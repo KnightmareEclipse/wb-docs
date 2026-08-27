@@ -12,8 +12,7 @@ labels:
 milestone: m-5
 dependencies: []
 references:
-  - TODO.md
-  - pipeline/runbook.md
+  - runbook.md
 ordinal: 60000
 ---
 

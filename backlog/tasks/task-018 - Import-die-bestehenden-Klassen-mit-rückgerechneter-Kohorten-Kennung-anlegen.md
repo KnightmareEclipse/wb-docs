@@ -10,7 +10,6 @@ labels:
 milestone: m-1
 dependencies: []
 references:
-  - TODO-SESSIONS.md
   - soll-prozesse/15-klassenbildung.md
 priority: high
 ordinal: 18000

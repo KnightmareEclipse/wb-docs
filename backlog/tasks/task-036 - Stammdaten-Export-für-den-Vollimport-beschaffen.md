@@ -11,7 +11,6 @@ labels:
 milestone: m-1
 dependencies: []
 references:
-  - TODO.md
   - grenzkarte.md
 priority: high
 ordinal: 36000
