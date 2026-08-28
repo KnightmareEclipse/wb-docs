@@ -90,7 +90,7 @@ Keine Route, kein Endpunkt von außen ([`gemeinsam.md`](gemeinsam.md#was-keine-r
 |---|---|---|---|
 | Mail „Anmeldefenster offen", mit der Pflichtzahl genau dieser Familie, den Preisen und dem Enddatum; nicht an Familien mit null | [01](../soll-prozesse/01-putzdienst.md) Z2 | `cleaning_cycles.registration_opens_at`, solange `registration_mail_sent_at` leer ist | `system:` |
 | Fenster schließen und die offenen Pflichttermine verteilen, je Art getrennt; Reservierungen bleiben unberührt | [01](../soll-prozesse/01-putzdienst.md) Z4 | `cleaning_cycles.registration_closes_at`, solange `allocated_at` leer ist | `system:` |
-| Mail mit den endgültigen Terminen an jede Familie, die welche hat — auch an die, die selbst reserviert hat | [01](../soll-prozesse/01-putzdienst.md) Z6 | die Freigabe, also `POST …/allocation/release` | `system:` |
+| Mail mit den endgültigen Terminen an jede Familie, die welche hat — auch an die, die selbst reserviert hat; ohne die abgesagten und die freigekauften | [01](../soll-prozesse/01-putzdienst.md) Z6 | `cleaning_cycles.allocation_released_at`, solange `allocation_mail_sent_at` leer ist | `system:` |
 | Die zwei Erinnerungen je Termin; zur zweiten die Aufgabe „Anwesenheitsliste drucken" **samt eigener Mail**, weil sie noch in derselben Woche fällig ist. Am 1. jedes Monats **eine** Aufgabe bei der Buchhaltung über alle bis dahin ausgewerteten Strafen; sie setzt `penalty_handed_over_at` | [01](../soll-prozesse/01-putzdienst.md) Z9, Z12 | der vorige Termin bzw. der Termin selbst; der 1. des Monats, ein festes Datum | `system:` |
 
 **Wie der Zuteilungslauf verteilt** — je Terminart ein **Min-Cost-Flow**

@@ -43,6 +43,13 @@ CREATE TABLE cleaning_cycles (
     -- Schließen, und ein nach der Mail vorgezogener Beginn wäre dann eine
     -- Constraint-Verletzung statt einer Terminänderung.
     registration_mail_sent_at timestamptz,
+    -- Die Marke des Laufs „Zuteilungsmail" (01, Z6): gesetzt, sobald jede
+    -- Familie mit Terminen ihre Liste bekommen hat. Eine eigene Spalte neben
+    -- `allocation_released_at`, weil die Freigabe der Griff des Sekretariats ist
+    -- und über den Versand nichts sagt — ein Mailfehler darf die Freigabe nicht
+    -- zurücknehmen, und der Lauf sucht die freigegebenen Zyklen ohne diese
+    -- Marke.
+    allocation_mail_sent_at timestamptz,
     created_at        timestamptz NOT NULL DEFAULT now(),
     created_by        text NOT NULL,
 
@@ -57,6 +64,10 @@ CREATE TABLE cleaning_cycles (
     CONSTRAINT ck_cleaning_cycles_release
         CHECK (allocation_released_at IS NULL
                OR (allocated_at IS NOT NULL AND allocation_released_at >= allocated_at)),
+    -- Die Mail sagt der Familie ihre Termine — „ohne Freigabe erfährt keine
+    -- Familie ihre Termine", also kann sie der Freigabe nicht vorausgehen.
+    CONSTRAINT ck_cleaning_cycles_allocation_mail
+        CHECK (allocation_mail_sent_at IS NULL OR allocation_released_at IS NOT NULL),
     CONSTRAINT ck_cleaning_cycles_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 

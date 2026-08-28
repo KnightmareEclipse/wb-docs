@@ -502,6 +502,11 @@ SELECT pg_temp.expect_reject(
         WHERE cleaning_cycle_id = 1$q$);
 
 SELECT pg_temp.expect_reject(
+    '01 — Zuteilungsmail vermerkt, ohne dass die Zuteilung freigegeben ist',
+    $q$UPDATE cleaning_cycles SET allocation_mail_sent_at = TIMESTAMPTZ '2026-09-26 08:00+02'
+        WHERE cleaning_cycle_id = 1$q$);
+
+SELECT pg_temp.expect_reject(
     '01 — zweites Putzdienstjahr mit demselben Startjahr',
     $q$INSERT INTO cleaning_cycles (start_year, registration_opens_at, registration_closes_at, created_by)
        VALUES (2026, TIMESTAMPTZ '2026-09-01 08:00+02', TIMESTAMPTZ '2026-09-20 08:00+02',
