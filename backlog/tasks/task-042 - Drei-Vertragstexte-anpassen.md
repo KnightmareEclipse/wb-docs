@@ -1,9 +1,10 @@
 ---
 id: TASK-042
 title: Drei Vertragstexte anpassen
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-08-27 11:37'
+updated_date: '2026-08-28 15:49'
 labels:
   - wartet
   - geschaeftsfuehrung

@@ -99,9 +99,17 @@ Mandat bleibt bis dahin als Beleg stehen.
 
 ### 5. Daten ausgeschiedener Mitarbeitender
 
-> „Wie lange behalten wir die Daten eines Mitarbeiters, nachdem sein letzter Arbeitstag vorbei ist?"
+> „Wie lange behalten wir die Daten eines Mitarbeiters, nachdem sein letzter Arbeitstag vorbei ist?
+> Bei uns steht keine Personalakte — nur Name, dienstliche Mailadresse, Haus, erster und letzter
+> Arbeitstag, die Rolle im System und ggf. eine Nachfolgenotiz. Kein Gehalt, kein Arbeitsvertrag,
+> keine Bewerbungsunterlagen. Sein Name hängt aber auch an dem, was er bestätigt hat: eine
+> abgenommene Mitarbeitsstunde, ein freigegebener Beleg, eine geführte Klasse. Bleibt das stehen,
+> wenn sein Eintrag verschwindet?"
 
-**Brauchbar ist die Antwort, wenn** sie eine Frist ab dem letzten Arbeitstag nennt.
+**Brauchbar ist die Antwort, wenn** sie eine Frist ab dem letzten Arbeitstag nennt **und** sagt, ob
+der Name auf den bestätigten Nachweisen bleiben darf. **Ohne den Umfangssatz antwortet die
+Datenschutzbeauftragte über die Personalakte** und damit über einen Bestand, den es hier nicht
+gibt — das gilt sinngemäß für jede der sechs Fristen.
 
 **Daran hängt:** Der Anker steht (`employees.last_working_day`), sein Ziel nicht. Was den Namen
 anderswo trägt — ein freigegebener Beleg, eine bestätigte Mitarbeitsstunde — überlebt ihn ohnehin.
@@ -169,7 +177,10 @@ widersprechen, was die Eltern unterschrieben haben.
 **Brauchbar ist die Antwort, wenn** je Punkt ein Ja mit Termin dasteht. Gegen den Vertragsstand vom
 11.12.2025 geprüft: alle drei stehen weiterhin aus.
 
-**Daran hängt:** Domäne 2/4 — der digitale Hortvertrag.
+**Daran hängt:** Domäne 2/4 — der digitale Hortvertrag. **Punkt 3 trägt zugleich die Frage der
+Geschäftsführung**, ob der Hort die Gesundheitsangaben der Schule übernehmen darf, statt sie ein
+zweites Mal zu erheben: Es gibt ohnehin nur einen Bestand je Kind, und was ihn heute verstellt, ist
+allein dieser Satz im Vertragstext.
 
 *Steht in* `schema/anmeldung-schema.sql:1046` · `soll-prozesse/09-hortvertrag.md:28`
 

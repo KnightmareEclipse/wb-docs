@@ -1,9 +1,10 @@
 ---
 id: TASK-089
-title: 'Klären, ob ein Grundschul-Pendant zum Mensa-Anmeldeformular existiert'
-status: To Do
+title: 'Klären: gelten für Hortmodule mit Essen dieselben Essenspreise'
+status: In Progress
 assignee: []
 created_date: '2026-08-27 22:23'
+updated_date: '2026-08-28 15:49'
 labels:
   - wartet
   - sekretariat
@@ -19,7 +20,7 @@ ordinal: 101000
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Das Realschul-Formular 25/26 liegt vor und ist in prozesse.md Abschnitt 9 ausgewertet. Ob die Grundschule ein eigenes führt, ist nirgends geführt — fehlt es, fehlen auch seine Felder und Regeln.
+Realschüler buchen das Mittagessen eigenständig, gestaffelt nach der Zahl der Esstage; bei Grundschülern steckt es im Hortmodul. Ob beide dieselbe Staffel tragen oder die Hortmodule eine eigene, entscheidet, ob meal_prices für beide Wege reicht. Die ursprüngliche Frage nach einem Grundschul-Pendant zum Mensa-Formular geht darin auf.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria

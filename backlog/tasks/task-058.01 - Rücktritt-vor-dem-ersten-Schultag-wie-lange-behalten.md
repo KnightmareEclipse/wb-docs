@@ -1,9 +1,10 @@
 ---
 id: TASK-058.01
 title: 'Rücktritt vor dem ersten Schultag: wie lange behalten'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-08-27 11:38'
+updated_date: '2026-08-28 15:49'
 labels:
   - wartet
   - schulleitung

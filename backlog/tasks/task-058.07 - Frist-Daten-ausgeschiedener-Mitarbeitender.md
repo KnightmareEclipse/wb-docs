@@ -1,10 +1,10 @@
 ---
 id: TASK-058.07
 title: 'Frist: Daten ausgeschiedener Mitarbeitender'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-08-27 11:38'
-updated_date: '2026-08-27 11:41'
+updated_date: '2026-08-28 15:49'
 labels:
   - wartet
   - schulleitung
@@ -22,3 +22,8 @@ ordinal: 68000
 <!-- SECTION:DESCRIPTION:BEGIN -->
 Eine der sechs Fristen je Entität.
 <!-- SECTION:DESCRIPTION:END -->
+
+## Acceptance Criteria
+<!-- AC:BEGIN -->
+- [ ] #1 Zweiter Teil geklärt: ob der Name auf bestätigten Mitarbeitsstunden, freigegebenen Belegen und geführten Klassen stehen bleibt, wenn die employees-Zeile fällt
+<!-- AC:END -->

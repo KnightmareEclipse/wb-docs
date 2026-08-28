@@ -1,9 +1,10 @@
 ---
 id: TASK-116
 title: Zuständigkeit und Weg für die 72-Stunden-Meldung nach Art. 33 festlegen
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-08-27 22:45'
+updated_date: '2026-08-28 15:49'
 labels:
   - dsgvo
   - schulleitung

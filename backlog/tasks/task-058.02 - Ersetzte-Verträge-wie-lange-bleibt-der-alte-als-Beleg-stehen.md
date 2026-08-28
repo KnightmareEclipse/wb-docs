@@ -1,9 +1,10 @@
 ---
 id: TASK-058.02
 title: 'Ersetzte Verträge: wie lange bleibt der alte als Beleg stehen'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-08-27 11:38'
+updated_date: '2026-08-28 15:49'
 labels:
   - wartet
   - schulleitung

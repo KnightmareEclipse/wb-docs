@@ -147,10 +147,13 @@ Vier Festlegungen dazu, die für alle drei Anlässe gelten:
 - **Der Vorgang steht in den Metadaten der Sitzung** — Anlass, Familie und das Gekaufte —, und
   `payments.payment_reference` trägt die Sitzungs-ID. Sie ist damit der Anker der Idempotenz oben;
   was der leistet und was nicht, steht dort und nicht ein zweites Mal hier.
-- **Aus dem Bestand gehen Betrag und Referenz an den Zahlungsdienst, kein Name und keine Kennung**
-  (`rules.md` Abschnitt 7). Die **Mailadresse** trägt der Elternteil auf der gehosteten Bezahlseite
-  selbst ein — sie erreicht den Dienst aus dem Browser und nicht aus dieser Datenbank —, und dafür
-  schickt er den Beleg ([`hebel.md`](../soll-prozesse/hebel.md#sofortzahlung)). Kosten entstehen
+- **Aus dem Bestand gehen Betrag, Anlass und die Kennung des Vorgangs an den Zahlungsdienst, kein
+  Name** (`rules.md` Abschnitt 7). Die Kennung ist dabei kein Zugeständnis, sondern der Zweck: Sie
+  löst jede Zeile beim Zahlungsdienst eindeutig nach Familie und Vorgang auf, ohne dass er einen
+  Namen bekommt — der Einzelnachweis der Buchhaltung hängt daran
+  ([`hebel.md`](../soll-prozesse/hebel.md#sofortzahlung)). Die **Mailadresse** trägt der Elternteil
+  auf der gehosteten Bezahlseite selbst ein — sie erreicht den Dienst aus dem Browser und nicht aus
+  dieser Datenbank —, und dafür schickt er den Beleg (dort ebenfalls). Kosten entstehen
   dadurch keine: Der Beleg gehört zur Zahlung, die Transaktionsgebühr ist der ganze Preis
   (`rules.md` Abschnitt 4); sein Versand ist eine Einstellung im Dashboard und kein Code
   (`backlog/`). Der Preis liegt woanders und wird getragen: Der Dienst weiß danach, dass diese

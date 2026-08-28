@@ -3,9 +3,10 @@ id: TASK-118
 title: >-
   Klären, ob das Barrierefreiheitsstärkungsgesetz auf das Elternportal anwendbar
   ist
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-08-27 22:45'
+updated_date: '2026-08-28 15:49'
 labels:
   - wartet
   - schulleitung

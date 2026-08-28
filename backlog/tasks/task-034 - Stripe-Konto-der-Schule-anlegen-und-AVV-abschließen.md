@@ -1,10 +1,10 @@
 ---
 id: TASK-034
 title: Stripe-Konto der Schule anlegen und AVV abschließen
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-08-27 11:37'
-updated_date: '2026-08-27 23:29'
+updated_date: '2026-08-28 15:49'
 labels:
   - wartet
   - geschaeftsfuehrung
@@ -23,7 +23,7 @@ ordinal: 34000
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Das private Testkonto deckt davon nichts ab: kein AVV, keine Gesellschaftsfrage, und im Testmodus verschickt Stripe keine Belege. Trägt den Putzdienst-Freikauf und damit die erste Q3-Zahlung.
+Das private Testkonto deckt davon nichts ab: kein AVV, keine Gesellschaftsfrage, und im Testmodus verschickt Stripe keine Belege. Trägt den Putzdienst-Freikauf und damit die erste Q3-Zahlung. **Die Geschäftsführung legt das Konto selbst an und zeichnet, fällig 14.09.2026** — das Konto kostet nichts, solange nichts darüber läuft, die Prüfung durch Stripe dauert einige Tage, und ohne Konto kann niemand online freikaufen.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
@@ -31,4 +31,6 @@ Das private Testkonto deckt davon nichts ab: kein AVV, keine Gesellschaftsfrage,
 - [ ] #1 Welche Stripe-Gesellschaft Vertragspartner ist (EU-Sitz vs. Drittland-Transfer nach Art. 44 ff.)
 - [ ] #2 Welche Personendaten übertragen werden — Betrag und Referenz unvermeidlich, kein Name
 - [ ] #3 Belegversand für erfolgreiche Zahlungen eingeschaltet (nur am echten Konto prüfbar)
+- [x] #4 Wer legt das Konto an und wer zeichnet den AVV — eine benannte Person, nicht eine Rolle
+- [ ] #5 Rückmeldung an den Betreiber, sobald das Konto freigeschaltet ist — vorher ist die Bezahlstrecke nicht testbar
 <!-- AC:END -->

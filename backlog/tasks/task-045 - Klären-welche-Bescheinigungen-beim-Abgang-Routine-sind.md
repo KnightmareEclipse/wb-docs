@@ -1,10 +1,10 @@
 ---
 id: TASK-045
 title: 'Klären: welche Bescheinigungen beim Abgang Routine sind'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-08-27 11:37'
-updated_date: '2026-08-27 11:41'
+updated_date: '2026-08-28 15:49'
 labels:
   - wartet
   - sekretariat

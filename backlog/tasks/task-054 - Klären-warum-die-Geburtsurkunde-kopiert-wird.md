@@ -1,9 +1,10 @@
 ---
 id: TASK-054
 title: 'Klären, warum die Geburtsurkunde kopiert wird'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-08-27 11:37'
+updated_date: '2026-08-28 15:49'
 labels:
   - wartet
   - sekretariat
