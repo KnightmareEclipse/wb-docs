@@ -4,13 +4,12 @@ title: Die Bezahlstrecke zum Zahlungsdienst aufbauen
 status: To Do
 assignee: []
 created_date: '2026-08-27 22:44'
-updated_date: '2026-08-27 23:29'
+updated_date: '2026-08-28 16:26'
 labels:
   - wb-backend
   - zahlung
   - putzdienst
-  - zweiter-zyklus
-milestone: m-5
+milestone: m-0
 dependencies: []
 references:
   - api/gemeinsam.md

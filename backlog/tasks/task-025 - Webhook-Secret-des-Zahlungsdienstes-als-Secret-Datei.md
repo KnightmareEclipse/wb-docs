@@ -4,13 +4,12 @@ title: Webhook-Secret des Zahlungsdienstes als Secret-Datei
 status: To Do
 assignee: []
 created_date: '2026-08-27 11:35'
-updated_date: '2026-08-27 23:29'
+updated_date: '2026-08-28 16:26'
 labels:
   - wb-backend
   - zahlung
   - secret
-  - zweiter-zyklus
-milestone: m-5
+milestone: m-0
 dependencies: []
 references:
   - wb-backend/CLAUDE.md

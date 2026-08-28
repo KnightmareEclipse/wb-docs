@@ -4,6 +4,7 @@ title: Die Mailvorlagen des Putzdienstes schreiben
 status: To Do
 assignee: []
 created_date: '2026-08-27 22:44'
+updated_date: '2026-08-28 16:27'
 labels:
   - wb-backend
   - putzdienst
@@ -27,4 +28,5 @@ mail.py trägt zwei Texte: Anmeldecode und Fenster-offen. Es fehlen Zuteilungsma
 <!-- AC:BEGIN -->
 - [ ] #1 Jede Vorlage geht über die Versandschicht, keine am send_tracked vorbei
 - [ ] #2 Absender ist post@clemens.schule mit Anzeigenamen, kein noreply
+- [ ] #3 Die Fenster-offen-Mail nennt den Freikaufbetrag und den Weg dorthin — beides gibt es ab Zyklus eins
 <!-- AC:END -->

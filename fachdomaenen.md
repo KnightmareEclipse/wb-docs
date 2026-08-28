@@ -179,21 +179,30 @@ Explizit **nicht** in dieser Liste, jeweils mit Grund:
 
 **Der erste Zyklus kann weniger als der Block beschreibt.** Nicht als Abstrich an Sicherheit
 oder Automatisierung — die stehen ganz —, sondern als Schnitt an den Vorgängen: Gebaut wird für
-Zyklus eins, dass Eltern im Portal buchen, der Solver zuteilt und die Zuteilungsmail samt
-Erinnerungen hinausgeht. Tausch, Freikauf, Anwesenheit und Strafen bleiben in diesem einen Jahr,
-wie sie heute laufen — Tausch über das Sekretariat, Freikauf per Überweisung, Anwesenheit auf
-Papier, Strafen von Hand.
+Zyklus eins, dass Eltern im Portal **buchen oder sich freikaufen**, der Solver zuteilt und die
+Zuteilungsmail samt Erinnerungen hinausgeht. Tausch, Anwesenheit und Strafen bleiben in diesem einen
+Jahr, wie sie heute laufen — Tausch über das Sekretariat, Anwesenheit auf Papier, Strafen von Hand.
 
-Das Kriterium war der Rückfallweg: Für diese vier gibt es einen, der heute gelebt wird, für Buchung
-und Zuteilung nicht. Was verschoben ist, trägt im Board die Marke `zweiter-zyklus` und liegt in „Ohne
-Termin"; es fällt damit nicht weg, sondern wartet auf den zweiten Zyklus. Wer den Schnitt
-zurücknimmt, holt die zwanzig Tickets zurück nach `m-0` — die Reihenfolge steht, nur der Umfang war
+**Der Freikauf im Anmeldefenster gehört ausdrücklich in Zyklus eins**, obwohl es ihn heute per
+Überweisung gibt: Er ist keine spätere Ergänzung, sondern die zweite Hälfte derselben Handlung —
+je Pflichttermin buchen **oder** freikaufen, beides im selben Fenster und in derselben Ansicht
+(`soll-prozesse/01-putzdienst.md`, Schritt 3). Eine Strecke, die nur die eine Hälfte kann, stellt
+die Familie vor eine Wahl, die sie im Portal gar nicht treffen kann. Damit hängt die
+Sofortzahlung mit drin, und der Putzdienst ist die Domäne, die zuerst bezahlt
+(`api/gemeinsam.md`, „Sofortzahlung").
+
+Das Kriterium für den Rest war der Rückfallweg: Für Tausch, Anwesenheit und Strafen gibt es einen,
+der heute gelebt wird und ohne Zutun der Eltern im Portal auskommt; für Buchung, Freikauf und
+Zuteilung nicht. Was verschoben ist, trägt im Board die Marke `zweiter-zyklus` und liegt in „Ohne
+Termin"; es fällt damit nicht weg, sondern wartet auf den zweiten Zyklus. Wer den Schnitt weiter
+zurücknimmt, holt die restlichen Tickets nach `m-0` — die Reihenfolge steht, nur der Umfang war
 die Entscheidung.
 
-Zwei Folgen, die beim Bauen auffallen werden: Die Fenster-offen-Mail nennt heute den Freikaufbetrag,
-darf im ersten Jahr aber keinen Weg versprechen, den es noch nicht gibt — das entscheidet die
-Mailvorlage, nicht das Schema. Und von den elf `configured_values` hält nur ein Teil einen Lauf an,
-solange Freikauf und Strafe außen vor sind.
+Zwei Folgen, die beim Bauen auffallen werden: Der Solver darf keiner Familie Termine zuteilen, die
+ihre Pflichtzahl bereits freigekauft hat — der Freikauf senkt sie, und wer sich für alle freikauft,
+steht in keiner Zuteilung und in keiner Mail dieses Prozesses. Und von den elf `configured_values`
+hält nur die Strafe keinen Lauf an, solange sie außen vor bleibt; der Freikaufbetrag ist ab Zyklus
+eins in Gebrauch, und die Fenster-offen-Mail nennt ihn samt dem Weg dorthin.
 
 Kritischer Pfad bis dahin:
 

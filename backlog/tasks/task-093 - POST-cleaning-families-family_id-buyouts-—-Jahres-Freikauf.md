@@ -4,15 +4,14 @@ title: 'POST /cleaning/families/{family_id}/buyouts — Jahres-Freikauf'
 status: To Do
 assignee: []
 created_date: '2026-08-27 22:43'
-updated_date: '2026-08-27 23:29'
+updated_date: '2026-08-28 16:26'
 labels:
   - wb-backend
   - route
   - putzdienst
   - zahlung
   - eltern
-  - zweiter-zyklus
-milestone: m-5
+milestone: m-0
 dependencies: []
 references:
   - api/putzdienst-api.md

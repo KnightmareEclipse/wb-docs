@@ -4,13 +4,12 @@ title: Die Zahlung ohne Vorgang bekommt ihren Ort im Schema
 status: To Do
 assignee: []
 created_date: '2026-08-27 11:35'
-updated_date: '2026-08-27 23:29'
+updated_date: '2026-08-28 16:26'
 labels:
   - wb-backend
   - schema
   - zahlung
-  - zweiter-zyklus
-milestone: m-5
+milestone: m-0
 dependencies: []
 references:
   - api/gemeinsam.md
