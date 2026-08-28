@@ -1,10 +1,10 @@
 ---
 id: TASK-106
 title: Restplatz-Solver bauen (Z4 der Zuteilung)
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 22:44'
-updated_date: '2026-08-28 16:27'
+updated_date: '2026-08-28 17:45'
 labels:
   - wb-backend
   - putzdienst
@@ -27,8 +27,8 @@ Das Modell des Solvers fehlt ganz: ortools steht in keiner requirements.in, im C
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Läuft als Lauf im Register des Lauf-Diensts, Marke ist allocated_at
-- [ ] #2 Ein zweiter Lauf nach der Freigabe teilt nicht neu zu
-- [ ] #3 Überschrittene Termine sind im Gesamtbild sichtbar, nicht stillschweigend verteilt
-- [ ] #4 Eine Familie, die ihre Pflichtzahl freigekauft hat, bekommt keine Zuteilung — der Freikauf senkt die Pflichtzahl, bevor der Solver rechnet
+- [x] #1 Läuft als Lauf im Register des Lauf-Diensts, Marke ist allocated_at
+- [x] #2 Ein zweiter Lauf nach der Freigabe teilt nicht neu zu
+- [x] #3 Überschrittene Termine sind im Gesamtbild sichtbar, nicht stillschweigend verteilt
+- [x] #4 Eine Familie, die ihre Pflichtzahl freigekauft hat, bekommt keine Zuteilung — der Freikauf senkt die Pflichtzahl, bevor der Solver rechnet
 <!-- AC:END -->

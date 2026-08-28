@@ -4,6 +4,7 @@ title: API-Plan stammdaten
 status: To Do
 assignee: []
 created_date: '2026-08-27 11:39'
+updated_date: '2026-08-28 16:46'
 labels:
   - wb-docs
   - api-plan
@@ -20,7 +21,7 @@ ordinal: 71000
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Person, Familie, Kind, Erziehungsberechtigte, Mitarbeitende, Klassen — der Bestand, auf den jede andere Domäne zeigt. Eine Domäne je Durchgang, wie beim Schema. Der Plan entsteht in wb-docs, gebaut wird danach in wb-backend.
+Domäne 1. Bewusst NICHT vor dem Putzdienst: Der liest Personen, Familien und Kinder, ruft dafür aber keine Route auf — er greift über die Schreibschicht auf die Tabellen zu, und was ein Elternteil von seiner Familie sieht, liefert seine eigene Route (091). Eine Stammdaten-Route braucht erst, wer Stammdaten von außen ändert, und das ist Block 02 und damit Domäne 2/4. Vorher gebaut wäre sie eine Schnittstelle ohne Aufrufer.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria

@@ -1,9 +1,10 @@
 ---
 id: TASK-092
 title: 'POST /cleaning/families/{family_id}/reservations — Termine buchen'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 22:43'
+updated_date: '2026-08-28 18:17'
 labels:
   - wb-backend
   - route
@@ -26,6 +27,6 @@ Die Buchung selbst: Eltern reservieren im offenen Fenster Termine ihrer Pflichtm
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Nur im offenen Fenster, nur bis zur Pflichtmenge
-- [ ] #2 source = 'reserved', Platzzahl des Termins wird nicht überschritten
+- [x] #1 Nur im offenen Fenster, nur bis zur Pflichtmenge
+- [x] #2 source = 'reserved', Platzzahl des Termins wird nicht überschritten
 <!-- AC:END -->

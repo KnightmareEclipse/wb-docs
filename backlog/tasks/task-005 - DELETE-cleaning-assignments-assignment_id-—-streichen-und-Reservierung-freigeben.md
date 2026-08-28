@@ -3,10 +3,10 @@ id: TASK-005
 title: >-
   DELETE /cleaning/assignments/{assignment_id} — streichen und Reservierung
   freigeben
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 11:33'
-updated_date: '2026-08-27 23:29'
+updated_date: '2026-08-28 18:05'
 labels:
   - wb-backend
   - putzdienst
@@ -29,6 +29,6 @@ Eltern nur die eigene Familie, nur source = 'reserved', nur im offenen Fenster. 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Eltern: eigene Familie, source = 'reserved', nur im offenen Fenster
-- [ ] #2 Sekretariat: jeder Termin, und dann geht eine Mail raus
+- [x] #1 Eltern: eigene Familie, source = 'reserved', nur im offenen Fenster
+- [x] #2 Sekretariat: jeder Termin, und dann geht eine Mail raus
 <!-- AC:END -->

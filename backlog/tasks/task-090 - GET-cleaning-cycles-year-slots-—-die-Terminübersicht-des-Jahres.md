@@ -1,9 +1,10 @@
 ---
 id: TASK-090
 title: 'GET /cleaning/cycles/{year}/slots — die Terminübersicht des Jahres'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 22:43'
+updated_date: '2026-08-28 18:17'
 labels:
   - wb-backend
   - route
@@ -25,6 +26,6 @@ Alle Termine des Zyklus mit freien Plätzen. Trägt die Buchungsansicht der Elte
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Freie Plätze je Termin, nicht nur die Platzzahl
-- [ ] #2 Eltern sehen das offene Fenster, das Sekretariat immer
+- [x] #1 Freie Plätze je Termin, nicht nur die Platzzahl
+- [x] #2 Eltern sehen das offene Fenster, das Sekretariat immer
 <!-- AC:END -->

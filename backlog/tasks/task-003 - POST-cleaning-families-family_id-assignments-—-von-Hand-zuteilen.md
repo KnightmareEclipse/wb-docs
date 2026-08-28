@@ -1,10 +1,10 @@
 ---
 id: TASK-003
 title: 'POST /cleaning/families/{family_id}/assignments — von Hand zuteilen'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 11:33'
-updated_date: '2026-08-27 23:29'
+updated_date: '2026-08-28 18:05'
 labels:
   - wb-backend
   - putzdienst
@@ -27,7 +27,7 @@ source = 'manual'; die Familie bekommt ihre aktuelle Terminliste. Das ist der We
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 source = 'manual'
-- [ ] #2 Die Familie bekommt ihre aktuelle Terminliste
-- [ ] #3 Rolle secretariat
+- [x] #1 source = 'manual'
+- [x] #2 Die Familie bekommt ihre aktuelle Terminliste
+- [x] #3 Rolle secretariat
 <!-- AC:END -->

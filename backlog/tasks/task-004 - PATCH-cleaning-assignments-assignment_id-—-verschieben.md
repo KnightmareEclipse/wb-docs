@@ -1,10 +1,10 @@
 ---
 id: TASK-004
 title: 'PATCH /cleaning/assignments/{assignment_id} — verschieben'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 11:33'
-updated_date: '2026-08-27 23:29'
+updated_date: '2026-08-28 18:05'
 labels:
   - wb-backend
   - putzdienst
@@ -27,6 +27,6 @@ Derselbe Zyklus, dieselbe Art, nicht nach attendance_recorded_at.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Nur innerhalb desselben Zyklus und derselben Art
-- [ ] #2 Abgewiesen, sobald attendance_recorded_at steht
+- [x] #1 Nur innerhalb desselben Zyklus und derselben Art
+- [x] #2 Abgewiesen, sobald attendance_recorded_at steht
 <!-- AC:END -->

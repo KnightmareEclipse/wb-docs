@@ -4,6 +4,7 @@ title: API-Plan querschnitt
 status: To Do
 assignee: []
 created_date: '2026-08-27 11:39'
+updated_date: '2026-08-28 16:46'
 labels:
   - wb-docs
   - api-plan
@@ -20,7 +21,7 @@ ordinal: 73000
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Zustimmung (Q1), Dokument und Signatur (Q2), Zahlungsvorgang (Q3), Bereichsstruktur (Q4), Nachzieh-Aufgabe (Q5). Eine Domäne je Durchgang, wie beim Schema. Der Plan entsteht in wb-docs, gebaut wird danach in wb-backend.
+Querschnitt. Bewusst NICHT vor dem Putzdienst, aus demselben Grund wie 059: Payments, sync_tasks und outbound_emails werden geschrieben, aber nicht von außen gerufen — der Mailversand läuft im Dienst, die Aufgabe entsteht im Vorgang, der sie auslöst. Die eine Ausnahme ist der Rückruf des Zahlungsdienstes; er hat seinen Plan bereits in api/gemeinsam.md, Abschnitt Sofortzahlung, und sein eigenes Ticket (104). Was hier noch zu planen ist, betrifft die Ansichten auf Dokumente, Zustimmungen und Änderungsspur — alles ab Domäne 2/4.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria

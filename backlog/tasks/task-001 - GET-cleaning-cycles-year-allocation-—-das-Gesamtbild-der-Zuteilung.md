@@ -1,10 +1,10 @@
 ---
 id: TASK-001
 title: 'GET /cleaning/cycles/{year}/allocation — das Gesamtbild der Zuteilung'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 11:33'
-updated_date: '2026-08-27 23:29'
+updated_date: '2026-08-28 17:45'
 labels:
   - wb-backend
   - putzdienst
@@ -28,7 +28,7 @@ Das Gesamtbild je Termin und je Familie. Samt der Termine, an denen die Platzzah
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Rolle secretariat, keine enge Rolle
-- [ ] #2 Termine über Platzzahl sind im Ergebnis erkennbar
-- [ ] #3 Je Familie ihre Termine, je Termin seine Familien
+- [x] #1 Rolle secretariat, keine enge Rolle
+- [x] #2 Termine über Platzzahl sind im Ergebnis erkennbar
+- [x] #3 Je Familie ihre Termine, je Termin seine Familien
 <!-- AC:END -->

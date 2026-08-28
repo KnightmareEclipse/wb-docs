@@ -1,9 +1,10 @@
 ---
 id: TASK-129
 title: Seed für die Entwicklungsumgebung
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-28 16:40'
+updated_date: '2026-08-28 17:18'
 labels:
   - wb-backend
   - test
@@ -24,8 +25,8 @@ Entwickelt und geprüft wird gegen Mockdaten, nicht gegen einen Export — der V
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Deckt ab, was Zyklus eins aufrufen kann: mehrere Familien mit eingeschriebenen Kindern, eine mit abweichender Pflichtzahl, eine Mitarbeiterfamilie, eine mit null Terminen, dazu ein Putzdienstjahr mit Terminen beider Arten und offenem Anmeldefenster
-- [ ] #2 Die lokale employees-Zeile entsteht mit, die Entra-Object-ID kommt aus der Umgebung und steht nicht im Git
-- [ ] #3 Läuft nur gegen eine leere Datenbank oder bricht ab — ein Seed, der gegen echte Daten laufen kann, ist einer zu viel
-- [ ] #4 Ein Kommando nach dem Migrationslauf, kein Framework und keine Faker-Abhängigkeit
+- [x] #1 Deckt ab, was Zyklus eins aufrufen kann: mehrere Familien mit eingeschriebenen Kindern, eine mit abweichender Pflichtzahl, eine Mitarbeiterfamilie, eine mit null Terminen, dazu ein Putzdienstjahr mit Terminen beider Arten und offenem Anmeldefenster
+- [x] #2 Die lokale employees-Zeile entsteht mit, die Entra-Object-ID kommt aus der Umgebung und steht nicht im Git
+- [x] #3 Läuft nur gegen eine leere Datenbank oder bricht ab — ein Seed, der gegen echte Daten laufen kann, ist einer zu viel
+- [x] #4 Ein Kommando nach dem Migrationslauf, kein Framework und keine Faker-Abhängigkeit
 <!-- AC:END -->

@@ -1,9 +1,10 @@
 ---
 id: TASK-091
 title: 'GET /cleaning/families/{family_id} — die eigene Sicht der Familie'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 22:43'
+updated_date: '2026-08-28 18:17'
 labels:
   - wb-backend
   - route
@@ -26,6 +27,6 @@ Pflichtmenge, reservierte und zugeteilte Termine, Freikäufe und offene Strafen 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Eltern nur die eigene Familie, Ownership-Check in der Query
-- [ ] #2 Freigekaufte Termine sind als solche erkennbar
+- [x] #1 Eltern nur die eigene Familie, Ownership-Check in der Query
+- [x] #2 Freigekaufte Termine sind als solche erkennbar
 <!-- AC:END -->

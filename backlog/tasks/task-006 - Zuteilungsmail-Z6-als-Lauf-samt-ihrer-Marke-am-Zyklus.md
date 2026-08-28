@@ -1,9 +1,10 @@
 ---
 id: TASK-006
 title: 'Zuteilungsmail (Z6) als Lauf, samt ihrer Marke am Zyklus'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 11:33'
+updated_date: '2026-08-28 18:05'
 labels:
   - wb-backend
   - putzdienst
@@ -28,8 +29,8 @@ Kein Teil der Freigabe-Route: Der Lauf sucht die Zyklen mit Freigabe und ohne Ma
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Marke an cleaning_cycles als Migration in wb-backend voran, Form wie registration_mail_sent_at/allocated_at
-- [ ] #2 Der Lauf sucht Zyklen mit Freigabe und ohne Mail-Marke
-- [ ] #3 Zeile im Register des Lauf-Diensts, Versand über services/mail.py
-- [ ] #4 Keine Zustandsdatei neben der Datenbank
+- [x] #1 Marke an cleaning_cycles als Migration in wb-backend voran, Form wie registration_mail_sent_at/allocated_at
+- [x] #2 Der Lauf sucht Zyklen mit Freigabe und ohne Mail-Marke
+- [x] #3 Zeile im Register des Lauf-Diensts, Versand über services/mail.py
+- [x] #4 Keine Zustandsdatei neben der Datenbank
 <!-- AC:END -->

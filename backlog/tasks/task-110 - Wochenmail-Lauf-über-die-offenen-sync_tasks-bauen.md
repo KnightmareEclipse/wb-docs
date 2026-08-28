@@ -4,12 +4,13 @@ title: Wochenmail-Lauf über die offenen sync_tasks bauen
 status: To Do
 assignee: []
 created_date: '2026-08-27 22:44'
+updated_date: '2026-08-28 16:46'
 labels:
   - wb-backend
   - lauf
   - mail
   - querschnitt
-milestone: m-1
+milestone: m-0
 dependencies: []
 references:
   - soll-prozesse/hebel.md

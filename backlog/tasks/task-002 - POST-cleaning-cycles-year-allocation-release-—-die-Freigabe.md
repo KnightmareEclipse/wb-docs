@@ -1,10 +1,10 @@
 ---
 id: TASK-002
 title: 'POST /cleaning/cycles/{year}/allocation/release — die Freigabe'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 11:33'
-updated_date: '2026-08-27 23:29'
+updated_date: '2026-08-28 18:05'
 labels:
   - wb-backend
   - putzdienst
@@ -28,7 +28,7 @@ Setzt allocation_released_at, genau einmal. Ohne Freigabe erfährt keine Familie
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Setzt allocation_released_at genau einmal
-- [ ] #2 Die Route antwortet selbst, wenn allocated_at fehlt, statt in ck_cleaning_cycles_release zu laufen
-- [ ] #3 Rolle secretariat
+- [x] #1 Setzt allocation_released_at genau einmal
+- [x] #2 Die Route antwortet selbst, wenn allocated_at fehlt, statt in ck_cleaning_cycles_release zu laufen
+- [x] #3 Rolle secretariat
 <!-- AC:END -->
