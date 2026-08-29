@@ -1,7 +1,7 @@
 ---
 id: TASK-107
 title: Erinnerungs-Lauf für die zwei Erinnerungen je Termin bauen (Z9)
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 22:44'
 labels:
@@ -27,6 +27,6 @@ Das Ticket zur Lauf-Marke legt nur die Spalte an. Der Lauf selbst fehlt: er such
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Der erste Termin des Jahres wird nicht doppelt erinnert
-- [ ] #2 Auslöser ist eine gesetzte Spalte, kein Kalenderausdruck
+- [x] #1 Der erste Termin des Jahres wird nicht doppelt erinnert
+- [x] #2 Auslöser ist eine gesetzte Spalte, kein Kalenderausdruck
 <!-- AC:END -->

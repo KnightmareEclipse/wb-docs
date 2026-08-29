@@ -1,10 +1,10 @@
 ---
 id: TASK-093
 title: 'POST /cleaning/families/{family_id}/buyouts — Jahres-Freikauf'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 22:43'
-updated_date: '2026-08-28 16:26'
+updated_date: '2026-08-28 23:23'
 labels:
   - wb-backend
   - route
@@ -28,6 +28,6 @@ Die Familie kauft ihre gesamte Pflicht des Jahres frei. Betrag aus configured_va
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Betrag kommt aus configured_values, nie aus dem Code
-- [ ] #2 Bestehende Reservierungen werden dabei freigegeben
+- [x] #1 Betrag kommt aus configured_values, nie aus dem Code
+- [x] #2 Der Jahres-Freikauf deckt nur die offenen Pflichten; ein reservierter Termin bleibt stehen und wird ueber den Einzel-Freikauf abgeloest
 <!-- AC:END -->

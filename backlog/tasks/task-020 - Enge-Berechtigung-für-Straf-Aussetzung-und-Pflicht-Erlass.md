@@ -1,10 +1,10 @@
 ---
 id: TASK-020
 title: Enge Berechtigung für Straf-Aussetzung und Pflicht-Erlass
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 11:35'
-updated_date: '2026-08-27 23:29'
+updated_date: '2026-08-28 21:43'
 labels:
   - wb-backend
   - putzdienst
@@ -27,6 +27,6 @@ Ein Spalten-GRANT plus Rollenwahl, kein Anwendungs-if. Auslösen dürfen beides 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Spalten-GRANT in der Migration der Domäne, __protected_columns__ am Modell
-- [ ] #2 tests/test_privileges.py weist ein zu breites Recht ab
+- [x] #1 Spalten-GRANT in der Migration der Domäne, __protected_columns__ am Modell
+- [x] #2 tests/test_privileges.py weist ein zu breites Recht ab
 <!-- AC:END -->

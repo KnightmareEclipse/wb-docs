@@ -8,9 +8,9 @@
 -- Die vertragsgebundenen Gegenproben zu `signatures` stehen in
 -- anmeldung-schema-check.sql, weil ihr Fremdschlüssel dort entsteht; die
 -- Unterschrift unter dem SEPA-Mandat steht hier, sie kennt keinen Vertrag.
--- Dazu zwölf partielle Unique-Indizes (drei für signatures, zwei für consents,
--- sieben für sync_tasks) und zwei Lese-Indizes, auf outbound_emails und auf
--- change_log. `payments` trägt außerdem ein UNIQUE auf der Zahlungsreferenz;
+-- Dazu dreizehn partielle Unique-Indizes (drei für signatures, zwei für
+-- consents, acht für sync_tasks) und zwei Lese-Indizes, auf outbound_emails und
+-- auf change_log. `payments` trägt außerdem ein UNIQUE auf der Zahlungsreferenz;
 -- seine Gegenprobe steht in putzdienst-schema-check.sql, weil sie wie die
 -- übrigen Q3-Proben einen echten Anlass braucht.
 --
@@ -53,6 +53,7 @@ BEGIN
         'pk_documents', 'pk_change_log',
         'fk_consents_person', 'fk_consents_child', 'fk_consents_signature',
         'fk_documents_child', 'fk_sync_tasks_target', 'fk_sync_targets_role',
+        'fk_sync_tasks_payment',
         'uq_child_file_folders',
         'ck_consents_answer', 'ck_consents_revocation',
         'ck_consents_revoked_after_granted', 'ck_sync_tasks_completed_by',
@@ -85,7 +86,7 @@ BEGIN
         'ix_sync_tasks_open_person', 'ix_sync_tasks_open_child',
         'ix_sync_tasks_open_family', 'ix_sync_tasks_open_year',
         'ix_sync_tasks_open_period', 'ix_sync_tasks_open_booking',
-        'ix_sync_tasks_open_slot', 'ix_change_log_row',
+        'ix_sync_tasks_open_slot', 'ix_sync_tasks_open_payment', 'ix_change_log_row',
         'ix_signatures_contract', 'ix_signatures_agreement', 'ix_signatures_mandate',
         'ix_outbound_emails_undeliverable'
     ]) AS i
@@ -431,9 +432,23 @@ SELECT pg_temp.expect_reject(
 -- 7. Gegenproben — Q3
 -- ---------------------------------------------------------------------------
 
+-- Umgekehrt zur ersten Fassung, und der Grund steht am Constraint: „Trägt die
+-- Bedingung beim Rückruf nicht mehr, wird nichts automatisch erstattet"
+-- (api/gemeinsam.md). Die Zahlung ohne Anlass ist der einzige Fall, in dem das
+-- System sonst Geld verlöre.
+SELECT pg_temp.expect_accept(
+    'Q3 — Zahlung ohne Anlass ist eintragbar',
+    $q$INSERT INTO payments (payment_id, amount_cents, created_by)
+       VALUES ('99999999-9999-9999-9999-999999999999', 2500, 'system:check')$q$);
+
+-- Gelockert heißt nicht offen: zwei Anlässe bleiben abgewiesen. Die Probe
+-- braucht keinen echten Vorgang — der CHECK zählt vor dem Fremdschlüssel, und
+-- was er abweist, wird nie referenziert.
 SELECT pg_temp.expect_reject(
-    'Q3 — Zahlung ohne Anlass',
-    $q$INSERT INTO payments (amount_cents, created_by) VALUES (2500, 'system:check')$q$);
+    'Q3 — zwei Anlässe an einer Zahlung',
+    $q$INSERT INTO payments (cleaning_buyout_id, application_id, amount_cents, created_by)
+       VALUES ('77777777-7777-7777-7777-777777777777',
+               '88888888-8888-8888-8888-888888888888', 2500, 'system:check')$q$);
 
 -- Die übrigen Q3-Gegenproben stehen in putzdienst-schema-check.sql: sie
 -- brauchen einen Vorgang, auf den die Zahlung zeigen darf, und den bringt erst
@@ -448,6 +463,24 @@ SELECT pg_temp.expect_reject(
     $q$INSERT INTO sync_tasks (sync_target_id, task_text, created_by)
        VALUES ((SELECT sync_target_id FROM sync_targets WHERE code='asv_bw'),
                'Kind anlegen', 'system:check')$q$);
+
+-- Der achte Bezug, und der Grund für ihn steht an `ck_payments_single_cause`:
+-- die vorgangslose Zahlung wartet auf die Entscheidung eines Menschen, und ohne
+-- diesen Bezug hinge sie an niemandem.
+SELECT pg_temp.expect_accept(
+    'Q5 — Aufgabe zu einer Zahlung ohne Vorgang',
+    $q$INSERT INTO sync_tasks (sync_target_id, payment_id, task_text, created_by)
+       VALUES ((SELECT sync_target_id FROM sync_targets WHERE code='asv_bw'),
+               '99999999-9999-9999-9999-999999999999',
+               'Zahlung ohne Vorgang prüfen', 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    'Q5 — Aufgabe an Zahlung und Kind zugleich',
+    $q$INSERT INTO sync_tasks (sync_target_id, payment_id, child_id, task_text, created_by)
+       VALUES ((SELECT sync_target_id FROM sync_targets WHERE code='asv_bw'),
+               '99999999-9999-9999-9999-999999999999',
+               '44444444-4444-4444-4444-444444444444',
+               'Zahlung ohne Vorgang prüfen', 'system:check')$q$);
 
 SELECT pg_temp.expect_reject(
     'Q5 — Aufgabe mit zwei Bezügen',

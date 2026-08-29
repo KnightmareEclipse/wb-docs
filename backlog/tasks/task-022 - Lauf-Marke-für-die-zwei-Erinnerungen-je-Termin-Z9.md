@@ -1,7 +1,7 @@
 ---
 id: TASK-022
 title: Lauf-Marke für die zwei Erinnerungen je Termin (Z9)
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 11:35'
 labels:
@@ -24,6 +24,6 @@ An cleaning_slots. Hängt an der Freigabe der Zuteilung. Welche Form sie bekommt
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Marke an cleaning_slots, als Migration in wb-backend voran
-- [ ] #2 Der erste Termin des Jahres wird nicht doppelt erinnert (die Zuteilungsmail ist bereits die erste Erinnerung)
+- [x] #1 Marke an cleaning_slots, als Migration in wb-backend voran
+- [x] #2 Der erste Termin des Jahres wird nicht doppelt erinnert (die Zuteilungsmail ist bereits die erste Erinnerung)
 <!-- AC:END -->

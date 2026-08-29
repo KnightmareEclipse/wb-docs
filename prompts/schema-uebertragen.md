@@ -68,25 +68,18 @@ Nicht mit Augenmaß, sondern mit Rückgabewerten. Vier Läufe, alle vier nennst 
 
 1. **`ruff check .`, `ruff format --check .`, `mypy app tests` und `pytest`** — alle vier sauber. `pytest` schließt `tests/test_privileges.py` ein: es meldet jedes Tabellenrecht, das zu breit vergeben ist.
 2. **`alembic upgrade head` gegen eine frische Datenbank**, danach `alembic check` — es meldet jede Abweichung zwischen Modell und Datenbank. Die Migration liest du vorher **von Hand durch**; `--autogenerate` ist ein Entwurf und kein Ergebnis (`CLAUDE.md` §6).
-3. **Alle Prüfskripte gegen die von Alembic gebaute Datenbank**, mit `-v ON_ERROR_STOP=1` — nicht nur das der eigenen Domäne. Ohne den Schalter endet auch ein gescheiterter Lauf mit 0, und dann ist jeder Lauf grün.
+3. **Alle Prüfskripte gegen die von Alembic gebaute Datenbank**, nicht nur das der eigenen Domäne: `./schema-check.sh` in `wb-backend`. Es druckt je Datei einen Rückgabewert und endet selbst rot, sobald einer nicht 0 ist.
 4. **Der Katalogabgleich.** Lade die `.sql` in eine zweite Datenbank desselben Clusters und vergleiche beide Kataloge — Spalten mit Typ, Nullbarkeit, Vorgabe und Identity, Constraints mit `pg_get_constraintdef`, Indizes mit `pg_get_indexdef`, alles sortiert. Kein Unterschied heißt: treu übertragen, und zwar ohne Augenmaß. Ein Prüfskript sieht nur, wonach es fragt; der Abgleich sieht alles.
 
 ```
 docker compose --profile tools down -v && docker compose up -d
 docker compose --profile tools run --rm migrate && docker compose --profile tools run --rm migrate alembic check
-for f in ../wb-docs/schema/*-schema-check.sql; do
-    { echo "BEGIN; TRUNCATE <die gesäten Listen> CASCADE;"; cat "$f"; } \
-        | docker compose exec -T db psql -U backend_migrator -d weltenbaum -v ON_ERROR_STOP=1 -q
-    rc=$?
-    echo "$(basename "$f") rc=$rc"
-done
+./schema-check.sh
 docker compose --profile tools run --rm test sh -c \
     'ruff check . && ruff format --check . && mypy app tests && pytest -q'
 ```
 
-**Der Vorspann ist kein Beiwerk.** Jedes Prüfskript legt die Wertelisten selbst an, die es braucht, und rechnet dafür mit einer leeren Datenbank („die Datenbank bleibt danach leer", Kopf jedes Skripts). Gegen die von Alembic gebaute Datenbank scheitern dreizehn der vierzehn deshalb an einem doppelten Schlüssel. Die Skripte selbst bleiben unverändert — sie rollen ohnehin alles zurück, also darf der Vorspann in derselben Transaktion räumen, und das `ROLLBACK;` am Ende nimmt das `TRUNCATE` mit zurück. Die Liste der Tabellen führt die Seed-Revision als `SEEDED_TABLES`.
-
-**Und `rc=$?` steht direkt hinter dem Aufruf.** Käme davor eine Kommando-Ersetzung wie `echo "$(basename "$f") rc=$?"`, trüge `$?` den Rückgabewert von `basename` — der Lauf wäre grün, auch der gescheiterte, genau wie ohne `ON_ERROR_STOP=1`.
+**Die Skripte selbst bleiben unverändert**, und was der Lauf um sie herum tun muss — die gesäten Wertelisten in derselben Transaktion räumen, den Rückgabewert vor jeder Kommando-Ersetzung sichern —, steht im Skript und in `README.md` von `wb-backend`, nicht hier.
 
 **Alle Prüfskripte, nicht nur das der eigenen Domäne.** Ein Skript mit erfundenen Fremdschlüssel-Werten läuft grün, solange die Zieltabelle fehlt — erst gegen die vollständige Datenbank sagt es etwas aus.
 

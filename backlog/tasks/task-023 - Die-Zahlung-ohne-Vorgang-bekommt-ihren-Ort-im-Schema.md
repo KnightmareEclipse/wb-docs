@@ -1,10 +1,10 @@
 ---
 id: TASK-023
 title: Die Zahlung ohne Vorgang bekommt ihren Ort im Schema
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 11:35'
-updated_date: '2026-08-28 16:26'
+updated_date: '2026-08-28 23:02'
 labels:
   - wb-backend
   - schema
@@ -26,7 +26,7 @@ Das Geld ist da, die Bedingung trägt beim Rückruf nicht mehr. Drei Ergänzunge
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 ck_payments_single_cause lässt den vorgangslosen Fall zu (heute genau einer der vier Schlüssel)
-- [ ] #2 sync_tasks bekommt den Bezug auf die Zahlung als achten
-- [ ] #3 sync_targets bekommt sein erstes hausinternes Ziel
+- [x] #1 ck_payments_single_cause lässt den vorgangslosen Fall zu (heute genau einer der vier Schlüssel)
+- [x] #2 sync_tasks bekommt den Bezug auf die Zahlung als achten
+- [x] #3 sync_targets bekommt sein erstes hausinternes Ziel
 <!-- AC:END -->

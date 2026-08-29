@@ -149,6 +149,16 @@ CREATE TABLE cleaning_slots (
     -- Graph-Kennung, denn „ein Pfad bräche bei jedem Verschieben".
     attendance_sheet_library_id integer,
     attendance_sheet_graph_item_id text,
+    -- Je Erinnerung eine Marke (Z9). Zwei Spalten und kein Zähler: die beiden
+    -- Erinnerungen haben verschiedene Auslöser — die erste, „sobald der vorige
+    -- Putzdienst gelaufen ist", die zweite ein bis zwei Tage vorher —, und ein
+    -- Zähler sagte nicht, welche von beiden gelaufen ist. Sie stehen am Termin
+    -- und nicht am Zyklus, weil je Termin erinnert wird. Beim ersten Termin des
+    -- Jahres bleibt die erste leer, und das ohne Sonderfall: Er hat keinen
+    -- Vorgänger, und „beim ersten Termin des Jahres übernimmt die Zuteilungsmail
+    -- die erste Erinnerung".
+    first_reminder_sent_at  timestamptz,
+    second_reminder_sent_at timestamptz,
     -- Ein abgesagter Termin bleibt stehen, damit die betroffenen Familien
     -- sehen, was mit ihm war; „das geht dann zu Lasten der Schule".
     cancelled_at          timestamptz,

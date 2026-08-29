@@ -1,10 +1,10 @@
 ---
 id: TASK-108
 title: Monatslauf für die Übergabe der Strafen bauen
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 22:44'
-updated_date: '2026-08-27 23:29'
+updated_date: '2026-08-28 22:04'
 labels:
   - wb-backend
   - putzdienst
@@ -28,6 +28,6 @@ penalty_handed_over_at steht im Schema bereit, der Lauf, der sie setzt und die S
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Ausgesetzte Strafen und freigekaufte Termine gehen nicht mit
-- [ ] #2 Ein verpasster Tick holt beim nächsten alles Fällige nach
+- [x] #1 Ausgesetzte Strafen und freigekaufte Termine gehen nicht mit
+- [x] #2 Ein verpasster Tick holt beim nächsten alles Fällige nach
 <!-- AC:END -->

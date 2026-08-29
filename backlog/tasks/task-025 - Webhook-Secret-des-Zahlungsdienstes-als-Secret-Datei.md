@@ -1,10 +1,10 @@
 ---
 id: TASK-025
 title: Webhook-Secret des Zahlungsdienstes als Secret-Datei
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 11:35'
-updated_date: '2026-08-28 16:26'
+updated_date: '2026-08-28 23:59'
 labels:
   - wb-backend
   - zahlung
@@ -25,6 +25,6 @@ Eine Secret-Datei wie die anderen, keine Umgebungsvariable mit dem Wert darin. D
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Secret-Datei, nicht Env-Var
-- [ ] #2 Signaturprüfung an der Rückrufroute, Test mit falscher Signatur
+- [x] #1 Secret-Datei, nicht Env-Var
+- [x] #2 Signaturprüfung an der Rückrufroute, Test mit falscher Signatur
 <!-- AC:END -->

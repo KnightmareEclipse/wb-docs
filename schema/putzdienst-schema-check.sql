@@ -479,6 +479,22 @@ BEGIN
     RAISE NOTICE 'ok: die eingescannte Unterschriftenliste hat ihren Ort am Termin';
 END $$;
 
+-- 01, Z9: „Erinnert die Eltern des nächsten Termins zweimal." Je Erinnerung eine
+-- Marke am Termin — ohne sie hinge der Lauf an einem Kalenderausdruck und
+-- erinnerte bei jedem Tick erneut.
+DO $$
+DECLARE missing text;
+BEGIN
+    SELECT string_agg(c, ', ') INTO missing
+    FROM unnest(ARRAY['first_reminder_sent_at', 'second_reminder_sent_at']) AS c
+    WHERE NOT EXISTS (SELECT 1 FROM information_schema.columns
+                       WHERE table_name = 'cleaning_slots' AND column_name = c);
+    IF missing IS NOT NULL THEN
+        RAISE EXCEPTION 'Den zwei Erinnerungen fehlt ihre Marke: %', missing;
+    END IF;
+    RAISE NOTICE 'ok: beide Erinnerungen haben ihre Marke am Termin';
+END $$;
+
 -- 01: Anmeldefenster und Freigabe.
 SELECT pg_temp.expect_reject(
     '01 — Anmeldefenster, das vor seinem Beginn schließt',

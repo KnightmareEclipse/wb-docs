@@ -1,10 +1,10 @@
 ---
 id: TASK-096
 title: GET /cleaning/penalties — die offenen Strafen
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 22:43'
-updated_date: '2026-08-27 23:29'
+updated_date: '2026-08-28 21:43'
 labels:
   - wb-backend
   - route
@@ -28,6 +28,6 @@ ordinal: 108000
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Freigekaufte Zuteilungen tauchen nicht als Strafe auf
-- [ ] #2 Übergebene sind von offenen unterscheidbar
+- [x] #1 Freigekaufte Zuteilungen tauchen nicht als Strafe auf
+- [x] #2 Übergebene sind von offenen unterscheidbar
 <!-- AC:END -->

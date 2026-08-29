@@ -1,10 +1,10 @@
 ---
 id: TASK-029
 title: Die vierzehn Prüfskripte als fester Schritt hinter jedem Migrationslauf
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 11:35'
-updated_date: '2026-08-27 22:24'
+updated_date: '2026-08-28 22:40'
 labels:
   - wb-backend
   - schema
@@ -26,7 +26,7 @@ Gegen die von Alembic gebaute Datenbank braucht der Schritt seit dem Anfangsbest
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 TRUNCATE-Vorspann in derselben Transaktion, Tabellenliste aus SEEDED_TABLES
-- [ ] #2 rc=$? direkt hinter dem Aufruf, vor jeder Kommando-Ersetzung
-- [ ] #3 Läuft als Schritt, nicht als einmalige Sichtprüfung
+- [x] #1 TRUNCATE-Vorspann in derselben Transaktion, Tabellenliste aus SEEDED_TABLES
+- [x] #2 rc=$? direkt hinter dem Aufruf, vor jeder Kommando-Ersetzung
+- [x] #3 Läuft als Schritt, nicht als einmalige Sichtprüfung
 <!-- AC:END -->

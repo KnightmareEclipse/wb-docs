@@ -1,9 +1,10 @@
 ---
 id: TASK-119
 title: Runbook für die Betriebsstörung schreiben
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 22:45'
+updated_date: '2026-08-28 23:20'
 labels:
   - infra
   - betreiber
@@ -24,6 +25,6 @@ runbook.md deckt den kompletten Neuaufbau und den Server, der nicht mehr bootet.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Deckt: API antwortet nicht, Mailversand scheitert, Zahlungsdienst nicht erreichbar, Platte voll
-- [ ] #2 Nennt je Fall, was der Betreiber prüft und was er den Eltern sagt
+- [x] #1 Deckt: API antwortet nicht, Mailversand scheitert, Zahlungsdienst nicht erreichbar, Platte voll
+- [x] #2 Nennt je Fall, was der Betreiber prüft und was er den Eltern sagt
 <!-- AC:END -->

@@ -1,9 +1,10 @@
 ---
 id: TASK-084
 title: Elternportal erstmals aufsetzen (portal.clemens.schule)
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-08-27 11:40'
+updated_date: '2026-08-28 22:47'
 labels:
   - frontend
   - eltern
@@ -24,7 +25,7 @@ Statische Oberfläche, ausgeliefert vom Reverse-Proxy derselben VPS. Ruft diesel
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Eigene Herkunft am Hostnamen, getrennt von intern.clemens.schule
-- [ ] #2 CSP nur eigene Skripte, keine base-Umleitung, X-Content-Type-Options: nosniff
-- [ ] #3 frame-ancestors 'none' — nicht in Teams einbettbar
+- [x] #1 Eigene Herkunft am Hostnamen, getrennt von intern.clemens.schule
+- [x] #2 CSP nur eigene Skripte, keine base-Umleitung, X-Content-Type-Options: nosniff
+- [x] #3 frame-ancestors 'none' — nicht in Teams einbettbar
 <!-- AC:END -->

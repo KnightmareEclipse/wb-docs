@@ -1,10 +1,10 @@
 ---
 id: TASK-099
 title: 'DELETE /cleaning/swap-offers/{offer_id} — Angebot zurückziehen'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 22:43'
-updated_date: '2026-08-27 23:29'
+updated_date: '2026-08-28 21:24'
 labels:
   - wb-backend
   - route
@@ -28,6 +28,6 @@ Die Familie nimmt ihr Tauschangebot zurück, solange kein Tausch zustande gekomm
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Nur das eigene Angebot
-- [ ] #2 Nach zustande gekommenem Tausch abgewiesen
+- [x] #1 Nur das eigene Angebot
+- [x] #2 Nach zustande gekommenem Tausch abgewiesen
 <!-- AC:END -->

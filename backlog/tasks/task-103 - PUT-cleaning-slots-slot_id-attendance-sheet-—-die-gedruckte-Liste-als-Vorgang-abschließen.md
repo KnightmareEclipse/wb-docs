@@ -3,10 +3,10 @@ id: TASK-103
 title: >-
   PUT /cleaning/slots/{slot_id}/attendance-sheet — die gedruckte Liste als
   Vorgang abschließen
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 22:44'
-updated_date: '2026-08-27 23:29'
+updated_date: '2026-08-28 21:43'
 labels:
   - wb-backend
   - route
@@ -30,6 +30,6 @@ Gegenstück zum Erzeugen: die zurückkommende Papierliste wird in einem Zug übe
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Eine Transaktion für die ganze Liste
-- [ ] #2 Ein zweites Zurücktragen überschreibt nicht stillschweigend
+- [x] #1 Eine Transaktion für die ganze Liste
+- [x] #2 Ein zweites Zurücktragen überschreibt nicht stillschweigend
 <!-- AC:END -->

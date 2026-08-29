@@ -1,9 +1,10 @@
 ---
 id: TASK-024
 title: Lösch-Lauf für login_codes (24h) und login_sessions (30 Tage)
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 11:35'
+updated_date: '2026-08-28 22:40'
 labels:
   - wb-backend
   - lauf
@@ -25,6 +26,6 @@ Das Schema sagt die Fristen zu, niemand führt sie aus. Beide gehören keiner Fa
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Zeile im Register des Lauf-Diensts
-- [ ] #2 login_codes nach 24 Stunden, login_sessions nach 30 Tagen
+- [x] #1 Zeile im Register des Lauf-Diensts
+- [x] #2 login_codes nach 24 Stunden, login_sessions nach 30 Tagen
 <!-- AC:END -->

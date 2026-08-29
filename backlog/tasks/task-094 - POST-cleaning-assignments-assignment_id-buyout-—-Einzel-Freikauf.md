@@ -1,10 +1,10 @@
 ---
 id: TASK-094
 title: 'POST /cleaning/assignments/{assignment_id}/buyout — Einzel-Freikauf'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 22:43'
-updated_date: '2026-08-28 16:28'
+updated_date: '2026-08-28 23:59'
 labels:
   - wb-backend
   - route
@@ -28,6 +28,6 @@ Ein einzelner Termin wird freigekauft. Die Frist (nur vor dem Termindatum) ist e
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Nur vor dem Termindatum, an derselben Stelle wie die Zahlung
-- [ ] #2 Der Platz wird wieder frei
+- [x] #1 Nur vor dem Termindatum, an derselben Stelle wie die Zahlung
+- [x] #2 Der Platz wird wieder frei
 <!-- AC:END -->

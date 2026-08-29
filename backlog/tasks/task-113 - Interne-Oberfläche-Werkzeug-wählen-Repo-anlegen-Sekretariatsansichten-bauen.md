@@ -1,9 +1,10 @@
 ---
 id: TASK-113
 title: 'Interne Oberfläche: Werkzeug wählen, Repo anlegen, Sekretariatsansichten bauen'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 22:45'
+updated_date: '2026-08-29 00:28'
 labels:
   - frontend
   - personal
@@ -26,7 +27,7 @@ Wie beim Elternportal setzt das vorhandene Ticket nur den Host auf. Es fehlen We
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Teams-SSO mit Bearer-Token im Header, keine Cookie-Sitzung
-- [ ] #2 frame-ancestors für Teams gesetzt und kein X-Frame-Options
-- [ ] #3 validDomains im Manifest deckt jede berührte Domain samt Weiterleitungen
+- [x] #1 Teams-SSO mit Bearer-Token im Header, keine Cookie-Sitzung
+- [x] #2 frame-ancestors für Teams gesetzt und kein X-Frame-Options
+- [x] #3 validDomains im Manifest deckt jede berührte Domain samt Weiterleitungen
 <!-- AC:END -->

@@ -1,10 +1,10 @@
 ---
 id: TASK-105
 title: Die Bezahlstrecke zum Zahlungsdienst aufbauen
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 22:44'
-updated_date: '2026-08-28 16:26'
+updated_date: '2026-08-29 00:05'
 labels:
   - wb-backend
   - zahlung
@@ -27,7 +27,7 @@ Stripe kommt im Code bisher nicht vor. Fehlt: die Checkout-Session erzeugen, die
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Kein Name geht hinaus; die Mailadresse tippt der Elternteil auf der Bezahlseite selbst ein
-- [ ] #2 Betrag und Referenz kommen aus configured_values bzw. dem Vorgang
-- [ ] #3 Der Belegversand läuft über den Dienst, nicht über Weltenbaum
+- [x] #1 Kein Name geht hinaus; die Mailadresse tippt der Elternteil auf der Bezahlseite selbst ein
+- [x] #2 Betrag und Referenz kommen aus configured_values bzw. dem Vorgang
+- [x] #3 Der Belegversand läuft über den Dienst, nicht über Weltenbaum
 <!-- AC:END -->

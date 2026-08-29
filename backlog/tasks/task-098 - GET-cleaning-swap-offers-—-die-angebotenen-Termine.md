@@ -1,10 +1,10 @@
 ---
 id: TASK-098
 title: GET /cleaning/swap-offers — die angebotenen Termine
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 22:43'
-updated_date: '2026-08-27 23:29'
+updated_date: '2026-08-28 21:24'
 labels:
   - wb-backend
   - route
@@ -28,6 +28,6 @@ Die Liste, in der eine Familie ankreuzt, welche angebotenen Termine sie annehmen
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Nur Angebote desselben Zyklus und derselben Art
-- [ ] #2 Eigene Angebote sind erkennbar
+- [x] #1 Nur Angebote desselben Zyklus und derselben Art
+- [x] #2 Eigene Angebote sind erkennbar
 <!-- AC:END -->

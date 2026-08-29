@@ -1,10 +1,10 @@
 ---
 id: TASK-110
 title: Wochenmail-Lauf über die offenen sync_tasks bauen
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 22:44'
-updated_date: '2026-08-28 16:46'
+updated_date: '2026-08-28 22:40'
 labels:
   - wb-backend
   - lauf
@@ -27,6 +27,6 @@ hebel.md sagt jedem Block zu, dass Änderungen die Fremdsysteme erreichen: eine 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Die Mail geht an die Rolle, nicht an einen Menschen
-- [ ] #2 Keine offenen Aufgaben heißt keine Mail
+- [x] #1 Die Mail geht an die Rolle, nicht an einen Menschen
+- [x] #2 Keine offenen Aufgaben heißt keine Mail
 <!-- AC:END -->

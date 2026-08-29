@@ -83,6 +83,14 @@ kein Bestand: `GET`, immer aus dem aktuellen Stand gerechnet, nirgends gespeiche
 aufzuräumen. Wer sie ausdruckt, hält Papier in der Hand, das ab dem Druck veralten darf — maßgeblich
 ist der Bildschirm.
 
+`[A]` Sie kommt als **Druckansicht** — HTML mit Druck-CSS, gedruckt vom Browser —, nicht als
+erzeugte PDF. — Alternative: eine PDF-Bibliothek im Backend; Preis: eine Abhängigkeit samt
+eingebetteter Unicode-Schrift im Image, denn die eingebauten PDF-Schriften können nur Latin-1, und
+eine Namensliste einer Schule bricht genau daran (`ł`, `ş`, `ć`) — für ein Papier, das der Browser
+ohnehin druckt und dessen Druckdialog auf Wunsch selbst eine PDF schreibt. Verlangt ein Block eine
+**Datei**, die verschickt, abgelegt oder unterschrieben wird, gilt dafür der Weg aus
+[`oberflaechen.md`](../oberflaechen.md) und nicht dieser Absatz.
+
 ## Schreiben
 
 Jede schreibende Route läuft durch die Schreibschicht (`wb-backend/README.md`, „Writing data"): eine
@@ -138,7 +146,7 @@ Zahlungssitzung als Metadaten. — Alternative: eine Vormerkzeile mit Status `pe
 Zustand, den kein Block kennt, plus ein Lauf, der ihn aufräumt — und `hebel.md` zählt abschließend
 auf, was von selbst verfällt.
 
-Vier Festlegungen dazu, die für alle drei Anlässe gelten:
+Fünf Festlegungen dazu, die für alle drei Anlässe gelten:
 
 - **Gehostete Zahlungsseite (Checkout Session), kein eigenes Kartenformular.** Kartendaten berühren
   weder Oberfläche noch API, der Prüfumfang bleibt der kleinste (SAQ A), und die Rückkehr-Adresse ist
@@ -161,16 +169,25 @@ Vier Festlegungen dazu, die für alle drei Anlässe gelten:
   Versand; Preis: eine Mail, die das System selbst zustellen und belegen muss, und zwei Sätze in
   `hebel.md` und [01](../soll-prozesse/01-putzdienst.md), die eine Bestätigungsmail heute
   ausschließen.
+- `[A]` **Eine Sitzung wird genau eine Zahlungszeile**, auch wo der Vorgang dahinter aus mehreren
+  besteht: Der Jahres-Freikauf trägt je Terminart eine Zeile in `cleaning_buyouts` — 5 reguläre und
+  1 Großputz sind zwei —, die Zahlung hängt an der ersten davon, und was gekauft wurde, steht an ihr
+  über Familie und Jahr. Mehr braucht der Einzelnachweis nicht: Er belegt eine Auszahlung des
+  Dienstes, und die ist eine Zahlung. — Alternative: je Terminart eine eigene Sitzung; Preis: der
+  Elternteil bezahlt zweimal für einen Kauf, samt zweiter Transaktionsgebühr. Alternative: eine
+  Zwischentabelle, die eine Zahlung auf mehrere Vorgänge verteilt; Preis: eine Querschnitts-Tabelle
+  samt Migration für einen Fall, den dieser Satz trägt.
 - **Trägt die Bedingung beim Rückruf nicht mehr, wird nichts automatisch erstattet.** Das Geld ist da,
   der Vorgang unmöglich (der Termin ist weg, das Fenster zu) — daraus entsteht eine
   [Aufgabe](../soll-prozesse/hebel.md#nachzieh-aufgabe-und-wochenmail) bei der Buchhaltung, denn eine
-  Rückzahlung entscheidet ein Mensch. Der Fall ist selten und darf trotzdem nicht still verschwinden
-  — heute täte er genau das: `ck_payments_single_cause` verlangt genau einen der vier
-  Vorgangs-Schlüssel, ohne Vorgang ist die Zahlung also nicht eintragbar;
-  `ck_sync_tasks_single_subject` verlangt genau einen von sieben Bezügen, und keiner ist eine
-  Zahlung; die sechs `sync_targets` sind ausnahmslos Fremdsysteme. Die drei Schemaergänzungen dazu
-  stehen als Ticket in `backlog/`. Sie entstehen mit der Domäne, die zuerst bezahlt, und die
-  Rückrufroute wird nicht davor gebaut.
+  Rückzahlung entscheidet ein Mensch. Der Fall ist selten und darf trotzdem nicht still
+  verschwinden, und das Schema hält ihn: `ck_payments_single_cause` lässt **höchstens** einen
+  Vorgangs-Schlüssel zu statt genau einen, `sync_tasks` trägt die Zahlung als achten Bezug, und
+  `sync_targets` kennt dafür `payment_without_cause` bei der Buchhaltung. Die Route legt beides in
+  derselben Transaktion an — eine Zahlung ohne Vorgang, die keine Aufgabe bekommt, ist Geld, das
+  niemand mehr sucht. Ein Kauf aus mehreren Zeilen trägt dabei **ganz oder gar nicht**: die eine
+  Hälfte einzutragen hieße, den eingegangenen Betrag auf Zeilen aufzuteilen, und ein an der Rundung
+  verlorener Cent ist eine schlechtere Antwort als eine Aufgabe.
 
 Bleibt der Rückruf aus, weil der Zahlungsdienst ihn nicht loswird, wiederholt **er** ihn über Tage —
 aber nicht unbegrenzt: Stripe stellt nach rund drei Tagen ein und schaltet einen dauerhaft

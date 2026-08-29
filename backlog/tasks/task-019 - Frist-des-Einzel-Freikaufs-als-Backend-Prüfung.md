@@ -1,10 +1,10 @@
 ---
 id: TASK-019
 title: Frist des Einzel-Freikaufs als Backend-Prüfung
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 11:35'
-updated_date: '2026-08-28 16:28'
+updated_date: '2026-08-28 23:20'
 labels:
   - wb-backend
   - putzdienst
@@ -25,6 +25,6 @@ ordinal: 19000
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Die Prüfung sitzt an der Stelle, die die Zahlung auslöst
-- [ ] #2 Test: Freikauf auf einen vergangenen Termin wird abgewiesen, bevor Geld fließt
+- [x] #1 Die Prüfung sitzt an der Stelle, die die Zahlung auslöst
+- [x] #2 Test: Freikauf auf einen vergangenen Termin wird abgewiesen, bevor Geld fließt
 <!-- AC:END -->

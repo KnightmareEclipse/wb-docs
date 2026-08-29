@@ -3,10 +3,10 @@ id: TASK-102
 title: >-
   GET /cleaning/slots/{slot_id}/attendance-sheet — die Anwesenheitsliste
   erzeugen
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 22:44'
-updated_date: '2026-08-28 16:46'
+updated_date: '2026-08-28 21:53'
 labels:
   - wb-backend
   - route
@@ -29,6 +29,6 @@ Frisch erzeugte Liste im Sinne von hebel.md: entsteht beim Aufruf, bildet den le
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Wird bei jedem Aufruf neu erzeugt, nie zwischengespeichert
-- [ ] #2 Freigekaufte Zuteilungen stehen nicht darauf
+- [x] #1 Wird bei jedem Aufruf neu erzeugt, nie zwischengespeichert
+- [x] #2 Freigekaufte Zuteilungen stehen nicht darauf
 <!-- AC:END -->

@@ -1,10 +1,10 @@
 ---
 id: TASK-104
 title: POST /payments/callback — der Rückruf des Zahlungsdienstes
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 22:44'
-updated_date: '2026-08-28 16:26'
+updated_date: '2026-08-28 23:59'
 labels:
   - wb-backend
   - route
@@ -27,6 +27,6 @@ Die einzige Route ohne Anmeldung; ihre Signaturprüfung ist die ganze Zugangskon
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Signaturprüfung gegen die Secret-Datei, kein Fallback ohne Prüfung
-- [ ] #2 Doppelter Rückruf ändert nichts (payment_reference ist UNIQUE)
+- [x] #1 Signaturprüfung gegen die Secret-Datei, kein Fallback ohne Prüfung
+- [x] #2 Doppelter Rückruf ändert nichts (payment_reference ist UNIQUE)
 <!-- AC:END -->

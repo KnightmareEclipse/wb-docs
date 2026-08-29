@@ -1,9 +1,10 @@
 ---
 id: TASK-125
 title: GET /payments — der Einzelnachweis je Auszahlung
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-28 13:27'
+updated_date: '2026-08-28 23:59'
 labels:
   - route
   - wb-backend
@@ -26,8 +27,8 @@ Der Zahlungsdienst überweist gesammelt; die Buchhaltung muss zur Sammelgutschri
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Zeitraum wählbar, Summe der Bruttobeträge steht darunter
-- [ ] #2 Je Zeile Familie, Anlass und die Referenz des Zahlungsdienstes — von Stripe aus findet man die Zeile, von hier aus die Stripe-Zahlung
-- [ ] #3 Von Hand bestätigte Zahlungen laufen mit und sind als solche erkennbar (leere Referenz)
-- [ ] #4 Sichtbar für Buchhaltung und Geschäftsführung
+- [x] #1 Zeitraum wählbar, Summe der Bruttobeträge steht darunter
+- [x] #2 Je Zeile Familie, Anlass und die Referenz des Zahlungsdienstes — von Stripe aus findet man die Zeile, von hier aus die Stripe-Zahlung
+- [x] #3 Von Hand bestätigte Zahlungen laufen mit und sind als solche erkennbar (leere Referenz)
+- [x] #4 Sichtbar für Buchhaltung und Geschäftsführung
 <!-- AC:END -->

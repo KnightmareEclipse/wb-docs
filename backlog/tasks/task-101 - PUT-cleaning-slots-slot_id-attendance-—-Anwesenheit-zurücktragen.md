@@ -1,10 +1,10 @@
 ---
 id: TASK-101
 title: 'PUT /cleaning/slots/{slot_id}/attendance — Anwesenheit zurücktragen'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 22:44'
-updated_date: '2026-08-27 23:29'
+updated_date: '2026-08-28 21:43'
 labels:
   - wb-backend
   - route
@@ -28,6 +28,6 @@ Die Übernahme der Papierliste. Freigekaufte Zuteilungen gehören nicht darauf �
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Freigekaufte Zuteilungen sind ausgenommen
-- [ ] #2 attendance_recorded_at wird gesetzt, ein zweiter Lauf ändert nichts
+- [x] #1 Freigekaufte Zuteilungen sind ausgenommen
+- [x] #2 attendance_recorded_at wird gesetzt, ein zweiter Lauf ändert nichts
 <!-- AC:END -->

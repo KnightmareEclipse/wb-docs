@@ -1,10 +1,10 @@
 ---
 id: TASK-021
 title: Freigekaufte Zuteilungen aus der Anwesenheits-Übertragungsliste ausnehmen
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 11:35'
-updated_date: '2026-08-28 16:45'
+updated_date: '2026-08-28 21:43'
 labels:
   - wb-backend
   - putzdienst
@@ -24,5 +24,5 @@ no_show auf einer einzeln freigekauften Zeile wäre eine Strafe auf einem bezahl
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Eine freigekaufte Zuteilung steht nicht auf der Übertragungsliste
+- [x] #1 Eine freigekaufte Zuteilung steht nicht auf der Übertragungsliste
 <!-- AC:END -->

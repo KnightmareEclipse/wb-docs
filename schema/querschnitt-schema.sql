@@ -233,7 +233,10 @@ CREATE TABLE document_types (
 -- die Schule pflegt: Die Meldung eines fehlenden Masernnachweises ans
 -- Gesundheitsamt ist eine eigene Aufgabenart, deren Ziel Weltenbaum nie
 -- anfasst — sie hält allein fest, dass die gesetzliche Meldung erledigt ist
--- (09, hebel.md).
+-- (09, hebel.md). Und es muss überhaupt kein System sein: `in_house` trägt die
+-- Arbeit, die im Haus bleibt und trotzdem eine Aufgabe braucht, weil sie keine
+-- Spur hinterlässt, an der man sie ablesen könnte — „Anwesenheitsliste
+-- drucken" (01, Z9).
 CREATE TABLE sync_targets (
     sync_target_id integer GENERATED ALWAYS AS IDENTITY,
     -- Eine Zeile ist eine Aufgabenart, nicht der Anlass: „Umzug und Abgang
@@ -603,13 +606,23 @@ CREATE TABLE payments (
     -- bestätigt. Er allein macht die Route nicht idempotent; was die Route
     -- zusätzlich tun muss, steht dort und nicht hier.
     CONSTRAINT uq_payments_payment_reference UNIQUE (payment_reference),
-    -- Genau ein Anlass je Zahlung. Jeder weitere Anlass ist eine Spalte und ein
-    -- Summand mehr, nie eine zweite Zahlungstabelle.
+    -- Höchstens ein Anlass je Zahlung. Jeder weitere Anlass ist eine Spalte und
+    -- ein Summand mehr, nie eine zweite Zahlungstabelle.
+    -- **Keiner ist erlaubt, und das ist der Ausnahmefall, kein Schlupfloch:**
+    -- „Trägt die Bedingung beim Rückruf nicht mehr, wird nichts automatisch
+    -- erstattet" (api/gemeinsam.md) — das Geld ist da, der Termin gestrichen
+    -- oder das Fenster zu. Mit `= 1` wäre diese Zahlung nicht eintragbar und
+    -- verschwände still, was der einzige Fall ist, in dem das System Geld
+    -- verlöre. Wer sie hält, hält auch die Aufgabe daran: `sync_tasks`
+    -- trägt sie als achten Bezug, Ziel `payment_without_cause`, damit ein
+    -- Mensch über die Rückzahlung entscheidet. Ein Constraint, der das
+    -- Aufgaben-Paar erzwingt, ginge nur über zwei Tabellen und steht deshalb
+    -- nicht hier, sondern an der Rückrufroute.
     CONSTRAINT ck_payments_single_cause CHECK (
         (cleaning_buyout_id      IS NOT NULL)::int
       + (cleaning_slot_buyout_id IS NOT NULL)::int
       + (application_id          IS NOT NULL)::int
-      + (holiday_booking_id      IS NOT NULL)::int = 1),
+      + (holiday_booking_id      IS NOT NULL)::int <= 1),
     CONSTRAINT ck_payments_status CHECK (status IN ('open', 'confirmed')),
     -- Bestätigt heißt: mit Zeitpunkt. „Der Vorgang entsteht mit der bestätigten
     -- Zahlung und nicht mit der Rückkehr aus der Bezahlung" (hebel.md).
@@ -632,7 +645,7 @@ CREATE TABLE payments (
 CREATE TABLE sync_tasks (
     sync_task_id   uuid NOT NULL DEFAULT gen_random_uuid(),
     sync_target_id integer NOT NULL,
-    -- Genau einer der sieben Bezüge: die Person (02), das Kind (03, 08), die
+    -- Genau einer der acht Bezüge: die Person (02), das Kind (03, 08), die
     -- Familie (01), das Schuljahr (04), ein Zeitraum (01, Monatslauf der
     -- Strafen; als Erster des Monats), die einzelne Ferienbuchung (10) oder der
     -- einzelne Putztermin (01).
@@ -659,6 +672,11 @@ CREATE TABLE sync_tasks (
     -- Der Fremdschlüssel wird in putzdienst-schema.sql nachgetragen, weil die
     -- Tabelle hier noch nicht existiert.
     cleaning_slot_id uuid,
+    -- api/gemeinsam.md, „Sofortzahlung": eine Zahlung, deren Vorgang beim
+    -- Rückruf nicht mehr möglich war. Der Bezug ist die Zahlung und nicht die
+    -- Familie, weil zwei solche Fälle derselben Familie zwei Entscheidungen
+    -- sind — und weil nur die Zahlung den Betrag trägt, um den es geht.
+    payment_id       uuid,
     -- Was zu tun ist, in einem Satz; die zuständige Stelle folgt aus dem Ziel
     -- und steht deshalb nicht hier.
     task_text      text NOT NULL,
@@ -678,6 +696,7 @@ CREATE TABLE sync_tasks (
     CONSTRAINT fk_sync_tasks_person FOREIGN KEY (person_id) REFERENCES persons (person_id) ON DELETE CASCADE,
     CONSTRAINT fk_sync_tasks_child  FOREIGN KEY (child_id)  REFERENCES children (child_id) ON DELETE CASCADE,
     CONSTRAINT fk_sync_tasks_family FOREIGN KEY (family_id) REFERENCES families (family_id) ON DELETE CASCADE,
+    CONSTRAINT fk_sync_tasks_payment FOREIGN KEY (payment_id) REFERENCES payments (payment_id) ON DELETE CASCADE,
     CONSTRAINT ck_sync_tasks_single_subject CHECK (
         (person_id        IS NOT NULL)::int
       + (child_id         IS NOT NULL)::int
@@ -685,7 +704,8 @@ CREATE TABLE sync_tasks (
       + (school_year      IS NOT NULL)::int
       + (reference_period IS NOT NULL)::int
       + (holiday_booking_id IS NOT NULL)::int
-      + (cleaning_slot_id  IS NOT NULL)::int = 1),
+      + (cleaning_slot_id  IS NOT NULL)::int
+      + (payment_id        IS NOT NULL)::int = 1),
     CONSTRAINT ck_sync_tasks_outcome CHECK (outcome IN ('done', 'nothing_to_do')),
     CONSTRAINT ck_sync_tasks_completed
         CHECK ((completed_at IS NULL) = (outcome IS NULL)
@@ -697,7 +717,7 @@ CREATE TABLE sync_tasks (
     CONSTRAINT ck_sync_tasks_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
--- „Je Aufgabenart und Bezug gibt es höchstens eine offene Aufgabe" — sieben
+-- „Je Aufgabenart und Bezug gibt es höchstens eine offene Aufgabe" — acht
 -- Indizes, weil ein NULL im Bezug sonst jede Zeile für sich einzigartig machte.
 CREATE UNIQUE INDEX ix_sync_tasks_open_person ON sync_tasks (sync_target_id, person_id)
     WHERE completed_at IS NULL AND person_id IS NOT NULL;
@@ -713,6 +733,8 @@ CREATE UNIQUE INDEX ix_sync_tasks_open_booking ON sync_tasks (sync_target_id, ho
     WHERE completed_at IS NULL AND holiday_booking_id IS NOT NULL;
 CREATE UNIQUE INDEX ix_sync_tasks_open_slot ON sync_tasks (sync_target_id, cleaning_slot_id)
     WHERE completed_at IS NULL AND cleaning_slot_id IS NOT NULL;
+CREATE UNIQUE INDEX ix_sync_tasks_open_payment ON sync_tasks (sync_target_id, payment_id)
+    WHERE completed_at IS NULL AND payment_id IS NOT NULL;
 
 
 -- ---------------------------------------------------------------------------

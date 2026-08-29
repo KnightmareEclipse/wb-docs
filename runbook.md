@@ -62,3 +62,53 @@ Kommt praktisch nicht mehr vor: kein automatischer Unlock, kein Custom-Bootloade
 4. Erreichbarkeit über den Dead-Man's-Switch (healthchecks.io) bestätigen.
 
 Führt das nicht zum Erfolg oder ist der Datenträger endgültig defekt: kompletter Neuaufbau nach dem Runbook oben (die VPS führt keine unersetzlichen Daten — DB/Logs kommen aus dem Backup, `backup.md`).
+
+## Runbook — Betriebsstörung im laufenden Betrieb
+
+Der häufige Fall, und der einzige, bei dem draußen jemand wartet. Drei Sätze gelten für alle vier:
+
+- **Erst messen, dann anfassen.** `curl https://api.clemens.schule/health` über IPv4 und IPv6 trennt „alles steht" von „ein Teil steht"; healthchecks.io sagt, seit wann — der Host-Herzschlag alle 15 Minuten (`host.md`), der eigene Check des Lauf-Dienstes daneben, und Image-GC wie NAS-Backup melden dorthin nur Fehlschläge (`container.md`, `backup.md`).
+- **Keine Störung meldet sich von selbst bei den Eltern.** Der Betreiber sagt dem Sekretariat, was gilt und bis wann; hinaus geht es über `post@clemens.schule` wie jede andere Mail (`zugang.md`). Was unten unter *nach draußen* steht, ist der Inhalt und nicht der Wortlaut.
+- **Eine Frist, die während der Störung abläuft, ist Handarbeit und kein Fall fürs System.** Anmeldefenster, Freikauf-Frist und Termin lassen sich von Hand zuteilen, verschieben oder erlassen (`soll-prozesse/01-putzdienst.md` Z5); ein Nachlauf, der Versäumtes selbst einholt, wird dafür nicht gebaut.
+
+### Die API antwortet nicht
+
+**Prüfen:** Antwortet gar nichts, steht Caddy oder die Firewall; antwortet 502, steht das Backend dahinter. Auf dem Host `podman-compose ps` — welcher Dienst fehlt oder ist `unhealthy`; ein `unhealthy` an `db` hält über `depends_on: service_healthy` alles andere auf (`container.md`). Dann `podman-compose logs --tail=200 backend` bzw. `db`. Lag ein Deploy davor, steht sein Verlauf in `/var/log/wb-app-stack-deploy.log` (`container.md`). War die Platte voll, ist es der vierte Fall unten.
+
+**Beheben:** `wb-vps/setup/redeploy.sh <ip>` fährt denselben Stand noch einmal aus — ein Push mit demselben Commit bewegt nichts und sieht dabei aus wie ein gelaufener Deploy (`deploy.md`). Hilft das nicht und lag ein Deploy davor, geht es über denselben Zeiger zurück (`deploy.md`, Rollback).
+
+**Nach draußen:** Das Portal ist vorübergehend nicht erreichbar; was gebucht war, ist gebucht — die Terminübersicht ist nach der Störung unverändert. Wer gerade etwas eintragen wollte, macht es danach.
+
+### Der Mailversand scheitert
+
+Zwei Sorten mit verschiedenen Adressaten, und die Unterscheidung ist der erste Schritt.
+
+**Eine einzelne Mail** an eine Familie ist keine Störung: Sie steht mit `undeliverable_at` und Grund in `outbound_emails`, und ihr nachzugehen ist Sekretariatsarbeit (`soll-prozesse/hebel.md`, „Unzustellbare Mail").
+
+**Alle Mails** heißt: der Weg selbst. Sichtbar wird er am Alarm-Check, auf den der Anmeldecode seinen Fehlschlag als `/fail` meldet (`container.md`) — und damit steht zugleich der Elternzugang, denn ohne Code keine Anmeldung.
+
+**Prüfen:** Das Log des Backend- und des Lauf-Containers trägt Microsofts Fehlerobjekt samt Statuscode. Scheitert schon der Token-Endpunkt, ist es die App-Registrierung — meist ein abgelaufenes Client-Secret (`backlog/`); die Rotation läuft ohne Neuaufbau über Schritt 5 oben. Scheitert erst das Senden, ist es die Application Access Policy — Gegenprobe `Test-ApplicationAccessPolicy` (`zugang.md`) — oder dem Container fehlt das `external`-Netz (`container.md`).
+
+**Was nicht passiert:** Es gibt keine Warteschlange und keinen zweiten Zustellversuch (`container.md`), und die Läufe setzen ihre Marke unabhängig davon, ob Graph angenommen hat. Was in die Störung fiel, steht als abgewiesene Zeile in `outbound_emails` und wird von Hand nachgeholt, nicht vom nächsten Tick.
+
+**Nach draußen:** Solange es steht, kommt keine Anmeldung im Portal zustande — das Sekretariat gibt Auskunft am Telefon. Nach der Behebung geht die liegengebliebene Post von Hand hinterher; eine Erinnerung, die ausgefallen ist, sagt das Sekretariat den betroffenen Familien direkt.
+
+### Der Zahlungsdienst ist nicht erreichbar
+
+Betrifft genau einen Weg, den Freikauf; alles andere am Putzdienst läuft weiter.
+
+**Prüfen:** Die Statusseite des Dienstes, im Backend-Log die Antwort auf das Eröffnen der Zahlung, und ob Rückrufe ankommen — eine `payments`-Zeile entsteht erst im Rückruf (`api/putzdienst-api.md`).
+
+**Kein halber Zustand:** Der Vorgang entsteht mit der bestätigten Zahlung und nicht mit der Rückkehr aus der Bezahlung (`soll-prozesse/hebel.md`). Der Dienst wiederholt seinen Rückruf, bis er eine 2xx bekommt; was während der Störung bezahlt wurde, trägt sich danach von selbst nach, und die zweite Zustellung legt keine zweite Zahlung an (`schema/querschnitt-schema.sql`).
+
+**Nach draußen:** Freikaufen geht gerade nicht, der Termin bleibt bestehen. Wer bezahlt hat und es nicht gebucht sieht, muss nichts tun — es trägt sich nach. Läuft die Freikauf-Frist währenddessen ab, erlässt das Sekretariat den Termin, statt ihn zu berechnen.
+
+### Die Platte ist voll
+
+**Prüfen:** `df -h /`. Der Host-Heartbeat schlägt schon unter 85 % Alarm (`host.md`) — das ist die Vorwarnung, nicht die Störung. Es geht in drei Richtungen: Image-Layer und Build-Cache, weil auf dieser Maschine gebaut wird (`deploy.md`), das persistente Journal (`host.md`) und das DB-Volume.
+
+**Beheben:** Der wöchentliche GC räumt Images älter als 14 Tage; von Hand derselbe Befehl unter dem `deploy`-User und **ohne** `--volumes` (`deploy.md`) — mit ihm wäre die Datenbank weg. Journal per `journalctl --vacuum-size=`. Danach den Deploy wiederholen, der an der vollen Platte gescheitert ist (`redeploy.sh`, siehe erster Fall).
+
+**Postgres hält an, wenn es sein WAL nicht mehr schreiben kann**, und kommt nach dem Aufräumen mit einem Neustart des Containers zurück: Was committet war, ist da; die abgebrochene Transaktion nicht. Ein NAS-Pull, der in dieselbe Zeit fiel, hat seinen Fehlschlag gemeldet (`backup.md`) und läuft am nächsten Tag wieder.
+
+**Nach draußen:** wie beim ersten Fall.
