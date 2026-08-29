@@ -46,7 +46,7 @@ isst, und damit wartet in diesem Block niemand auf jemanden.
 
 - Die **Hauswirtschaftsleitung** führt die Mensa und sieht die einzelnen Abos und beide Listen, sie
   entscheidet nichts.
-- Die Rolle **Mensa** ([Rollen](hebel.md#rollen)) ist die Küche und sieht allein die Tagesliste —
+- Die Rolle **Mensa** ([Rollen](hebel.md#rollen)) ist die Küche und sieht allein die beiden Listen —
   sie bekommt hier ihre erste Aufgabe, die [00](00-zugang-und-portal.md) angekündigt hat.
 - Das **Sekretariat** meldet stellvertretend an
   ([offizieller Umweg](hebel.md#der-offizielle-umweg)), die **Buchhaltung** zieht die Abo-Beiträge

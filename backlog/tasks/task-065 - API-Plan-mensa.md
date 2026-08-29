@@ -1,9 +1,10 @@
 ---
 id: TASK-065
 title: API-Plan mensa
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 11:39'
+updated_date: '2026-08-29 21:03'
 labels:
   - wb-docs
   - api-plan
@@ -25,6 +26,6 @@ Küchenprofil je Kind und das eigenständige Schuljahres-Abo der Realschule samt
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 api/mensa-api.md steht, Gemeinsames bleibt in api/gemeinsam.md
-- [ ] #2 Rollen je Route benannt, enge Rollen als Spalten-GRANT und nicht als if
+- [x] #1 api/mensa-api.md steht, Gemeinsames bleibt in api/gemeinsam.md
+- [x] #2 Rollen je Route benannt, enge Rollen als Spalten-GRANT und nicht als if
 <!-- AC:END -->
