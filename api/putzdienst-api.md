@@ -31,7 +31,7 @@ trotzdem an jeder Route, damit ihr Fehlen eine Aussage bleibt und keine Auslassu
   Anwesenheits- und Strafroute filtert Zuteilungen mit Freikauf aus; das Schema trägt dafür kein
   Kennzeichen, es ist eine Regel der Anwendung.
 
-`[A]` Das Putzdienstjahr wird über `start_year` adressiert (`/cleaning/cycles/2026`), nicht über
+**Das Putzdienstjahr wird über `start_year` adressiert** (`/cleaning/cycles/2026`), nicht über
 seine ID. — Alternative: `cleaning_cycle_id`; Preis: jede Adresse braucht einen Nachschlag, und in
 jedem Gespräch heißt der Zyklus ohnehin bei seinem Jahr.
 

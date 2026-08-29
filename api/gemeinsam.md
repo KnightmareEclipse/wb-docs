@@ -12,7 +12,7 @@ An der Sache, die der Block nennt, nicht an der Tabelle, in der sie landet: `/cl
 nicht `/cleaning_cycles`. Kleinschreibung, Bindestrich, Mehrzahl für eine Menge. Der Pfadname folgt
 dem englischen Bezeichner des Schemas — dieselbe Sprachregel wie dort.
 
-`[A]` Kein Versionssegment im Pfad. — Alternative: `/v1/…` von Anfang an; Preis: ein Präfix, das
+**Kein Versionssegment im Pfad.** — Alternative: `/v1/…` von Anfang an; Preis: ein Präfix, das
 heute nichts trennt, und der zweite Satz Pfade, sobald jemand es ernst nimmt. Ein Bruch bekommt
 später einen neuen Pfad an der Stelle, an der er bricht.
 
@@ -36,7 +36,7 @@ Familien der Person, und die Route prüft gegen diese Menge.
 Listen- und Exportrouten kennen keinen Ownership-Check und gehen deshalb **nie** über den OTP-Pfad
 (`zugang.md`, „Bulk-Zugriff"): Sie stehen ausschließlich internen Rollen offen.
 
-`[A]` **Admin erbt die Rechte der Verwaltung** — an jeder Route, ohne dass eine Domänendatei ihn
+**Admin erbt die Rechte der Verwaltung** — an jeder Route, ohne dass eine Domänendatei ihn
 nennt; er ist ihre Obermenge (`glossar.md`). Der Grund ist der Betrieb und nicht die Bequemlichkeit:
 Das Sekretariat braucht laufend Hilfe, und wer sich dafür jedes Mal eine Rolle zuweist und wieder
 entzieht, hat den Zugriff nicht enger gemacht, sondern nur unbeobachtbarer. — Alternative: Admin je
@@ -52,7 +52,7 @@ Rollenvergabe, die im Zweifel stehen bleibt.
 Sie hängt an der Person, nicht am Feld (`hebel.md`), und wirkt deshalb an **einer** Stelle: bei der
 Auflösung Token → handelnde Person → Familien. Keine Route filtert sie ein zweites Mal.
 
-`[A]` **gesperrt** sieht keinen Vorgang der Familie und handelt in keinem — für ihn ist die Familie
+**gesperrt** sieht keinen Vorgang der Familie und handelt in keinem — für ihn ist die Familie
 leer, nicht verboten; **nur lesen** sieht jede Ansicht, ruft aber keine schreibende Route. —
 Alternative: die Stufe je Route auswerten; Preis: sie steht dann an dreißig Stellen und fehlt an
 einer.
@@ -74,7 +74,7 @@ trägt schon das Anmeldefeld, das auf jede Adresse gleich antwortet
 
 ## Liste
 
-Eine Liste liefert ihren vollständigen Bestand. `[A]` Keine Seitenzahl, kein Cursor. — Alternative:
+Eine Liste liefert ihren vollständigen Bestand. **Keine Seitenzahl, kein Cursor.** — Alternative:
 Paginierung von Anfang an; Preis: jede Liste bekommt zwei Parameter und jeder Aufrufer eine
 Schleife, für Bestände in der Größe eines Putzdienstjahres.
 
@@ -83,7 +83,7 @@ kein Bestand: `GET`, immer aus dem aktuellen Stand gerechnet, nirgends gespeiche
 aufzuräumen. Wer sie ausdruckt, hält Papier in der Hand, das ab dem Druck veralten darf — maßgeblich
 ist der Bildschirm.
 
-`[A]` Sie kommt als **Druckansicht** — HTML mit Druck-CSS, gedruckt vom Browser —, nicht als
+Sie kommt als **Druckansicht** — HTML mit Druck-CSS, gedruckt vom Browser —, nicht als
 erzeugte PDF. — Alternative: eine PDF-Bibliothek im Backend; Preis: eine Abhängigkeit samt
 eingebetteter Unicode-Schrift im Image, denn die eingebauten PDF-Schriften können nur Latin-1, und
 eine Namensliste einer Schule bricht genau daran (`ł`, `ş`, `ć`) — für ein Papier, das der Browser
@@ -141,7 +141,7 @@ Drei Bedingungen an der Rückrufroute, keine davon verhandelbar:
 verwechselt, verliert bei jedem Abbruch das Geld und den Vorgang. Die Rückkehr-Adresse zeigt deshalb
 auf eine Ansicht, die den Stand liest, und löst nichts aus.
 
-`[A]` Zwischen Schritt 1 und 2 steht **nichts in der Datenbank**; was gekauft wird, trägt die
+Zwischen Schritt 1 und 2 steht **nichts in der Datenbank**; was gekauft wird, trägt die
 Zahlungssitzung als Metadaten. — Alternative: eine Vormerkzeile mit Status `pending`; Preis: ein
 Zustand, den kein Block kennt, plus ein Lauf, der ihn aufräumt — und `hebel.md` zählt abschließend
 auf, was von selbst verfällt.
@@ -169,7 +169,7 @@ Fünf Festlegungen dazu, die für alle drei Anlässe gelten:
   Versand; Preis: eine Mail, die das System selbst zustellen und belegen muss, und zwei Sätze in
   `hebel.md` und [01](../soll-prozesse/01-putzdienst.md), die eine Bestätigungsmail heute
   ausschließen.
-- `[A]` **Eine Sitzung wird genau eine Zahlungszeile**, auch wo der Vorgang dahinter aus mehreren
+- **Eine Sitzung wird genau eine Zahlungszeile**, auch wo der Vorgang dahinter aus mehreren
   besteht: Der Jahres-Freikauf trägt je Terminart eine Zeile in `cleaning_buyouts` — 5 reguläre und
   1 Großputz sind zwei —, die Zahlung hängt an der ersten davon, und was gekauft wurde, steht an ihr
   über Familie und Jahr. Mehr braucht der Einzelnachweis nicht: Er belegt eine Auszahlung des
@@ -197,7 +197,7 @@ ihn baut, baut die Wiederholung ein zweites Mal. Was danach liegenbleibt, ist de
 
 ## Der offizielle Umweg
 
-`[A]` **Dieselbe Route, andere Rolle** — keine zweite Route je Elternhandlung. — Alternative: je
+**Dieselbe Route, andere Rolle** — keine zweite Route je Elternhandlung. — Alternative: je
 Elternroute ein Sekretariats-Gegenstück; Preis: jede Regel steht zweimal und läuft beim ersten Fix
 auseinander.
 
