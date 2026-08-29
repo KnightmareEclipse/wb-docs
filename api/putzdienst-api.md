@@ -120,21 +120,28 @@ braucht, steht auf der ausgedruckten Liste.
 Je eine Zeile, benannt und nicht mitgeplant — jede gehört einer anderen Domäne:
 
 - **Q5, Aufgabe abhaken** (`erledigt` / `war nichts zu tun`) und der Bestand der Wochenmail: die drei
-  manuellen Schritte dieser Domäne hängen daran — Querschnitt.
+  manuellen Schritte dieser Domäne hängen daran — [`querschnitt-api.md`](querschnitt-api.md),
+  `GET /tasks` und `PUT /tasks/{sync_task_id}`.
 - **Das hausinterne Q5-Ziel steht** — `in_house` („Im Haus"), angelegt mit dieser Domäne, weil sie
   es zuerst braucht: Daran hängt die Aufgabe „Anwesenheitsliste drucken" (Bezug
   `cleaning_slot_id`). Die zweite hausinterne Aufgabe, „Putzdienstjahr einrichten" aus
-  [04](../soll-prozesse/04-schuljahreswechsel.md) Z4, nimmt dasselbe Ziel, sobald dieser Block
-  gebaut wird — Querschnitt.
-- **`POST /payments/callback`** samt Zahlungssitzung — Querschnitt, Form in
-  [`gemeinsam.md`](gemeinsam.md#sofortzahlung).
-- **`configured_values` pflegen** (`cleaning_buyout_cents`, `cleaning_penalty_cents`, Pflichtmenge
-  mit Gültigkeitstag) — Querschnitt, `executive_management`.
-- **Abgangspunkt bestätigen** ([03](../soll-prozesse/03-irregulaerer-abgang.md) Z3): Er lässt die
-  offenen Termine der Familie ohne Strafe verfallen, aber nur beim letzten Kind — Anmeldung/Abgang.
-- **Unzustellbare Mail sichtbar machen** (`outbound_emails`) — Querschnitt.
+  [04](../soll-prozesse/04-schuljahreswechsel.md) Z4, nimmt dasselbe Ziel.
+- **`POST /payments/callback`** — [`querschnitt-api.md`](querschnitt-api.md), Form in
+  [`gemeinsam.md`](gemeinsam.md#sofortzahlung). Die **Zahlungssitzung eröffnet diese Domäne selbst**,
+  in `POST …/buyouts` und `POST …/buyout`; sie wandert nicht mit.
+- **`configured_values` pflegen** (`cleaning_buyout_cents`, `cleaning_penalty_cents`) —
+  [`querschnitt-api.md`](querschnitt-api.md), `executive_management`. **Die Pflichtmenge gehört nicht
+  dazu**: sie steht je Zyklus und Terminart an `cleaning_cycle_quotas` und braucht deshalb keinen
+  eigenen Gültigkeitstag — gesetzt wird sie in `POST /cleaning/cycles`.
+- **Abgangspunkt bestätigen** ([03](../soll-prozesse/03-irregulaerer-abgang.md) Z3) ist das Abhaken
+  einer Q5-Aufgabe und läuft über `PUT /tasks/{sync_task_id}`
+  ([`querschnitt-api.md`](querschnitt-api.md)). Dass dabei die offenen Termine der Familie ohne
+  Strafe verfallen — aber nur beim letzten Kind —, ist ein Seiteneffekt, den diese Domäne umsetzt.
+- **Unzustellbare Mail sichtbar machen** (`outbound_emails`) — [`querschnitt-api.md`](querschnitt-api.md),
+  `GET /outbound-emails/undeliverable`.
 - **Anmeldung selbst** (Code anfordern, Code einlösen, als wer man weitermacht) —
-  [00](../soll-prozesse/00-zugang-und-portal.md), Stammdaten.
+  [`stammdaten-api.md`](stammdaten-api.md), `POST /auth/codes`, `POST /auth/sessions`,
+  `PUT /auth/identity`.
 
 ## Am Schema aufgefallen
 
