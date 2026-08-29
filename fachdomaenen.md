@@ -18,7 +18,7 @@ Angebote für Schüler/Eltern im laufenden Schulbetrieb:
 Weitere Einrichtungen/Angebote:
 - **KITA:** eigener Alltag nicht Teil des Scopes, aber KITA-Mitarbeiter brauchen bereichsübergreifend Zugriff auf mindestens einen Prozess (Buchungsbeleg-/Rechnungsfreigabeprozess)
 - **Ferienprogramm** (über den Hort): in allen Ferien außer den Weihnachtsferien, wochenweise mit wechselndem Thema, offen für alle Kinder bis zu einem bestimmten Alter — **auch für schulfremde Personen offen**, nicht nur für die Kochwerkstatt. Es gibt bereits jetzt Kinder/Eltern, die das nutzen, ohne offiziell an der Grund- oder Realschule angemeldet zu sein.
-- **Kochwerkstatt:** für Kinder und Erwachsene, auch für schulfremde Personen offen
+- **Kochwerkstatt:** für Kinder, gedacht für 8 bis 13, auch für schulfremde offen
 - Geplant: Ausweitung des außerschulischen Angebots allgemein
 
 ### Jahreskalender der Verwaltung

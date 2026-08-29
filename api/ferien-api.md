@@ -135,8 +135,8 @@ an ihr über Kind, Familie und Zeitpunkt — dieselbe Form wie beim Jahres-Freik
 `fk_payments_holiday_booking` über `amount_cents` trägt das nicht** und fällt damit auf einen
 einfachen zurück (siehe „Am Schema aufgefallen"). — Alternative: je Buchung eine eigene Sitzung;
 Preis: der Elternteil bezahlt bei drei Kindern an vier Terminen zwölfmal, samt zwölf
-Transaktionsgebühren, und „mehrere Kinder in einem Zug, drei Kinder sind kein drittes Formular" (Z3)
-fällt.
+Transaktionsgebühren — eine Barriere vor dem Bezahlen, wo heute ein Formular reicht, und „mehrere
+Kinder in einem Zug, drei Kinder sind kein drittes Formular" (Z3) fällt.
 
 **Ein Absenden ist ganz bezahlt oder ganz berechnet.** Der Code „gilt für diese eine
 Anmeldung" und tritt an die Stelle der Zahlung, nicht neben sie. — Alternative: je Kind wählbar;
@@ -320,10 +320,9 @@ sonst als Vorschlag wiederkommt. Die beiden `[A!]` behalten ihre Marke auch best
 dass jeder Prüflauf den Schnitt wiedersieht (`prompts/gemeinsam.md`) — der eine steht oben an der
 Zahlung, der andere hier.
 
-`[A!]` **Die Kochwerkstatt hat Kinder als Teilnehmer und keine Erwachsenen.** `grenzkarte.md` führt in
-der Domänentabelle „erwachsene Kochwerkstatt-Teilnehmer als reine `persons`-Zeile"; der Block kennt
-sie nicht — „gedacht für 8 bis 13, und wie das Ferienprogramm offen für alle Kinder" —, und der
-Soll-Block schlägt die Karte (`CLAUDE.md`, Rangfolge). Keine Route nimmt deshalb einen erwachsenen
-Teilnehmer entgegen. — Alternative: ein zweiter Buchungsweg für Erwachsene; Preis: eine Buchung ohne
-Kind, also ohne Notfallnummer, ohne Anmerkung, ohne Löschanker — und ein zweiter Zweig durch jede
-Route dieser Datei, für einen Fall, den kein Block beschreibt.
+`[A!]` **Die Kochwerkstatt hat Kinder als Teilnehmer und keine Erwachsenen** — sie wird seit Jahren
+ausschließlich für sie geplant, „gedacht für 8 bis 13, und wie das Ferienprogramm offen für alle
+Kinder" (10). Diese Domäne legt deshalb **keine `persons`-Zeile ohne Kind** an, und keine Route nimmt
+einen erwachsenen Teilnehmer entgegen. — Alternative: ein zweiter Buchungsweg für Erwachsene; Preis:
+eine Buchung ohne Kind, also ohne Notfallnummer, ohne Anmerkung, ohne Löschanker — und ein zweiter
+Zweig durch jede Route dieser Datei, für einen Fall, den kein Block beschreibt.
