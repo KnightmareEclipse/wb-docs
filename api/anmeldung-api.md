@@ -11,7 +11,7 @@ Route trifft, wo er dasselbe tut. Was für jede Route gilt, steht in
 **Gegenprobe:** **26 Ablaufzeilen aus 5 Blöcken** tragen eine Handlung im System; **24** haben hier
 eine Route. Die zwei übrigen tragen stattdessen einen Satz, warum es keine gibt — beide beschreiben
 dasselbe: ein Formular, das noch nichts anlegt ([05](../soll-prozesse/05-bewerbung.md) Z3,
-[09](../soll-prozesse/09-hortvertrag.md) Z3). Es gibt **55 Routen**; **30** nennen eine Ablaufzeile,
+[09](../soll-prozesse/09-hortvertrag.md) Z3). Es gibt **54 Routen**; **29** nennen eine Ablaufzeile,
 **25** einen Hebel oder einen Abschnitt der Blöcke — die Wertelisten und die beiden Preistabellen
 tragen davon allein zehn.
 
@@ -40,9 +40,14 @@ und der Signaturlink des Fotoeinverständnisses.
 Zwei Spaltenmengen dieser Domäne liegen hinter eigenen DB-Rollen, keine davon hinter einer
 Anwendungsrolle:
 
-- **`sepa_mandates.iban` und `.bic`** — `backend_banking`. Sie hat genau zwei Aufrufer: die Route,
-  die das Mandat entgegennimmt, und die, mit der die Buchhaltung es nach Optigem trägt. Die
-  Mandatsreferenz daneben braucht keinen GRANT (`glossar.md`).
+- **`sepa_mandates.iban` und `.bic`** — `backend_finance`, die gebaute Rolle
+  ([`stammdaten-api.md`](stammdaten-api.md)); „`backend_banking`" stand hier als zweiter Name für
+  dieselbe Sache. Sie hat genau zwei Aufrufer: die Route, die das Mandat entgegennimmt, und die, mit
+  der die Buchhaltung es nach Optigem trägt. Die Mandatsreferenz daneben braucht keinen GRANT
+  (`glossar.md`). **Die entgegennehmende Route ist eine schreibende**, also hält die enge Rolle das
+  `INSERT` und `backend_runtime` keines: `iban` ist NOT NULL, ein Mandat ohne Kontonummer gibt es
+  nicht, und ein geteiltes `INSERT` wäre keine Grenze. Geändert wird keine der beiden Spalten je —
+  „ein bestehendes wird nie geändert, sondern ersetzt" (08) — deshalb hat niemand `UPDATE` darauf.
 - **`applications.assessed_level_id`** — die eigene Einschätzung der Lehrkräfte, „das engste
   Zugriffsprofil nach den Art.-9-Daten" (`schema/anmeldung-schema.sql`). Sie steht in der
   Bewerbungsliste und an der Bewerbung; **die Empfehlung der abgebenden Grundschule daneben nicht** —
@@ -50,7 +55,10 @@ Anwendungsrolle:
 
 Beide werden in einem `narrow_role`-Block derselben Transaktion gelesen, und beide brauchen die
 Schlüsselspalte im GRANT dazu — ohne sie kann die enge Rolle keine Zeile benennen
-(`stammdaten-api.md`).
+(`stammdaten-api.md`). **Beim Mandat kommt `created_at` hinzu**, und zwar aus demselben Grund eine
+Ebene tiefer: Das `INSERT` liest den Server-Default über `RETURNING` zurück, und ein `RETURNING` ist
+ein Lesen. Die Spalte ist ein Audit-Feld, das `backend_runtime` ohnehin sieht; eng bleibt, was die
+Rolle trägt — die Bankverbindung.
 
 **Die Gesundheitsangaben gehören nicht hierher.** Block [08](../soll-prozesse/08-schulvertrag.md)
 erhebt sie, aber `child_health_records` und `measles_proofs` stehen in
@@ -92,7 +100,10 @@ liefe beim ersten Fix auseinander — genau das, was die eine Tabelle verhindert
 
 **Was `POST /applications` an den Zahlungsdienst übergibt**, ist der vollständige Formularinhalt als
 Metadaten der Sitzung — die einzige Stelle im System, an der ein Vorgang zwischen zwei Aufrufen
-außerhalb der Datenbank liegt, und der Grund steht in der Grenze oben. Angelegt wird alles beim
+außerhalb der Datenbank liegt, und der Grund steht in der Grenze oben. Er reist **als ein JSON über
+mehrere Metadaten-Schlüssel**, weil ein Schlüssel bei Stripe 500 Zeichen fasst und ein Formular mehr
+hat; die Grenze liegt damit bei rund 22 kB, und ein Formular darüber weist die Route ab, statt eine
+halbe Sitzung zu eröffnen. Nachgetragen beim Bau. Angelegt wird alles beim
 Rückruf: Bewerbung und, wo die Schule die Familie noch nicht kennt, Person, Kind, Familie und
 Sorgeberechtigte. Der Rückruf selbst ist die eine Route des Querschnitts
 ([`querschnitt-api.md`](querschnitt-api.md)) und steht nicht hier.
@@ -142,7 +153,7 @@ Ownership-Regel.
 
 | Handlung | Herkunft | Wer darf | Worauf eingeschränkt | Schreibt/liest | Enge Rolle |
 |---|---|---|---|---|---|
-| `GET /applications?branch=&year=&grade=&status=&ended=` — **die eine Liste**: Bewerbungsliste der Entscheidungsrunde, Warteliste, Arbeitsliste des Anmeldetags | [07](../soll-prozesse/07-aufnahmeentscheidung.md) Z1, [06](../soll-prozesse/06-anmeldetag.md) „Dateien" | `school_management`, `secretariat` | Schulleitung nur ihre eigene Schulart; Listenroute, nie über OTP. [Frisch erzeugt](../soll-prozesse/hebel.md#frisch-erzeugte-liste) und als Druckansicht lesbar. **Drei Namen, eine Route**: die Filter machen den Unterschied, und die Runde entscheidet über alle Zielstufen hinweg. Je Zeile Spurstand, Geschwister an der eigenen Schule, Angebote, Betreuungsinteresse, die Ferienbuchung des Kindes und die Zahl der schon Zugesagten in der Zielstufe — **keine Kapazität**, eine Zahl ohne Grenze | liest | die eigene Einschätzung |
+| `GET /applications?branch=&year=&grade=&status=&ended=` — **die eine Liste**: Bewerbungsliste der Entscheidungsrunde, Warteliste, Arbeitsliste des Anmeldetags | [07](../soll-prozesse/07-aufnahmeentscheidung.md) Z1, [06](../soll-prozesse/06-anmeldetag.md) „Dateien" | `school_management`, `secretariat` | Schulleitung nur ihre eigene Schulart; Listenroute, nie über OTP. [Frisch erzeugt](../soll-prozesse/hebel.md#frisch-erzeugte-liste) und **als Zeilen, nicht als Druckansicht**: Aus dieser Liste heraus wird entschieden (`PUT …/decision` je Zeile), also braucht die Oberfläche die Zeilen selbst und druckt ihren eigenen Bildschirm — anders als die Tagesliste, die niemand bedient. Nachgetragen beim Bau. **Drei Namen, eine Route**: die Filter machen den Unterschied, und die Runde entscheidet über alle Zielstufen hinweg. Je Zeile Spurstand, Geschwister an der eigenen Schule, Angebote, Betreuungsinteresse, die Ferienbuchung des Kindes und die Zahl der schon Zugesagten in der Zielstufe — **keine Kapazität**, eine Zahl ohne Grenze | liest | die eigene Einschätzung |
 | `GET /applications/{application_id}` — die Bewerbung selbst | [07](../soll-prozesse/07-aufnahmeentscheidung.md) Z1 | `school_management`, `secretariat`; Erziehungsberechtigte | Eltern sehen die ihres Kindes nach ihrer [Einsichtsstufe](../soll-prozesse/hebel.md#einsichtsstufe) — **Ergebnis und Fristende ja, Priorität und Position auf der Warteliste nie**: „sie ändert sich mit jedem Nachrücker, und das Sekretariat müsste jede Bewegung erklären". Nach der Freigabe des ersten Vertrags am Kind zeigt sie den Eltern die einmal erhobenen Angaben nicht mehr ([Sparsame Ansicht](../soll-prozesse/hebel.md#sparsame-ansicht)) | liest | die eigene Einschätzung |
 | `PUT /applications/{application_id}/decision` — das Ergebnis eintragen: Zusage, Warteplatz samt Priorität oder Absage | [07](../soll-prozesse/07-aufnahmeentscheidung.md) Z2 und Z6 | `school_management`, `secretariat` | Schulleitung nur ihre eigene Schulart. **Das Ergebnis steht still und ist beliebig oft änderbar; nach draußen geht davon nichts** (`decided_at` ohne `released_at`). Kein Grund, keine Notiz — dafür gibt es kein Feld. Die Priorität ist frei, Lücken und Doppelungen erlaubt. Auch die Umkehr einer Absage läuft hier und trägt die [Änderungsspur](../soll-prozesse/hebel.md#änderungsspur) | schreibt, `entra:` | — |
 | `POST /applications/decisions/release` — die Ergebnisse **eines Ziels** freigeben, alle im selben Zug; beim Quereinstieg und beim Nachrücken eine Bewerbung | [07](../soll-prozesse/07-aufnahmeentscheidung.md) Z3 und Z6 | `school_management`, `secretariat` | Schulleitung nur ihre eigene Schulart. „Keine Familie erfährt ihre Absage, während über die Zusagen noch geredet wird": Die Route lädt die entschiedenen Zeilen und schreibt sie einzeln ([`gemeinsam.md`](gemeinsam.md#schreiben)), in **einer** Transaktion samt Mails. Jede Zusage bekommt dabei ihr Fristende — 14 Tage — **und ihren Schulvertrag**, dessen Textfassung damit einfriert (08). Eine Absage beendet die Bewerbung, ein Warteplatz nicht (`application_statuses.keeps_connection`) | schreibt, `entra:` | — |
@@ -243,7 +254,7 @@ Keine Route, kein Endpunkt von außen ([`gemeinsam.md`](gemeinsam.md#was-keine-r
 
 | Lauf | Herkunft | Auslöser | Aktor |
 |---|---|---|---|
-| **Die Meldung ans Anmeldepostfach**, eine Mail je Kind, und die Bestätigung an die Eltern | [05](../soll-prozesse/05-bewerbung.md) Z5 | die bestätigte Zahlung; sie hängt am Rückruf und nicht an einer Uhrzeit | `system:payments` |
+| **Die Meldung ans Anmeldepostfach**, eine Mail je Kind, und die Bestätigung an die Eltern | [05](../soll-prozesse/05-bewerbung.md) Z5 | die bestätigte Zahlung; sie hängt am Rückruf und nicht an einer Uhrzeit. **Beide gehen raus, nachdem die Transaktion des Rückrufs steht**, nicht in ihr: Die Sendeschicht schreibt ihre `outbound_emails`-Zeile in einer eigenen Transaktion und vor dem Versand, und eine Person, die es erst in der offenen Transaktion gibt, ist für sie nicht da — der Fremdschlüssel dieser Zeile sagt es. Nachgetragen beim Bau | `system:payments` |
 | **Die Erinnerung an die Bewerbungen ohne Termin**, genau einmal, eine Woche vor dem frühesten Anmeldetag des Ziels | [06](../soll-prozesse/06-anmeldetag.md) „Mails und Schreiben" | ein gerechnetes Datum je Ziel; sie geht nicht raus, wo niemand ohne Termin ist | `system:admission` |
 | **Die Erinnerung an den gebuchten Termin**, ein bis zwei Tage vorher, mit Zeit und Mitbringliste | [06](../soll-prozesse/06-anmeldetag.md) „Mails und Schreiben" | der gebuchte Termin; dieselbe Mechanik wie beim Putzdienst | `system:admission` |
 | **Die Erinnerung drei Tage vor Fristende** an alle Sorgeberechtigten — „der einzige Vorgang, in dem Schweigen den Platz kostet" | [08](../soll-prozesse/08-schulvertrag.md) „Fristen und Termine" | `applications.response_deadline_at` minus drei Tage, genau einmal | `system:admission` |
@@ -314,7 +325,7 @@ Drei Durchgänge, jeder mechanisch.
 |---|---|
 | `applications.submitted_at` ist `NOT NULL` und trägt den Zahlungszeitpunkt | `POST /applications` legt nichts an; die Zeile entsteht im Rückruf, und dort steht der Zeitpunkt fest |
 | `ix_applications_running` ist partiell auf `ended_at IS NULL` | Ein zweiter Anlauf nach Absage oder Rückzug ist eine neue Bewerbung und kostet die Gebühr erneut; die Route prüft gegen denselben Index, den sie später verletzt hätte |
-| `ck_applications_final_ended` verlangt zu jedem Endstatus ein `ended_at` | Freigabe, Rückzug und Einschreibung setzen beides in einem Zug; bei der Einschreibung bleibt `ended_by` leer, weil sie niemand beendet |
+| `ck_applications_final_ended` verlangt zu jedem Endstatus ein `ended_at` | **Wer den Endstatus setzt, setzt beides in einem Zug** — beim Bau ist das die *Entscheidung* und nicht die Freigabe: Eine Absage ist ein Endstatus, und der CHECK lässt sie keinen Moment ohne `ended_at` stehen. Nach draußen geht davon trotzdem nichts, denn die Elternansicht hängt an `released_at` und nicht am Status. Rückzug und Einschreibung setzen beides ebenso; bei der Einschreibung bleibt `ended_by` leer, weil sie niemand beendet |
 | `ck_applications_record_needs_slot` bindet Spur und Anmerkung ans Zeitfenster | `PATCH …/record` weist die Spur ohne Termin mit `400` ab — „wer nie gebucht hat, hat auch keine Spur" |
 | `applications.first_grade_level`/`final_grade_level` kommen aus `school_branches` | Die Route setzt sie nie aus dem Rumpf, sondern liest sie zur Schulart; `ck_applications_grade_level` hält die Zielstufe darin |
 | `admission_day_slots.places_override` ist nullable | Leer heißt „die Zahl des Tages"; `PATCH` setzt sie nur, wo abgewichen wird, und die Buchungsroute rechnet beide Fälle gegen dieselbe Grenze |
