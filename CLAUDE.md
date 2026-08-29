@@ -93,8 +93,8 @@ Diese Datei wird automatisch geladen; verlinkt werden muss nichts. Je nach Arbei
   `schema-normalform.md` ist ein eigener Lauf mit einer einzigen Frage und wird mit dem Prüflauf
   gegen die Blöcke nicht vermischt.
 - **Eine Domäne zur API:** `prompts/api-planen.md`, eine Domäne je Durchgang wie beim Schema. Die zwei Fundament-Domänen `stammdaten` und `querschnitt` haben mit `prompts/api-fundament.md` einen gemeinsamen Lauf — die Portionierung bleibt, geteilt wird nur der Durchgang.
-- **Endpunkte in `wb-backend`:** dort `CLAUDE.md` und `README.md`, hier `api/`, `zugang.md`
-  und `oberflaechen.md`. Die Schreibschicht dort ist nicht optional: ein Endpunkt, der
+- **Endpunkte in `wb-backend`:** `prompts/api-bauen.md`, eine Domäne je Durchgang. Dort
+  `CLAUDE.md` und `README.md`, hier `api/`, `zugang.md` und `oberflaechen.md`. Die Schreibschicht dort ist nicht optional: ein Endpunkt, der
   an ihr vorbeischreibt, kommt nicht durch.
 - **Infrastruktur:** `host.md`, `container.md`, `deploy.md`, `runbook.md`, `backup.md`.
 - **Eine Fachdomäne verstehen:** `fachdomaenen.md`, `prozesse.md` und die vier

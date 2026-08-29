@@ -8,6 +8,10 @@ diesen Lauf von einem gewöhnlichen unterscheidet.
 
 Kopieren, absenden. Effort `xhigh`, Thinking an. Vorher `git status` sauber.
 
+**Dieser Durchgang läuft ohne Rückfrage** — was das heißt, steht in [`gemeinsam.md`](gemeinsam.md).
+Er hebt damit die Halt-Regel aus `api-planen.md` auf: Die Dateien entstehen in diesem Lauf, nicht
+nach einem OK.
+
 ---
 
 ## Warum diese zwei zusammen, und trotzdem nacheinander
@@ -98,8 +102,9 @@ Schema-Kollisionen, `putzdienst`-Kollisionen, Zukunftsbefunde —, jede Zeile mi
 Eine leere Liste schreibst du als leere Liste hin; „nichts gefunden" ist ein Ergebnis, „nicht
 geprüft" wäre eines und darf nicht so aussehen.
 
-Die Dateien `api/stammdaten-api.md` und `api/querschnitt-api.md` legst du erst nach meinem OK an,
-wie dort geregelt. Wandert etwas aus `api/putzdienst-api.md` hierher, gehört die Änderung dieser
-Datei in dasselbe OK — sie ist keine eigene Runde.
+Die Dateien `api/stammdaten-api.md` und `api/querschnitt-api.md` legst du selbst an. Wandert etwas
+aus `api/putzdienst-api.md` hierher, änderst du auch die — im selben Lauf, im selben Commit wie die
+Datei, die es aufnimmt: Eine Handlung, die eine Sekunde lang nirgends oder zweimal steht, ist ein
+Zustand, den niemand gewollt hat.
 
 **Kein Code.** Die Routen zu bauen ist der Auftrag danach, und er hat seinen eigenen Durchgang.

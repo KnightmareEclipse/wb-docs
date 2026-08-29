@@ -53,6 +53,24 @@ Steht in `~/.claude/CLAUDE.md` und gilt damit in jeder Session, auch in einer, d
 öffnet. Hier nicht wiederholt. Sie deckt auch die Länge der Dateien ab, die du schreibst — der
 Entwurf selbst zählt gegen kein Zeilenbudget, gegen Blähtext aber schon.
 
+## Ein Lauf ohne Rückfrage
+
+Schreibt ein Prompt das aus, gilt für ihn zusätzlich: **keine Frage, kein OK vor dem Anlegen einer
+Datei, kein Halt zur Bestätigung.** Ich bin nicht da, und ein Lauf, der auf mich wartet, hat nichts
+getan.
+
+- **Was sonst eine Frage wäre, wird eine Marke.** Trägt deine Annahme weiter, ist es ein `[A]` in
+  der Form oben; gehört die Antwort jemandem in der Schule, ist es ein `[?]` mit seinem Adressaten.
+  Das ist keine neue Regel — es ist die vorhandene ohne den Ausweg, mich zu fragen.
+- **Angehalten wird trotzdem, aber nur bei einem Grund:** wenn *jede* Annahme, die weiterträgt,
+  etwas Schlechteres erzeugt als nichts. Dann brichst du ab, nennst den Grund in einem Satz und
+  lieferst, was fertig ist. Ein Abbruch ohne benannten Grund ist ein Fehler, kein Ergebnis.
+- **Du committest, was fertig ist**, eine Nachricht je abgeschlossenem Vorgang. Uncommittete Arbeit
+  in einem Baum, den ich Stunden später öffne, ist verlorene Arbeit.
+- **Am Ende steht kein „ist das so recht?"**, sondern drei Dinge: die `[A]` als `A1, A2 …`, die
+  `[?]` mit ihren Adressaten, und der Beleg, dass es läuft — bei einer `.md` die Gegenprobe, bei
+  Code der grüne Lauf.
+
 ## Kein Subagent urteilt
 
 Suchen darf er — eine Fundstelle in einer Datei, ein Spaltenname über alle Dateien. **Nicht
