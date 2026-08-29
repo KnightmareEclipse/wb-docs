@@ -1,10 +1,10 @@
 ---
 id: TASK-052
 title: Dependabot in den Repo-Einstellungen von wb-backend aktivieren
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 11:37'
-updated_date: '2026-08-27 22:23'
+updated_date: '2026-08-29 10:39'
 labels:
   - wartet
   - betreiber

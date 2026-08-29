@@ -1,10 +1,10 @@
 ---
 id: TASK-084
 title: Elternportal erstmals aufsetzen (portal.clemens.schule)
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-08-27 11:40'
-updated_date: '2026-08-28 22:47'
+updated_date: '2026-08-29 11:51'
 labels:
   - frontend
   - eltern

@@ -1,10 +1,10 @@
 ---
 id: TASK-085
 title: Interne Oberfläche aufsetzen (intern.clemens.schule)
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-08-27 11:40'
-updated_date: '2026-08-28 22:47'
+updated_date: '2026-08-29 11:48'
 labels:
   - frontend
   - personal
@@ -25,6 +25,6 @@ Für Personal, bildet größere Prozesse ab. Voraussichtlich TypeScript, kein SP
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Drei Bedingungen für den Teams-Tab: frame-ancestors für teams.microsoft.com und *.cloud.microsoft, kein X-Frame-Options, validDomains im Manifest, gültiges HTTPS
+- [x] #1 Drei Bedingungen für den Teams-Tab: frame-ancestors für teams.microsoft.com und *.cloud.microsoft, kein X-Frame-Options, validDomains im Manifest, gültiges HTTPS
 - [x] #2 Keine Cookie-Sitzung — Teams-SSO über getAuthToken, dann Bearer-Token im Header
 <!-- AC:END -->
