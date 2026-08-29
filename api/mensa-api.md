@@ -62,7 +62,9 @@ der Aufstiegspfad, den `zugang.md` schon beschreibt („View plus eigene DB-Roll
 `otp_eligible_persons`). — Alternative: `health_traits.description` unter `backend_health` lesen und
 selbst auf das Häkchen filtern; Preis: die Küchenroute hielte eine Rolle, die Diagnose, Attestlage
 und Notfallanweisung lesen darf, und der schmalste Ausschnitt des Systems hinge an einem `if` statt
-an einem GRANT. Gebaut wird die View in der Gesundheits-Domäne, nicht hier.
+an einem GRANT. **Gebaut wird `kitchen_health_traits` in der Migration dieser Domäne**, nicht in
+der der Gesundheit: `backend_kitchen` entsteht hier, und eine View lässt sich nicht an eine Rolle
+granten, die es noch nicht gibt.
 
 ## Küchenprofil und Werte
 
@@ -167,8 +169,8 @@ ihm selbst** — Geschäftsführung.
 
 Je eine Zeile, benannt und nicht mitgeplant:
 
-- **Die View für den Küchen-Ausschnitt der Gesundheitsangaben** samt GRANT an `backend_kitchen` — sie
-  gehört der Gesundheits-Domäne, und die Tagesliste ist ihr erster Abnehmer.
+- **Die Routen des Gesundheitsbestands** — die Tagesliste liest ihn nur, über
+  `kitchen_health_traits`; erhoben und gepflegt wird er in der Gesundheits-Domäne.
 - **Die Betreuungsmodule samt `includes_lunch` und ihre Anlagen**, aus denen das Essen der
   Hortkinder folgt (`GET /care-modules`, `POST /care-module-agreements/{id}/release`) —
   [Anmeldung](anmeldung-api.md); dieselbe Route baut den Optigem-Text nach der Regel oben.
@@ -191,17 +193,22 @@ Je eine Zeile, benannt und nicht mitgeplant:
 
 Kein Eingriff, das Schema führt `wb-backend`:
 
-- **`backend_kitchen` kann heute keine Zeile benennen.** Die Migration gibt ihr
-  `SELECT (meal_variant_id) ON child_meal_profiles` und sonst nichts — kein `child_id`, kein
-  Schlüssel. Postgres verlangt das Spaltenrecht auch für die `WHERE`-Klausel, ein
-  `WHERE child_id = …` scheitert also mit „permission denied for table child_meal_profiles". Es ist
-  derselbe Fund, den der Bau der Stammdaten schon gemessen hat
-  ([`stammdaten-api.md`](stammdaten-api.md), „Die Prüfung"): Die enge Rolle braucht die
-  Schlüsselspalte im GRANT, und eine Ausweitung ist das nicht — gelesen wird weiterhin nur die
-  Variante.
-- **`backend_health` hat dasselbe Problem** und ebenso keinen Schlüssel im GRANT. Es fällt hier auf,
-  weil die Tagesliste die erste Route ist, die den Bestand von außerhalb der Gesundheits-Domäne
-  liest; die View oben nimmt ihr die Frage ab, die Rolle selbst behält sie.
+- **`backend_kitchen` konnte keine Zeile benennen, und das ist beim Bau nachgezogen.** Die
+  Migration gab ihr `SELECT (meal_variant_id) ON child_meal_profiles` und sonst nichts — kein
+  `child_id`, keinen Schlüssel. Postgres verlangt das Spaltenrecht auch für die `WHERE`-Klausel, ein
+  `WHERE child_id = …` scheitert also mit „permission denied for table child_meal_profiles"
+  (gemessen). Derselbe Fund wie bei `backend_sensitive` auf `children`
+  ([`stammdaten-api.md`](stammdaten-api.md), „Die Prüfung"), und die Schlüsselspalten stehen jetzt
+  im GRANT. Eine Ausweitung ist es nicht: **`meal_variants` bekommt die Rolle nicht**, der Code wird
+  außerhalb des engen Blocks nachgeschlagen — gelesen wird dort weiterhin die eine Spalte.
+- **`backend_health` hat dasselbe Problem** und ebenso keinen Schlüssel im GRANT. Die View oben
+  nimmt der Tagesliste die Frage ab; die Rolle behält sie, und die Gesundheits-Domäne entscheidet
+  sie, wenn sie ihre Routen bekommt.
+- **`health_traits` lässt sich als `backend_runtime` nicht anlegen, ohne `has_certificate`
+  mitzugeben.** Die Spalte hat einen Server-Default, den SQLAlchemy per `RETURNING` zurückliest, und
+  die Laufzeit-Rolle hat darauf kein `SELECT` — dieselbe Ebene wie `sepa_mandates.created_at`
+  ([`anmeldung-api.md`](anmeldung-api.md)). Gefunden hat es der Test dieser Domäne, entschieden wird
+  es dort, wo der Bestand gebaut wird.
 - **Das Abo hat keine Marke für „gekündigt".** Ob eine Kündigung vorlag, steht allein daran, dass
   `ends_on` der 31. Januar ist — das genügt, weil es nur zwei mögliche Tage gibt und beide
   ausgewählt und nicht gerechnet werden; ein Abgang setzt einen dritten. Wer später einmal zählen

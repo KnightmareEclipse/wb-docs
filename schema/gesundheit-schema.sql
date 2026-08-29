@@ -58,7 +58,9 @@ CREATE TABLE health_trait_types (
     -- Notfallmedikation, ohne Diagnose, ohne Attestlage" (11) — die beiden
     -- Punkte sind Unverträglichkeit und Allergie, die 11 im Satz davor nennt. Das sind drei Stufen und nicht zwei; ohne diese Spalte läse die
     -- Mensa denselben Ausschnitt wie der Hort, und das wäre bei Art.-9-Daten
-    -- eine Über-Offenlegung.
+    -- eine Über-Offenlegung. Die Grenze läuft damit zeilenweise und nicht
+    -- spaltenweise; getragen wird sie deshalb von einer View auf diese Tabellen
+    -- mit eigenem GRANT und nicht von einem Filter im Code (api/mensa-api.md).
     is_kitchen_relevant  boolean NOT NULL DEFAULT false,
     created_at           timestamptz NOT NULL DEFAULT now(),
     created_by           text NOT NULL,
