@@ -1,9 +1,10 @@
 ---
 id: TASK-060
 title: 'Routen bauen: stammdaten'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 11:39'
+updated_date: '2026-08-29 18:19'
 labels:
   - wb-backend
   - route
@@ -25,6 +26,6 @@ Folgt dem API-Plan. Der Zuschnitt der einzelnen Routen entsteht dort — dieses 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Jeder Endpunkt schreibt über die Schreibschicht, nicht an ihr vorbei
-- [ ] #2 Tabellenrechte und enge Rollen in der Migration der Domäne mitgezogen
+- [x] #1 Jeder Endpunkt schreibt über die Schreibschicht, nicht an ihr vorbei
+- [x] #2 Tabellenrechte und enge Rollen in der Migration der Domäne mitgezogen
 <!-- AC:END -->

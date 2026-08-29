@@ -11,7 +11,7 @@ Zeilen fremder Blöcke, **deren Handlung dem Querschnitt gehört**, und die Hebe
 haben.
 
 **Gegenprobe:** **17 Ablaufzeilen aus 11 Blöcken** tragen eine Handlung dieser Datei; **alle 17**
-haben hier eine Route. Es gibt **24 Routen**; **8** nennen eine Ablaufzeile, **16** einen Hebel oder
+haben hier eine Route. Es gibt **25 Routen**; **9** nennen eine Ablaufzeile, **16** einen Hebel oder
 einen Abschnitt „Was dabei erhoben wird" — das ist die Bauform dieser Datei und kein Mangel: Ein
 Hebel gilt für alle Prozesse und steht deshalb in keinem.
 
@@ -93,14 +93,20 @@ gehören der Anmeldung bzw. der Gesundheitsdomäne.
 | Handlung | Herkunft | Wer darf | Worauf eingeschränkt | Schreibt/liest | Enge Rolle |
 |---|---|---|---|---|---|
 | `GET /children/{child_id}/documents` — welche Unterlagen vorliegen, fehlen oder als nicht nötig festgestellt sind | [06](../soll-prozesse/06-anmeldetag.md) Z5, [08](../soll-prozesse/08-schulvertrag.md) Z4 | `secretariat`, `school_management`, `day_care_management`; Erziehungsberechtigte | Eltern sehen **ihre offenen Unterlagen** (06) und nichts weiter; Schulleitung nur die eigene Schulform. **Drei Stände, nicht zwei**: angefordert ohne Datei heißt „fehlt", `not_required_at` heißt „nicht nötig", keine Zeile heißt „nie verlangt" | liest | — |
-| `POST /children/{child_id}/documents` — eine Unterlage anfordern | [06](../soll-prozesse/06-anmeldetag.md) Z5 | `secretariat`, `school_management` | unbeschränkt. Welche Unterlagen ein Ziel verlangt, **folgt aus dem Ziel und wird von niemandem gepflegt** — die Liste gehört der Anmeldung, diese Route legt die einzelne Zeile an. `[A]` **Sie legt immer eine neue Zeile an und ersetzt nie eine**: `documents` ist bewusst nicht eindeutig je Kind und Typ, und keine Regel im Schema sagt, welche Zeile gemeint wäre — der Fund unter „Am Schema aufgefallen“ ist damit entschieden. — Alternative: die jüngste offene Zeile desselben Typs überschreiben; Preis: zwei angeforderte Atteste wären eines, und das Nachreichen des ersten löschte die Anforderung des zweiten | schreibt, `entra:` | — |
-| `PUT /documents/{document_id}` — die Ablage festhalten, die abgelegte Datei **ersetzen** oder die Unterlage als nicht nötig feststellen. **Sie ist auch der Änderungsweg**: Ein zweites Mal eingehendes Papier — ein berichtigtes Attest, eine neu eingescannte Seite — behält seine Zeile und bekommt hier die neue Graph-Kennung, `filed_at` wird neu gestempelt. Eine bereits abgelegte Unterlage lässt sich **nicht** als nicht nötig feststellen: `ck_documents_not_required` verböte es ohnehin, die Route weist es mit `400` ab statt mit einer abgebrochenen Transaktion. `[A]` **Sie nimmt die Graph-Kennung entgegen, nicht die Datei**: Das Papier legt ein Mensch in die Bibliothek, die er ohnehin offen hat — „SharePoint ist keine Aufgabe“ (08) —, und diese Zeile hält fest, wo es gelandet ist. — Alternative: ein Upload durch das Backend; Preis: ein zweiter schreibender Graph-Weg samt Größengrenze, für eine Datei, die ohnehin in einem Ordner landet | [06](../soll-prozesse/06-anmeldetag.md) Z5, [08](../soll-prozesse/08-schulvertrag.md) Z4 | `secretariat`, `school_management` | „was vorliegt, war nötig" (`ck_documents_not_required`); Bibliothek und Graph-Kennung stehen zusammen oder gar nicht, und abgelegt heißt mit Zeitpunkt (`ck_documents_filed`). Die Kennung ist **nie ein Pfad** — sie überlebt Umbenennen und Verschieben | schreibt, `entra:` | — |
+| `POST /children/{child_id}/documents` — eine Unterlage anfordern | [06](../soll-prozesse/06-anmeldetag.md) Z5 | `secretariat`, `school_management` | unbeschränkt. Welche Unterlagen ein Ziel verlangt, **folgt aus dem Ziel und wird von niemandem gepflegt** — die Liste gehört der Anmeldung, diese Route legt die einzelne Zeile an. **Sie legt immer eine neue Zeile an und ersetzt nie eine**: `documents` ist bewusst nicht eindeutig je Kind und Typ, und keine Regel im Schema sagt, welche Zeile gemeint wäre — der Fund unter „Am Schema aufgefallen“ ist damit entschieden. — Alternative: die jüngste offene Zeile desselben Typs überschreiben; Preis: zwei angeforderte Atteste wären eines, und das Nachreichen des ersten löschte die Anforderung des zweiten. **Den Fehlgriff nimmt die Zeile darunter zurück** | schreibt, `entra:` | — |
+| `PUT /documents/{document_id}` — die Ablage festhalten, die abgelegte Datei **ersetzen** oder die Unterlage als nicht nötig feststellen. **Sie ist auch der Änderungsweg**: Ein zweites Mal eingehendes Papier — ein berichtigtes Attest, eine neu eingescannte Seite — behält seine Zeile und bekommt hier die neue Graph-Kennung, `filed_at` wird neu gestempelt. Eine bereits abgelegte Unterlage lässt sich **nicht** als nicht nötig feststellen: `ck_documents_not_required` verböte es ohnehin, die Route weist es mit `400` ab statt mit einer abgebrochenen Transaktion. **Sie nimmt die Graph-Kennung entgegen, nicht die Datei**: Das Papier legt ein Mensch in die Bibliothek, die er ohnehin offen hat — „SharePoint ist keine Aufgabe“ (08) —, und diese Zeile hält fest, wo es gelandet ist. — Alternative: ein Upload durch das Backend; Preis: ein zweiter schreibender Graph-Weg samt Größengrenze, für eine Datei, die ohnehin in einem Ordner landet | [06](../soll-prozesse/06-anmeldetag.md) Z5, [08](../soll-prozesse/08-schulvertrag.md) Z4 | `secretariat`, `school_management` | „was vorliegt, war nötig" (`ck_documents_not_required`); Bibliothek und Graph-Kennung stehen zusammen oder gar nicht, und abgelegt heißt mit Zeitpunkt (`ck_documents_filed`). Die Kennung ist **nie ein Pfad** — sie überlebt Umbenennen und Verschieben | schreibt, `entra:` | — |
+| `DELETE /documents/{document_id}` — eine Anforderung zurücknehmen, die so nicht hätte gestellt werden dürfen | [06](../soll-prozesse/06-anmeldetag.md) Z5 | `secretariat`, `school_management` | **allein die reine Anforderung**: `graph_item_id` und `not_required_at` müssen leer sein, sonst `400`. Eine abgelegte Unterlage geht diesen Weg nicht, und „nicht nötig" ist eine Feststellung und kein Versehen. Zwei offene Zeilen desselben Typs sind der Regelfall — welche gemeint ist, sagt der Aufrufer mit der Kennung | schreibt, `entra:` | — |
 | `GET /documents/{document_id}/content` — die Datei ausliefern | [08](../soll-prozesse/08-schulvertrag.md) Z5, `grenzkarte.md` Q2 | wer die Zeile daneben sehen darf | **dieselbe Regel wie für die Zeile, kein zweites Rechtesystem.** Zwingend gebraucht von der Schulleitung, die den Vertrag ihres Zweigs vor der Freigabe lesen muss, und von der Hortleitung auf ihrer Seite — beide ohne Zugriff auf die Bibliothek (`glossar.md`) | liest | — |
 
 **`GET /documents/{document_id}/content` ist der zweite Graph-Aufrufer des Systems** und der einzige
 lesende: der erste ist der Mailausgang. Beide holen ihr App-Token an einer Stelle
 (`wb-backend/app/services/graph.py`) — die Client-Credentials sind eine Tatsache, und eine zweite
 Fassung davon wäre die, die beim Wechsel des Geheimnisses stehen bleibt.
+
+**Woher die Element-Kennung kommt, ist eine Frage an die Oberfläche**: In SharePoint liest ein
+Mensch sie nirgends ab, `wb-intern` reicht sie aus dem Dateipicker durch (`oberflaechen.md`). Das
+Backend nimmt sie, wie sie kommt — ob sie auf etwas zeigt, zeigt sich beim ersten
+`GET /documents/{document_id}/content`.
 
 **Signaturen haben hier keine Route.** Unterschrieben wird in der Vertragsstrecke
 ([08](../soll-prozesse/08-schulvertrag.md), [09](../soll-prozesse/09-hortvertrag.md)); `signatures`
@@ -180,6 +186,10 @@ Je eine Zeile, benannt und nicht mitgeplant:
   Ferien.
 - **Die Aufgabenlisten, auf die eine Aufgabe verweist** — Strafenliste (01), Jahresliste (14),
   Abgangsliste ([`stammdaten-api.md`](stammdaten-api.md)).
+- **Der Unterlagensatz, den ein Ziel verlangt** ([06](../soll-prozesse/06-anmeldetag.md)): Welche
+  Stücke eine Bewerbung braucht, folgt aus Schulart und Klassenstufe, und die Domäne legt sie an.
+  Sie braucht dafür ihre eigene Regel „je Ziel einmal" — `documents` ist bewusst nicht eindeutig,
+  ein zweiter Aufruf legte den ganzen Satz daneben — Anmeldung.
 - **Der Lösch-Lauf** (17), der `documents`, `child_file_folders` und die ankerlosen
   `change_log`-Zeilen mitnimmt: Er ist kein Endpunkt und hat noch keinen Block.
 
@@ -218,6 +228,7 @@ Kein Eingriff, das Schema führt `wb-backend`:
 | `consents.delivery_address` ist nullable | Leer bleibt sie allein bei einer Antwort ohne Kanal — dem aus der Papierakte nachgetragenen Fotoeinverständnis des Vollimports. Die Route setzt sie immer; der Nachtrag ist kein Routenweg |
 | `consents.child_id` kaskadiert, `person_id` ebenso | Beide Löschanker rechnen verschieden; die Route berührt das nicht, aber `GET /children/{child_id}/consents` darf keine Zeile eines gelöschten Elternteils erwarten |
 | `documents.requested_at`, `graph_item_id`, `not_required_at` — `ck_documents_purpose` verlangt mindestens eines | `POST /children/{child_id}/documents` setzt `requested_at`, sonst entstünde eine Zeile, die nichts sagt |
+| Die Laufzeit-Rolle hat `DELETE` auf `documents`, weil der Lösch-Lauf ihn braucht | `DELETE /documents/{document_id}` kommt deshalb ohne Migration aus; das Recht reicht weiter als die Route, die sich auf die reine Anforderung einschränkt |
 | `payments.amount_cents` ist `> 0` | Eine Gutschrift läuft nicht über Q3; sie ist ein negativer Beleg der Rechnungsfreigabe (12) und berührt diese Tabelle nicht |
 | `ck_payments_single_cause` lässt **höchstens** einen Anlass zu | Der Ausnahmefall ist gebaut, nicht geduldet: die Rückrufroute legt Zahlung und Aufgabe `payment_without_cause` zusammen an — ganz oder gar nicht |
 | `uq_payments_payment_reference` ist ein schlichtes UNIQUE | Es greift nur für belegte Werte; eine von Hand bestätigte Zahlung trägt keine Referenz und ist deshalb **nicht** idempotenzgeschützt — siehe `[A!]` unten |
@@ -277,7 +288,7 @@ Kein Eingriff, das Schema führt `wb-backend`:
 
 Bestätigt und damit normaler Text; der verworfene Weg samt Preis bleibt stehen, weil er sonst als
 Vorschlag wiederkommt. Die `[A!]`-Marke behält ihre Marke auch bestätigt: Ihr Wert ist, dass jeder
-Prüflauf den Schnitt wiedersieht (`prompts/gemeinsam.md`). Eine `[A]` steht noch offen.
+Prüflauf den Schnitt wiedersieht (`prompts/gemeinsam.md`).
 
 **Der Widerruf ist eine eigene Route (`DELETE`); eine Antwort zu ersetzen ist es nicht
 (`PUT` ändert die Zeile).** — Alternative: der Widerruf ist ein `PUT` mit „abgelehnt"; Preis:
@@ -293,7 +304,7 @@ Preis: eine Route ohne Zeile in irgendeiner Ablauftabelle, dazu die Idempotenzl�
 `uq_payments_payment_reference` bei leerer Referenz offenlässt. Sie bekommt ihre Route mit dem Block,
 der den zweiten Zahlweg beschreibt.
 
-`[A]` **Eine Aufgabe entsteht nie über eine Route**, immer als Seiteneffekt der Handlung **oder des
+**Eine Aufgabe entsteht nie über eine Route**, immer als Seiteneffekt der Handlung **oder des
 Laufs**, der sie auslöst — „Anwesenheitsliste drucken" (01 Z9) hat schon heute keine Änderung hinter
 sich, wohl aber einen Auslöser. — Alternative: `POST /tasks` fürs Sekretariat; Preis: eine Aufgabe,
 die auf gar nichts zeigt, also die allgemeine To-do-Liste, die `hebel.md` und `CLAUDE.md` beide
