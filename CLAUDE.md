@@ -23,6 +23,7 @@ Antwort auf die falsche Frage.
 | `host.md`, `container.md`, `deploy.md`, `runbook.md` | Die Maschine: Server und Firewall, Runtime und Stack, Ausrollen, Neuaufbau von Hand |
 | `zugang.md`, `oberflaechen.md` | Wer wie hereinkommt (Entra-ID, OTP, Rollen) und wo die Oberflächen liegen |
 | `backup.md`, `dsgvo.md`, `repos.md` | Sicherung und Wiederherstellung, die organisatorischen DSGVO-Pflichten, der Schnitt der Repos |
+| `verarbeitungsverzeichnis.md` | Der Eintrag nach Art. 30 für dieses eine Verfahren — Zwecke, Datenkategorien, Empfänger, Fristen, Maßnahmen |
 | `backlog/` | Der **gesamte** Arbeitsvorrat: die Aufgabe, ihre kurze Begründung, Reihenfolge, Milestone und Abnahmekriterien |
 | `fragen.md` | Der Wortlaut der offenen Fragen an die Schule, je Gesprächspartner, samt dem Kriterium, wann eine Antwort reicht |
 | `prompts/` | Die wiederkehrenden Aufträge. Was für alle gilt, steht einmal in `prompts/gemeinsam.md` |
