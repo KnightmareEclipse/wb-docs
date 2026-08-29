@@ -1,9 +1,10 @@
 ---
 id: TASK-111
 title: 'Dokumenterzeugung aufbauen: Word-Vorlage, docxtpl, PDF über Graph'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 22:44'
+updated_date: '2026-08-29 20:22'
 labels:
   - wb-backend
   - anmeldung
@@ -24,6 +25,12 @@ In oberflaechen.md entschieden, nirgends beauftragt: Word-Vorlage mit Platzhalte
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Kein Konverter im Container, kein Premium-Konnektor
-- [ ] #2 Die erzeugte Datei landet in der Bibliothek, in der Menschen nur lesen
+- [x] #1 Kein Konverter im Container, kein Premium-Konnektor
+- [x] #2 Die erzeugte Datei landet in der Bibliothek, in der Menschen nur lesen
 <!-- AC:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Gebaut in wb-backend PR #5. Word-Vorlage app/documents/contract-template.docx, gefüllt per docxtpl, PDF-Konvertierung über Graph (content?format=pdf) — kein Konverter im Container und kein Premium-Konnektor. Die erzeugte Datei landet in der Bibliothek mit dem Code app_documents, in der Menschen nur lesen; das gerenderte .docx war nur der Weg zur Konvertierung und wird danach entfernt. Die Prüfsumme über die PDF-Bytes steht als contracts.document_checksum. Läuft im Request der Freigabe: scheitert Graph, fällt die Freigabe mit ihm zurück.
+<!-- SECTION:FINAL_SUMMARY:END -->

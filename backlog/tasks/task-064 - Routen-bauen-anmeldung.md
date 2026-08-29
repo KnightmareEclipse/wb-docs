@@ -1,9 +1,10 @@
 ---
 id: TASK-064
 title: 'Routen bauen: anmeldung'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 11:39'
+updated_date: '2026-08-29 20:22'
 labels:
   - wb-backend
   - route
@@ -25,6 +26,12 @@ Folgt dem API-Plan. Der Zuschnitt der einzelnen Routen entsteht dort — dieses 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Jeder Endpunkt schreibt über die Schreibschicht, nicht an ihr vorbei
-- [ ] #2 Tabellenrechte und enge Rollen in der Migration der Domäne mitgezogen
+- [x] #1 Jeder Endpunkt schreibt über die Schreibschicht, nicht an ihr vorbei
+- [x] #2 Tabellenrechte und enge Rollen in der Migration der Domäne mitgezogen
 <!-- AC:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Gebaut in wb-backend PR #5: 54 Routen in app/routers/anmeldung.py, Gegenprobe 54 = 54 gegen api/anmeldung-api.md. Jeder Endpunkt hängt an route_class=TransactionRoute und schreibt über die ORM-Schicht; tests/test_changelog.py fängt das Gegenteil. Die engen Rollen sind spaltengenau nachgezogen — backend_admissions hält jetzt auch das UPDATE auf applications.assessed_level_id und backend_runtime keines mehr, backend_finance das INSERT auf sepa_mandates. 93 neue Tests (326 -> 419), die vierzehn Prüfskripte je rc=0.
+<!-- SECTION:FINAL_SUMMARY:END -->
