@@ -69,7 +69,7 @@ gehört der Vertragsstrecke.
   `contracts.released_at` **oder** `children.entry_date` — die Einschreibung ist bei den Kindern des
   Vollimports, was sonst die Freigabe ist (`schema/selfservice-schema.sql`).
 
-`[A]` **Es gibt keine Suchroute und keine Bestandsliste** über alle Kinder oder alle Familien. Jede
+`[A!]` **Es gibt keine Suchroute und keine Bestandsliste** über alle Kinder oder alle Familien. Jede
 Liste dieser Domäne hat ihren Anlass — Klassenliste, Jahresansicht, Klassenbildungsansicht, löschbare
 Konten —, und keine Zeile verlangt eine Suche. — Alternative: `GET /children?q=`; Preis: eine Route,
 die jede Rolle über den ganzen Bestand blättern lässt, für einen Bedarf, den kein Block benennt; sie
@@ -77,8 +77,14 @@ bekommt ihre Zeile mit dem Block, der sie verlangt.
 
 `[A]` **Die zwölf Wertelisten bekommen keine Pflegeroute.** Sie entstehen im Seed und wachsen über
 eine Migration. — Alternative: je Liste eine Route für den Admin; Preis: zwölf Routen für Listen, die
-seit dem Seed unverändert sind. Die eine, die im Betrieb wächst, ist `previous_schools`; sie bekommt
-ihre Route mit dem Block, der die erste neue Überweisungsschule verlangt.
+seit dem Seed unverändert sind, und an fünf von ihnen — `access_levels`, `school_branches`,
+`houses`, `roles`, `phone_types` — hängt Code oder eine Regel: Wer sie ändert, ändert Verhalten und
+nicht eine Bezeichnung, und dafür ist eine Migration das richtige Werkzeug.
+**Eine Liste wächst im Betrieb und bleibt hier ohne Route:** `previous_schools`. Ein Quereinsteiger
+kommt von irgendeiner Schule in Deutschland, und eine Bewerbung an einem Deploy scheitern zu lassen
+wäre absurd — aber welche Stelle eine abgebende Schule anlegt, sagt heute kein Block, auch
+[05](../soll-prozesse/05-bewerbung.md) nicht. Sie bekommt ihre Route mit dem Anmeldungs-Plan; die
+Randzeile unten hält sie fest.
 
 ## Zugang und Sitzung
 
@@ -196,6 +202,9 @@ Je eine Zeile, benannt und nicht mitgeplant:
 - **Die Liste der Kinder ohne nachgetragenen Bestand** (`soll-prozesse/README.md`) — sie zählt
   Gesundheitsangaben, Fotoeinverständnis, Notfallnummer, Mandat und Hortmodule und gehört damit der
   Vertragsstrecke, nicht diesem Bestand — Anmeldung.
+- **Eine neue abgebende Schule anlegen** (`previous_schools`): Die Liste wächst im Betrieb, und kein
+  Block sagt, wer sie pflegt — die Route gehört dorthin, wo die Bewerbung sie braucht
+  ([05](../soll-prozesse/05-bewerbung.md)) — Anmeldung.
 - **Die Enden, die der Jahreslauf setzt**, gehören den Domänen, deren Verträge sie beenden —
   Anmeldung ([09](../soll-prozesse/09-hortvertrag.md)) und Mensa
   ([11](../soll-prozesse/11-mensa.md)); der Lauf ruft sie, statt ihre Zeilen selbst zu kennen.
@@ -206,7 +215,14 @@ Kein Eingriff, das Schema führt `wb-backend`:
 
 - **`persons.nickname` hat keine Zeile in irgendeinem Block.** Die Spalte trägt den Rufname; keiner
   der sechs Blöcke erhebt ihn, und `prozesse.md` kennt ihn nicht. Er läuft hier in
-  `PATCH /persons/{person_id}` mit (`[A]` unten), weil er sonst nur über den Import zu füllen wäre.
+  `PATCH /persons/{person_id}` mit (siehe „Festlegungen"), weil er sonst nur über den Import zu
+  füllen wäre.
+- **Die Anschrift vor einem Umzug steht in der Spur, aber nicht in einer Zeile.** `change_log` trägt
+  an der Person `address_id` alt→neu — zwei Kennungen —, und *was* dort stand, trägt die
+  `insert`-Zeile der alten `addresses`-Zeile. Beide zusammen beantworten „was vorher dastand"; die
+  erste hängt an der Person, die zweite ist ankerlos (Stufe 8 des Lösch-Laufs) und verfällt nach der
+  Frist ihrer eigenen Tabelle. **Laufen die zwei Fristen auseinander, bleibt ein Paar Kennungen
+  übrig, das niemand mehr auflöst** — eine Bedingung an Block 17, keine Schemaänderung.
 - **`employees.entra_object_id` hat keinen benannten Schreibpfad.** Block 13 zählt sechs Angaben am
   Mitarbeitendeneintrag auf, und diese ist ausdrücklich keine siebte, sondern die Anmeldeidentität —
   eingetragen wird sie trotzdem von jemandem.
@@ -283,36 +299,40 @@ Kein Eingriff, das Schema führt `wb-backend`:
    `GET /families/…`, `PATCH /children/…` und `PATCH /persons/{id}/guardian` — und mit ihnen die enge
    Rolle an zwei Routen. Eine Versionierung entsteht dafür nicht.
 
-## Annahmen
+## Festlegungen
 
-`[A]` **Ein Umzug legt eine neue `addresses`-Zeile an und zeigt die betroffenen Personen darauf um;
+Bestätigt und damit normaler Text; der verworfene Weg samt Preis bleibt stehen, weil er sonst als
+Vorschlag wiederkommt. Die beiden `[A!]`-Marken unter „Zwei Grenzen" behalten ihre Marke auch
+bestätigt: Ihr Wert ist, dass jeder Prüflauf den Schnitt wiedersieht (`prompts/gemeinsam.md`).
+
+**Ein Umzug legt eine neue `addresses`-Zeile an und zeigt die betroffenen Personen darauf um;
 eine bestehende Zeile wird nie geändert.** — Alternative: die Zeile ändern, wo alle darauf zeigenden
 Personen umziehen; Preis: die Route müsste wissen, wer außer dem Antragsteller darauf zeigt, und ein
 getrennt lebender Elternteil zöge still mit um. Was die neue Zeile kostet, ist die verwaiste alte —
 und die räumt Stufe 7 des Lösch-Laufs, die ohnehin gebaut wird.
 
-`[A]` **Das Häkchen „gilt auch für die Kinder" umfasst die Kinder aller Familien dieser Person.** —
+**Das Häkchen „gilt auch für die Kinder" umfasst die Kinder aller Familien dieser Person.** —
 Alternative: je Familie ein Häkchen; Preis: ein zweites Feld für den Patchwork-Fall, den das
 Sekretariat mit derselben Route je Kind richtet.
 
-`[A]` **`PUT /employees/{employee_id}/account` trägt Schuladresse und Entra-Objekt-ID zusammen.** —
+**`PUT /employees/{employee_id}/account` trägt Schuladresse und Entra-Objekt-ID zusammen.** —
 Alternative: die Objekt-ID als eigene Route; Preis: zwei Handgriffe für einen Kontovorgang, und die
 Kennung, an der die Anmeldung hängt, hätte keinen benannten Schreibpfad.
 
-`[A]` **`PATCH /persons/{person_id}` trägt auch den Rufname**, obwohl kein Block ihn nennt. —
+**`PATCH /persons/{person_id}` trägt auch den Rufname**, obwohl kein Block ihn nennt. —
 Alternative: die Spalte bleibt ohne Schreibpfad; Preis: eine Spalte, die nur der Import füllen kann,
 und ein Kind, dessen Kurzform niemand mehr eintragen darf.
 
-`[A]` **`PUT /employees/{employee_id}/roles` setzt die ganze Menge.** — Alternative: je Rolle ein
+**`PUT /employees/{employee_id}/roles` setzt die ganze Menge.** — Alternative: je Rolle ein
 `POST` und ein `DELETE`; Preis: „vergeben und entziehen" (00 Z4) wären zwei Routen für eine Handlung,
 und die Sperre gegen den Entzug der letzten Admin-Rolle stünde an beiden.
 
-`[A]` **Die interne Oberfläche liest ihre Rollen über `GET /auth/roles`.** — Alternative: sie leitet
+**Die interne Oberfläche liest ihre Rollen über `GET /auth/roles`.** — Alternative: sie leitet
 sie aus den `403`-Antworten ab; Preis: jede Ansicht baut sich aus Fehlschlägen auf, und ein Menü, das
 erst beim Klick sagt, dass es nichts darf.
 
-Dazu die beiden Annahmen unter „Zwei Grenzen": keine Suchroute, keine Pflegeroute für die
-Wertelisten.
+**Offen bleibt eine:** `[A]` die Pflegeroute für die Wertelisten (oben) — elf der zwölf tragen ohne,
+`previous_schools` nicht.
 
 ## Offene Fragen
 

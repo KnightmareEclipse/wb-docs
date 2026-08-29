@@ -46,9 +46,9 @@ Zwei Sätze, aus denen der Schnitt dieser Datei folgt:
 - **Die generische Handlung gehört hierher, der Anlass seiner Domäne.** „Unterlage abhaken" steht in
   06, 08 und 09 — dreimal dieselbe Handlung, also eine Route hier. „Welche Unterlagen ein Ziel
   verlangt" steht allein in 06 und bleibt dort.
-- **Eine Aufgabe entsteht nie über eine Route.** Sie entsteht als Seiteneffekt der Handlung, die sie
-  auslöst, in derselben Transaktion — der Umzug legt seine drei an, die Vertragsfreigabe ihre, der
-  Monatslauf des Putzdiensts seine. Hier stehen nur die beiden Routen, die sie **lesen** und
+- **Eine Aufgabe entsteht nie über eine Route.** Sie entsteht als Seiteneffekt der Handlung oder des
+  Laufs, der sie auslöst, in derselben Transaktion — der Umzug legt seine drei an, die
+  Vertragsfreigabe ihre, der Monatslauf des Putzdiensts seine. Hier stehen nur die beiden Routen, die sie **lesen** und
   **schließen**.
 
 ## Q5 — Nachzieh-Aufgabe
@@ -215,7 +215,7 @@ Kein Eingriff, das Schema führt `wb-backend`:
 | `documents.requested_at`, `graph_item_id`, `not_required_at` — `ck_documents_purpose` verlangt mindestens eines | `POST /children/{child_id}/documents` setzt `requested_at`, sonst entstünde eine Zeile, die nichts sagt |
 | `payments.amount_cents` ist `> 0` | Eine Gutschrift läuft nicht über Q3; sie ist ein negativer Beleg der Rechnungsfreigabe (12) und berührt diese Tabelle nicht |
 | `ck_payments_single_cause` lässt **höchstens** einen Anlass zu | Der Ausnahmefall ist gebaut, nicht geduldet: die Rückrufroute legt Zahlung und Aufgabe `payment_without_cause` zusammen an — ganz oder gar nicht |
-| `uq_payments_payment_reference` ist ein schlichtes UNIQUE | Es greift nur für belegte Werte; eine von Hand bestätigte Zahlung trägt keine Referenz und ist deshalb **nicht** idempotenzgeschützt — siehe `[A]` unten |
+| `uq_payments_payment_reference` ist ein schlichtes UNIQUE | Es greift nur für belegte Werte; eine von Hand bestätigte Zahlung trägt keine Referenz und ist deshalb **nicht** idempotenzgeschützt — siehe `[A!]` unten |
 | `sync_tasks.completed_by` hat einen CHECK ohne `NULL`-Ausnahme (`ck_sync_tasks_completed_by`) | Der CHECK ist bei `NULL` unbekannt und damit erfüllt; die Route setzt ihn zusammen mit `completed_at` und `outcome` oder gar nicht |
 | `sync_tasks` hat acht Bezüge und acht partielle Unique-Indizes | `PUT /tasks/{id}` braucht davon keinen — die Eindeutigkeit gilt dem Anlegen, und das ist Seiteneffekt anderer Routen |
 | `configured_values.value` ist ein `integer` für Beträge **und** Stückzahlen | `POST /configured-values` kennt die Einheit nicht; welche gilt, sagt der Code. Die Route prüft den Code gegen die bekannte Liste, sonst entstünde ein Wert, den niemand liest |
@@ -268,15 +268,19 @@ Kein Eingriff, das Schema führt `wb-backend`:
    teure Fall wäre umgekehrt: Wer dieser Antwort ein zweites Feld gäbe, hätte den Leserkreis der
    Zeile darunter auf alle Lehrkräfte ausgeweitet.
 
-## Annahmen
+## Festlegungen
 
-`[A]` **Der Widerruf ist eine eigene Route (`DELETE`); eine Antwort zu ersetzen ist es nicht
+Bestätigt und damit normaler Text; der verworfene Weg samt Preis bleibt stehen, weil er sonst als
+Vorschlag wiederkommt. Die `[A!]`-Marke behält ihre Marke auch bestätigt: Ihr Wert ist, dass jeder
+Prüflauf den Schnitt wiedersieht (`prompts/gemeinsam.md`). Eine `[A]` steht noch offen.
+
+**Der Widerruf ist eine eigene Route (`DELETE`); eine Antwort zu ersetzen ist es nicht
 (`PUT` ändert die Zeile).** — Alternative: der Widerruf ist ein `PUT` mit „abgelehnt"; Preis:
 `consents.revoked_at` bliebe leer, und „hat widerrufen" wäre von „hat nie zugestimmt" nicht mehr zu
 unterscheiden — genau die Unterscheidung, die Art. 7 Abs. 3 DSGVO verlangt und für die das Schema
 die Spalte hat.
 
-`[A]` **Für die manuelle Bestätigung einer Zahlung durch die Buchhaltung entsteht keine Route.**
+`[A!]` **Für die manuelle Bestätigung einer Zahlung durch die Buchhaltung entsteht keine Route.**
 `payments.status` und die leere Referenz halten den Fall offen, aber **kein Block beschreibt die
 Handlung** — weder 01 noch 05 noch 10 kennen einen zweiten Zahlweg; die Aussage steht allein in
 `grenzkarte.md` Q3, und die schlägt kein Block. — Alternative: `POST /payments` für die Buchhaltung;
@@ -284,24 +288,28 @@ Preis: eine Route ohne Zeile in irgendeiner Ablauftabelle, dazu die Idempotenzl�
 `uq_payments_payment_reference` bei leerer Referenz offenlässt. Sie bekommt ihre Route mit dem Block,
 der den zweiten Zahlweg beschreibt.
 
-`[A]` **Eine Aufgabe entsteht nie über eine Route**, immer als Seiteneffekt der Handlung, die sie
-auslöst. — Alternative: `POST /tasks` fürs Sekretariat; Preis: eine Aufgabe, die auf keine Änderung
-zeigt, und ein zweiter Weg neben dem Hebel, den `hebel.md` ausdrücklich als einen beschreibt.
+`[A]` **Eine Aufgabe entsteht nie über eine Route**, immer als Seiteneffekt der Handlung **oder des
+Laufs**, der sie auslöst — „Anwesenheitsliste drucken" (01 Z9) hat schon heute keine Änderung hinter
+sich, wohl aber einen Auslöser. — Alternative: `POST /tasks` fürs Sekretariat; Preis: eine Aufgabe,
+die auf gar nichts zeigt, also die allgemeine To-do-Liste, die `hebel.md` und `CLAUDE.md` beide
+ausschließen („kein Netz gegen menschliches Vergessen"). **Der Aufstiegspfad kostet nichts:**
+`sync_tasks` trägt jede Spalte, die eine solche Route bräuchte — kommt sie je, ist sie ein Endpunkt
+und keine Migration.
 
-`[A]` **`GET /documents/{document_id}/content` liefert die Datei selbst aus**; die kurzlebige
+**`GET /documents/{document_id}/content` liefert die Datei selbst aus**; die kurzlebige
 Graph-Adresse verlässt das Backend nicht. — Alternative: eine `302`-Weiterleitung dorthin; Preis:
 eine vorautorisierte Adresse in der Hand des Aufrufers, die weitergeben kann, wer sie hat — ein
 zweiter, ungeprüfter Weg an der Zeile vorbei, und genau den schließt `grenzkarte.md` Q2 aus.
 
-`[A]` **`GET /configured-values` ist eine interne Route.** — Alternative: eine öffentliche
+**`GET /configured-values` ist eine interne Route.** — Alternative: eine öffentliche
 Werteliste; Preis: Kilometersatz und Meldegrenze der Rechnungsfreigabe stünden darin, die „allein
 die sehen, die dort arbeiten" (`hebel.md`).
 
-`[A]` **Der Zweck steht als `code` im Pfad** (`/children/{child_id}/consents/photo`). — Alternative:
+**Der Zweck steht als `code` im Pfad** (`/children/{child_id}/consents/photo`). — Alternative:
 die Kennung der Zweckzeile; Preis: eine Adresse, die niemand lesen kann, für einen Wert, der nie
 umbenannt wird.
 
-`[A]` **Der Lauf, der unzustellbare Mails einsammelt, liest das Absenderpostfach**, einmal täglich. —
+**Der Lauf, der unzustellbare Mails einsammelt, liest das Absenderpostfach**, einmal täglich. —
 Alternative: ein Webhook des Postfachs; Preis: ein zweiter Eingang von außen samt eigener Prüfung,
 für eine Zeile, die einen Tag warten darf.
 
