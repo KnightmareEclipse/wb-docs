@@ -47,7 +47,7 @@ und genau das ist die Über-Offenlegung, die die Karte selbst als Grund für die
 Zuordnung Lehrkraft↔Unterricht … nicht [gibt] — die lebt in Untis" (`glossar.md`) und der Hinweis
 genau deshalb schmal gehalten ist. Diese Domäne nutzt die vorhandene Rolle, führt keine neue ein.
 
-`[A]` **Die Klassenlehrkraft ist keine `roles`-Zeile, sondern ein Ownership-Check** über
+**Die Klassenlehrkraft ist keine `roles`-Zeile, sondern ein Ownership-Check** über
 `classes.class_teacher_id`: Wer als `employee` dort steht, sieht die Kinder dieser Klasse voll —
 dieselbe Mechanik wie bei jeder anderen Eigentümerprüfung dieser Dateien, keine neue Rolle nötig.
 

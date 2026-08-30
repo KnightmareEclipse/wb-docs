@@ -1,9 +1,10 @@
 ---
 id: TASK-072
 title: 'Routen bauen: elternbonus'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 11:40'
+updated_date: '2026-08-30 14:42'
 labels:
   - wb-backend
   - route
@@ -14,6 +15,7 @@ dependencies:
 references:
   - api/elternbonus-api.md
   - wb-backend/app/db/changelog.py
+  - wb-backend/app/routers/elternbonus.py
 ordinal: 84000
 ---
 
@@ -25,6 +27,6 @@ Folgt dem API-Plan. Der Zuschnitt der einzelnen Routen entsteht dort — dieses 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Jeder Endpunkt schreibt über die Schreibschicht, nicht an ihr vorbei
-- [ ] #2 Tabellenrechte und enge Rollen in der Migration der Domäne mitgezogen
+- [x] #1 Jeder Endpunkt schreibt über die Schreibschicht, nicht an ihr vorbei
+- [x] #2 Tabellenrechte und enge Rollen in der Migration der Domäne mitgezogen
 <!-- AC:END -->

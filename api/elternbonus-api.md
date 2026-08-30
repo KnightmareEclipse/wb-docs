@@ -24,7 +24,10 @@ Abweichung.
 ## Enge Rolle
 
 **Keine.** Datum, Stundenzahl, Tätigkeit und eine bestätigende Person — kein Art.-9-Feld, keine
-Bankverbindung. `backend_runtime` liest und schreibt die ganze Tabelle.
+Bankverbindung. `backend_runtime` liest die ganze Tabelle, legt an und löscht; **geändert wird nur
+die Entscheidung** — `confirmed_at`, `rejected_at` und `confirming_employee_name` sind die einzigen
+drei Spalten im `GRANT UPDATE`. Ein abgesendeter Eintrag wird nie bearbeitet, sondern nur
+entschieden, und den Namen schreibt allein der Lösch-Lauf (unten) neben eine ausgeschiedene Person.
 
 ## Pfad
 
@@ -84,8 +87,9 @@ Je eine Zeile, benannt und nicht mitgeplant:
   bereits gebaut und bereits auf diese Domäne zugeschnitten (die beiden KITA-Rollen fallen heraus).
 - **Der Monatsbetrag und die beiden Pflichtstundenzahlen** — `configured_values`, die vier Routen
   auf `/configured-values` ([`querschnitt-api.md`](querschnitt-api.md)), `executive_management`.
-  `[A]` Drei neue Codes: `parent_work_monthly_cents`, `parent_work_hours_primary`,
-  `parent_work_hours_default` — benannt nach demselben Muster wie `cleaning_buyout_cents`.
+  Drei Codes nach demselben Muster wie `cleaning_buyout_cents`: `parent_work_monthly_cents`,
+  `parent_work_hours_primary`, `parent_work_hours_default` — so gebaut, einzutragen mit den
+  übrigen (`backlog/`, TASK-051).
 - **Das Abhaken der Buchhaltungs-Aufgabe** — `GET /tasks`, `PUT /tasks/{sync_task_id}`
   ([`querschnitt-api.md`](querschnitt-api.md)).
 - **Wer Elternvertreter ist und für welchen Zeitraum** — [16](../soll-prozesse/16-elternvertretung.md),
