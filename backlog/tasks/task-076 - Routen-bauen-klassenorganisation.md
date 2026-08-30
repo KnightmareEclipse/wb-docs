@@ -11,6 +11,7 @@ labels:
 milestone: m-5
 dependencies:
   - TASK-075
+  - TASK-136
 references:
   - api/klassenorganisation-api.md
   - wb-backend/app/db/changelog.py
