@@ -96,10 +96,12 @@ Diese Datei wird automatisch geladen; verlinkt werden muss nichts. Je nach Arbei
 - **Endpunkte in `wb-backend`:** `prompts/api-bauen.md`, eine Domäne je Durchgang; für `stammdaten`
   und `querschnitt` gemeinsam `prompts/api-fundament-bauen.md`, wie beim Planen. Dort
   `CLAUDE.md` und `README.md`, hier `api/`, `zugang.md` und `oberflaechen.md`. Die Schreibschicht dort ist nicht optional: ein Endpunkt, der
-  an ihr vorbeischreibt, kommt nicht durch. Gegengeprüft wird mit `prompts/api-pruefen.md` **in
-  einer frischen Session**, die den Bau nicht mitgemacht hat — wie beim Schema, und aus demselben
-  Grund. Er greift Routen und Tests zugleich an: Ein grüner Test belegt dort nichts, solange nicht
-  gezeigt ist, dass er rot werden kann.
+  an ihr vorbeischreibt, kommt nicht durch. Gegengeprüft wird mit `prompts/api-pruefen.md` in
+  einer Session, die den Bau nicht mitgemacht hat — wie beim Schema, und aus demselben Grund. Er
+  greift Routen und Tests zugleich an: Ein grüner Test belegt dort nichts, solange nicht gezeigt
+  ist, dass er rot werden kann. Er ist der einzige Lauf hier, der **auf Agenten verteilt** —
+  zwölf Domänen, je eigener Arbeitsbaum und eigene Datenbank —, und der einzige, der
+  „kein Subagent urteilt" aus `prompts/gemeinsam.md` aufhebt; die Bedingung dafür steht bei ihm.
 - **Infrastruktur:** `host.md`, `container.md`, `deploy.md`, `runbook.md`, `backup.md`.
 - **Eine Fachdomäne verstehen:** `fachdomaenen.md`, `prozesse.md` und die vier
   Anmeldetag-Checklisten in `~/Downloads/CHECKLISTEN/`.

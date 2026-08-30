@@ -77,3 +77,8 @@ Suchen darf er — eine Fundstelle in einer Datei, ein Spaltenname über alle Da
 entscheiden, nicht bauen, und nicht nachprüfen, was du selbst geurteilt hast.** Der Grund ist immer
 derselbe: Ein zusammengefasster Bericht hat den Satz nicht mehr, gegen den das Zitat gehalten wird,
 und das Zitat ist hinterher nicht zu rekonstruieren.
+
+**Genau ein Prompt hebt das auf**, [`api-pruefen.md`](api-pruefen.md), und schreibt dort aus, warum
+der Grund bei ihm nicht greift: Dort fasst kein Agent zusammen, er schreibt dieselbe Datei im selben
+Format, die eine eigene Session geschrieben hätte. Ein zweiter Prompt, der sich darauf beruft, ohne
+dieselbe Bedingung zu erfüllen, beruft sich zu Unrecht.
