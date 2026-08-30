@@ -88,8 +88,11 @@ Braucht sie: Schulvertrag, Gesundheitsdatenblatt samt Attesten, Fotoeinverständ
 |---|---|---|---|
 | **Von Weltenbaum erzeugt** (Vertrag, Gesundheitsblatt, Fotoeinverständnis, SEPA-Mandat, dazu die Signaturbilder bis zum Abschluss) | schreibt | liest | — |
 | **Schülerakte** (Urkunde, Zeugnis, Empfehlung, Beobachtungsbogen, Schriftverkehr) | schreibt | schreibt | — |
+| **Belege** (die Anhänge der Rechnungsfreigabe, `schema/rechnungsfreigabe-schema.sql`) | schreibt und liest | — | — |
 
-Beide Bibliotheken führen denselben Ordner je Kind, damit ein Mensch die Akte an einer Stelle sieht. Nur der Ordner der **Schülerakte** braucht einen Anker in der Datenbank: dort legen Menschen frei ab, und ohne ihn erreichte der Lösch-Job das nicht. In der erzeugten Bibliothek hat dagegen **jede** Datei eine Zeile — sie enthält nichts, was Weltenbaum nicht selbst erzeugt hat —, weshalb dort kein zweiter Anker nötig ist; den leeren Ordner räumt der Lösch-Job über die Herkunft der zuletzt gelöschten Datei mit, weil sein Name selbst ein Personenbezug ist.
+Die **dritte steht für sich**: Sie trägt kein Kind, sondern Kassenzettel, und deshalb bekommt niemand Direktzugriff — auch Sekretariat und Geschäftsführung nicht, denn „Sekretariat und Schulleitung haben hier keine Sonderstellung" (12), und in der Akten-Bibliothek sähen beide alles. Ihr Ordner ist das Kalenderjahr des Belegs. Ausgeliefert wird eine Datei daraus über `api/rechnungsfreigabe-api.md`, nach derselben Regel wie die Zeile daneben.
+
+Die **beiden Kinder-Bibliotheken** führen denselben Ordner je Kind, damit ein Mensch die Akte an einer Stelle sieht. Nur der Ordner der **Schülerakte** braucht einen Anker in der Datenbank: dort legen Menschen frei ab, und ohne ihn erreichte der Lösch-Job das nicht. In der erzeugten Bibliothek hat dagegen **jede** Datei eine Zeile — sie enthält nichts, was Weltenbaum nicht selbst erzeugt hat —, weshalb dort kein zweiter Anker nötig ist; den leeren Ordner räumt der Lösch-Job über die Herkunft der zuletzt gelöschten Datei mit, weil sein Name selbst ein Personenbezug ist.
 
 Beide Rollen sehen ohnehin alle Schüler und brauchen die Dateien im Alltag (`glossar.md`) — für sie ist die Bibliotheksgrenze deshalb keine Einschränkung. Alle übrigen sehen nur einen Teil: Schulleitung ihren Zweig, Klassenlehrer:in ihre Klasse, der Hort seine Kinder. Für sie darf es keinen Dateiweg an Weltenbaum vorbei geben, sonst hätte ein PDF keine der Abstufungen, die die Datenbank hat. Die **Buchhaltung** sieht zwar ebenfalls alle Kinder, bekommt aber keinen Direktzugriff: sie braucht Familienzugehörigkeit und Zahlungsbezug, keine Dokumente. Die Rechte sind damit **einmal gesetzt** und werden nie je Kind, Klasse oder Zweig gepflegt. Dass die erzeugten Unterlagen für Menschen nur lesbar sind, trägt nebenbei die Zusage, dass niemand einen Vertrag still ändert oder löscht.
 
@@ -99,7 +102,7 @@ Drei weitere Folgen dieser Entscheidung:
 
 - **Das Backup bleibt wie es ist.** Es streamt ausschließlich einen `pg_dump` zum NAS (`backup.md`) und deckt damit weiterhin den vollständigen Weltenbaum-Datenbestand ab. Wären die Dateien hier, bräuchte es eine zweite Sicherungsquelle samt eigenem Wiederherstellungstest.
 - **Die Löschmechanik wird zweiteilig.** Läuft eine Aufbewahrungsfrist ab, muss der Lösch-Job die Datei in SharePoint mitentfernen, nicht nur die Referenzzeile (`dsgvo.md`). Eine verwaiste Datei in SharePoint ist genauso ein DSGVO-Verstoß wie eine verwaiste Zeile — und sie fällt niemandem auf.
-- **Zusätzliche Graph-Berechtigung nötig,** über `Mail.Send` hinaus: `Sites.Selected` als App-only-Berechtigung, je Bibliothek einzeln von einem Admin gegrantet, schreibend (`oberflaechen.md`) — kein tenantweiter Zugriff. Offen ist nur noch, welche zwei Bibliotheken das konkret sind (`backlog/`).
+- **Zusätzliche Graph-Berechtigung nötig,** über `Mail.Send` hinaus: `Sites.Selected` als App-only-Berechtigung, je Bibliothek einzeln von einem Admin gegrantet, schreibend (`oberflaechen.md`) — kein tenantweiter Zugriff. Offen ist nur noch, welche drei Bibliotheken das konkret sind (`backlog/`).
 
 ### Q3 — Zahlungsvorgang
 
@@ -238,7 +241,7 @@ Was diese Karte offenlässt, ist selbst Ergebnis: es sind die Fragen, die vor de
 |---|---|---|
 | Zweck der Voranmeldefelder Beruf, Konfession, Staatsangehörigkeit, Kirchengemeinde — die Spalten stehen (an `children` und `guardians`), der Beschluss dazu nicht (`prozesse.md` Abschnitt 3.3). Fällt er negativ aus, ist es ein `DROP COLUMN` plus ein Feld weniger im Import | Schulleitung, Datenschutzbeauftragte:r | **Vollimport Ende August 2026** |
 | Elternfragebogen der GS-Anmeldetag-Checkliste — Inhalt unbekannt, könnte vorab digital laufen (`prozesse.md` Abschnitt 5.2) | Sekretariat, Grundschulleitung | erster Anmeldetag mit Weltenbaum |
-| Welche zwei SharePoint-Bibliotheken die Dateien tragen und wer sie einrichtet — Form ist entschieden (`Sites.Selected`, App-only, je Bibliothek gegrantet), offen sind die konkreten Sites | zweiter Admin | Domäne 4 |
+| Welche drei SharePoint-Bibliotheken die Dateien tragen und wer sie einrichtet — Form ist entschieden (`Sites.Selected`, App-only, je Bibliothek gegrantet), offen sind die konkreten Sites | zweiter Admin | Domäne 4 |
 | Ob der Hort eigenen Dateizugriff bekommt — vorerst führt er nichts Eigenes, seine Gesundheitsangaben kommen als Zeilen | Hortleitung, Sekretariat | nach dem Produktivstart |
 | AGs — nichts Konkretes bekannt | Schulleitung | offen |
 | Aufbewahrungs- und Löschfristen je Entität, darunter die ungeregelte Frist für Ferienprogramm-Daten schulfremder Kinder | Schulleitung bzw. Datenschutzbeauftragte:r (`backlog/`) | vor dem Lösch-Job |
