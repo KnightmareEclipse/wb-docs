@@ -1,9 +1,10 @@
 ---
 id: TASK-080
 title: 'Routen bauen: m365'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 11:40'
+updated_date: '2026-08-30 15:34'
 labels:
   - wb-backend
   - route
@@ -21,10 +22,11 @@ ordinal: 92000
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
 Folgt dem API-Plan. Der Zuschnitt der einzelnen Routen entsteht dort — dieses Ticket wird danach zerlegt, nicht vorher geraten.
+
+Ergebnis des Plans: **keine Route**. Alle fünf Ablaufzeilen laufen über gebaute Stammdaten- und Querschnitts-Routen; die Domäne schreibt nichts in den Tenant. Begründung in api/m365-api.md. Die Gegenprobe fand keine Lücke.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Jeder Endpunkt schreibt über die Schreibschicht, nicht an ihr vorbei
-- [ ] #2 Tabellenrechte und enge Rollen in der Migration der Domäne mitgezogen
+- [x] #1 Keine Route gebaut — jede Zeile der Ablauftabelle zeigt auf eine vorhandene
 <!-- AC:END -->
