@@ -1,10 +1,10 @@
 ---
 id: TASK-136
 title: Wählbare Sorgeberechtigte je Klasse als Stammdaten-Route
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-08-30 15:25'
-updated_date: '2026-08-30 15:51'
+updated_date: '2026-08-30 17:00'
 labels:
   - wb-docs
   - wb-backend

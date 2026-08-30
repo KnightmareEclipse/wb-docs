@@ -1,10 +1,10 @@
 ---
 id: TASK-137
 title: Die Klassenlehrkraft sieht das Austrittsdatum ihrer Kinder
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-08-30 15:28'
-updated_date: '2026-08-30 15:51'
+updated_date: '2026-08-30 17:00'
 labels:
   - wb-docs
   - wb-backend
