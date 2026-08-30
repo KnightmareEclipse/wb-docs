@@ -8,8 +8,9 @@ Die Domäne schreibt genau eine Spalte, `children.class_id`, und die gehört den
 einer gebauten.
 
 **Gegenprobe:** Die Ablauftabelle hat **3 Zeilen**; alle drei handeln im System, alle drei haben
-eine Route — **keine davon in dieser Datei**. Es gibt **0 Routen** hier. Eine Abweichung: Von den
-beiden Einsichten, die Block 15 der Klassenlehrkraft gibt, ist **eine nicht gebaut** (unten).
+eine Route — **keine davon in dieser Datei**. Es gibt **0 Routen** hier, und **keine Abweichung**:
+Auch die beiden Einsichten, die Block 15 der Klassenlehrkraft gibt, tragen je eine gebaute Route
+anderswo (unten).
 
 ## Wo die drei Zeilen liegen
 
@@ -41,31 +42,19 @@ Alles, was Block 15 außerhalb seiner Ablauftabelle verlangt, steht ebenfalls sc
 - **Die volle Gesundheitseinsicht der Klassenlehrkraft** — `GET /children/{child_id}/health-record`
   ([`gesundheit-api.md`](gesundheit-api.md)), als Ownership-Check über `classes.class_teacher_id`
   und nicht als Rolle. Gebaut.
+- **Das Austrittsdatum der Kinder der eigenen Klasse** — die zweite der beiden Einsichten, „denn
+  das Ende eines Kindes geht seine Klasse an und nicht das ganze Kollegium"
+  ([03](../soll-prozesse/03-irregulaerer-abgang.md)). Sie hängt am Kind wie die erste und steht
+  deshalb an `GET /children/{child_id}` ([`stammdaten-api.md`](stammdaten-api.md)), mit demselben
+  Ownership-Check und ohne neue Rolle. **Nicht an der Klassenliste**, die bewusst nur trägt, „was
+  die Lehrkraft im Alltag ohnehin sehen darf", und aus der ein abgegangenes Kind ohne Zutun
+  herausfällt; **nicht an `GET /children/{child_id}/departure`**, die die Lehrkraft unter „Wer darf"
+  nicht nennt. Gebaut.
 - **Die Änderungsspur**, die hält, seit wann ein Kind in seiner Klasse sitzt —
   `GET /change-log?table_name=children&row_id=` ([`querschnitt-api.md`](querschnitt-api.md)). Das
   Schema führt den Zeitpunkt bewusst nicht als Spalte.
 - **Der Wiederholer ohne passende Klasse** — er steht in `GET /classes/placement` seiner neuen Stufe
   und in `GET /school-years/{school_year}/rollover`; gesperrt wird nichts, erinnert wird an nichts.
-
-## Die eine Abweichung: das Austrittsdatum der eigenen Klasse
-
-Block 15 gibt der Klassenlehrkraft **zwei** Einsichten, „beide an der Klassenlehrkraft und beide nur
-für die Kinder ihrer Klasse". Die erste ist gebaut, die zweite nicht:
-
-> „das **Austrittsdatum**, denn das Ende eines Kindes geht seine Klasse an und nicht das ganze
-> Kollegium ([03](../soll-prozesse/03-irregulaerer-abgang.md))"
-
-`GET /children/{child_id}` gibt einer Lehrkraft „nur Name, Klasse und die Alltagsangaben"
-([`stammdaten-api.md`](stammdaten-api.md)), `GET /children/{child_id}/departure` nennt sie unter
-„Wer darf" nicht, und `GET /classes/{class_id}/roster` zeigt nur eingeschriebene Kinder — „ein
-abgegangenes fällt ohne Zutun heraus". **Die Klassenlehrkraft sieht damit heute, dass ein Kind
-verschwunden ist, und nicht, wann und dass es geht.** Genau das schließt Block 15 aus.
-
-Der Ort dafür ist `GET /children/{child_id}` und nicht die Klassenliste: Die zweite Einsicht hängt
-am Kind wie die erste, und der Roster trägt bewusst nur, „was die Lehrkraft im Alltag ohnehin sehen
-darf". Also **derselbe Ownership-Check wie bei der Gesundheitseinsicht** — `classes.class_teacher_id`
-—, der `children.exit_date` für die Kinder der eigenen Klasse freigibt und für jede andere Lehrkraft
-nicht. Eine Stammdatenroute, gebaut, also eine Änderung dort (`backlog/`).
 
 ## Am Schema aufgefallen
 
