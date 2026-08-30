@@ -1,9 +1,10 @@
 ---
 id: TASK-012
 title: 'Caddy: die Query der Anmelde-Route nicht mitschreiben'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 11:35'
+updated_date: '2026-08-30 18:01'
 labels:
   - wb-backend
   - dsgvo
@@ -24,5 +25,5 @@ Die log-Zeile im Caddyfile trägt den Hinweis, dass sie einen format filter brau
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 format filter auf der Route, gegengeprüft an einer echten Anfrage im Log
+- [x] #1 format filter auf der Route, gegengeprüft an einer echten Anfrage im Log
 <!-- AC:END -->
