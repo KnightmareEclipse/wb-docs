@@ -62,8 +62,10 @@ Rolle trägt — die Bankverbindung.
 
 **Die Gesundheitsangaben gehören nicht hierher.** Block [08](../soll-prozesse/08-schulvertrag.md)
 erhebt sie, aber `child_health_records` und `measles_proofs` stehen in
-`schema/gesundheit-schema.sql`, und ihre Routen entstehen mit dieser Domäne. Was diese hier davon
-braucht, ist der Stand: ob der Bestand beantwortet ist, weil die Vollständigkeitsprüfung ihn sieht.
+`schema/gesundheit-schema.sql`, und ihre Routen stehen in [`gesundheit-api.md`](gesundheit-api.md).
+Was diese hier davon braucht, ist der Stand: ob der Bestand beantwortet ist, weil die
+Vollständigkeitsprüfung ihn sieht — gelesen direkt an `child_health_records`, ohne einen Aufruf
+dorthin.
 
 ## Zwei Grenzen, die jede Route dieser Domäne einhält
 
@@ -271,7 +273,8 @@ Je eine Zeile, benannt und nicht mitgeplant:
 
 - **Die Gesundheitsangaben** samt Masernnachweis, obwohl [08](../soll-prozesse/08-schulvertrag.md)
   und [09](../soll-prozesse/09-hortvertrag.md) sie erheben: `child_health_records` und
-  `measles_proofs` stehen in `schema/gesundheit-schema.sql` — Gesundheit.
+  `measles_proofs` stehen in `schema/gesundheit-schema.sql`, ihre Routen in
+  [`gesundheit-api.md`](gesundheit-api.md) — eigene Aufrufe, keine Felder dieser Formulare.
 - **Das Fotoeinverständnis** als Zustimmung und die Einwilligung zum Austausch zwischen Hort und
   Schule: beide sind Q1 und laufen über `PUT /children/{child_id}/consents/{purpose}` —
   [Querschnitt](querschnitt-api.md).

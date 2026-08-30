@@ -64,9 +64,10 @@ trotzdem an jeder Route, damit ihr Fehlen eine Aussage bleibt.
 
 **Eine Route liest trotzdem eng, und die Regel dafür gehört nicht hierher:** Die Teilnehmerliste
 zeigt „bei bekannten Kindern das, was die Betreuung ohnehin sehen darf (08)". Was das je Rolle ist,
-entscheidet die Gesundheits-Domäne — der Hort sieht den vollen Satz (`backend_health`), die
-Hauswirtschaftsleitung den Küchen-Ausschnitt über `kitchen_health_traits`
-([`mensa-api.md`](mensa-api.md)).
+hat die Gesundheits-Domäne entschieden — der Hort sieht die Alltagsmerkmale über die eigene View
+`everyday_health_traits` (`backend_health_everyday`), ohne Diagnose, Behandlungsgrund oder
+Attestlage, die Hauswirtschaftsleitung den engeren Küchen-Ausschnitt über `kitchen_health_traits`
+([`mensa-api.md`](mensa-api.md), [`gesundheit-api.md`](gesundheit-api.md)).
 
 Der Gesundheits-Ausschnitt der Teilnehmerliste folgt der Rolle des Aufrufers und wird an einer
 Stelle gerechnet, die der Gesundheits-Domäne gehört. — Alternative: die Liste trägt gar keine
@@ -201,10 +202,11 @@ nichts" — es sperrt nur, wo der Block sperrt, und die Stelle trägt ein.
 | `GET /holiday/sessions/{holiday_session_id}/participants` — wer an diesem Termin kommt: Name, Modul, Notfallnummer, Anmerkung, Fotoeinverständnis und bei bekannten Kindern der Gesundheits-Ausschnitt seiner Rolle; dazu je Zeile die Kennung der Buchung | [10](../soll-prozesse/10-ferienprogramm.md) Z7, „Dateien" | die anbietende Rolle des Programms, `day_care_staff`, `secretariat` | Listenroute, deshalb nie über den OTP-Pfad. [Frisch erzeugt](../soll-prozesse/hebel.md#frisch-erzeugte-liste); **ohne die stornierten Buchungen**. Wer den Tag betreut, braucht keinen Zugang — die Stelle druckt sie aus | liest | die des Gesundheitsbestands, je nach Rolle (oben) |
 
 **Der Gesundheits-Ausschnitt steht heute für zwei Rollen.** Die Hortleitung und die Hortkraft lesen
-die Merkmale über `backend_health`, die Hauswirtschaftsleitung den Küchen-Ausschnitt über
-`kitchen_health_traits`. Für das **Sekretariat trägt die Liste keinen** — was es sehen darf, ist eine
-Regel der Gesundheits-Domäne, und die hat noch keine Routen; eine hier erfundene wäre die zweite
-Stelle, an der derselbe Ausschnitt entschieden wird.
+die Alltagsmerkmale über `backend_health_everyday`, die Hauswirtschaftsleitung den Küchen-Ausschnitt über
+`kitchen_health_traits`. Für das **Sekretariat trägt die Liste keinen**, obwohl es nach
+[`gesundheit-api.md`](gesundheit-api.md) die volle Sicht hätte — diese Route ist beim Bau der
+Domäne nicht mitgezogen und braucht dafür ein eigenes Ticket, keinen hier erfundenen dritten
+Ausschnitt.
 
 **Sie kommt als Zeilen, nicht als Druckansicht** — die Ausnahme, die
 [`gemeinsam.md`](gemeinsam.md#liste) benennt und die schon `GET /applications` trägt: Aus dieser
@@ -293,8 +295,8 @@ Je eine Zeile, benannt und nicht mitgeplant:
 - **Die Fassungen von `holiday_terms` und der drei Stornotexte** pflegen —
   [`querschnitt-api.md`](querschnitt-api.md), `POST /contract-texts`, `executive_management`.
 - **Die Änderungsspur** — [`querschnitt-api.md`](querschnitt-api.md).
-- **Der Gesundheits-Ausschnitt der Teilnehmerliste** — Gesundheits-Domäne; sie hat noch keine Routen,
-  und `kitchen_health_traits` steht schon ([`mensa-api.md`](mensa-api.md)).
+- **Der Gesundheits-Ausschnitt der Teilnehmerliste** — [`gesundheit-api.md`](gesundheit-api.md);
+  `kitchen_health_traits` steht schon ([`mensa-api.md`](mensa-api.md)).
 - **Der Lösch-Lauf** (17), der Buchung, Anmerkung, Code und — über den letzten gebuchten Termin —
   Kind und Familie mitnimmt.
 - **Keine Abgangsroute.** Eine gebuchte Teilnahme steht nicht auf der Abgangsliste
