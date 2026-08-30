@@ -1,6 +1,6 @@
 # Fragen an die Schule — was wen zu fragen ist
 
-Sechzehn Fragen, die Weltenbaum nicht selbst beantworten kann, sortiert nach dem Gespräch, in das
+Siebzehn Fragen, die Weltenbaum nicht selbst beantworten kann, sortiert nach dem Gespräch, in das
 sie gehören. Je Frage steht hier ihr **Wortlaut**, das **Kriterium**, an dem du erkennst, dass die
 Antwort reicht, und **woran sie hängt**.
 
@@ -158,7 +158,7 @@ dieselbe Person.
 
 ---
 
-## Geschäftsführung — vier Fragen
+## Geschäftsführung — fünf Fragen
 
 Drei davon sind **Vertragstexte**, und jeder ist Vorbedingung für seinen Prozess, nicht Beiwerk:
 Solange der Text die alte Mechanik beschreibt, kann der digitale Ablauf nicht laufen, ohne dem zu
@@ -224,9 +224,26 @@ Stunden — gebucht wird in Optigem.
 
 ---
 
+### 13. Wer trägt die Rolle Führungskraft
+
+> „In der Rechnungsfreigabe wählt der Einreicher die Führungskraft, in deren Bereich die Ausgabe
+> entstanden ist. Wer soll auf dieser Auswahlliste stehen — nur die Bereichsleitungen, oder auch der
+> Vorstand?"
+
+**Brauchbar ist die Antwort, wenn** je Bereichsleitung feststeht, ob sie die Rolle bekommt. Für die
+Geschäftsführung ist nichts zu entscheiden: Sie ist „immer auch Führungskraft und wählbar wie jede
+andere, ohne dass ihr jemand die Rolle geben müsste" (12).
+
+**Daran hängt:** Nichts im Schema — es ist eine Rollenvergabe, keine Struktur. Aber ohne sie ist die
+Auswahlliste beim Einreichen leer, und der erste Beleg kommt nicht durch.
+
+*Steht in* `api/rechnungsfreigabe-api.md` · `glossar.md`
+
+---
+
 ## Sekretariat — vier Fragen
 
-### 13. Zuordnung der Fremdsysteme — zusammen mit Buchhaltung und Admin
+### 14. Zuordnung der Fremdsysteme — zusammen mit Buchhaltung und Admin
 
 > „Wenn sich bei einem Kind oder einer Familie etwas ändert, muss das teilweise auch in ASV-BW,
 > Optigem oder M365 nachgezogen werden. Wir haben eine Zuordnung erstellt, welche Änderung wohin
@@ -241,7 +258,7 @@ Zuordnung dort zu weit gefasst.
 
 *Steht in* `soll-prozesse/02-datenaenderung.md:32`
 
-### 14. Bescheinigungen beim Abgang
+### 15. Bescheinigungen beim Abgang
 
 > „Wenn ein Kind die Schule verlässt — welche Papiere schreibt ihr routinemäßig? Abgangszeugnis,
 > Schulbescheinigung für die neue Schule, Bestätigung der Abmeldung?"
@@ -253,7 +270,7 @@ oder nur auf Anfrage entsteht.
 
 *Steht in* `soll-prozesse/03-irregulaerer-abgang.md:25`
 
-### 15. Aufgaben des Jahreswechsels
+### 16. Aufgaben des Jahreswechsels
 
 > „Ende Juli zieht der zweite Admin alle Klassen von Hand auf die neue Stufe um, legt die Neuen an
 > und löscht die Abgänger. Was tut ihr in dieser Zeit sonst noch, jedes Jahr wieder?"
@@ -266,7 +283,7 @@ bleibt Zuruf.
 
 *Steht in* `soll-prozesse/04-schuljahreswechsel.md:30`
 
-### 16. Elternfragebogen der Grundschul-Checkliste — zusammen mit der Grundschulleitung
+### 17. Elternfragebogen der Grundschul-Checkliste — zusammen mit der Grundschulleitung
 
 > „Beim Anmeldetag der Grundschule bekommen die Eltern einen Fragebogen auf Papier mit. Was steht
 > darauf — und könnte er künftig vorab im Portal ausgefüllt werden?"
