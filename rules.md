@@ -79,7 +79,7 @@ Keine Hochverfügbarkeits-Infrastruktur (Multi-Server, Load-Balancer, Multi-Regi
 ## 8. Testbarkeit
 
 - Ein Backup, das nie wiederhergestellt wurde, gilt als nicht vorhanden — jeder Recovery-Pfad hat einen wiederkehrenden Test (Referenz: quartalsweiser Restore-Test in `backup.md`).
-- Jedes Skript, das produktiv gegen den Server läuft, wird vorher gegen einen Wegwerf-Zustand geprüft (Scratch-Container, Rescue-System-Idempotenz), nicht direkt live.
+- Jedes Skript, das produktiv gegen den Server läuft, wird vorher gegen einen Wegwerf-Zustand geprüft (Scratch-Container, Rescue-System-Idempotenz), nicht direkt live (Referenz: `wb-vps/ansible/tests/run-in-container.sh` spielt `site.yml` zweimal gegen einen Debian-13-Container und verlangt `changed=0` beim zweiten Lauf; was im Container nicht laufen kann, trägt `tags: [host-only]` und bleibt dem Lauf gegen einen neu aufgesetzten Server vorbehalten).
 
 ## 9. Lokale Entwicklung
 

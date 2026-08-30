@@ -4,6 +4,7 @@ title: 'Dublettenhinweis an Bewerbung und Buchung, keine eigene Liste'
 status: To Do
 assignee: []
 created_date: '2026-08-27 11:35'
+updated_date: '2026-08-30 18:11'
 labels:
   - wb-backend
   - anmeldung
@@ -26,3 +27,9 @@ Kandidatenabgleich Nachname + Geburtsdatum. Zwei Regeln: nie automatisch verknü
 - [ ] #2 Das Ergebnis erreicht den Absender nie
 - [ ] #3 Knopf zum Verknüpfen am Vorgang, keine eigene Dublettenliste
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Geprüft, nicht gebaut: Der Kandidatenabgleich über Nachname und Geburtsdatum steht in keinem Soll-Block. 05 erkennt eine wiederkehrende Familie über die bestätigte Mailadresse ('Die Frage wird an der bestätigten Adresse beantwortet und nicht im Browser', GET /admission/targets), und der einzige Dublettenhinweis, den das Soll kennt, ist der aus 12 — Empfänger und Betrag innerhalb von 30 Tagen, gebaut an GET /expense-claims/{id}. Dieses Ticket würde ein zweites, schwächeres Erkennungsverfahren daneben stellen, das kein Block verlangt. Vor dem Bau zu entscheiden: gehört der Abgleich in 05 und 10, und was tut er, wenn er anschlägt — denn 'nie automatisch verknüpfen' braucht einen Ort, an dem das Sekretariat verknüpft, und den gibt es heute nicht.
+<!-- SECTION:NOTES:END -->
