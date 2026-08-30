@@ -53,7 +53,16 @@ Drei Bedingungen, ohne die die Ausnahme nicht trägt:
 
 ## Was du selbst tust
 
-1. **Die zwölf Arbeitsbäume anlegen**, nacheinander und bevor der erste Agent startet — `git
+1. **Zuerst der Nullpunkt**, im Hauptbaum und bevor irgendein Baum entsteht: `pytest`,
+   `ruff check`, `ruff format --check`, `mypy app`, `./schema-check.sh`. Schreib die Zahl der Tests
+   und die fünf Rückgabewerte auf — sie sind der Vergleichswert für den Schluss.
+
+   **Ist hier etwas rot, brichst du ab.** Nicht aus Ordnungsliebe: Die Methode dieses Laufs heißt
+   „Sicherung raus, Test muss rot werden". Eine Suite, die schon vorher rot ist, macht jede Messung
+   danach bedeutungslos, und zwölf Agenten würden stundenlang Grün-Rot-Vergleiche anstellen, die
+   nichts aussagen. Sag in einem Satz, was rot war, und liefere nichts weiter.
+
+2. **Die zwölf Arbeitsbäume anlegen**, nacheinander und bevor der erste Agent startet — `git
    worktree add` fasst das `.git` des Hauptbaums an, und das machen zwölf Agenten nicht
    gleichzeitig. Je Domäne, aus dem Hauptbaum heraus:
 
@@ -68,7 +77,7 @@ Drei Bedingungen, ohne die die Ausnahme nicht trägt:
    kann — der Lauf scheitert dann erst im Test, mit `SettingsError: error getting value for field
    "migration_db_password"`, und das sieht nach einem Fund aus. Gemessen, nicht vermutet.
 
-2. **Die Agenten starten, drei gleichzeitig**, in dieser Reihenfolge, größte Domäne zuerst:
+3. **Die Agenten starten, drei gleichzeitig**, in dieser Reihenfolge, größte Domäne zuerst:
    `anmeldung`, `stammdaten`, `rechnungsfreigabe`, `cleaning`, `querschnitt`, `ferien`, `mensa`,
    `elternbonus`, `gesundheit`, `klassenorganisation`, `payments`, `auth`. Jeder bekommt den
    **Auftrag unten wörtlich**, mit `DOMÄNE` ersetzt und den beiden absoluten Pfaden eingesetzt: sein
@@ -76,11 +85,11 @@ Drei Bedingungen, ohne die die Ausnahme nicht trägt:
    oder nirgends. Drei gleichzeitig, weil je Agent eine Postgres läuft; auf mehr geht die Wanduhr
    nicht mehr herunter, weil die Suite datenbankgebunden ist.
 
-3. **Nach jedem Agenten seinen Baum entfernen** — `git worktree remove --force ../wbp-DOMÄNE`. Seine
+4. **Nach jedem Agenten seinen Baum entfernen** — `git worktree remove --force ../wbp-DOMÄNE`. Seine
    Container räumt er selbst ab; stirbt er vorher, machst du es: `podman-compose -p wbp-DOMÄNE down
    -v`.
 
-4. **Den domänenübergreifenden Teil machst du selbst**, im Hauptbaum, wenn alle durch sind. Er
+5. **Den domänenübergreifenden Teil machst du selbst**, im Hauptbaum, wenn alle durch sind. Er
    gehört in keinen Agenten, sonst fährt ihn jeder von zwölfen und meldet zwölfmal dieselbe Zahl:
 
    - **Fehlerklasse 8 über alle Router auf einmal**: Plan gegen Router, Methode, Pfad, Rolle,
@@ -88,12 +97,13 @@ Drei Bedingungen, ohne die die Ausnahme nicht trägt:
      der Unterschied zwischen „gebaut" und „richtig gebaut".
    - **Zwei Zahlen über alle Domänen**: wie viele Routen überhaupt einen Test haben, und wie viele
      einen Test auf die **fremde Id**. Die Differenz ist die eigentliche Aussage dieses Laufs.
-   - **Der volle Lauf**: `pytest`, `ruff check`, `ruff format --check`, `mypy app`,
-     `./schema-check.sh`. In den Bericht kommt der Rückgabewert, nicht der Text auf dem Schirm.
+   - **Derselbe Lauf wie in Schritt 1**, und er steht jetzt gegen den Nullpunkt: dieselbe Zahl
+     Tests, dieselben fünf Rückgabewerte. Weicht etwas ab, hat ein Agent etwas liegen lassen —
+     das ist ein Fund über den Lauf und nicht über den Code.
    - **Die Gegenprobe aufs Aufräumen**: `git status` sauber, `git worktree list` nur der Hauptbaum,
      `podman ps -a` und `podman volume ls` ohne `wbp-`.
 
-5. **Die Zusammenfassung erzeugst du aus den Dateien**, nicht aus dem Kopf und nicht aus dem, was
+6. **Die Zusammenfassung erzeugst du aus den Dateien**, nicht aus dem Kopf und nicht aus dem, was
    die Agenten dir gesagt haben.
 
 ## Der Auftrag je Agent — wörtlich weitergeben
