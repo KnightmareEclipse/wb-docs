@@ -22,10 +22,11 @@ Zwei Ebenen, nie nur eine: **welche** Rolle eine Anfrage bekommt, liest die API 
 | Klassenlehrer:in | Entra | ihre Klasse |
 | Lehrkraft | Entra | alle, aber nur Foto-Ja/Nein und den Handlungshinweis |
 | Küche / Hausdienstverwaltung | Entra | alle, aber nur das Küchenprofil |
+| Führungskraft | Entra | — (kennt keine Kinder) |
 | Buchhaltung | Entra | alle |
 | Erziehungsberechtigte | OTP | die eigenen |
 
-**Keine Rolle im System haben** Vorstand und die übrigen Bereichsleitungen (KITA, Grundschule/Realschule fallen mit der Schulleitung zusammen) — sie sind nicht operativ am Prozess beteiligt (`fachdomaenen.md` Abschnitt 5); mit der Rechnungsfreigabe (Domäne 5) ist das neu zu prüfen. **Schüler** haben durchgängig keinen Zugang: Datenobjekt, nie Akteur.
+**Keine Rolle im System haben** Vorstand und die übrigen Bereichsleitungen (KITA, Grundschule/Realschule fallen mit der Schulleitung zusammen) — sie sind nicht operativ am Prozess beteiligt (`fachdomaenen.md` Abschnitt 5), **außer in der Rechnungsfreigabe**: Dort tragen sie die Rolle Führungskraft, und wer sie trägt, ist keine Festlegung dieser Datei, sondern eine laufende Rollenvergabe der Geschäftsführung. **Schüler** haben durchgängig keinen Zugang: Datenobjekt, nie Akteur.
 
 **Infra-Admin**:
 Person mit Root-SSH-Zugriff auf die VPS, eigenem Hetzner-API-Token, Zugriff auf GitHub-Org und gemeinsames KeePass — unabhängig von jeder Rolle innerhalb der Anwendung.
@@ -63,6 +64,10 @@ Bereichsleitung Hort (`fachdomaenen.md` Abschnitt 5). Alles wie Hort, dazu die *
 
 **Küche / Hausdienstverwaltung**:
 Liest Küchenprofil und Essens-Tagesliste (`schema/mensa-schema.sql`), nie den Art.-9-Bestand der Gesundheitsdomäne. Führt daneben die Kochwerkstatt-Liste (`fachdomaenen.md` Abschnitt 3).
+
+**Führungskraft**:
+Rolle in Weltenbaum (`roles.code = 'approver'`) für die Rechnungsfreigabe, und nur für sie: Sie sieht kein Kind, keine Familie und keine Klasse. Der Einreicher **wählt** sie an seinem Beleg — sie entscheidet danach über genau diesen Beleg, nicht über eine Menge, und der Zugriff hängt deshalb an der Zeile und nicht an der Rolle (`api/rechnungsfreigabe-api.md`). Freigeben, ablehnen, korrigieren, weiterleiten, aufteilen. Welche Bereichsleitung sie trägt, **steht nirgends geschrieben und ändert sich**: Die Geschäftsführung vergibt sie wie jede andere Mitarbeiterrolle (`soll-prozesse/hebel.md`), und eine Zuordnung Projekt↔Führungskraft gibt es bewusst nicht — „das Haus ist klein genug, dass jeder weiß, wen er wählt" (`soll-prozesse/12-rechnungsfreigabe.md`). Die **Geschäftsführung ist hier immer auch Führungskraft**, ohne die Rolle zu tragen, und fängt jeden Ausfall auf.
+_Avoid_: Manager (der Name im heutigen Beleg-Portal), Vorgesetzte:r (es gibt keine Hierarchie im System)
 
 **Buchhaltung**:
 Bestätigt Zahlungen, die nicht über Stripe hereinkommen (Überweisung, Bargeld — `schema/putzdienst-schema.sql`), und zieht Forderungen in Optigem. In Weltenbaum entsteht keine Buchhaltung (`grenzkarte.md`, Q3).

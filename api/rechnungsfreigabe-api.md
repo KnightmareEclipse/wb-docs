@@ -161,11 +161,11 @@ Je eine Zeile, benannt und nicht mitgeplant:
 - **Die wählbare Führungskraft** — `GET /employees/selectable`
   ([`stammdaten-api.md`](stammdaten-api.md)) nennt [12](../soll-prozesse/12-rechnungsfreigabe.md) Z1
   bereits als einen ihrer drei Anlässe. **Der `role_code`-Parameter wird wiederholbar**: Diese
-  Domäne braucht `approver` **und** `executive_management` in einer Antwort, weil die
-  Geschäftsführung „wählbar wie jede andere" ist, ohne die Rolle zu tragen. — Alternative: zweimal
-  rufen und im Frontend zusammenführen; Preis: die Regel, wer wählbar ist, steht dann in der
-  Oberfläche. Alternative: der Geschäftsführung die Rolle `approver` mit ausliefern; Preis: genau
-  das, was der Block ausschließt.
+  Domäne braucht `approver` **und** `executive_management` in einer Antwort — genau die Regel, nach
+  der das heutige Portal seine Auswahl füllt (`Rolle eq 'Manager' or Rolle eq 'Geschäftsführung'`,
+  dazu `Active`, in `RoleService.getManagerOptions`). `Active` fällt bei uns weg: Es ist
+  `employees.last_working_day`, und die Route filtert ohnehin danach. — Alternative: zweimal rufen
+  und im Frontend zusammenführen; Preis: die Regel, wer wählbar ist, steht dann in der Oberfläche.
 - **Die Änderungsspur** — `GET /change-log` ([`querschnitt-api.md`](querschnitt-api.md)); sie folgt
   hier dem abweichenden Sehrecht oben und **nicht** dem Sekretariat, und das steht dort bereits.
 - **Die Rollenvergabe** — `PUT /employees/{employee_id}/roles`
@@ -230,11 +230,11 @@ Kein Eingriff, das Schema führt `wb-backend`:
 
 ## Offene Fragen
 
-Der Block lässt nichts offen, was die Routen betrifft. **Eine** kommt mit ihnen dazu, und sie stand
-schon als Vorbehalt im Glossar:
-
-`[?]` Welche Bereichsleitungen tragen künftig die Rolle **Führungskraft**? `glossar.md` hält fest,
-dass Vorstand und die übrigen Bereichsleitungen heute keine Rolle im System haben, „mit der
-Rechnungsfreigabe (Domäne 5) ist das neu zu prüfen" — und ohne die Antwort weiß niemand, wer in
-`GET /employees/selectable` steht und damit als Führungskraft wählbar ist. — Geschäftsführung
-(`fragen.md`, `backlog/`).
+**Keine.** Auch nicht, wer die Rolle `approver` trägt: Das ist keine Frage, sondern eine laufende
+Rollenvergabe der Geschäftsführung — heute wie künftig. `glossar.md` hielt fest, dass „Vorstand und
+die übrigen Bereichsleitungen keine Rolle im System haben, mit der Rechnungsfreigabe ist das neu zu
+prüfen"; geprüft und beantwortet ist es damit so: Die Rolle gibt es, wer sie trägt, entscheidet die
+Geschäftsführung über `PUT /employees/{employee_id}/roles`
+([`stammdaten-api.md`](stammdaten-api.md)), und für welchen Bereich eine Führungskraft zuständig ist,
+steht nirgends im System — „das Haus ist klein genug, dass jeder weiß, wen er wählt"
+([12](../soll-prozesse/12-rechnungsfreigabe.md), „Gehört nicht dazu").
