@@ -6,7 +6,10 @@
 -- holiday_cost_coverage_codes, holiday_bookings und holiday_care_notes.
 -- Dazu ein Lese-Index
 -- auf die Teilnehmerliste, ein partieller Unique-Index über die nicht
--- stornierten Buchungen und die Fremdschlüssel von Q3 und Q5 auf diese Domäne.
+-- stornierten Buchungen und die Fremdschlüssel von Q3 und Q5 auf diese Domäne;
+-- der von Q3 zeigt einfach auf `holiday_booking_id`, weil ein Absenden über
+-- mehrere Kinder eine Zahlung über die Summe ist. `holiday_session_types` trägt
+-- mit `cancellation_deadline_days` die Stornosperre der Eltern als Zahl.
 --
 -- Setzt stammdaten-schema.sql und querschnitt-schema.sql voraus:
 --   psql -v ON_ERROR_STOP=1 -f ferien-schema-check.sql
@@ -48,7 +51,7 @@ BEGIN
         'ck_holiday_sessions_places', 'ck_holiday_programmes_window',
         'fk_payments_holiday_booking',
         'ck_holiday_bookings_declared_by', 'ck_holiday_bookings_recorded_by',
-        'uq_holiday_bookings_amount', 'fk_sync_tasks_holiday_booking',
+        'fk_sync_tasks_holiday_booking',
         'uq_holiday_care_notes', 'fk_holiday_care_notes_child',
         'fk_holiday_care_notes_programme'
     ]) AS c
@@ -253,6 +256,37 @@ BEGIN
     END IF;
     RAISE NOTICE 'ok (abgewiesen): 10 — die Stornobedingungen stehen als Text mit Gültigkeitstag';
 END $$;
+
+-- 10, „Fristen und Termine": „ab 3 Tagen ist ein Storno nicht mehr möglich" ist
+-- eine Maschinenregel und steht deshalb als Zahl an der Terminart, nicht als
+-- `if` über die drei bekannten `code`-Werte. Leer heißt „keine Sperre" — die
+-- Kochwerkstatt trägt leer —, und genau das muss die Spalte zulassen.
+DO $$
+DECLARE found record;
+BEGIN
+    SELECT data_type, is_nullable INTO found
+      FROM information_schema.columns
+     WHERE table_name = 'holiday_session_types'
+       AND column_name = 'cancellation_deadline_days';
+    IF found IS NULL THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — die Stornofrist hinge wieder an `code`-Werten im Code';
+    END IF;
+    IF found.data_type <> 'smallint' OR found.is_nullable <> 'YES' THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — die Stornofrist ist keine leerbare Zahl (%, %)',
+            found.data_type, found.is_nullable;
+    END IF;
+    RAISE NOTICE 'ok: 10 — die Stornofrist der Eltern steht als leerbare Zahl an der Terminart';
+END $$;
+
+SELECT pg_temp.expect_accept(
+    '10 — die Kochwerkstatt trägt keine Sperre',
+    $q$UPDATE holiday_session_types SET cancellation_deadline_days = NULL
+        WHERE code = 'cooking'$q$);
+
+SELECT pg_temp.expect_accept(
+    '10 — der Ferientag trägt drei Tage',
+    $q$UPDATE holiday_session_types SET cancellation_deadline_days = 3
+        WHERE code = 'holiday_day'$q$);
 
 SELECT pg_temp.expect_accept(
     '10 — angekündigte Stornobedingungen neben den geltenden',
@@ -465,18 +499,15 @@ SELECT pg_temp.expect_reject(
     $q$INSERT INTO payments (holiday_booking_id, amount_cents, created_by)
        VALUES ('66666666-6666-6666-6666-666666666669', 5000, 'system:check')$q$);
 
--- X2 — „der gezahlte Betrag als das, was an diesem Tag galt" (10) steht an der
--- Buchung, derselbe Betrag an der Zahlung (grenzkarte.md, Q3): zwei Orte, ein
--- Sachverhalt, aneinander gebunden (rules.md Abschnitt 1).
-SELECT pg_temp.expect_reject(
-    'X2 — Zahlung über einen anderen Betrag als die Buchung',
+-- 10/Q3 — „Ein Absenden ist eine Sitzung und eine Zahlungszeile, auch wenn drei
+-- Kinder an vier Terminen gebucht werden" (api/ferien-api.md): Die Zahlung hängt
+-- an der ersten entstandenen Buchung und trägt die **Summe**. Ein
+-- zusammengesetzter Schlüssel über `amount_cents` ließe genau dieses Absenden
+-- nicht entstehen — deshalb muss ein abweichender Betrag durchgehen.
+SELECT pg_temp.expect_accept(
+    'Q3 — Zahlung über die Summe mehrerer Buchungen, an der ersten von ihnen',
     $q$INSERT INTO payments (holiday_booking_id, amount_cents, created_by)
-       VALUES ('66666666-6666-6666-6666-666666666661', 4000, 'system:check')$q$);
-
-SELECT pg_temp.expect_reject(
-    'X2 — der Betrag der Buchung wandert unter ihrer Zahlung weg',
-    $q$UPDATE holiday_bookings SET amount_cents = 4000
-        WHERE holiday_booking_id = '66666666-6666-6666-6666-666666666661'$q$);
+       VALUES ('66666666-6666-6666-6666-666666666661', 12000, 'system:check')$q$);
 
 -- 10: „Der Code gilt für diese eine Anmeldung." Eingelöst hängt er an seiner
 -- Buchung und geht erst nach ihr — `fk_holiday_bookings_coverage_code` hält ihn

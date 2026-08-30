@@ -131,12 +131,23 @@ Sitzung ein, und „eine spätere Änderung rechnet nichts rückwirkend um".
 `[A!]` **Ein Absenden ist eine Sitzung und eine Zahlungszeile, auch wenn drei Kinder an vier Terminen
 gebucht werden**; die Zahlung hängt an der ersten entstandenen Buchung, und was gekauft wurde, steht
 an ihr über Kind, Familie und Zeitpunkt — dieselbe Form wie beim Jahres-Freikauf des Putzdiensts
-([`gemeinsam.md`](gemeinsam.md#sofortzahlung)). **Der zusammengesetzte Fremdschlüssel
-`fk_payments_holiday_booking` über `amount_cents` trägt das nicht** und fällt damit auf einen
-einfachen zurück (siehe „Am Schema aufgefallen"). — Alternative: je Buchung eine eigene Sitzung;
+([`gemeinsam.md`](gemeinsam.md#sofortzahlung)). **`fk_payments_holiday_booking` zeigt deshalb einfach
+auf `holiday_booking_id`** wie die drei übrigen Anlässe: Der Betrag der Zahlung ist die Summe und
+gleicht dem keiner einzelnen Buchung (siehe „Am Schema aufgefallen"). — Alternative: je Buchung eine eigene Sitzung;
 Preis: der Elternteil bezahlt bei drei Kindern an vier Terminen zwölfmal, samt zwölf
 Transaktionsgebühren — eine Barriere vor dem Bezahlen, wo heute ein Formular reicht, und „mehrere
 Kinder in einem Zug, drei Kinder sind kein drittes Formular" (Z3) fällt.
+
+**Ein Absenden trägt die Termine genau eines Programms.** Anmerkung und Kostenübernahme-Code stehen
+je Programm, nicht je Buchung — ein Absenden über zwei Programme hätte für beide keinen eindeutigen
+Bezug, und `uq_holiday_care_notes` fasst genau diesen Fall nicht. Zwei Programme sind zwei Absenden,
+und je Programm bleibt es bei „mehrere Kinder in einem Zug" (Z3).
+
+**Die Notfallnummer kommt an der sorgeberechtigten Person und nicht in einem eigenen Feld.** Für eine
+bekannte Familie ruft das Formular `POST /persons/{person_id}/phone-numbers`
+([`stammdaten-api.md`](stammdaten-api.md)); für eine unbekannte trägt die sorgeberechtigte Person im
+Rumpf ihre tagsüber erreichbare Nummer, und **ohne sie weist die Route ab** — „ihre Pflicht greift
+mit der ersten Buchung". Ein zweites Feld daneben wäre ein zweiter Ort für dieselbe Nummer.
 
 **Ein Absenden ist ganz bezahlt oder ganz berechnet.** Der Code „gilt für diese eine
 Anmeldung" und tritt an die Stelle der Zahlung, nicht neben sie. — Alternative: je Kind wählbar;
@@ -180,7 +191,7 @@ nichts" — es sperrt nur, wo der Block sperrt, und die Stelle trägt ein.
 
 | Handlung | Herkunft | Wer darf | Worauf eingeschränkt | Schreibt/liest | Enge Rolle |
 |---|---|---|---|---|---|
-| `POST /holiday/cost-coverage-codes` — einen Code für eine Mailadresse und ein Programm erzeugen, dazu der Satz, an wen berechnet wird; gibt den Klartext **genau einmal** zurück, gespeichert wird sein Hash | [10](../soll-prozesse/10-ferienprogramm.md) „Sonderfälle" | `secretariat`, die anbietende Rolle des Programms | unbeschränkt. Er gilt für **diese eine Anmeldung**, nur für seine Adresse, und verfällt **14 Tage** nach `created_at` — die Frist ist fest und steht in keiner Spalte (`schema/ferien-schema.sql`). Wie die Freischaltung in 05 „die benannte Ausnahme von einer Sperre samt [Änderungsspur](../soll-prozesse/hebel.md#änderungsspur)" | schreibt, `entra:` | — |
+| `POST /holiday/cost-coverage-codes` — einen Code für eine Mailadresse und ein Programm erzeugen, dazu der Satz, an wen berechnet wird; gibt den Klartext **genau einmal** zurück, gespeichert wird sein Hash | [10](../soll-prozesse/10-ferienprogramm.md) „Sonderfälle" | `secretariat`, die anbietende Rolle des Programms | unbeschränkt. Er gilt für **diese eine Anmeldung**, nur für seine Adresse, und verfällt **14 Tage** nach `created_at` — die Frist ist fest und steht in keiner Spalte (`schema/ferien-schema.sql`). Die Adresse prüft die Buchungsroute gegen die der Sitzung; auf dem [offiziellen Umweg](gemeinsam.md#der-offizielle-umweg) gibt es keine, und die Stelle, die stellvertretend bucht, ist dieselbe, die den Code erzeugt hat. Wie die Freischaltung in 05 „die benannte Ausnahme von einer Sperre samt [Änderungsspur](../soll-prozesse/hebel.md#änderungsspur)" | schreibt, `entra:` | — |
 | `GET /holiday/cost-coverage-codes` — die erzeugten Codes samt Adresse, Programm, Abrechnungssatz, Urheber und der Angabe, ob eingelöst | [10](../soll-prozesse/10-ferienprogramm.md) „Was dabei erhoben wird" | `secretariat`, die anbietende Rolle des Programms | Listenroute, deshalb nie über den OTP-Pfad. **Nie den Code selbst** — gespeichert ist sein Hash, und wer ihn verloren hat, bekommt einen neuen. Abgelaufene und nicht eingelöste fallen heraus; „eingelöst" ist ein `EXISTS` auf `holiday_bookings` und keine Spalte | liest | — |
 
 ## Die Teilnehmerliste
@@ -188,6 +199,12 @@ nichts" — es sperrt nur, wo der Block sperrt, und die Stelle trägt ein.
 | Handlung | Herkunft | Wer darf | Worauf eingeschränkt | Schreibt/liest | Enge Rolle |
 |---|---|---|---|---|---|
 | `GET /holiday/sessions/{holiday_session_id}/participants` — wer an diesem Termin kommt: Name, Modul, Notfallnummer, Anmerkung, Fotoeinverständnis und bei bekannten Kindern der Gesundheits-Ausschnitt seiner Rolle; dazu je Zeile die Kennung der Buchung | [10](../soll-prozesse/10-ferienprogramm.md) Z7, „Dateien" | die anbietende Rolle des Programms, `day_care_staff`, `secretariat` | Listenroute, deshalb nie über den OTP-Pfad. [Frisch erzeugt](../soll-prozesse/hebel.md#frisch-erzeugte-liste); **ohne die stornierten Buchungen**. Wer den Tag betreut, braucht keinen Zugang — die Stelle druckt sie aus | liest | die des Gesundheitsbestands, je nach Rolle (oben) |
+
+**Der Gesundheits-Ausschnitt steht heute für zwei Rollen.** Die Hortleitung und die Hortkraft lesen
+die Merkmale über `backend_health`, die Hauswirtschaftsleitung den Küchen-Ausschnitt über
+`kitchen_health_traits`. Für das **Sekretariat trägt die Liste keinen** — was es sehen darf, ist eine
+Regel der Gesundheits-Domäne, und die hat noch keine Routen; eine hier erfundene wäre die zweite
+Stelle, an der derselbe Ausschnitt entschieden wird.
 
 **Sie kommt als Zeilen, nicht als Druckansicht** — die Ausnahme, die
 [`gemeinsam.md`](gemeinsam.md#liste) benennt und die schon `GET /applications` trägt: Aus dieser
@@ -287,24 +304,23 @@ Je eine Zeile, benannt und nicht mitgeplant:
 
 Kein Eingriff, das Schema führt `wb-backend`:
 
-- **`fk_payments_holiday_booking` bindet `amount_cents` und verträgt sich nicht mit „mehrere Kinder
-  in einem Zug".** Er ist der einzige der vier Zahlungs-Fremdschlüssel, der zusammengesetzt ist; die
-  drei übrigen zeigen schlicht auf ihren Vorgang. Solange er steht, muss der Betrag der Zahlung dem
-  Betrag **einer** Buchung gleichen — ein Absenden über drei Kinder und vier Termine kann dann
-  entweder nicht als eine Zahlung entstehen oder gar nicht. **Entschieden ist es oben**: eine
-  Sitzung, eine Zahlung an der ersten Buchung, und `fk_payments_holiday_booking` zeigt beim Bau nur
-  noch auf `holiday_booking_id` — dieselbe Form wie die drei übrigen Anlässe. Der Kommentar an
-  `payments.amount_cents` („zwei Orte für dieselbe Zahl werden zusammengehalten") zieht mit, und
-  `uq_holiday_bookings_amount` fällt mit ihm, weil kein Schlüssel mehr darauf zeigt.
-- **`holiday_session_types` trägt keine Stornofrist.** Der Text sagt sie einem Menschen, aber die
+- **`fk_payments_holiday_booking` band `amount_cents` und vertrug sich nicht mit „mehrere Kinder in
+  einem Zug".** Solange er das tat, musste der Betrag der Zahlung dem Betrag **einer** Buchung
+  gleichen — ein Absenden über drei Kinder und vier Termine konnte dann entweder nicht als eine
+  Zahlung entstehen oder gar nicht. **Gebaut ist er einfach über `holiday_booking_id`**, dieselbe
+  Form wie die drei übrigen Anlässe; `uq_holiday_bookings_amount` ist mit ihm gefallen, weil kein
+  Schlüssel mehr darauf zeigt, und der Kommentar an `payments.amount_cents` sagt jetzt, was für alle
+  vier gilt: Eine Sitzung wird eine Zahlungszeile, und wo der Vorgang aus mehreren besteht, ist der
+  Betrag die Summe.
+- **`holiday_session_types` trug keine Stornofrist.** Der Text sagt sie einem Menschen, aber die
   Sperre der letzten drei Tage ist eine Maschinenregel, und sie gilt nur für zwei der drei
-  Terminarten. Ohne Spalte hängt sie an `code`-Werten im Anwendungscode. **Entschieden ist es
-  oben**: `cancellation_deadline_days` kommt als nullable `smallint` an `holiday_session_types`,
-  gezählt zum ersten Tag des Programms — leer heißt „keine Sperre", und die Kochwerkstatt trägt
-  leer.
-- **`sync_targets` hat für diese Domäne nur `optigem_holiday`.** Es fehlen **drei** Zielzeilen: je
-  anbietender Rolle eine für die Storno-Meldung und eine für die Erstattung bei der Buchhaltung.
-  Seed-Zeilen, keine Strukturänderung.
+  Terminarten. Ohne Spalte hinge sie an `code`-Werten im Anwendungscode. **Gebaut ist sie als
+  `cancellation_deadline_days`**, nullable `smallint` an `holiday_session_types`, gezählt zum ersten
+  Tag des Programms — leer heißt „keine Sperre", und die Kochwerkstatt trägt leer.
+- **`sync_targets` hatte für diese Domäne nur `optigem_holiday`.** Dazu stehen jetzt drei Zielzeilen
+  im Seed: `holiday_cancellation_day_care` und `holiday_cancellation_domestic` je anbietender Rolle
+  für die Storno-Meldung, `holiday_refund` für die Erstattung bei der Buchhaltung. Seed-Zeilen, keine
+  Strukturänderung.
 - **`holiday_programmes.offering_role_id` zeigt auf `roles` und ist damit frei wählbar.** Kein
   Constraint hält, dass es Hortleitung oder Hauswirtschaftsleitung ist; die Route prüft es. Ein CHECK
   ginge nur gegen eine Kennung, die der Seed vergibt, und das wäre schlechter als die Prüfung.

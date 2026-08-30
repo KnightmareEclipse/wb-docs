@@ -63,6 +63,20 @@ CREATE TABLE holiday_session_types (
     -- Das System rechnet aus ihnen weiterhin nichts: es zeigt sie, und die
     -- anbietende Stelle trägt den einbehaltenen Betrag ein.
     cancellation_terms_code text NOT NULL,
+    -- Die Sperre der Eltern als Zahl und nicht als `if` über die drei bekannten
+    -- `code`-Werte: „bis 3 Tage davor … ab 3 Tagen ist ein Storno nicht mehr
+    -- möglich" (10, „Fristen und Termine"), gezählt zum **ersten Tag des
+    -- Programms** und nicht zum gebuchten Tag. Leer heißt „keine Sperre" — die
+    -- Kochwerkstatt trägt leer, ihre Frist läuft zu 9 Uhr am Kurstag und ist
+    -- damit ein Text und keine Maschinenregel. Der Text daneben
+    -- (`cancellation_terms_code`) sagt einem Menschen, was ein Storno kostet;
+    -- diese Zahl sagt der Route, ab wann sie ihn nicht mehr entgegennimmt, und
+    -- ohne sie hinge die Regel an `code`-Werten im Anwendungscode, wo kein
+    -- Prüfskript sie sieht. Das System rechnet aus ihr weiterhin keinen Betrag:
+    -- „Das System rechnet daraus nichts" — es sperrt, und die anbietende Stelle
+    -- trägt ein. Für Sekretariat und anbietende Stelle gilt sie nicht
+    -- (offizieller Umweg).
+    cancellation_deadline_days smallint,
     created_at              timestamptz NOT NULL DEFAULT now(),
     created_by              text NOT NULL,
 
@@ -368,9 +382,6 @@ CREATE TABLE holiday_bookings (
         REFERENCES holiday_cost_coverage_codes (holiday_cost_coverage_code_id),
     CONSTRAINT fk_holiday_bookings_terms
         FOREIGN KEY (terms_contract_text_id) REFERENCES contract_texts (contract_text_id),
-    -- Trägt den zusammengesetzten Fremdschlüssel von Q3 unten (rules.md
-    -- Abschnitt 1) und ist deshalb zusätzlich zum Primärschlüssel nötig.
-    CONSTRAINT uq_holiday_bookings_amount UNIQUE (holiday_booking_id, amount_cents),
     CONSTRAINT ck_holiday_bookings_payment_mode
         CHECK (payment_mode IN ('paid', 'invoiced')),
     -- Ein Code tritt an die Stelle der Zahlung und nur dort.
@@ -460,16 +471,19 @@ ALTER TABLE sync_tasks
 -- Q3 zeigt auf die Ferienbuchung; die Spalte steht in querschnitt-schema.sql.
 -- Mit Cascade: „Löschanker: geht mit dem Vorgang, an dem die Zahlung hängt"
 -- (querschnitt-schema.sql) — sonst hielte die Zahlung die Buchung fest.
--- Zusammengesetzt über den Betrag: „der gezahlte Betrag als das, was an diesem
--- Tag galt" (10) steht an der Buchung, „Anlass × Betrag × Status ×
--- Zahlungsreferenz" (grenzkarte.md, Q3) an der Zahlung — beide Quellen
--- verlangen ihn, also bindet der Schlüssel sie aneinander, statt sie
--- auseinanderlaufen zu lassen (rules.md Abschnitt 1). Bei den übrigen drei
--- Anlässen greift er nicht: dort ist `holiday_booking_id` leer.
+-- Einfach über `holiday_booking_id`, wie die drei übrigen Anlässe, und nicht
+-- zusammengesetzt über den Betrag: **ein Absenden ist eine Sitzung und eine
+-- Zahlungszeile, auch wenn drei Kinder an vier Terminen gebucht werden**
+-- (api/ferien-api.md, api/gemeinsam.md „Sofortzahlung"). Der Betrag der Zahlung
+-- ist dann die Summe und gleicht dem keiner einzelnen Buchung; ein Schlüssel
+-- über `amount_cents` ließe genau dieses Absenden nicht entstehen. Was gekauft
+-- wurde, steht an der ersten entstandenen Buchung über Kind, Familie und
+-- Zeitpunkt — dieselbe Form wie beim Jahres-Freikauf des Putzdiensts, wo die
+-- Zahlung ebenfalls an der ersten von mehreren Zeilen hängt.
 ALTER TABLE payments
     ADD CONSTRAINT fk_payments_holiday_booking
-        FOREIGN KEY (holiday_booking_id, amount_cents)
-        REFERENCES holiday_bookings (holiday_booking_id, amount_cents)
+        FOREIGN KEY (holiday_booking_id)
+        REFERENCES holiday_bookings (holiday_booking_id)
         ON DELETE CASCADE;
 
 

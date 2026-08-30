@@ -402,9 +402,10 @@ CREATE TABLE travel_details (
     -- Strecke, die mit dem Kilometersatz multipliziert wird" (12). Ohne ihn
     -- stand der Betrag an `expense_claims` neben seiner eigenen Ableitung und
     -- war an nichts gebunden — 9.999,99 € über 1 km gingen durch. Der
-    -- zusammengesetzte Fremdschlüssel hält ihn an der Belegzeile fest, wie
-    -- `fk_payments_holiday_booking` in ferien-schema.sql (rules.md
-    -- Abschnitt 1, Ausnahme).
+    -- zusammengesetzte Fremdschlüssel hält ihn an der Belegzeile fest (rules.md
+    -- Abschnitt 1, Ausnahme) und ist damit der einzige seiner Art in diesen
+    -- vierzehn Dateien: Er bindet zwei Zeilen, die denselben einen Betrag
+    -- tragen, und nicht eine Summe an einen Summanden.
     amount_cents      integer NOT NULL,
     origin            text NOT NULL,
     destination       text NOT NULL,

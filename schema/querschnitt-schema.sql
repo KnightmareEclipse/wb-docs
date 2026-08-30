@@ -579,12 +579,12 @@ CREATE TABLE payments (
     -- Bearbeitungsgebühr folgen aus `configured_values` („cleaning_buyout_cents",
     -- „application_fee_cents") zu ihrem Gültigkeitstag, und „eine spätere
     -- Änderung rechnet nichts rückwirkend um" (hebel.md). Eine festgehaltene
-    -- Tatsache also, keine vergessene Ableitung. Beim vierten Anlass steht er
-    -- zusätzlich unter `fk_payments_holiday_booking` (ferien-schema.sql): dort
-    -- trägt die Buchung denselben Betrag, und zwei Orte für dieselbe Zahl
-    -- werden zusammengehalten statt auseinanderlaufen gelassen (rules.md
-    -- Abschnitt 1). Bei den drei übrigen gibt es keinen zweiten Ort, den ein
-    -- Schlüssel binden könnte.
+    -- Tatsache also, keine vergessene Ableitung. Bei keinem der vier Anlässe
+    -- bindet ein Schlüssel ihn an einen zweiten Ort: Eine Sitzung wird genau
+    -- eine Zahlungszeile, auch wo der Vorgang dahinter aus mehreren Zeilen
+    -- besteht (api/gemeinsam.md), und dann ist dieser Betrag die Summe und
+    -- gleicht dem keiner einzelnen Zeile — beim Jahres-Freikauf des Putzdiensts
+    -- wie bei der Ferienbuchung über mehrere Kinder (api/ferien-api.md).
     amount_cents   integer NOT NULL,
     -- Offen oder bestätigt, zahlungswegneutral: neben Stripe bleibt die
     -- manuelle Bestätigung durch die Buchhaltung für Überweisung und Bargeld.
