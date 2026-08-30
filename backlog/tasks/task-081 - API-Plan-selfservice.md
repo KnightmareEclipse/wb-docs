@@ -1,10 +1,10 @@
 ---
 id: TASK-081
 title: API-Plan selfservice
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 11:40'
-updated_date: '2026-08-27 11:42'
+updated_date: '2026-08-30 15:37'
 labels:
   - wb-docs
   - api-plan
@@ -26,6 +26,6 @@ Ohne eigene Tabellen. Explizit nachrangig, erst nach Abschluss aller anderen Dom
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 api/selfservice-api.md steht, Gemeinsames bleibt in api/gemeinsam.md
-- [ ] #2 Rollen je Route benannt, enge Rollen als Spalten-GRANT und nicht als if
+- [x] #1 api/selfservice-api.md steht, Gemeinsames bleibt in api/gemeinsam.md
+- [x] #2 Rollen je Route benannt, enge Rollen als Spalten-GRANT und nicht als if
 <!-- AC:END -->
