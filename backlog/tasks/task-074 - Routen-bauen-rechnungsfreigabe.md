@@ -1,9 +1,10 @@
 ---
 id: TASK-074
 title: 'Routen bauen: rechnungsfreigabe'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 11:40'
+updated_date: '2026-08-30 18:35'
 labels:
   - wb-backend
   - route
@@ -15,6 +16,7 @@ dependencies:
 references:
   - api/rechnungsfreigabe-api.md
   - wb-backend/app/db/changelog.py
+  - wb-backend/app/routers/rechnungsfreigabe.py
 ordinal: 86000
 ---
 
@@ -26,6 +28,6 @@ Folgt dem API-Plan. Der Zuschnitt der einzelnen Routen entsteht dort — dieses 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Jeder Endpunkt schreibt über die Schreibschicht, nicht an ihr vorbei
-- [ ] #2 Tabellenrechte und enge Rollen in der Migration der Domäne mitgezogen
+- [x] #1 Jeder Endpunkt schreibt über die Schreibschicht, nicht an ihr vorbei
+- [x] #2 Tabellenrechte und enge Rollen in der Migration der Domäne mitgezogen
 <!-- AC:END -->

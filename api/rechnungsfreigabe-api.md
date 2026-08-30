@@ -6,7 +6,7 @@ die **kein Kind, keine Familie und keine Klasse** kennt — jeder Ownership-Chec
 über Mitarbeitende, nie über `family_guardians`.
 
 **Gegenprobe:** Die Ablauftabelle hat **4 Zeilen**; alle vier handeln im System und alle vier tragen
-Routen dieser Datei. Es gibt **27 Routen**; **14** nennen eine Ablaufzeile, **13** einen Abschnitt
+Routen dieser Datei. Es gibt **30 Routen**; **14** nennen eine Ablaufzeile, **16** einen Abschnitt
 des Blocks. Keine Abweichung.
 
 ## Vier Abweichungen, die jede Route dieser Datei trägt
@@ -58,6 +58,13 @@ von Route**: `GET /expense-claims/{id}` und `POST /expense-claims` setzen sie, d
 Auswertungen und die Jahreszahlen nie. Ohne sie stünde eine IBAN in jeder Antwort, die einen Beleg
 streift.
 
+**Sie trägt `SELECT` und sonst nichts.** Beim Bau aufgefallen: Geschrieben werden die beiden Spalten
+genau einmal, mit dem Beleg — „nach dem Absenden ändert der Einreicher nichts mehr", und keine Route
+dieser Datei ändert sie danach. Ein Schreibrecht bewachte damit eine Tür, durch die niemand geht.
+`INSERT` bleibt deshalb beim Laufzeit-Rolle und tabellenweit (dieselbe Bauform wie `health_traits`),
+`SELECT` ist spaltengenau — was die Rolle verhindert, ist die IBAN in einer Antwort, nicht ihr
+Entstehen.
+
 Alles Übrige — Betrag, Zweck, Projekt, Konto, Fahrtweg — trägt keine enge Rolle: kein Art.-9-Feld,
 kein Kind.
 
@@ -66,11 +73,11 @@ kein Kind.
 `/expense-claims` ist der Beleg, `/expense-claim-items/{…}` sein Teil. **Der Teil hängt nicht unter
 dem Beleg**, obwohl er ihm gehört: Weiterleiten und Aufteilen erzeugen Zeilen, die eine andere
 Führungskraft anspricht, ohne den Beleg zu kennen, den sie nie gesehen hat — sie bekommt die Kennung
-ihres Teils aus ihrer Warteschlange und ruft sie direkt. Die drei Wertelisten und die Vorlagen stehen
-ohne Anker (`/payees`, `/cost-projects`, `/ledger-accounts`, `/claim-templates`), weil sie keinem
-Beleg gehören.
+ihres Teils aus ihrer Warteschlange und ruft sie direkt. Die vier Wertelisten und die Vorlagen stehen
+ohne Anker (`/payees`, `/cost-projects`, `/ledger-accounts`, `/payment-routes`,
+`/claim-templates`), weil sie keinem Beleg gehören.
 
-## Die drei Wertelisten
+## Die vier Wertelisten
 
 | Handlung | Herkunft | Wer darf | Worauf eingeschränkt | Schreibt/liest | Enge Rolle |
 |---|---|---|---|---|---|
@@ -83,6 +90,9 @@ Beleg gehören.
 | `GET /ledger-accounts` — die Buchungskonten zur Auswahl | [12](../soll-prozesse/12-rechnungsfreigabe.md) „Entscheidungen" | jede Mitarbeiterrolle | wie bei den Projekten | liest | — |
 | `POST /ledger-accounts` — ein Konto anlegen | [12](../soll-prozesse/12-rechnungsfreigabe.md) „Entscheidungen" | `accounting`, `executive_management` | wie bei den Projekten | schreibt, `entra:` | — |
 | `PATCH /ledger-accounts/{ledger_account_id}` — richtigstellen oder stilllegen | [12](../soll-prozesse/12-rechnungsfreigabe.md) „Was heute schiefgeht" | `accounting`, `executive_management` | wie bei den Projekten | schreibt, `entra:` | — |
+| `GET /payment-routes` — die Zahlwege zur Auswahl | [12](../soll-prozesse/12-rechnungsfreigabe.md) „Was dabei erhoben wird" | jede Mitarbeiterrolle | unbeschränkt; standardmäßig nur `is_active`. Der Einreicher wählt hier, wohin das Geld soll — „an mich, an Dritte, direkt an die Firma, Spende mit oder ohne Nachweis, oder: wird abgebucht". Die Antwort trägt `requires_bank_details` mit, weil die Oberfläche daran entscheidet, ob sie Kontoinhaber und IBAN abfragt | liest | — |
+| `POST /payment-routes` — einen Zahlweg anlegen | [12](../soll-prozesse/12-rechnungsfreigabe.md) „Was dabei erhoben wird" | `accounting`, `executive_management` | Dieselben zwei wie bei Projekt und Konto, und aus demselben Grund. **Die beiden Merkmale stehen im Rumpf und danach fest** (`requires_bank_details`, `is_reimbursement`): Sie hängen im zusammengesetzten Fremdschlüssel, den jede Belegzeile trägt (unten), und ein Beleg, der schon darauf zeigt, hielte ihre Änderung ohnehin auf | schreibt, `entra:` | — |
+| `PATCH /payment-routes/{payment_route_id}` — Namen richtigstellen oder den Zahlweg stilllegen | [12](../soll-prozesse/12-rechnungsfreigabe.md) „Was heute schiefgeht" | `accounting`, `executive_management` | **Nur `name` und `is_active`**, nicht `code` und nicht die zwei Merkmale — das GRANT trägt genau diese zwei Spalten. Stilllegen statt löschen: nimmt den Wert aus jeder Auswahl, lässt jede Zeile stehen, die schon darauf zeigt | schreibt, `entra:` | — |
 
 ## Die Vorlagen
 
@@ -100,7 +110,7 @@ Zuständigkeit folgt im Block genau dieser Grenze.
 
 | Handlung | Herkunft | Wer darf | Worauf eingeschränkt | Schreibt/liest | Enge Rolle |
 |---|---|---|---|---|---|
-| `POST /expense-claims` — einreichen: Beleg, sein erster Teil, die Fahrtangaben und die Anhänge in **einer** Transaktion | [12](../soll-prozesse/12-rechnungsfreigabe.md) Z1 | jede Mitarbeiterrolle, die der Schule wie die der KITA | **Ein Vorgang, eine Route** ([`gemeinsam.md`](gemeinsam.md#schreiben)): „der Beleg entsteht mit dem Absenden oder gar nicht", genau das, was heute in einem Fehlerzustand endet. Die Sperre gegen die eigene Freigabe trägt `ck_expense_claim_items_self_approval` und nicht die Route. Bei `claim_type = 'invoice'` sind Empfänger, Betrag, Zweck, Zahlweg und **mindestens ein Anhang** Pflicht — das Letzte prüft die Route, das Schema kann es nicht; bei `travel` nach Strecke gibt es keinen, „weil es keinen gibt". Der Kilometersatz wird aus `configured_values` zum **Zeitpunkt des Einreichens** gelesen und in `travel_details.mileage_rate_cents` festgeschrieben — er **hat sich schon geändert** (0,25 € vor 0,30 €) und wird es wieder; eine spätere Änderung rechnet keine alte Fahrt um ([`hebel.md`](../soll-prozesse/hebel.md#geld-im-system-alles-andere-fest)), und im Code steht er nirgends, anders als heute (`DEFAULT_MILEAGE_RATE` in `enums.ts`). Läuft der Beleg über eine Aufteilungsvorlage, entstehen ihre Teile **hier** und der Umlauf entfällt (unten). Gutschriften sind erlaubt, der Betrag darf negativ sein | schreibt, `entra:` | `backend_expense_bank` bei `payment_route = 'to_third_party'` |
+| `POST /expense-claims` — einreichen: Beleg, sein erster Teil, die Fahrtangaben und die Anhänge in **einer** Transaktion | [12](../soll-prozesse/12-rechnungsfreigabe.md) Z1 | jede Mitarbeiterrolle, die der Schule wie die der KITA | **Ein Vorgang, eine Route** ([`gemeinsam.md`](gemeinsam.md#schreiben)): „der Beleg entsteht mit dem Absenden oder gar nicht", genau das, was heute in einem Fehlerzustand endet. Die Sperre gegen die eigene Freigabe trägt `ck_expense_claim_items_self_approval` und nicht die Route. Bei `claim_type = 'invoice'` sind Empfänger, Betrag, Zweck, Zahlweg und **mindestens ein Anhang** Pflicht — das Letzte prüft die Route, das Schema kann es nicht; bei `travel` nach Strecke gibt es keinen, „weil es keinen gibt". Der Kilometersatz wird aus `configured_values` zum **Zeitpunkt des Einreichens** gelesen und in `travel_details.mileage_rate_cents` festgeschrieben — er **hat sich schon geändert** (0,25 € vor 0,30 €) und wird es wieder; eine spätere Änderung rechnet keine alte Fahrt um ([`hebel.md`](../soll-prozesse/hebel.md#geld-im-system-alles-andere-fest)), und im Code steht er nirgends, anders als heute (`DEFAULT_MILEAGE_RATE` in `enums.ts`). Läuft der Beleg über eine Aufteilungsvorlage, entstehen ihre Teile **hier** und der Umlauf entfällt (unten). Gutschriften sind erlaubt, der Betrag darf negativ sein | schreibt, `entra:` | `backend_expense_bank`, wo der Zahlweg `requires_bank_details` trägt |
 | `POST /expense-claims/{expense_claim_id}/withdrawal` — zurückziehen | [12](../soll-prozesse/12-rechnungsfreigabe.md) Z1 | der Einreicher | **allein der Einreicher, und nur solange keine Führungskraft ihn oder einen seiner Teile freigegeben hat** — „eine getroffene Entscheidung fällt nicht dadurch weg, dass er es sich anders überlegt". Sonst `400`. `ck_expense_claims_end` lässt Rückzug, Buchung und Storno nur einzeln zu; ein zurückgezogener Beleg lebt nicht wieder auf | schreibt, `entra:` | — |
 | `GET /expense-claims?state=&calendar_year=&payee_id=&cost_project_id=` — die Übersicht: **eine Liste für alle vier Sichten**, weil die Sichtbarkeitsregel oben sie ohnehin trennt | [12](../soll-prozesse/12-rechnungsfreigabe.md) „Was dabei erhoben wird" | jede Mitarbeiterrolle | Der Einreicher sieht seine, die Führungskraft die, die auf sie zeigen, `accounting` und `executive_management` alle — **dieselbe Route liefert damit die Warteschlange, die Freigabeliste und die eigene Übersicht**. Eine Liste und nicht drei — die Sichtbarkeitsregel trennt sie ohnehin. — Alternative: je Sicht eine eigene Route (`/pending`, `/to-book`, `/mine`); Preis: dieselbe Ownership-Bedingung steht dreimal und läuft beim ersten Fix auseinander. Jede Zeile trägt, **wie lange sie schon wartet, gerechnet ab `last_action_at`** und nicht ab dem Einreichen, und ob die Führungskraft, bei der sie liegt, **ausgeschieden** ist (`employees.last_working_day`, [13](../soll-prozesse/13-m365-konten.md)) — „kein Ping, keine Aufgabe, keine Mail, nur die eine Angabe". Listenroute, deshalb nie über den OTP-Pfad; Eltern reichen hier ohnehin nie etwas ein. **Ohne Bankverbindung** | liest | — |
 | `GET /expense-claims/{expense_claim_id}` — der einzelne Beleg: Angaben, Teile samt Entscheidung und Begründung, Anhänge, Fahrtangaben, Alter, **Dublettenhinweis** | [12](../soll-prozesse/12-rechnungsfreigabe.md) „Was dabei erhoben wird" | der Kreis oben | Der Hinweis wird hier **gerechnet, nicht gespeichert** (`ix_expense_claims_duplicate`): Empfänger und Betrag eines anderen Belegs innerhalb von 30 Tagen; bei einer Fahrt nach Strecke, die keinen Empfänger trägt, Datum und Strecke. Er nennt den anderen Beleg mit Einreicher und Datum, **sperrt nichts** und schweigt, wenn beide über dieselbe Buchungsvorlage laufen. Die Führungskraft sieht ihn beim Entscheiden, die Buchhaltung ein zweites Mal — **eine Auswertung an einer Stelle, zwei Leser**, keine zweite Regel | liest | `backend_expense_bank` |
@@ -128,7 +138,7 @@ Zuständigkeit folgt im Block genau dieser Grenze.
 | Handlung | Herkunft | Wer darf | Worauf eingeschränkt | Schreibt/liest | Enge Rolle |
 |---|---|---|---|---|---|
 | `GET /expense-claim-attachments/{expense_claim_attachment_id}/content` — den angehängten Beleg ausliefern | [12](../soll-prozesse/12-rechnungsfreigabe.md) „Dateien" | wer den Beleg daneben sehen darf | **dieselbe Regel wie für die Zeile, kein zweites Rechtesystem** — die Bauform von `GET /documents/{document_id}/content` ([`querschnitt-api.md`](querschnitt-api.md)), aber eine eigene Route, weil die Anhänge in `expense_claim_attachments` stehen und nicht in `documents` (Q2 trägt Dokumente mit Kindbezug, ein Kassenzettel hat keinen). Zwingend gebraucht: Die Führungskraft entscheidet über einen Beleg, den sie sehen muss, und hat keinen Zugriff auf die Bibliothek | liest | — |
-| `GET /expense-claims/{expense_claim_id}/document` — die **eine PDF** aus allen Anhängen, mit Deckblatt | [12](../soll-prozesse/12-rechnungsfreigabe.md) Z4, „Dateien" | `accounting`, `executive_management` | [Frisch erzeugt](../soll-prozesse/hebel.md#frisch-erzeugte-liste) und **nirgends gespeichert**: „So trägt sie immer den letzten Stand, es gibt keine zweite Fassung, die jemand aufräumen müsste." **Für einen abgelehnten, stornierten oder zurückgezogenen Beleg entsteht sie nie** (`400`), bei einer Aufteilung genau einmal für den ganzen Beleg. Das Deckblatt trägt Belegnummer, Datum, Betrag, Empfänger, Einreicher und je Teil Projekt, Konto, Freigeber und Anteil — „damit sie in Optigem für sich steht und auch in zehn Jahren ohne Weltenbaum lesbar ist". Das ist eine **Datei** und keine Druckansicht: Sie wird abgelegt, also gilt der Weg aus [`oberflaechen.md`](../oberflaechen.md) — Vorlage plus Graph-Konvertierung —, nicht der Absatz „Liste" in [`gemeinsam.md`](gemeinsam.md#liste) | liest | — |
+| `GET /expense-claims/{expense_claim_id}/document` — die **eine PDF** aus allen Anhängen, mit Deckblatt | [12](../soll-prozesse/12-rechnungsfreigabe.md) Z4, „Dateien" | `accounting`, `executive_management` | [Frisch erzeugt](../soll-prozesse/hebel.md#frisch-erzeugte-liste) und **nirgends gespeichert**: „So trägt sie immer den letzten Stand, es gibt keine zweite Fassung, die jemand aufräumen müsste." **Für einen abgelehnten, stornierten oder zurückgezogenen Beleg entsteht sie nie** (`400`), bei einer Aufteilung genau einmal für den ganzen Beleg. Das Deckblatt trägt Belegnummer, Datum, Betrag, Empfänger, Einreicher und je Teil Projekt, Konto, Freigeber und Anteil — „damit sie in Optigem für sich steht und auch in zehn Jahren ohne Weltenbaum lesbar ist". Das ist eine **Datei** und keine Druckansicht: Sie wird abgelegt, also gilt der Weg aus [`oberflaechen.md`](../oberflaechen.md) — Graph-Konvertierung —, nicht der Absatz „Liste" in [`gemeinsam.md`](gemeinsam.md#liste). **Zwei Abweichungen davon fielen erst beim Bau auf.** Erstens: **keine Word-Vorlage.** Die gibt es für den Vertrag, weil dessen Rumpf ein gepflegter Text ist (`contract_texts`); dieses Deckblatt trägt ausschließlich erzeugte Angaben, und eine Vorlage wäre eine Binärdatei ohne eigenen Inhalt, die jemand mit dem Code in Schritt halten müsste. Es entsteht deshalb direkt aus `python-docx` und geht denselben Weg durch Graph. Zweitens: **`pypdf` heftet die Teile zusammen.** Graph konvertiert ein *Element* und fügt nichts zusammen, der Block verlangt aber „eine einzige PDF aus allen Anhängen". Der in [`gemeinsam.md`](gemeinsam.md#liste) festgehaltene Einwand gegen eine PDF-Bibliothek zielt aufs **Schreiben** — eine eingebettete Unicode-Schrift im Image —; `pypdf` bettet keine Schrift ein und setzt keinen Text, es heftet fertige Seiten. — Alternative: die Anhänge einzeln ausliefern; Preis: genau das, was heute schiefgeht („die Buchhaltung sammelt die Anhänge eines Belegs heute einzeln ein") | liest | — |
 | `GET /expense-claims/statistics?start=&end=` — die Auswertungen: Summen je Projekt und Konto, häufigste Empfänger, gefahrene Kilometer, mittlere Liegezeit | [12](../soll-prozesse/12-rechnungsfreigabe.md) „Dateien" | jede Mitarbeiterrolle | „sichtbar für die, die die Belege ohnehin sehen" — **gerechnet über genau die Menge, die `GET /expense-claims` demselben Aufrufer zeigt**, und nicht über den ganzen Bestand: Sonst wäre die Summe je Projekt der Umweg, auf dem eine Führungskraft die Belege sieht, die ihr nie vorlagen. Für `accounting` und `executive_management` ist das der ganze Bestand. [Frisch erzeugt](../soll-prozesse/hebel.md#frisch-erzeugte-liste), Listenroute, nie über den OTP-Pfad | liest | — |
 
 ## Der Teams-Ping
@@ -220,23 +230,26 @@ Kein Eingriff, das Schema führt `wb-backend`:
   Einreichers fort ist.** Der Kommentar sagt es ausdrücklich. Für die Route heißt das: Ein Beleg,
   dessen Einreicher gegangen ist, könnte von dem freigegeben werden, der ihn eingereicht hat — nur
   gibt es den dann nicht mehr. Kein Fund, aber die Grenze der Regel.
-- **Der Zahlweg ist ein CHECK und soll eine Werteliste werden.** `ck_expense_claims_route` zählt
-  seine sechs Werte auf; ein siebter kostet heute eine Migration, und die Regel dieses Hauses ist
-  seit Langem „Lookup-Tabelle statt CHECK". **Entschieden: er wird `payment_routes`** — und die
-  Rechnung dafür steht hier, weil sie nicht klein ist: Zwei CHECKs greifen auf den Wert zu, und ein
-  CHECK sieht keine zweite Tabelle. `ck_expense_claims_third_party` (Kontoinhaber und IBAN nur bei
-  „an Dritte") und `ck_expense_claim_items_self_approval` (die Sperre gegen die eigene Freigabe,
-  `payment_route <> 'to_me'`) brauchen deshalb je ein **Merkmal an der Werteliste**,
-  `requires_bank_details` und `is_reimbursement`, das an der Belegzeile **mitgeführt** und von einem
-  zusammengesetzten Fremdschlüssel an seiner Quelle gehalten wird — dieselbe Bauform, die diese
-  Datei für Einreicher, Belegart und Betrag schon dreimal trägt (`rules.md` Abschnitt 1, Ausnahme).
-  Der Preis ist damit: eine Tabelle, zwei mitgeführte Merkmale, zwei zusammengesetzte
-  Fremdschlüssel und eine Migration, die die vorhandenen Spalten umhängt. Gekauft wird, dass ein
-  siebter Zahlweg eine Zeile ist — angelegt von Buchhaltung oder Geschäftsführung, ohne dass jemand
-  Code anfasst. — Alternative: beim CHECK bleiben; Preis: jede Änderung an einer Liste, die dem
-  Kontenrahmen folgt, wartet auf einen Entwicklungslauf. Migration in `wb-backend`, danach
-  `schema/rechnungsfreigabe-schema.sql` samt Prüfskript nachziehen (`backlog/`); **bis dahin steht
-  im Schema der CHECK**, und diese Datei sagt hier, dass das der alte Stand ist.
+- **Der Zahlweg ist eine Werteliste**, `payment_routes`, und kein CHECK mehr: Ein siebter Zahlweg
+  ist eine Zeile, angelegt von Buchhaltung oder Geschäftsführung, ohne dass jemand Code anfasst.
+  Die Rechnung dafür steht hier, weil sie nicht klein ist: Zwei CHECKs greifen auf den Wert zu, und
+  ein CHECK sieht keine zweite Tabelle. `ck_expense_claims_third_party` (Kontoinhaber und IBAN nur,
+  wo der Zahlweg sie verlangt) und `ck_expense_claim_items_self_approval` (die Sperre gegen die
+  eigene Freigabe) lesen deshalb je ein **Merkmal der Werteliste**, `requires_bank_details` und
+  `is_reimbursement`, das an der Belegzeile **mitgeführt** und von einem zusammengesetzten
+  Fremdschlüssel an seiner Quelle gehalten wird — dieselbe Bauform, die diese Datei für Einreicher,
+  Belegart und Betrag schon dreimal trägt (`rules.md` Abschnitt 1, Ausnahme). Bezahlt ist damit:
+  eine Tabelle, zwei mitgeführte Merkmale und zwei zusammengesetzte Fremdschlüssel —
+  `fk_expense_claims_route` hält Code und Merkmale am Beleg,
+  `fk_expense_claim_items_submitter_claim` hält `is_reimbursement` am Teil und trägt dafür statt des
+  Codes das Merkmal. — Alternative: beim CHECK bleiben; Preis: jede Änderung an einer Liste, die
+  dem Kontenrahmen folgt, wartet auf einen Entwicklungslauf.
+- **Die Werteliste kostet drei Routen, die diese Datei vorher nicht hatte** (oben, `/payment-routes`).
+  Beim Bau aufgefallen und hier nachgetragen, statt sie stillschweigend zu bauen: Solange der
+  Zahlweg ein CHECK war, kannte die Oberfläche seine sechs Werte aus dem Plan; als Werteliste kennt
+  sie nur noch die Route, die sie liest. Und ein `is_active`, das niemand setzen kann, wäre eine
+  Spalte ohne Schreiber. Der Zuschnitt ist der der beiden Nachbarlisten — lesen darf jede
+  Mitarbeiterrolle, schreiben `accounting` und `executive_management`.
 - **`expense_claim_items.last_action_at` hat einen `DEFAULT`, aber kein `ON UPDATE`.** Jede
   schreibende Route dieser Datei muss ihn selbst neu stempeln; vergisst sie es, sagt die Übersicht
   ein falsches Alter, und kein Test sieht es von außen.

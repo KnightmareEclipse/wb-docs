@@ -1,9 +1,9 @@
 -- Prüfskript zu rechnungsfreigabe-schema.sql.
 --
--- Sollstand: 9 Tabellen — payees, cost_projects, ledger_accounts,
--- claim_templates, claim_template_shares, expense_claims, expense_claim_items,
--- travel_details und expense_claim_attachments, dazu zwei Lese-Indizes
--- für Dublettenhinweis und Warteschlange.
+-- Sollstand: 10 Tabellen — payees, cost_projects, ledger_accounts,
+-- payment_routes, claim_templates, claim_template_shares, expense_claims,
+-- expense_claim_items, travel_details und expense_claim_attachments, dazu zwei
+-- Lese-Indizes für Dublettenhinweis und Warteschlange.
 --
 -- Setzt stammdaten-schema.sql und querschnitt-schema.sql voraus:
 --   psql -v ON_ERROR_STOP=1 -f rechnungsfreigabe-schema-check.sql
@@ -14,14 +14,15 @@ DO $$
 DECLARE missing text;
 BEGIN
     SELECT string_agg(t, ', ') INTO missing
-    FROM unnest(ARRAY['payees', 'cost_projects', 'ledger_accounts', 'claim_templates',
-                      'claim_template_shares', 'expense_claims', 'expense_claim_items',
-                      'travel_details', 'expense_claim_attachments']) AS t
+    FROM unnest(ARRAY['payees', 'cost_projects', 'ledger_accounts', 'payment_routes',
+                      'claim_templates', 'claim_template_shares', 'expense_claims',
+                      'expense_claim_items', 'travel_details',
+                      'expense_claim_attachments']) AS t
     WHERE to_regclass('public.' || t) IS NULL;
     IF missing IS NOT NULL THEN
         RAISE EXCEPTION 'Fehlende Tabellen: %', missing;
     END IF;
-    RAISE NOTICE 'ok: alle 9 Tabellen vorhanden';
+    RAISE NOTICE 'ok: alle 10 Tabellen vorhanden';
 END $$;
 
 DO $$
@@ -37,7 +38,8 @@ BEGIN
         'ck_travel_details_amount',
         'uq_expense_claim_attachments', 'uq_claim_template_shares', 'uq_payees_name',
         'ck_expense_claims_submitter', 'ck_expense_claim_items_approver',
-        'ck_expense_claims_type', 'ck_expense_claims_route',
+        'ck_expense_claims_type', 'fk_expense_claims_route',
+        'uq_payment_routes_traits',
         'ck_expense_claims_third_party', 'ck_expense_claims_payee',
         'ck_expense_claims_end', 'ck_expense_claims_voided',
         'ck_expense_claims_calendar_year',
@@ -110,6 +112,15 @@ INSERT INTO cost_projects (cost_project_id, code, name, created_by) OVERRIDING S
     VALUES (1, 'GS', 'Grundschule', 'system:check'), (2, 'KITA', 'KITA', 'system:check');
 INSERT INTO ledger_accounts (ledger_account_id, code, name, created_by) OVERRIDING SYSTEM VALUE
     VALUES (1, '4930', 'Bürobedarf', 'system:check');
+-- Die Werteliste, die den Zahlweg trägt: dieselben sechs, die 12 aufzählt. Die
+-- beiden Merkmale stehen hier einmal und werden an jeder Belegzeile mitgeführt.
+INSERT INTO payment_routes (code, name, requires_bank_details, is_reimbursement, created_by)
+    VALUES ('to_me',                    'An mich',              false, true,  'system:check'),
+           ('to_third_party',           'An Dritte',            true,  false, 'system:check'),
+           ('to_company',               'Direkt an die Firma',  false, false, 'system:check'),
+           ('donation_with_receipt',    'Spende mit Nachweis',  false, false, 'system:check'),
+           ('donation_without_receipt', 'Spende ohne Nachweis', false, false, 'system:check'),
+           ('direct_debit',             'Wird abgebucht',       false, false, 'system:check');
 INSERT INTO sharepoint_libraries (sharepoint_library_id, code, name, graph_drive_id, created_by)
     OVERRIDING SYSTEM VALUE VALUES (1, 'generated', 'Erzeugt', 'b!x', 'system:check');
 
@@ -124,9 +135,10 @@ INSERT INTO sharepoint_libraries (sharepoint_library_id, code, name, graph_drive
 SELECT pg_temp.expect_reject(
     '12 — Beleg im Nummernkreis eines fremden Jahres',
     $q$INSERT INTO expense_claims (submitter_employee_id, claim_type, calendar_year,
-                                   payee_id, amount_cents, purpose, payment_route, created_by)
+                                   payee_id, amount_cents, purpose, payment_route, requires_bank_details,
+                                   is_reimbursement, created_by)
        VALUES ('55555555-5555-5555-5555-555555555551', 'invoice', 1999, 1, 1000,
-               'Kaffee', 'to_me', 'system:check')$q$);
+               'Kaffee', 'to_me', false, true, 'system:check')$q$);
 
 -- Dasselbe Jahr in jeder Sitzung: `EXTRACT(year FROM timestamptz)` ist STABLE,
 -- erst die feste Zeitzone im CHECK macht das Jahr entscheidbar. Die Zeile unten
@@ -137,18 +149,20 @@ SELECT pg_temp.expect_reject(
 SELECT pg_temp.expect_reject(
     '12 — Beleg am Silvesterabend mit dem Jahr der UTC-Sitzung',
     $q$INSERT INTO expense_claims (submitter_employee_id, claim_type, calendar_year,
-                                   payee_id, amount_cents, purpose, payment_route,
+                                   payee_id, amount_cents, purpose, payment_route, requires_bank_details,
+                                   is_reimbursement,
                                    created_at, created_by)
        VALUES ('55555555-5555-5555-5555-555555555551', 'invoice', 2026, 1, 1000,
-               'Kaffee', 'to_me', TIMESTAMPTZ '2026-12-31 23:30+00', 'system:check')$q$);
+               'Kaffee', 'to_me', false, true, TIMESTAMPTZ '2026-12-31 23:30+00', 'system:check')$q$);
 SELECT pg_temp.expect_accept(
     '12 — derselbe Beleg mit dem Jahr, das in Berlin gilt',
     $q$INSERT INTO expense_claims (expense_claim_id, submitter_employee_id, claim_type,
                                    calendar_year, payee_id, amount_cents, purpose,
-                                   payment_route, created_at, created_by)
+                                   payment_route, requires_bank_details,
+                                   is_reimbursement, created_at, created_by)
        VALUES ('66666666-6666-6666-6666-66666666666e',
                '55555555-5555-5555-5555-555555555551', 'invoice', 2027, 1, 1000,
-               'Kaffee', 'to_me', TIMESTAMPTZ '2026-12-31 23:30+00', 'system:check')$q$);
+               'Kaffee', 'to_me', false, true, TIMESTAMPTZ '2026-12-31 23:30+00', 'system:check')$q$);
 SET TIME ZONE 'Pacific/Auckland';
 SELECT pg_temp.expect_accept(
     '12 — und er bleibt in einer Sitzung mit fremder Zeitzone änderbar',
@@ -160,58 +174,89 @@ RESET TIME ZONE;
 SELECT pg_temp.expect_reject(
     '12 — dritte Belegart',
     $q$INSERT INTO expense_claims (submitter_employee_id, claim_type, calendar_year,
-                                   payee_id, amount_cents, purpose, payment_route, created_by)
+                                   payee_id, amount_cents, purpose, payment_route, requires_bank_details,
+                                   is_reimbursement, created_by)
        VALUES ('55555555-5555-5555-5555-555555555551', 'petty_cash', EXTRACT(year FROM now() AT TIME ZONE 'Europe/Berlin')::smallint, 1, 1000,
-               'Kaffee', 'to_me', 'system:check')$q$);
+               'Kaffee', 'to_me', false, true, 'system:check')$q$);
 
+-- Der Zahlweg ist eine Werteliste, kein CHECK: ein unbekannter Code scheitert
+-- am Fremdschlüssel, ein siebter Zahlweg ist eine Zeile.
 SELECT pg_temp.expect_reject(
     '12 — unbekannter Zahlweg',
     $q$INSERT INTO expense_claims (submitter_employee_id, claim_type, calendar_year,
-                                   payee_id, amount_cents, purpose, payment_route, created_by)
+                                   payee_id, amount_cents, purpose, payment_route, requires_bank_details,
+                                   is_reimbursement, created_by)
        VALUES ('55555555-5555-5555-5555-555555555551', 'invoice', EXTRACT(year FROM now() AT TIME ZONE 'Europe/Berlin')::smallint, 1, 1000,
-               'Kaffee', 'cash', 'system:check')$q$);
+               'Kaffee', 'cash', false, false, 'system:check')$q$);
+
+-- rules.md 1, Ausnahme: die beiden mitgeführten Merkmale hängen am
+-- zusammengesetzten Fremdschlüssel. Ohne ihn ließe sich die Bankverbindungs-
+-- Sperre am Beleg umschreiben, indem man `requires_bank_details` selbst setzt —
+-- der CHECK sieht nur die Spalte, nicht ihre Quelle.
+SELECT pg_temp.expect_reject(
+    'rules.md 1 — Beleg mit erfundenem Merkmal seines Zahlwegs',
+    $q$INSERT INTO expense_claims (submitter_employee_id, claim_type, calendar_year,
+                                   payee_id, amount_cents, purpose, payment_route, requires_bank_details,
+                                   is_reimbursement, third_party_iban, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555551', 'invoice', EXTRACT(year FROM now() AT TIME ZONE 'Europe/Berlin')::smallint, 1, 1000,
+               'Kaffee', 'to_me', true, true, 'DE02120300000000202051', 'system:check')$q$);
+
+-- Und der Zahlweg bleibt, solange ein Beleg auf ihn zeigt — stillgelegt wird er,
+-- gelöscht nicht.
+SELECT pg_temp.expect_accept(
+    '12 — ein Zahlweg wird stillgelegt statt gelöscht',
+    $q$UPDATE payment_routes SET is_active = false WHERE code = 'direct_debit'$q$);
 
 -- „nur ‚an Dritte' verlangt zusätzlich Kontoinhaber und IBAN … für ‚an mich'
 -- wird keine Bankverbindung erhoben".
 SELECT pg_temp.expect_reject(
     '12 — Bankverbindung bei „an mich"',
     $q$INSERT INTO expense_claims (submitter_employee_id, claim_type, calendar_year,
-                                   payee_id, amount_cents, purpose, payment_route,
+                                   payee_id, amount_cents, purpose, payment_route, requires_bank_details,
+                                   is_reimbursement,
                                    third_party_iban, created_by)
        VALUES ('55555555-5555-5555-5555-555555555551', 'invoice', EXTRACT(year FROM now() AT TIME ZONE 'Europe/Berlin')::smallint, 1, 1000,
-               'Kaffee', 'to_me', 'DE02120300000000202051', 'system:check')$q$);
+               'Kaffee', 'to_me', false, true, 'DE02120300000000202051', 'system:check')$q$);
 
 SELECT pg_temp.expect_accept(
     '12 — Bankverbindung bei „an Dritte"',
     $q$INSERT INTO expense_claims (submitter_employee_id, claim_type, calendar_year,
-                                   payee_id, amount_cents, purpose, payment_route,
+                                   payee_id, amount_cents, purpose, payment_route, requires_bank_details,
+                                   is_reimbursement,
                                    third_party_account_holder, third_party_iban, created_by)
        VALUES ('55555555-5555-5555-5555-555555555551', 'invoice', EXTRACT(year FROM now() AT TIME ZONE 'Europe/Berlin')::smallint, 1, 1000,
-               'Material', 'to_third_party', 'Nachbarin', 'DE02120300000000202051',
+               'Material', 'to_third_party', true, false, 'Nachbarin', 'DE02120300000000202051',
                'system:check')$q$);
 
 -- „Bei der Rechnung: Zahlungsempfänger … (alles Pflicht)".
 SELECT pg_temp.expect_reject(
     '12 — Rechnung ohne Zahlungsempfänger',
     $q$INSERT INTO expense_claims (submitter_employee_id, claim_type, calendar_year,
-                                   amount_cents, purpose, payment_route, created_by)
+                                   amount_cents, purpose, payment_route, requires_bank_details,
+                                   is_reimbursement, created_by)
        VALUES ('55555555-5555-5555-5555-555555555551', 'invoice', EXTRACT(year FROM now() AT TIME ZONE 'Europe/Berlin')::smallint, 1000,
-               'Material', 'to_me', 'system:check')$q$);
+               'Material', 'to_me', false, true, 'system:check')$q$);
 
 -- „bei einer Fahrt nach Strecke, die keinen Empfänger trägt".
 INSERT INTO expense_claims (expense_claim_id, submitter_employee_id, claim_type,
-                            calendar_year, amount_cents, purpose, payment_route, created_by)
+                            calendar_year, amount_cents, purpose, payment_route, requires_bank_details,
+                            is_reimbursement, created_by)
     VALUES ('66666666-6666-6666-6666-666666666661',
             '55555555-5555-5555-5555-555555555551', 'travel', EXTRACT(year FROM now() AT TIME ZONE 'Europe/Berlin')::smallint, 3000,
-            'Fortbildung Stuttgart', 'to_me', 'system:check');
+            'Fortbildung Stuttgart', 'to_me', false, true, 'system:check');
+
+SELECT pg_temp.expect_reject(
+    '12 — Zahlweg gelöscht, obwohl ein Beleg auf ihn zeigt',
+    $q$DELETE FROM payment_routes WHERE code = 'to_me'$q$);
 
 -- „Gutschriften sind erlaubt, der Betrag darf negativ sein."
 SELECT pg_temp.expect_accept(
     '12 — Gutschrift mit negativem Betrag',
     $q$INSERT INTO expense_claims (submitter_employee_id, claim_type, calendar_year,
-                                   payee_id, amount_cents, purpose, payment_route, created_by)
+                                   payee_id, amount_cents, purpose, payment_route, requires_bank_details,
+                                   is_reimbursement, created_by)
        VALUES ('55555555-5555-5555-5555-555555555551', 'invoice', EXTRACT(year FROM now() AT TIME ZONE 'Europe/Berlin')::smallint, 1, -1500,
-               'Gutschrift Rücksendung', 'to_me', 'system:check')$q$);
+               'Gutschrift Rücksendung', 'to_me', false, true, 'system:check')$q$);
 
 -- „ihre lückenlose Nummer für die Buchhaltung" — je Kalenderjahr eindeutig.
 SELECT pg_temp.expect_reject(
@@ -220,9 +265,10 @@ SELECT pg_temp.expect_reject(
          WHERE expense_claim_id = '66666666-6666-6666-6666-666666666661';
        INSERT INTO expense_claims (submitter_employee_id, claim_type, calendar_year,
                                    claim_number, payee_id, amount_cents, purpose,
-                                   payment_route, created_by)
+                                   payment_route, requires_bank_details,
+                                   is_reimbursement, created_by)
        VALUES ('55555555-5555-5555-5555-555555555551', 'invoice', EXTRACT(year FROM now() AT TIME ZONE 'Europe/Berlin')::smallint, 1, 1, 500,
-               'Zweiter', 'to_me', 'system:check')$q$);
+               'Zweiter', 'to_me', false, true, 'system:check')$q$);
 
 -- „Ein abgelehnter, stornierter oder zurückgezogener Beleg lebt nicht wieder auf."
 SELECT pg_temp.expect_reject(
@@ -243,10 +289,11 @@ SELECT pg_temp.expect_reject(
 -- Der Beleg für die Streckengrenze: 2500 km zu 0,30 € sind 750 €, und der
 -- Betrag der Fahrtangabe muss der des Belegs sein.
 INSERT INTO expense_claims (expense_claim_id, submitter_employee_id, claim_type,
-                            calendar_year, amount_cents, purpose, payment_route, created_by)
+                            calendar_year, amount_cents, purpose, payment_route, requires_bank_details,
+                            is_reimbursement, created_by)
     VALUES ('66666666-6666-6666-6666-666666666663',
             '55555555-5555-5555-5555-555555555551', 'travel', EXTRACT(year FROM now() AT TIME ZONE 'Europe/Berlin')::smallint, 75000,
-            'Fortbildung Lissabon', 'to_me', 'system:check');
+            'Fortbildung Lissabon', 'to_me', false, true, 'system:check');
 
 SELECT pg_temp.expect_reject(
     '12 — Fahrt mit Ticketbetrag UND Strecke',
@@ -321,11 +368,11 @@ SELECT pg_temp.expect_reject(
 -- ---------------------------------------------------------------------------
 
 INSERT INTO expense_claim_items (expense_claim_item_id, expense_claim_id,
-                                 submitter_employee_id, claim_type, payment_route,
+                                 submitter_employee_id, claim_type, is_reimbursement,
                                  approver_employee_id, amount_cents, created_by)
     VALUES ('77777777-7777-7777-7777-777777777771',
             '66666666-6666-6666-6666-666666666661',
-            '55555555-5555-5555-5555-555555555551', 'travel', 'to_me',
+            '55555555-5555-5555-5555-555555555551', 'travel', true,
             '55555555-5555-5555-5555-555555555552', 3000, 'system:check');
 
 -- 12: „Die eigene Person ist als Führungskraft wählbar, außer das Geld geht an
@@ -334,36 +381,37 @@ INSERT INTO expense_claim_items (expense_claim_item_id, expense_claim_id,
 SELECT pg_temp.expect_reject(
     '12 — Einreicher gibt seine eigene Fahrtkostenabrechnung frei',
     $q$INSERT INTO expense_claim_items (expense_claim_id, submitter_employee_id,
-                                        claim_type, payment_route,
+                                        claim_type, is_reimbursement,
                                         approver_employee_id, amount_cents, created_by)
        VALUES ('66666666-6666-6666-6666-666666666661',
-               '55555555-5555-5555-5555-555555555551', 'travel', 'to_me',
+               '55555555-5555-5555-5555-555555555551', 'travel', true,
                '55555555-5555-5555-5555-555555555551', 0, 'system:check')$q$);
 
 -- Dieselbe Sperre trifft „an mich"; sie trifft nicht, was gar nicht bei ihm
 -- ankommt: „Die eigene Person ist als Führungskraft wählbar."
 INSERT INTO expense_claims (expense_claim_id, submitter_employee_id, claim_type,
                             calendar_year, payee_id, amount_cents, purpose,
-                            payment_route, created_by)
+                            payment_route, requires_bank_details,
+                            is_reimbursement, created_by)
     VALUES ('66666666-6666-6666-6666-666666666662',
             '55555555-5555-5555-5555-555555555551', 'invoice', EXTRACT(year FROM now() AT TIME ZONE 'Europe/Berlin')::smallint, 1, 4000,
-            'Rechnung der Firma', 'to_company', 'system:check');
+            'Rechnung der Firma', 'to_company', false, false, 'system:check');
 SELECT pg_temp.expect_accept(
     '12 — Einreicher gibt eine Rechnung frei, die direkt an die Firma geht',
     $q$INSERT INTO expense_claim_items (expense_claim_id, submitter_employee_id,
-                                        claim_type, payment_route,
+                                        claim_type, is_reimbursement,
                                         approver_employee_id, amount_cents, created_by)
        VALUES ('66666666-6666-6666-6666-666666666662',
-               '55555555-5555-5555-5555-555555555551', 'invoice', 'to_company',
+               '55555555-5555-5555-5555-555555555551', 'invoice', false,
                '55555555-5555-5555-5555-555555555551', 4000, 'system:check')$q$);
 
 SELECT pg_temp.expect_reject(
     '12 — Einreicher gibt seine eigene Erstattung frei',
     $q$INSERT INTO expense_claim_items (expense_claim_id, submitter_employee_id,
-                                        claim_type, payment_route,
+                                        claim_type, is_reimbursement,
                                         approver_employee_id, amount_cents, created_by)
        VALUES ('66666666-6666-6666-6666-666666666662',
-               '55555555-5555-5555-5555-555555555551', 'invoice', 'to_me',
+               '55555555-5555-5555-5555-555555555551', 'invoice', true,
                '55555555-5555-5555-5555-555555555551', 0, 'system:check')$q$);
 
 -- 12: „die Teilbeträge müssen den Betrag genau treffen" — auch das eine Summe
@@ -372,10 +420,10 @@ SELECT pg_temp.expect_reject(
 SELECT pg_temp.expect_accept(
     '12 — Teilbetrag über dem Beleg (die Summe prüft die Anwendung)',
     $q$INSERT INTO expense_claim_items (expense_claim_id, submitter_employee_id,
-                                        claim_type, payment_route,
+                                        claim_type, is_reimbursement,
                                         approver_employee_id, amount_cents, created_by)
        VALUES ('66666666-6666-6666-6666-666666666662',
-               '55555555-5555-5555-5555-555555555551', 'invoice', 'to_company',
+               '55555555-5555-5555-5555-555555555551', 'invoice', false,
                '55555555-5555-5555-5555-555555555552', 9000, 'system:check')$q$);
 
 -- rules.md 1: der zusammengesetzte Fremdschlüssel hält die mitgeführten Angaben
@@ -447,10 +495,10 @@ SELECT pg_temp.expect_accept(
 SELECT pg_temp.expect_accept(
     '12 — zweiter Teil desselben Belegs bei einer anderen Führungskraft',
     $q$INSERT INTO expense_claim_items (expense_claim_id, submitter_employee_id,
-                                        claim_type, payment_route,
+                                        claim_type, is_reimbursement,
                                         approver_employee_id, amount_cents, created_by)
        VALUES ('66666666-6666-6666-6666-666666666661',
-               '55555555-5555-5555-5555-555555555551', 'travel', 'to_me',
+               '55555555-5555-5555-5555-555555555551', 'travel', true,
                '55555555-5555-5555-5555-555555555553', 0, 'system:check')$q$);
 
 -- „Die KITA ist ein eigener Betrieb im selben Haus: Ihre Mitarbeitenden reichen
@@ -458,9 +506,10 @@ SELECT pg_temp.expect_accept(
 SELECT pg_temp.expect_accept(
     '12 — KITA-Mitarbeitende als Einreicherin',
     $q$INSERT INTO expense_claims (submitter_employee_id, claim_type, calendar_year,
-                                   payee_id, amount_cents, purpose, payment_route, created_by)
+                                   payee_id, amount_cents, purpose, payment_route, requires_bank_details,
+                                   is_reimbursement, created_by)
        VALUES ('55555555-5555-5555-5555-555555555553', 'invoice', EXTRACT(year FROM now() AT TIME ZONE 'Europe/Berlin')::smallint, 1, 2000,
-               'Bastelmaterial KITA', 'to_me', 'system:check')$q$);
+               'Bastelmaterial KITA', 'to_me', false, true, 'system:check')$q$);
 
 -- ---------------------------------------------------------------------------
 -- Gegenproben — Vorlagen, Empfänger, Anhänge

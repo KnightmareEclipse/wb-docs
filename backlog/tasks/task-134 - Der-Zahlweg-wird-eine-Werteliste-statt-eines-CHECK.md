@@ -1,9 +1,10 @@
 ---
 id: TASK-134
 title: Der Zahlweg wird eine Werteliste statt eines CHECK
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-30 15:19'
+updated_date: '2026-08-30 18:35'
 labels:
   - wb-backend
   - schema
@@ -14,6 +15,8 @@ dependencies: []
 references:
   - schema/rechnungsfreigabe-schema.sql
   - api/rechnungsfreigabe-api.md
+  - wb-backend/app/models/rechnungsfreigabe.py
+  - wb-backend/app/alembic/versions/20260822_1348_2f7799ca9013_rechnungsfreigabe_domain.py
 priority: medium
 ordinal: 146000
 ---

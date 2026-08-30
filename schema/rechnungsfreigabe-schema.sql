@@ -3,7 +3,7 @@
 -- Zahlweg. `expense_claim_items` sind seine Teile — bei einem gewöhnlichen
 -- Beleg genau einer, bei einer Aufteilung mehrere, jeder mit eigener
 -- Führungskraft, eigenem Projekt und eigener Entscheidung. Daneben stehen die
--- Anhänge, die Fahrtangaben und die drei Wertelisten.
+-- Anhänge, die Fahrtangaben und die vier Wertelisten.
 --
 -- Setzt stammdaten-schema.sql und querschnitt-schema.sql voraus.
 -- Dieser Prozess kennt kein Kind, keine Familie und keine Klasse. Bewusst KEINE
@@ -77,6 +77,47 @@ CREATE TABLE ledger_accounts (
     CONSTRAINT ck_ledger_accounts_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
+
+-- Herkunft: 12 (Rechnungsfreigabe) — „Der Zahlweg ist eine feste Auswahl — an
+-- mich, an Dritte, direkt an die Firma, Spende mit oder ohne Nachweis, oder:
+-- wird abgebucht." Werteliste statt CHECK, weil ein siebter Zahlweg sonst eine
+-- Migration kostet und die Liste dem Kontenrahmen folgt, den die Buchhaltung
+-- pflegt (rules.md Abschnitt 3). Kein Löschanker: keine Personendaten.
+--
+-- Die beiden Merkmale stehen hier und nicht im Code, weil zwei CHECKs sie
+-- lesen und ein CHECK keine zweite Tabelle sieht: `requires_bank_details`
+-- trägt `ck_expense_claims_third_party` („nur ‚an Dritte' verlangt zusätzlich
+-- Kontoinhaber und IBAN"), `is_reimbursement` trägt
+-- `ck_expense_claim_items_self_approval` („Wer sich etwas erstatten lässt,
+-- gibt es nicht selbst frei"). Beide werden an der Belegzeile mitgeführt und
+-- von `fk_expense_claims_route` an dieser Zeile festgehalten (rules.md
+-- Abschnitt 1, Ausnahme) — dieselbe Bauform, die diese Datei für Einreicher,
+-- Belegart und Betrag schon dreimal trägt.
+--
+-- Bewusst KEIN Ändern von `code` oder den beiden Merkmalen: alle drei hängen im
+-- zusammengesetzten Fremdschlüssel, und ein Beleg, der schon darauf zeigt,
+-- hielte die Änderung ohnehin auf. Ein falscher Eintrag wird stillgelegt.
+CREATE TABLE payment_routes (
+    payment_route_id      integer GENERATED ALWAYS AS IDENTITY,
+    code                  text NOT NULL,
+    name                  text NOT NULL,
+    requires_bank_details boolean NOT NULL DEFAULT false,
+    is_reimbursement      boolean NOT NULL DEFAULT false,
+    -- Deaktiviert statt gelöscht: nimmt den Wert aus jedem Auswahlfeld, lässt
+    -- aber jede Zeile stehen, die schon auf ihn zeigt (rules.md Abschnitt 3).
+    is_active             boolean NOT NULL DEFAULT true,
+    created_at            timestamptz NOT NULL DEFAULT now(),
+    created_by            text NOT NULL,
+
+    CONSTRAINT pk_payment_routes      PRIMARY KEY (payment_route_id),
+    CONSTRAINT uq_payment_routes_code UNIQUE (code),
+    -- Trägt den zusammengesetzten Fremdschlüssel von `expense_claims` und ist
+    -- deshalb zusätzlich zum Schlüssel oben nötig.
+    CONSTRAINT uq_payment_routes_traits
+        UNIQUE (code, requires_bank_details, is_reimbursement),
+    CONSTRAINT ck_payment_routes_code CHECK (code <> ''),
+    CONSTRAINT ck_payment_routes_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
+);
 
 -- ---------------------------------------------------------------------------
 -- Vorlagen
@@ -174,11 +215,15 @@ CREATE TABLE expense_claims (
     -- an dieser Zeile fest (rules.md Abschnitt 1, Ausnahme).
     amount_cents      integer NOT NULL,
     purpose           text NOT NULL,
-    -- An mich, an Dritte, direkt an die Firma, Spende mit oder ohne Nachweis,
-    -- oder: wird abgebucht.
+    -- Der `code` aus `payment_routes`; die Auswahl steht dort und nicht hier.
     payment_route     text NOT NULL,
-    -- Nur bei „an Dritte", und auch dort nur, wenn die Buchhaltung sie nicht
-    -- schon hat; für „an mich" wird bewusst keine erhoben.
+    -- Die beiden Merkmale des Zahlwegs, hier mitgeführt, damit die zwei CHECKs
+    -- sie sehen können; `fk_expense_claims_route` hält alle drei zusammen
+    -- (rules.md Abschnitt 1, Ausnahme).
+    requires_bank_details boolean NOT NULL,
+    is_reimbursement  boolean NOT NULL,
+    -- Nur wo der Zahlweg es verlangt, und auch dort nur, wenn die Buchhaltung
+    -- sie nicht schon hat; für „an mich" wird bewusst keine erhoben.
     third_party_account_holder text,
     third_party_iban  text,
     claim_template_id integer,
@@ -204,6 +249,9 @@ CREATE TABLE expense_claims (
         CHECK (submitter_employee_id IS NOT NULL
                OR (submitter_employee_name IS NOT NULL AND submitter_employee_name <> '')),
     CONSTRAINT fk_expense_claims_payee FOREIGN KEY (payee_id) REFERENCES payees (payee_id),
+    CONSTRAINT fk_expense_claims_route
+        FOREIGN KEY (payment_route, requires_bank_details, is_reimbursement)
+        REFERENCES payment_routes (code, requires_bank_details, is_reimbursement),
     CONSTRAINT fk_expense_claims_template
         FOREIGN KEY (claim_template_id) REFERENCES claim_templates (claim_template_id),
     CONSTRAINT uq_expense_claims_number UNIQUE (calendar_year, claim_number),
@@ -229,23 +277,20 @@ CREATE TABLE expense_claims (
                = EXTRACT(year FROM created_at AT TIME ZONE 'Europe/Berlin')::smallint),
     -- Trägt den zusammengesetzten Fremdschlüssel von `expense_claim_items` und
     -- ist deshalb zusätzlich zum Primärschlüssel nötig: die Sperre gegen die
-    -- eigene Freigabe braucht Einreicher, Belegart und Zahlweg in derselben
-    -- Zeile wie die Führungskraft (rules.md Abschnitt 1, Ausnahme).
+    -- eigene Freigabe braucht Einreicher, Belegart und die Erstattungs-Eigenschaft
+    -- des Zahlwegs in derselben Zeile wie die Führungskraft (rules.md Abschnitt 1,
+    -- Ausnahme). Der `code` steht nicht darin — der Teil liest ihn nicht.
     CONSTRAINT uq_expense_claims_submitter
-        UNIQUE (expense_claim_id, submitter_employee_id, claim_type, payment_route),
+        UNIQUE (expense_claim_id, submitter_employee_id, claim_type, is_reimbursement),
     -- Trägt den zusammengesetzten Fremdschlüssel von `travel_details` und ist
     -- deshalb zusätzlich zum Primärschlüssel nötig (rules.md Abschnitt 1,
     -- Ausnahme).
     CONSTRAINT uq_expense_claims_amount UNIQUE (expense_claim_id, amount_cents),
     CONSTRAINT ck_expense_claims_type CHECK (claim_type IN ('invoice', 'travel')),
     CONSTRAINT ck_expense_claims_purpose CHECK (purpose <> ''),
-    CONSTRAINT ck_expense_claims_route
-        CHECK (payment_route IN ('to_me', 'to_third_party', 'to_company',
-                                 'donation_with_receipt', 'donation_without_receipt',
-                                 'direct_debit')),
-    -- Kontoinhaber und IBAN gibt es nur bei „an Dritte".
+    -- Kontoinhaber und IBAN gibt es nur, wo der Zahlweg sie verlangt.
     CONSTRAINT ck_expense_claims_third_party
-        CHECK (payment_route = 'to_third_party'
+        CHECK (requires_bank_details
                OR (third_party_account_holder IS NULL AND third_party_iban IS NULL)),
     -- „Bei der Rechnung: Zahlungsempfänger … (alles Pflicht)"; eine Fahrt nach
     -- Strecke trägt keinen.
@@ -285,14 +330,15 @@ CREATE TABLE expense_claim_items (
     -- Wie beim Einreicher: der Name bleibt am Teil, wenn der
     -- Mitarbeitendeneintrag auf seiner eigenen Frist geht.
     approver_employee_name text,
-    -- Einreicher, Belegart und Zahlweg des Belegs, hier mitgeführt, damit der
-    -- CHECK unten sie sehen kann; `fk_expense_claim_items_submitter_claim` hält
-    -- sie mit ihrer Quelle zusammen (rules.md Abschnitt 1, ausdrückliche
-    -- Ausnahme). Ohne sie stünde die einzige Kontrolle des einzigen Prozesses,
-    -- in dem Geld an Mitarbeitende geht, in keiner Zeile.
+    -- Einreicher, Belegart und die Erstattungs-Eigenschaft des Zahlwegs, hier
+    -- mitgeführt, damit der CHECK unten sie sehen kann;
+    -- `fk_expense_claim_items_submitter_claim` hält sie mit ihrer Quelle zusammen
+    -- (rules.md Abschnitt 1, ausdrückliche Ausnahme). Ohne sie stünde die einzige
+    -- Kontrolle des einzigen Prozesses, in dem Geld an Mitarbeitende geht, in
+    -- keiner Zeile.
     submitter_employee_id uuid,
     claim_type            text NOT NULL,
-    payment_route         text NOT NULL,
+    is_reimbursement      boolean NOT NULL,
     amount_cents          integer NOT NULL,
     -- Vorgeschlagen aus der Vorlage oder von der Hand, die den Beleg angelegt
     -- hat; die Führungskraft bestätigt oder ändert.
@@ -331,8 +377,8 @@ CREATE TABLE expense_claim_items (
     CONSTRAINT fk_expense_claim_items_claim
         FOREIGN KEY (expense_claim_id) REFERENCES expense_claims (expense_claim_id) ON DELETE CASCADE,
     CONSTRAINT fk_expense_claim_items_submitter_claim
-        FOREIGN KEY (expense_claim_id, submitter_employee_id, claim_type, payment_route)
-        REFERENCES expense_claims (expense_claim_id, submitter_employee_id, claim_type, payment_route)
+        FOREIGN KEY (expense_claim_id, submitter_employee_id, claim_type, is_reimbursement)
+        REFERENCES expense_claims (expense_claim_id, submitter_employee_id, claim_type, is_reimbursement)
         ON DELETE CASCADE,
     -- Damit der Einreicher hier mit dem Beleg zugleich leer wird, wenn sein
     -- Mitarbeitendeneintrag geht — sonst liefe die Kopie ihrer Quelle nach.
@@ -379,7 +425,7 @@ CREATE TABLE expense_claim_items (
         CHECK (approver_employee_id IS NULL
                OR submitter_employee_id IS NULL
                OR approver_employee_id <> submitter_employee_id
-               OR (claim_type <> 'travel' AND payment_route <> 'to_me')),
+               OR (claim_type <> 'travel' AND NOT is_reimbursement)),
     CONSTRAINT ck_expense_claim_items_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
