@@ -31,6 +31,19 @@ Sie stehen hier einmal, weil sie an jeder Zeile unten gälten:
   die sonst eine Führungskraft ruft, und ist „hier immer auch Führungskraft … wählbar wie jede
   andere, ohne dass ihr jemand die Rolle geben müsste".
 
+## Zwei Rollen, und keine Krücke mehr
+
+`approver` und `executive_management` stehen hier **nebeneinander an jeder Route**, nicht
+ineinander. Im heutigen Portal sind sie verschmolzen — `isManager` ist wahr, sobald jemand
+`Geschäftsführung` trägt —, und das ist kein Entwurf, sondern ein Zwang: In der SharePoint-Rollenliste
+lässt sich je Person sinnvoll nur **eine** Rolle vergeben, und die Geschäftsführung braucht beides,
+den Manager-Blick und die Sicht auf alles.
+
+**Der Zwang fällt weg.** `employee_roles` trägt mehrere Rollen je Person
+([`hebel.md`](../soll-prozesse/hebel.md#rollen)), und die Geschäftsführung braucht hier trotzdem
+keine zweite: Sie steht an jeder Entscheidungsroute ohnehin, ohne `approver` zu tragen (oben), und
+`GET /expense-claims` gibt ihr den ganzen Bestand. Zwei Sichten, eine Rolle, kein Sonderfall im Code.
+
 ## Enge Rolle
 
 **Eine, und nur für zwei Spalten:** `expense_claims.third_party_account_holder` und
@@ -65,11 +78,11 @@ Beleg gehören.
 | `POST /payees` — einen fehlenden Empfänger anlegen | [12](../soll-prozesse/12-rechnungsfreigabe.md) Z1 | jede Mitarbeiterrolle | unbeschränkt: „Jeder Einreicher darf einen anlegen, den er nicht findet — sonst hielte der Bäcker um die Ecke das Einreichen auf." Der Name ist eindeutig (`uq_payees_name`); ein zweiter Versuch mit demselben Namen bekommt die vorhandene Zeile und keinen Fehler, sonst legte jeder Tippfehler die Alternative nahe | schreibt, `entra:` | — |
 | `PATCH /payees/{payee_id}` — einen Eintrag berichtigen **oder** ihn in einen anderen zusammenführen | [12](../soll-prozesse/12-rechnungsfreigabe.md) „Was dabei erhoben wird" | `accounting` | „die Buchhaltung berichtigt einen Eintrag oder führt zwei zusammen, wenn doch ‚DB' neben ‚Deutsche Bahn' steht". Eine Zeile für beides, weil das GRANT genau die zwei Spalten trägt (`name`, `merged_into_payee_id`); ein Ziel, das selbst zusammengeführt ist, wird abgewiesen, sonst entstünde eine Kette. **Gelöscht wird nie** — „ein Eintrag bleibt, solange ein Beleg auf ihn verweist" | schreibt, `entra:` | — |
 | `GET /cost-projects` — die Projekte zur Auswahl | [12](../soll-prozesse/12-rechnungsfreigabe.md) „Entscheidungen" | jede Mitarbeiterrolle | unbeschränkt; standardmäßig nur `is_active`. Der Einreicher braucht sie, weil er „Projekt und Konto gleich mit angibt, soweit er sie kennt" | liest | — |
-| `POST /cost-projects` — ein Projekt anlegen | [12](../soll-prozesse/12-rechnungsfreigabe.md) „Entscheidungen" | `accounting` | „Die Liste der Projekte und Buchungskonten pflegt die Buchhaltung; sie folgt dem Kontenrahmen in Optigem, weil dort gebucht wird" — der Kontenrahmen ist die Quelle, nicht diese Route | schreibt, `entra:` | — |
-| `PATCH /cost-projects/{cost_project_id}` — Code oder Name richtigstellen, oder das Projekt stilllegen | [12](../soll-prozesse/12-rechnungsfreigabe.md) „Was heute schiefgeht" | `accounting` | Genau der Fall, an dem das heutige System scheitert: „vier Bezeichnungen enthalten Tippfehler und lassen sich nicht korrigieren, ohne die Altbelege abzuhängen". **Stilllegen statt löschen** (`is_active = false`): nimmt den Wert aus jeder Auswahl, lässt jede Zeile stehen, die schon darauf zeigt | schreibt, `entra:` | — |
+| `POST /cost-projects` — ein Projekt anlegen | [12](../soll-prozesse/12-rechnungsfreigabe.md) „Entscheidungen" | `accounting`, `executive_management` | „Die Liste der Projekte und Buchungskonten pflegt die Buchhaltung; sie folgt dem Kontenrahmen in Optigem, weil dort gebucht wird" — der Kontenrahmen ist die Quelle, nicht diese Route. **Die Geschäftsführung steht daneben**, wie an jeder Stelle dieser Domäne, und aus demselben Grund: Fällt die Buchhaltung aus, hält sonst ein fehlendes Projekt jeden Beleg auf, der darauf zeigt | schreibt, `entra:` | — |
+| `PATCH /cost-projects/{cost_project_id}` — Code oder Name richtigstellen, oder das Projekt stilllegen | [12](../soll-prozesse/12-rechnungsfreigabe.md) „Was heute schiefgeht" | `accounting`, `executive_management` | Genau der Fall, an dem das heutige System scheitert: „vier Bezeichnungen enthalten Tippfehler und lassen sich nicht korrigieren, ohne die Altbelege abzuhängen". **Stilllegen statt löschen** (`is_active = false`): nimmt den Wert aus jeder Auswahl, lässt jede Zeile stehen, die schon darauf zeigt | schreibt, `entra:` | — |
 | `GET /ledger-accounts` — die Buchungskonten zur Auswahl | [12](../soll-prozesse/12-rechnungsfreigabe.md) „Entscheidungen" | jede Mitarbeiterrolle | wie bei den Projekten | liest | — |
-| `POST /ledger-accounts` — ein Konto anlegen | [12](../soll-prozesse/12-rechnungsfreigabe.md) „Entscheidungen" | `accounting` | wie bei den Projekten | schreibt, `entra:` | — |
-| `PATCH /ledger-accounts/{ledger_account_id}` — richtigstellen oder stilllegen | [12](../soll-prozesse/12-rechnungsfreigabe.md) „Was heute schiefgeht" | `accounting` | wie bei den Projekten | schreibt, `entra:` | — |
+| `POST /ledger-accounts` — ein Konto anlegen | [12](../soll-prozesse/12-rechnungsfreigabe.md) „Entscheidungen" | `accounting`, `executive_management` | wie bei den Projekten | schreibt, `entra:` | — |
+| `PATCH /ledger-accounts/{ledger_account_id}` — richtigstellen oder stilllegen | [12](../soll-prozesse/12-rechnungsfreigabe.md) „Was heute schiefgeht" | `accounting`, `executive_management` | wie bei den Projekten | schreibt, `entra:` | — |
 
 ## Die Vorlagen
 
@@ -87,7 +100,7 @@ Zuständigkeit folgt im Block genau dieser Grenze.
 
 | Handlung | Herkunft | Wer darf | Worauf eingeschränkt | Schreibt/liest | Enge Rolle |
 |---|---|---|---|---|---|
-| `POST /expense-claims` — einreichen: Beleg, sein erster Teil, die Fahrtangaben und die Anhänge in **einer** Transaktion | [12](../soll-prozesse/12-rechnungsfreigabe.md) Z1 | jede Mitarbeiterrolle, die der Schule wie die der KITA | **Ein Vorgang, eine Route** ([`gemeinsam.md`](gemeinsam.md#schreiben)): „der Beleg entsteht mit dem Absenden oder gar nicht", genau das, was heute in einem Fehlerzustand endet. Die Sperre gegen die eigene Freigabe trägt `ck_expense_claim_items_self_approval` und nicht die Route. Bei `claim_type = 'invoice'` sind Empfänger, Betrag, Zweck, Zahlweg und **mindestens ein Anhang** Pflicht — das Letzte prüft die Route, das Schema kann es nicht; bei `travel` nach Strecke gibt es keinen, „weil es keinen gibt". Der Kilometersatz wird aus `configured_values` zum **Zeitpunkt des Einreichens** gelesen und in `travel_details.mileage_rate_cents` festgeschrieben. Läuft der Beleg über eine Aufteilungsvorlage, entstehen ihre Teile **hier** und der Umlauf entfällt (unten). Gutschriften sind erlaubt, der Betrag darf negativ sein | schreibt, `entra:` | `backend_expense_bank` bei `payment_route = 'to_third_party'` |
+| `POST /expense-claims` — einreichen: Beleg, sein erster Teil, die Fahrtangaben und die Anhänge in **einer** Transaktion | [12](../soll-prozesse/12-rechnungsfreigabe.md) Z1 | jede Mitarbeiterrolle, die der Schule wie die der KITA | **Ein Vorgang, eine Route** ([`gemeinsam.md`](gemeinsam.md#schreiben)): „der Beleg entsteht mit dem Absenden oder gar nicht", genau das, was heute in einem Fehlerzustand endet. Die Sperre gegen die eigene Freigabe trägt `ck_expense_claim_items_self_approval` und nicht die Route. Bei `claim_type = 'invoice'` sind Empfänger, Betrag, Zweck, Zahlweg und **mindestens ein Anhang** Pflicht — das Letzte prüft die Route, das Schema kann es nicht; bei `travel` nach Strecke gibt es keinen, „weil es keinen gibt". Der Kilometersatz wird aus `configured_values` zum **Zeitpunkt des Einreichens** gelesen und in `travel_details.mileage_rate_cents` festgeschrieben — er **hat sich schon geändert** (0,25 € vor 0,30 €) und wird es wieder; eine spätere Änderung rechnet keine alte Fahrt um ([`hebel.md`](../soll-prozesse/hebel.md#geld-im-system-alles-andere-fest)), und im Code steht er nirgends, anders als heute (`DEFAULT_MILEAGE_RATE` in `enums.ts`). Läuft der Beleg über eine Aufteilungsvorlage, entstehen ihre Teile **hier** und der Umlauf entfällt (unten). Gutschriften sind erlaubt, der Betrag darf negativ sein | schreibt, `entra:` | `backend_expense_bank` bei `payment_route = 'to_third_party'` |
 | `POST /expense-claims/{expense_claim_id}/withdrawal` — zurückziehen | [12](../soll-prozesse/12-rechnungsfreigabe.md) Z1 | der Einreicher | **allein der Einreicher, und nur solange keine Führungskraft ihn oder einen seiner Teile freigegeben hat** — „eine getroffene Entscheidung fällt nicht dadurch weg, dass er es sich anders überlegt". Sonst `400`. `ck_expense_claims_end` lässt Rückzug, Buchung und Storno nur einzeln zu; ein zurückgezogener Beleg lebt nicht wieder auf | schreibt, `entra:` | — |
 | `GET /expense-claims?state=&calendar_year=&payee_id=&cost_project_id=` — die Übersicht: **eine Liste für alle vier Sichten**, weil die Sichtbarkeitsregel oben sie ohnehin trennt | [12](../soll-prozesse/12-rechnungsfreigabe.md) „Was dabei erhoben wird" | jede Mitarbeiterrolle | Der Einreicher sieht seine, die Führungskraft die, die auf sie zeigen, `accounting` und `executive_management` alle — **dieselbe Route liefert damit die Warteschlange, die Freigabeliste und die eigene Übersicht**. Eine Liste und nicht drei — die Sichtbarkeitsregel trennt sie ohnehin. — Alternative: je Sicht eine eigene Route (`/pending`, `/to-book`, `/mine`); Preis: dieselbe Ownership-Bedingung steht dreimal und läuft beim ersten Fix auseinander. Jede Zeile trägt, **wie lange sie schon wartet, gerechnet ab `last_action_at`** und nicht ab dem Einreichen, und ob die Führungskraft, bei der sie liegt, **ausgeschieden** ist (`employees.last_working_day`, [13](../soll-prozesse/13-m365-konten.md)) — „kein Ping, keine Aufgabe, keine Mail, nur die eine Angabe". Listenroute, deshalb nie über den OTP-Pfad; Eltern reichen hier ohnehin nie etwas ein. **Ohne Bankverbindung** | liest | — |
 | `GET /expense-claims/{expense_claim_id}` — der einzelne Beleg: Angaben, Teile samt Entscheidung und Begründung, Anhänge, Fahrtangaben, Alter, **Dublettenhinweis** | [12](../soll-prozesse/12-rechnungsfreigabe.md) „Was dabei erhoben wird" | der Kreis oben | Der Hinweis wird hier **gerechnet, nicht gespeichert** (`ix_expense_claims_duplicate`): Empfänger und Betrag eines anderen Belegs innerhalb von 30 Tagen; bei einer Fahrt nach Strecke, die keinen Empfänger trägt, Datum und Strecke. Er nennt den anderen Beleg mit Einreicher und Datum, **sperrt nichts** und schweigt, wenn beide über dieselbe Buchungsvorlage laufen. Die Führungskraft sieht ihn beim Entscheiden, die Buchhaltung ein zweites Mal — **eine Auswertung an einer Stelle, zwei Leser**, keine zweite Regel | liest | `backend_expense_bank` |
@@ -207,6 +220,23 @@ Kein Eingriff, das Schema führt `wb-backend`:
   Einreichers fort ist.** Der Kommentar sagt es ausdrücklich. Für die Route heißt das: Ein Beleg,
   dessen Einreicher gegangen ist, könnte von dem freigegeben werden, der ihn eingereicht hat — nur
   gibt es den dann nicht mehr. Kein Fund, aber die Grenze der Regel.
+- **Der Zahlweg ist ein CHECK und soll eine Werteliste werden.** `ck_expense_claims_route` zählt
+  seine sechs Werte auf; ein siebter kostet heute eine Migration, und die Regel dieses Hauses ist
+  seit Langem „Lookup-Tabelle statt CHECK". **Entschieden: er wird `payment_routes`** — und die
+  Rechnung dafür steht hier, weil sie nicht klein ist: Zwei CHECKs greifen auf den Wert zu, und ein
+  CHECK sieht keine zweite Tabelle. `ck_expense_claims_third_party` (Kontoinhaber und IBAN nur bei
+  „an Dritte") und `ck_expense_claim_items_self_approval` (die Sperre gegen die eigene Freigabe,
+  `payment_route <> 'to_me'`) brauchen deshalb je ein **Merkmal an der Werteliste**,
+  `requires_bank_details` und `is_reimbursement`, das an der Belegzeile **mitgeführt** und von einem
+  zusammengesetzten Fremdschlüssel an seiner Quelle gehalten wird — dieselbe Bauform, die diese
+  Datei für Einreicher, Belegart und Betrag schon dreimal trägt (`rules.md` Abschnitt 1, Ausnahme).
+  Der Preis ist damit: eine Tabelle, zwei mitgeführte Merkmale, zwei zusammengesetzte
+  Fremdschlüssel und eine Migration, die die vorhandenen Spalten umhängt. Gekauft wird, dass ein
+  siebter Zahlweg eine Zeile ist — angelegt von Buchhaltung oder Geschäftsführung, ohne dass jemand
+  Code anfasst. — Alternative: beim CHECK bleiben; Preis: jede Änderung an einer Liste, die dem
+  Kontenrahmen folgt, wartet auf einen Entwicklungslauf. Migration in `wb-backend`, danach
+  `schema/rechnungsfreigabe-schema.sql` samt Prüfskript nachziehen (`backlog/`); **bis dahin steht
+  im Schema der CHECK**, und diese Datei sagt hier, dass das der alte Stand ist.
 - **`expense_claim_items.last_action_at` hat einen `DEFAULT`, aber kein `ON UPDATE`.** Jede
   schreibende Route dieser Datei muss ihn selbst neu stempeln; vergisst sie es, sagt die Übersicht
   ein falsches Alter, und kein Test sieht es von außen.

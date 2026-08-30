@@ -11,6 +11,7 @@ labels:
 milestone: m-5
 dependencies:
   - TASK-073
+  - TASK-134
 references:
   - api/rechnungsfreigabe-api.md
   - wb-backend/app/db/changelog.py
