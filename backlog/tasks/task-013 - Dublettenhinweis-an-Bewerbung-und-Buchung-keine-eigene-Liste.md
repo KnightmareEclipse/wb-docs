@@ -4,7 +4,7 @@ title: 'Dublettenhinweis an Bewerbung und Buchung, keine eigene Liste'
 status: To Do
 assignee: []
 created_date: '2026-08-27 11:35'
-updated_date: '2026-08-30 18:11'
+updated_date: '2026-08-30 18:23'
 labels:
   - wb-backend
   - anmeldung
@@ -31,5 +31,5 @@ Kandidatenabgleich Nachname + Geburtsdatum. Zwei Regeln: nie automatisch verknü
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
-Geprüft, nicht gebaut: Der Kandidatenabgleich über Nachname und Geburtsdatum steht in keinem Soll-Block. 05 erkennt eine wiederkehrende Familie über die bestätigte Mailadresse ('Die Frage wird an der bestätigten Adresse beantwortet und nicht im Browser', GET /admission/targets), und der einzige Dublettenhinweis, den das Soll kennt, ist der aus 12 — Empfänger und Betrag innerhalb von 30 Tagen, gebaut an GET /expense-claims/{id}. Dieses Ticket würde ein zweites, schwächeres Erkennungsverfahren daneben stellen, das kein Block verlangt. Vor dem Bau zu entscheiden: gehört der Abgleich in 05 und 10, und was tut er, wenn er anschlägt — denn 'nie automatisch verknüpfen' braucht einen Ort, an dem das Sekretariat verknüpft, und den gibt es heute nicht.
+Geprüft, nicht gebaut, und der Schlüssel selbst trägt nicht: Nachname und Geburtsdatum sind nicht eindeutig, und der Regelfall dafür steht im Soll — 'Je Kind eine Bewerbung, Zwillinge sind zwei, die Angaben der Familie stehen trotzdem nur einmal da' (05, Z3); 'Zwillinge sind zwei Verträge' (08, schema/anmeldung-schema.sql). Zwei Geschwister derselben Geburt teilen beide Merkmale, ein Abgleich darüber schlägt bei ihnen also immer an. Das entwertet den Hinweis nicht, es begründet die erste Regel des Tickets: nie automatisch verknüpfen, weil der Treffer der häufigste echte Nicht-Treffer ist. Dazu kommt: Der Kandidatenabgleich steht in keinem Soll-Block. 05 erkennt eine wiederkehrende Familie über die bestätigte Mailadresse ('Die Frage wird an der bestätigten Adresse beantwortet und nicht im Browser', GET /admission/targets), und der einzige Dublettenhinweis, den das Soll kennt, ist der aus 12 — Empfänger und Betrag innerhalb von 30 Tagen, gebaut an GET /expense-claims/{id}. Vor dem Bau zu entscheiden: gehört der Abgleich in 05 und 10, welcher Schlüssel trennt Zwillinge, und wo verknüpft das Sekretariat — 'nie automatisch' braucht einen Ort, an dem es von Hand geschieht, und den gibt es heute nicht.
 <!-- SECTION:NOTES:END -->
