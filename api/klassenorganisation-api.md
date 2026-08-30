@@ -65,12 +65,12 @@ Drei Aussagen, keine Auslassung ([`gemeinsam.md`](gemeinsam.md#was-keine-route-i
 
 Je eine Zeile, benannt und nicht mitgeplant:
 
-- **Die wählbare sorgeberechtigte Person fehlt als Route.** „Ausgewählt und nicht eingetippt"
-  verlangt eine Liste der Sorgeberechtigten der Kinder dieser Klasse — Name und `person_id`, kein
-  Kontaktweg. `GET /classes/{class_id}/roster` ([`stammdaten-api.md`](stammdaten-api.md)) trägt die
-  Kinder samt Abholberechtigten, aber keine wählbaren Sorgeberechtigten, und
-  `GET /employees/selectable` ist das Gegenstück für Mitarbeitende. Sie gehört den Stammdaten, denen
-  die Daten gehören, und ist dort **noch nicht gebaut** (`backlog/`).
+- **Die wählbare sorgeberechtigte Person** — `GET /classes/{class_id}/selectable-guardians`
+  ([`stammdaten-api.md`](stammdaten-api.md)). „Ausgewählt und nicht eingetippt" verlangt eine Liste
+  der Sorgeberechtigten der Kinder dieser Klasse — Name und `person_id`, kein Kontaktweg.
+  `GET /classes/{class_id}/roster` trägt die Kinder samt Abholberechtigten, aber keine wählbaren
+  Sorgeberechtigten, und `GET /employees/selectable` ist das Gegenstück für Mitarbeitende. Sie
+  gehört den Stammdaten, denen die Daten gehören.
 - **Die Wirkung des Amts** — [14](../soll-prozesse/14-elternbonus.md) erlässt der Familie jedes
   Amtsträgers die vollen Mitarbeitsstunden und liest `class_representatives` dafür selbst
   ([`elternbonus-api.md`](elternbonus-api.md), Flag `full_via_representation`). Diese Domäne rechnet
