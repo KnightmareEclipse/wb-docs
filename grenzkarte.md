@@ -154,7 +154,7 @@ Nummerierung wie `fachdomaenen.md` Abschnitt 6.
 | **6 Mensa** (gebaut, `schema/mensa-schema.sql`; das Abo der Realschule steht eigenständig neben den Betreuungsmodulen aus 2/4) | Küchenprofil je Kind, Schuljahres-Abo samt seinen Wochentagen, Beitrag je Zahl der Esstage, 1 Werteliste | Q1 (Lastschrift-Erlaubnis) | nein |
 | **6 AGs** (gebaut) | **keine** — es ist nichts bekannt, was zu bauen wäre | — | nein |
 | **9 Gesundheitsdaten** (gebaut) | Gesundheitsbestand je Kind, Gesundheitsmerkmal, Masernschutznachweis, 2 Wertelisten | Q1, Q2 | nein |
-| **5 Rechnungsfreigabe** (gebaut, `schema/rechnungsfreigabe-schema.sql`) | Beleg, Freigabeschritt, Aufteilung, Vorlage, Lieferant, 2 weitere Wertelisten | Q2, Q4 | nein |
+| **5 Rechnungsfreigabe** (gebaut, `schema/rechnungsfreigabe-schema.sql`) | Beleg, Freigabeschritt, Aufteilung, Vorlage, Lieferant, 3 weitere Wertelisten | Q2, Q4 | nein |
 | **7 M365-Kontenverwaltung** (gebaut) | **keine** — Mitarbeitendeneintrag, Schuladresse und Offboarding stehen bereits, Anstoß ist eine Q5-Aufgabe | Q4, Q5 | ja (`children.school_email`) |
 | **8 Eltern-Selfservice** (gebaut) | **keine** | — | ja (eigene Daten) |
 | **11 Bonussystem Elternmitarbeit** (gebaut, `schema/elternbonus-schema.sql`) | geleistete Stunde je Familie und Schuljahr samt Bestätigung | — (Rückzahlung läuft über Optigem) | nein |
