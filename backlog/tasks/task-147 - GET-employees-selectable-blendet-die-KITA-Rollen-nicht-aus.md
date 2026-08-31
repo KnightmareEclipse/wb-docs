@@ -1,9 +1,10 @@
 ---
 id: TASK-147
 title: GET /employees/selectable blendet die KITA-Rollen nicht aus
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-31 15:30'
+updated_date: '2026-08-31 21:04'
 labels:
   - wb-backend
   - stammdaten
@@ -31,7 +32,7 @@ Gefunden im API-Prüfzyklus als BONUS-R2.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Die Form ist entschieden, bevor Code entsteht: die Ausnahme steht am Aufruf, nicht in der Route
-- [ ] #2 Ein Test mit einer KITA-Person und einem rollenlosen Mitarbeitenden zeigt, dass Liste und _confirmable() dieselbe Menge meinen
-- [ ] #3 api/stammdaten-api.md und api/elternbonus-api.md sagen danach dasselbe über diese Route
+- [x] #1 Die Form ist entschieden, bevor Code entsteht: die Ausnahme steht am Aufruf, nicht in der Route
+- [x] #2 Ein Test mit einer KITA-Person und einem rollenlosen Mitarbeitenden zeigt, dass Liste und _confirmable() dieselbe Menge meinen
+- [x] #3 api/stammdaten-api.md und api/elternbonus-api.md sagen danach dasselbe über diese Route
 <!-- AC:END -->

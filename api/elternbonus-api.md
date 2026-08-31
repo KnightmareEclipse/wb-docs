@@ -90,8 +90,9 @@ Ein zweites Ziel `optigem_parent_work` würde dieselbe Regel verletzen, die
 Je eine Zeile, benannt und nicht mitgeplant:
 
 - **Die wählbare Person** — `GET /employees/selectable` ([`stammdaten-api.md`](stammdaten-api.md)),
-  gebaut, aber noch nicht auf diese Domäne zugeschnitten: Sie filtert allein auf den
-  Beschäftigungszeitraum, die KITA-Ausnahme fehlt ihr (`backlog/`, TASK-147).
+  mit `exclude_role_codes=kita_staff&exclude_role_codes=kita_management` gerufen: Erst darüber
+  meint sie dieselbe Menge wie `_confirmable()` unten — ohne den Parameter fehlt der Route die
+  KITA-Ausnahme.
 - **Der Monatsbetrag und die beiden Pflichtstundenzahlen** — `configured_values`, die vier Routen
   auf `/configured-values` ([`querschnitt-api.md`](querschnitt-api.md)), `executive_management`.
   Drei Codes nach demselben Muster wie `cleaning_buyout_cents`: `parent_work_monthly_cents`,
