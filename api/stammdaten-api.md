@@ -141,7 +141,7 @@ den Nachweis selbst nimmt keine Route entgegen.
 | Handlung | Herkunft | Wer darf | Worauf eingeschränkt | Schreibt/liest | Enge Rolle |
 |---|---|---|---|---|---|
 | `PUT /children/{child_id}/departure` — Austrittsdatum und Grund eintragen oder ändern; legt in derselben Transaktion die **Abgangsliste** an — je laufender Verbindung und je Fremdsystem einen Punkt — und schickt die Mail an alle Sorgeberechtigten | [03](../soll-prozesse/03-irregulaerer-abgang.md) Z1 und Z2 | `secretariat`, `school_management` | Schulleitung nur die eigene Schulform. Beides ist Pflicht oder beides leer (`ck_children_exit`); der Austritt darf vor dem Eintritt nicht liegen (`ck_children_exit_after_entry`). **Die offenen Putzdiensttermine stehen nur beim letzten Kind der Familie darauf**, die Ferienbuchung nie | schreibt, `entra:` | — |
-| `DELETE /children/{child_id}/departure` — den Abgang zurücknehmen; streicht die noch offenen Punkte und schickt dieselbe Mail | [03](../soll-prozesse/03-irregulaerer-abgang.md) „Entscheidungen" | `secretariat`, `school_management` | **bestätigte Punkte bleiben stehen** — „einen bestätigten Punkt nimmt zurück, wer ihn bestätigt hat", und das ist der Querschnitt | schreibt, `entra:` | — |
+| `DELETE /children/{child_id}/departure` — den Abgang zurücknehmen; streicht die noch offenen Punkte und schickt dieselbe Mail | [03](../soll-prozesse/03-irregulaerer-abgang.md) „Entscheidungen" | `secretariat`, `school_management` | **bestätigte Punkte bleiben stehen** — „einen bestätigten Punkt nimmt zurück, wer ihn bestätigt hat", und das ist der Querschnitt. **Der Punkt am Familienbezug geht nur, wenn danach kein Kind der Familie mehr ein Austrittsdatum trägt**: er gehört dem letzten abgehenden Kind und nicht diesem einen Abgang | schreibt, `entra:` | — |
 | `GET /children/{child_id}/departure` — die Abgangsliste: je Punkt Zuständigkeit, Stand und, bei einem Vertragspunkt, bis wann er nach jetzigem Stand läuft | [03](../soll-prozesse/03-irregulaerer-abgang.md) Z2 | `secretariat`, `school_management`, `accounting`, `admin`, `day_care_management`; Erziehungsberechtigte | **die ganze Liste sieht das Sekretariat, jede andere Stelle nur ihre eigenen Punkte**; die Eltern sehen Austrittsdatum und die bestätigten Enden ihrer eigenen Verträge, den Grund nicht | liest | — |
 | `PUT /children/{child_id}/repetition` — eintragen, wer seine Stufe wiederholt; ein leeres Schuljahr nimmt es zurück | [04](../soll-prozesse/04-schuljahreswechsel.md) Z1 | `secretariat`, `school_management` | nur bei einem eingeschriebenen Kind (`ck_children_repeats_needs_entry`); der Lauf am 1. August lässt genau die stehen, deren Wert das beginnende Schuljahr trägt | schreibt, `entra:` | — |
 | `PUT /children/{child_id}/enrolment` — Schulart, Klassenstufe und Eintrittsdatum von Hand setzen | [04](../soll-prozesse/04-schuljahreswechsel.md) „Sonderfälle" | `secretariat`, `school_management` | Schulleitung nur ihre eigene Schulform. Die drei Spalten stehen zusammen oder gar nicht (`fk_children_branch MATCH FULL`), die Stufe muss in die Schulart passen (`ck_children_grade_level`), und eine Klasse setzt das Eintrittsdatum voraus. **Regulär setzt sie die Vertragsfreigabe** (08) — dies ist die Korrektur, nicht der Weg | schreibt, `entra:` | — |
@@ -331,9 +331,11 @@ Personen umziehen; Preis: die Route müsste wissen, wer außer dem Antragsteller
 getrennt lebender Elternteil zöge still mit um. Was die neue Zeile kostet, ist die verwaiste alte —
 und die räumt Stufe 7 des Lösch-Laufs, die ohnehin gebaut wird.
 
-**Das Häkchen „gilt auch für die Kinder" umfasst die Kinder aller Familien dieser Person.** —
-Alternative: je Familie ein Häkchen; Preis: ein zweites Feld für den Patchwork-Fall, den das
-Sekretariat mit derselben Route je Kind richtet.
+**Das Häkchen „gilt auch für die Kinder" umfasst die Kinder aller Familien dieser Person** — über
+den OTP-Pfad die der *erreichbaren*: `family_guardians` trägt eine gesperrte Sorgeberechtigung
+weiter, die die Reichweite der Sitzung nicht kennt, und das Häkchen darf dort nicht wieder
+hereinführen. — Alternative: je Familie ein Häkchen; Preis: ein zweites Feld für den
+Patchwork-Fall, den das Sekretariat mit derselben Route je Kind richtet.
 
 **`PUT /employees/{employee_id}/account` trägt Schuladresse und Entra-Objekt-ID zusammen.** —
 Alternative: die Objekt-ID als eigene Route; Preis: zwei Handgriffe für einen Kontovorgang, und die
