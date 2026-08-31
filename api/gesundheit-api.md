@@ -19,18 +19,27 @@ nennen eine dieser Zeilen, **4** einen Hebel oder Abschnitt der Karte
 
 ## Zugriffsmodell
 
-Der Bestand hat **vier** Sichten, keine deckungsgleich, alle über dieselbe Route ausgeliefert
+Der Bestand hat **drei** Sichten, keine deckungsgleich, alle über dieselbe Route ausgeliefert
 (unten) und nie über eine Filterung im Anwendungscode:
 
 | Sicht | Wer | Was | Träger |
 |---|---|---|---|
 | **Voll** | `secretariat`, `school_management` (eigene Schulart), Klassenlehrkraft (eigene Klasse) | alles: Merkmal, Beschreibung, Behandlungsgrund und -zeitraum, Attestlage, Erlaubnis | `backend_health` |
-| **Alltag** | `day_care_staff`, `day_care_management` (betreute Kinder) | nur `is_everyday_relevant`-Merkmale — Unverträglichkeit, Allergie, Notfallmedikation samt Erlaubnis, Zeckenentfernung, ohne Diagnose, Behandlungsgrund oder Attestlage | `backend_health_everyday`, über die View `everyday_health_traits` |
+| **Alltag** | `day_care_staff`, `day_care_management` (betreute Kinder); jede Rolle mit `teacher` (unbeschränkt) | nur `is_everyday_relevant`-Merkmale — Unverträglichkeit, Allergie, Notfallmedikation samt Erlaubnis, Zeckenentfernung, ohne Diagnose, Behandlungsgrund oder Attestlage | `backend_health_everyday`, über die View `everyday_health_traits` |
 | **Küche** | `canteen` | nur `is_kitchen_relevant` (Unverträglichkeit, Allergie) | bereits gebaut: `kitchen_health_traits` ([`mensa-api.md`](mensa-api.md)) |
-| **Hinweis** | jede Rolle mit `teacher` | ausschließlich `child_health_records.action_note` | `backend_health_note` |
 
-Die vier sind konzentrisch bis auf den Hinweis, der ein anderes Feld trägt und nicht dieselbe
-Spalte enger sieht. `[A!]` **Der Hort bekommt die Alltags-Sicht, nicht die volle** —
+Die drei sind konzentrisch. **Der handlungsrelevante Hinweis ist keine vierte Sicht, sondern ein
+Feld**: `child_health_records.action_note`, von der Klassenlehrkraft formuliert, ausgeliefert an die
+volle Sicht und an jede Rolle mit `teacher` — „den alle unterrichtenden Personen sehen"
+(`grenzkarte.md`). Der Hort bekommt ihn nicht; er unterrichtet nicht, und kein Block nennt ihn.
+`backend_health_note` ist dabei eine *Schreib*beschränkung — `backend_runtime` liest die Spalte
+tabellenweit, wie es `stammdaten-api.md` an der Klassenliste bereits festhält. `[A]` **Die Eltern
+bekommen den Hinweis ebenfalls nicht.** — Alternative: ihn im Portal mitliefern; Preis: die
+fachliche Einschätzung der Klassenlehrkraft wird ein Feld, das sie der Familie gegenüber begründen
+muss, und der kurze Betriebssatz („Notfallmedikament im Sekretariat") liest sich als Auskunft an
+die Familie statt als Handlungsregel für den Unterricht.
+
+`[A!]` **Der Hort bekommt die Alltags-Sicht, nicht die volle** —
 [09](../soll-prozesse/09-hortvertrag.md) sagt es direkt: „Hortkräfte den Alltag, Sekretariat und
 Schulleitung auch Diagnose und Attestlage". Das widerspricht zwei älteren Stellen: `grenzkarte.md`
 „Zugriff, zweistufig" zählt den Hort noch zur vollen Sicht, und `ferien-api.md` hat vorsorglich
@@ -41,11 +50,26 @@ Kochwerkstatt-Korrektur). — Alternative: dem Hort die volle Sicht lassen; Prei
 und genau das ist die Über-Offenlegung, die die Karte selbst als Grund für die zweite Spalte nennt.
 `grenzkarte.md` und `ferien-api.md` sind mit dieser Datei korrigiert (unten).
 
+**Die Lehrkraft sieht die Alltags-Merkmale, nicht nur den Hinweis.**
+[08](../soll-prozesse/08-schulvertrag.md) Z. 95 nennt sie in einem Atemzug mit dem Hort:
+„Lehrkräfte und Hort sehen davon, was im Alltag zu tun ist — Unverträglichkeit, Allergie,
+Notfallmedikation samt Erlaubnis, Zeckenentfernung —, nicht Diagnose, Behandlungsgrund und
+Attestlage"; [15](../soll-prozesse/15-klassenbildung.md) sagt dasselbe von der anderen Seite, die
+Klassenlehrkraft sehe „mehr als jede andere Lehrkraft, die nur die Alltagsangaben sieht ([08])".
+`grenzkarte.md` „Zugriff, zweistufig" zählt dagegen drei Sichten und gibt der Lehrkraft allein den
+Hinweis — Rang 3 gegen zwei Blöcke auf Rang 1 (`CLAUDE.md`-Rangfolge), dieselbe Reihenfolge wie
+beim Hort einen Absatz höher. Die Begründung der Karte bleibt davon unberührt und trägt weiter:
+Verschlossen bleiben der Fachlehrkraft Diagnose, Behandlungsgrund und Attestlage, und genau die
+stehen nicht in `everyday_health_traits`. `stammdaten-api.md` gibt `teacher` denselben Ausschnitt
+über die Klassenliste ohnehin schon („den Alltagsangaben zur Gesundheit", unbeschränkt für
+Lehrkräfte) — diese Route war die einzige Stelle, an der er enger war.
+
 **`teacher` ist keine neue Rolle** — sie steht bereits im `roles`-Seed und als `TEACHER_ROLE` in
 `wb-backend/app/core/security.py`, gebaut für dieselbe Frage an `GET /children/{child_id}`
 (`stammdaten-api.md`, „everyday_only"). Sie ist unbeschränkt über alle Kinder, weil es „eine
-Zuordnung Lehrkraft↔Unterricht … nicht [gibt] — die lebt in Untis" (`glossar.md`) und der Hinweis
-genau deshalb schmal gehalten ist. Diese Domäne nutzt die vorhandene Rolle, führt keine neue ein.
+Zuordnung Lehrkraft↔Unterricht … nicht [gibt] — die lebt in Untis" (`glossar.md`); genau deshalb
+bleibt ihr Ausschnitt der schmale und nicht der volle. Diese Domäne nutzt die vorhandene Rolle,
+führt keine neue ein.
 
 **Die Klassenlehrkraft ist keine `roles`-Zeile, sondern ein Ownership-Check** über
 `classes.class_teacher_id`: Wer als `employee` dort steht, sieht die Kinder dieser Klasse voll —
@@ -108,7 +132,7 @@ erst diese Datei entscheidet, dass der Hort die schmalere Sicht bekommt (oben).
 
 | Handlung | Herkunft | Wer darf | Worauf eingeschränkt | Schreibt/liest | Enge Rolle |
 |---|---|---|---|---|---|
-| `GET /children/{child_id}/health-record` — Status, Merkmale, Hinweis und (nur volle Sicht, nur Personal) der Masernnachweis in einer Antwort, je nach Rolle unterschiedlich weit | [`grenzkarte.md`](../grenzkarte.md) „Zugriff, zweistufig"; [09](../soll-prozesse/09-hortvertrag.md) „Hortkräfte den Alltag …"; [15](../soll-prozesse/15-klassenbildung.md) „Zwei Einsichten"; [`grenzkarte.md`](../grenzkarte.md) „schnell nachprüfbar" für den Masernnachweis | Erziehungsberechtigte; `secretariat`, `school_management`, `day_care_staff`, `day_care_management`, `teacher`; Klassenlehrkraft | eigene Familie; Schulleitung nur ihre Schulart; Hort nur Kinder mit laufendem Hortvertrag, und nur die Alltags-Merkmale; `teacher` unbeschränkt, aber nur den Hinweis; Klassenlehrkraft nur die eigene Klasse, dafür voll. Der Masernnachweis steht nur Personal der vollen Sicht zur Verfügung, den Eltern nicht — kein Block gibt ihnen dafür einen Anlass. **Eine Rolle ohne Nennung bekommt `404`, nicht `403`** ([`gemeinsam.md`](gemeinsam.md#fehler)) | liest | `backend_health`, `backend_health_everyday` |
+| `GET /children/{child_id}/health-record` — Status, Merkmale, Hinweis und (nur volle Sicht, nur Personal) der Masernnachweis in einer Antwort, je nach Rolle unterschiedlich weit | [`grenzkarte.md`](../grenzkarte.md) „Zugriff, zweistufig"; [09](../soll-prozesse/09-hortvertrag.md) „Hortkräfte den Alltag …"; [15](../soll-prozesse/15-klassenbildung.md) „Zwei Einsichten"; [`grenzkarte.md`](../grenzkarte.md) „schnell nachprüfbar" für den Masernnachweis | Erziehungsberechtigte; `secretariat`, `school_management`, `day_care_staff`, `day_care_management`, `teacher`; Klassenlehrkraft | eigene Familie; Schulleitung nur ihre Schulart; Hort nur Kinder mit laufendem Hortvertrag, und nur die Alltags-Merkmale; `teacher` unbeschränkt, aber nur die Alltags-Merkmale; Klassenlehrkraft nur die eigene Klasse, dafür voll. Der Hinweis geht an die volle Sicht und an `teacher`, nicht an den Hort und nicht an die Eltern. Der Masernnachweis steht nur Personal der vollen Sicht zur Verfügung, den Eltern nicht — kein Block gibt ihnen dafür einen Anlass. **Eine Rolle ohne Nennung bekommt `404`, nicht `403`** ([`gemeinsam.md`](gemeinsam.md#fehler)) | liest | `backend_health`, `backend_health_everyday` |
 | `PUT /children/{child_id}/health-record` — beantworten oder ausdrücklich ablehnen | [08](../soll-prozesse/08-schulvertrag.md) Z2, „ändern die Eltern danach jederzeit im Portal — hier, nicht in 02"; [09](../soll-prozesse/09-hortvertrag.md) Z3 | Erziehungsberechtigte; `secretariat` (Umweg) | eigene Familie, nach [Einsichtsstufe](../soll-prozesse/hebel.md#einsichtsstufe) **nur „voll"** — der Bestand ist keine „eigene Angabe" einer eingeschränkten Person, sondern eine des Kindes. Legt `child_health_records` beim ersten Mal an (`uq_child_health_records`); setzt `answered_at` **oder** `declined_at`, nie beides (`ck_child_health_records_answer`). **Jederzeit umschaltbar** — ein Wechsel von abgelehnt zu beantwortet rührt vorhandene Merkmale nicht an, dafür nennt kein Block einen Grund | schreibt, `guardian:`/`entra:` | — |
 | `PUT /children/{child_id}/health-note` — den handlungsrelevanten Hinweis setzen oder leeren | [`grenzkarte.md`](../grenzkarte.md) „Zugriff, zweistufig" | Klassenlehrkraft der eigenen Klasse | nur die eigene Klasse (`classes.class_teacher_id`); **kein Umweg** — es gibt keine Rolle, die für die Klassenlehrkraft einspringt, und das ist gewollt: der Hinweis ist ihre fachliche Einschätzung, keine Verwaltungsangabe | schreibt, `entra:` | `backend_health_note` |
 | `PUT /children/{child_id}/measles-proof` — Vorlagedatum und -art eintragen oder ersetzen | [06](../soll-prozesse/06-anmeldetag.md) Z5; [09](../soll-prozesse/09-hortvertrag.md) Z3 (externes Kind) | `secretariat` | unbeschränkt; **keine Elternroute** — kein Block lässt die Familie selbst eintragen, das Sekretariat sieht das Original. Eine Zeile je Kind (`uq_measles_proofs`), ein erneuter `PUT` ersetzt sie — „festgehalten wird nur, ob und wie er vorlag", eine Korrektur ist keine zweite Vorlage | schreibt, `entra:` | — |
@@ -156,6 +180,8 @@ Zwei Sätze, die diese Domäne widerlegt, jetzt nachgezogen statt offen gelassen
 - `ferien-api.md`: „der Hort sieht den vollen Satz (`backend_health`)" wird „der Hort sieht die
   Alltagsmerkmale (`backend_health_everyday`)" — eine eigene Rolle statt der vollen, mit
   demselben Datei-Update nachgezogen.
+- `grenzkarte.md` „Zugriff, zweistufig", zweiter Punkt: Die Lehrkraft sieht die Alltagsmerkmale und
+  dazu den Hinweis, nicht den Hinweis allein; der Hort sieht den Hinweis nicht — Begründung oben.
 
 ## Am Schema aufgefallen
 
