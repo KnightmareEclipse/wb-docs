@@ -63,8 +63,26 @@ for bericht in "$docs"/pruefberichte/routen-*.md; do
     prompt=$(sed -e '1,/^---$/d' -e "s/DOMÄNE/$domaene/g" "$docs/prompts/api-reparieren.md")
     # `--bg` meldet "backgrounded · <id>" und darunter vier Zeilen Bedienhinweis;
     # ohne das `sed` stünde der ganze Block in `id`.
+    # `dontAsk` statt `bypassPermissions`: Was nicht auf der Liste steht, wird
+    # abgewiesen statt ausgeführt, und der Lauf hängt dabei nicht — er bekommt die
+    # Ablehnung zurück und meldet sie. `bypassPermissions` gäbe sechs
+    # unbeaufsichtigten Sessions alles, `git push prod` eingeschlossen, und das
+    # zeigt auf den laufenden VPS.
+    #
+    # `--` vor dem Prompt ist Pflicht: `--add-dir` nimmt beliebig viele Werte und
+    # schluckt ihn sonst als weiteres Verzeichnis — die Session startet dann
+    # wortlos und wartet ("idle"), sechs Bäume stehen und nichts läuft.
     id=$(cd "$spur/wb-backend" && claude --bg --effort xhigh \
-        --permission-mode bypassPermissions --add-dir "$spur/wb-docs" "$prompt" |
+        --permission-mode dontAsk \
+        --allowedTools "Read" "Edit" "Write" "Glob" "Grep" "TodoWrite" \
+            "Bash(podman-compose:*)" "Bash(podman exec:*)" "Bash(git:*)" \
+            "Bash(./schema-check.sh)" "Bash(cat:*)" "Bash(sed:*)" \
+            "Bash(grep:*)" "Bash(ls:*)" "Bash(head:*)" "Bash(tail:*)" \
+            "Bash(wc:*)" "Bash(diff:*)" \
+        --disallowedTools "Bash(git push:*)" "Bash(rm:*)" "Bash(sudo:*)" \
+            "Bash(ssh:*)" "Bash(curl:*)" "Bash(wget:*)" "Bash(podman rm:*)" \
+            "Bash(podman rmi:*)" "Bash(podman volume:*)" \
+        --add-dir "$spur/wb-docs" -- "$prompt" |
         sed -n '1s/.* //p')
     [ -n "$id" ] || { echo "$domaene: nicht gestartet"; exit 1; }
     echo "$domaene: $id"
