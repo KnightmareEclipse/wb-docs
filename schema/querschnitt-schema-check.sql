@@ -53,7 +53,7 @@ BEGIN
         'pk_documents', 'pk_change_log',
         'fk_consents_person', 'fk_consents_child', 'fk_consents_signature',
         'fk_documents_child', 'fk_sync_tasks_target', 'fk_sync_targets_role',
-        'fk_sync_tasks_payment',
+        'fk_sync_tasks_payment', 'fk_sync_tasks_branch',
         'uq_child_file_folders',
         'ck_consents_answer', 'ck_consents_revocation',
         'ck_consents_revoked_after_granted', 'ck_sync_tasks_completed_by',
@@ -458,11 +458,30 @@ SELECT pg_temp.expect_reject(
 -- 8. Gegenproben — Q5 und Änderungsspur
 -- ---------------------------------------------------------------------------
 
+-- Die Schulart ist kein neunter Bezug, sondern eine Einschränkung des
+-- Leserkreises (08 Z4). Die zwei Proben belegen genau das: mit einem Bezug
+-- daneben geht die Aufgabe durch, allein trägt die Schulart sie nicht. Das
+-- Schuljahr als Bezug, weil es keinen der übrigen Fälle dieser Datei berührt.
+SELECT pg_temp.expect_accept(
+    'Q5 — Aufgabe mit Bezug und Schulart',
+    $q$INSERT INTO sync_tasks (sync_target_id, school_year, school_branch_id, task_text, created_by)
+       VALUES ((SELECT sync_target_id FROM sync_targets WHERE code='asv_bw'), 2099,
+               (SELECT school_branch_id FROM school_branches ORDER BY school_branch_id LIMIT 1),
+               'Jahrgang nachtragen', 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    'Q5 — Schulart allein ist kein Bezug',
+    $q$INSERT INTO sync_tasks (sync_target_id, school_branch_id, task_text, created_by)
+       VALUES ((SELECT sync_target_id FROM sync_targets WHERE code='asv_bw'),
+               (SELECT school_branch_id FROM school_branches ORDER BY school_branch_id LIMIT 1),
+               'Kind anlegen', 'system:check')$q$);
+
 SELECT pg_temp.expect_reject(
     'Q5 — Aufgabe ohne Bezug',
     $q$INSERT INTO sync_tasks (sync_target_id, task_text, created_by)
        VALUES ((SELECT sync_target_id FROM sync_targets WHERE code='asv_bw'),
                'Kind anlegen', 'system:check')$q$);
+
 
 -- Der achte Bezug, und der Grund für ihn steht an `ck_payments_single_cause`:
 -- die vorgangslose Zahlung wartet auf die Entscheidung eines Menschen, und ohne

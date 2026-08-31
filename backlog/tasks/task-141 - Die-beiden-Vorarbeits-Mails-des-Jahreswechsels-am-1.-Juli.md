@@ -1,9 +1,10 @@
 ---
 id: TASK-141
 title: Die beiden Vorarbeits-Mails des Jahreswechsels am 1. Juli
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-31 00:59'
+updated_date: '2026-08-31 19:56'
 labels:
   - wb-backend
   - stammdaten
@@ -26,12 +27,14 @@ Aus 04 Z1: am 1. Juli, ein festes Datum, geht eine Mail ans Sekretariat mit den 
 Die Marke ist die Mail selbst — eine outbound_emails-Zeile dieses Zwecks seit dem Auslöser, wie die vier Läufe der Anmeldung und die Wochenmail es machen (app/runs.py). Keine Spalte daneben, also keine Migration.
 
 Gefunden im dreizehnten API-Prüfzyklus als STAMMDATEN-R9.
+
+Gebaut in app/services/rollover.py, registriert als rollover_repeaters und rollover_prices. Die Preisprüfung brauchte ein neues Ziel `annual_prices` — es gab noch keines bei der Geschäftsführung; Bezug ist das Schuljahr, womit der partielle Unique-Index die zweite Aufgabe verhindert.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Zwei Run-Zeilen in app/runs.py unter dem Aktor system:rollover
-- [ ] #2 Die Marke ist die outbound_emails-Zeile; ein zweiter Tick am selben Tag schickt nichts
-- [ ] #3 Die Mail an die Geschäftsführung legt ihre Aufgabe in derselben Transaktion an
-- [ ] #4 Je Lauf ein Test in tests/test_runs.py, der zweimal hintereinander läuft
+- [x] #1 Zwei Run-Zeilen in app/runs.py unter dem Aktor system:rollover
+- [x] #2 Die Marke ist die outbound_emails-Zeile; ein zweiter Tick am selben Tag schickt nichts
+- [x] #3 Die Mail an die Geschäftsführung legt ihre Aufgabe in derselben Transaktion an
+- [x] #4 Je Lauf ein Test in tests/test_runs.py, der zweimal hintereinander läuft
 <!-- AC:END -->

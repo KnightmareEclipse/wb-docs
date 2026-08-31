@@ -677,6 +677,14 @@ CREATE TABLE sync_tasks (
     -- Familie, weil zwei solche Fälle derselben Familie zwei Entscheidungen
     -- sind — und weil nur die Zahlung den Betrag trägt, um den es geht.
     payment_id       uuid,
+    -- Wen die Aufgabe erreicht, nicht worum sie geht — deshalb steht sie
+    -- bewusst außerhalb von ck_sync_tasks_single_subject und zählt dort nicht
+    -- mit. 08 Z4 will die Freigabe „bei der Schulleitung dieser Schulart"; ohne
+    -- diese Spalte liest die Grundschulleitung in ihrer Wochenmail die Namen
+    -- der Realschulkinder. Leer bei jedem Ziel, dessen Rolle nicht an eine
+    -- Schulart gebunden ist — das ist jede außer der Schulleitung
+    -- (`roles.is_branch_bound`).
+    school_branch_id integer,
     -- Was zu tun ist, in einem Satz; die zuständige Stelle folgt aus dem Ziel
     -- und steht deshalb nicht hier.
     task_text      text NOT NULL,
@@ -697,6 +705,7 @@ CREATE TABLE sync_tasks (
     CONSTRAINT fk_sync_tasks_child  FOREIGN KEY (child_id)  REFERENCES children (child_id) ON DELETE CASCADE,
     CONSTRAINT fk_sync_tasks_family FOREIGN KEY (family_id) REFERENCES families (family_id) ON DELETE CASCADE,
     CONSTRAINT fk_sync_tasks_payment FOREIGN KEY (payment_id) REFERENCES payments (payment_id) ON DELETE CASCADE,
+    CONSTRAINT fk_sync_tasks_branch FOREIGN KEY (school_branch_id) REFERENCES school_branches (school_branch_id),
     CONSTRAINT ck_sync_tasks_single_subject CHECK (
         (person_id        IS NOT NULL)::int
       + (child_id         IS NOT NULL)::int
