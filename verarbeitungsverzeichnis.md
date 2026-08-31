@@ -62,19 +62,18 @@ Laufzeitrolle nicht lesbar — die Grenze ist eine Datenbankberechtigung, keine 
 | Hetzner Online GmbH | betreibt die VPS; sieht die Daten nicht, kann sie aber technisch erreichen | AVV, Art. 28 |
 | Microsoft | Identitätsanbieter (Entra ID), Mailversand über Graph, Ablage der Schülerakte in SharePoint | bestehender Tenant-AVV |
 | Stripe | Betrag, Zahlungsreferenz und die vom Elternteil auf Stripes eigener Seite eingegebene Adresse — **kein Name** | AVV, offen bis TASK-034 |
-| healthchecks.io | Heartbeat und Festplattenwert, nie ein Personendatum | eigener minimaler AVV, offen bis TASK-115 |
 
 **Kein weiterer Empfänger.** Das Backupziel ist das schuleigene NAS und damit kein Dritter
 (`backup.md`), die Prüfläufe in GitHub Actions sehen Quellcode und einen synthetischen Seed, nie
 einen Export (`rules.md` Abschnitt 2), und einen externen CI-Runner im Deploy-Pfad gibt es nicht
-(`deploy.md`).
+(`deploy.md`). Der Überwachungsdienst healthchecks.io steht nicht in der Tabelle, weil er kein
+Personendatum empfängt, sondern einen Heartbeat (`dsgvo.md`).
 
 ## e) Übermittlung in ein Drittland
 
 Offen und an einem Ticket hängend: Welche **Stripe-Gesellschaft** Vertragspartner wird, entscheidet,
 ob überhaupt ein Transfer nach Art. 44 ff. stattfindet (TASK-034). Für Microsoft gilt der bestehende
-Tenant-Vertrag samt seinen Standardvertragsklauseln. Hetzner und healthchecks.io verarbeiten in
-Deutschland; bei healthchecks.io sitzt die Betreiberfirma in Lettland, also in der EU.
+Tenant-Vertrag samt seinen Standardvertragsklauseln. Hetzner verarbeitet in Deutschland.
 
 ## f) Löschfristen
 
