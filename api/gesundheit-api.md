@@ -33,11 +33,11 @@ Feld**: `child_health_records.action_note`, von der Klassenlehrkraft formuliert,
 volle Sicht und an jede Rolle mit `teacher` — „den alle unterrichtenden Personen sehen"
 (`grenzkarte.md`). Der Hort bekommt ihn nicht; er unterrichtet nicht, und kein Block nennt ihn.
 `backend_health_note` ist dabei eine *Schreib*beschränkung — `backend_runtime` liest die Spalte
-tabellenweit, wie es `stammdaten-api.md` an der Klassenliste bereits festhält. `[A]` **Die Eltern
-bekommen den Hinweis ebenfalls nicht.** — Alternative: ihn im Portal mitliefern; Preis: die
-fachliche Einschätzung der Klassenlehrkraft wird ein Feld, das sie der Familie gegenüber begründen
-muss, und der kurze Betriebssatz („Notfallmedikament im Sekretariat") liest sich als Auskunft an
-die Familie statt als Handlungsregel für den Unterricht.
+tabellenweit, wie es `stammdaten-api.md` an der Klassenliste bereits festhält. **Die Eltern bekommen
+ihn ebenfalls nicht.** — Alternative: ihn im Portal mitliefern; Preis: die fachliche Einschätzung
+der Klassenlehrkraft wird ein Feld, das sie der Familie gegenüber begründen muss, und der kurze
+Betriebssatz („Notfallmedikament im Sekretariat") liest sich als Auskunft an die Familie statt als
+Handlungsregel für den Unterricht.
 
 `[A!]` **Der Hort bekommt die Alltags-Sicht, nicht die volle** —
 [09](../soll-prozesse/09-hortvertrag.md) sagt es direkt: „Hortkräfte den Alltag, Sekretariat und
