@@ -6,7 +6,7 @@ und was dort steht, wiederholt diese Datei nicht.
 **Gegenprobe:** Die Ablauftabelle hat **5 Zeilen**; alle fünf handeln im System — **2** tragen eine
 Route dieser Datei (Z1, Z2), **2** sind [Läufe](#zwei-läufe) (Z3, Z4), **1** ist mit der bereits
 gebauten Aufgabenroute des Querschnitts erledigt (Z5, [`querschnitt-api.md`](querschnitt-api.md)).
-Es gibt **5 Routen**; **3** nennen eine Ablaufzeile, **2** einen Abschnitt des Blocks. Keine
+Es gibt **6 Routen**; **3** nennen eine Ablaufzeile, **3** einen Abschnitt des Blocks. Keine
 Abweichung.
 
 ## Zwei Grenzen, die jede Route dieser Domäne einhält
@@ -36,8 +36,9 @@ Rumpf an, denn die Route läuft auch für Sekretariat und Schulleitung, die kein
 mitbringen wollen, bevor sie wissen, welche gemeint ist. Die Familienansicht dagegen steht unter
 `/families/{family_id}/parent-work` — derselbe Anker wie `/families/{family_id}/meals`
 ([`mensa-api.md`](mensa-api.md)), weil sie eine Ansicht ist und kein Vorgang. `/parent-work-entries/`
-ohne Anker trägt die beiden Listen, die keinem Kind und keiner Familie gehören: die Warteschlange
-einer Person und die Jahresliste — dieselbe Form wie `/meals/day-list` und `/meals/week-overview`.
+ohne Anker trägt die drei Listen, die keinem Kind und keiner Familie gehören: die Warteschlange
+einer Person, ihre schon bestätigten Einträge und die Jahresliste — dieselbe Form wie
+`/meals/day-list` und `/meals/week-overview`.
 
 ## Die Einträge
 
@@ -46,6 +47,7 @@ einer Person und die Jahresliste — dieselbe Form wie `/meals/day-list` und `/m
 | `POST /parent-work-entries` — eine geleistete Stunde eintragen: Datum, halbe Stunden, Tätigkeit, die bestätigende Person | [14](../soll-prozesse/14-elternbonus.md) Z1 | Erziehungsberechtigte; `secretariat` (Umweg) | eigene Familie, nach [Einsichtsstufe](../soll-prozesse/hebel.md#einsichtsstufe) **nur „voll"** — der Eintrag mindert das Schulgeld der ganzen Familie, keine „eigene Angabe" einer eingeschränkten Person. Die bestätigende Person muss unter `GET /employees/selectable` stehen (unten); Sekretariat setzt **jedes Datum**, auch eines nach dem 31. Juli, solange die Jahresliste noch nicht übergeben ist ([offizieller Umweg](../soll-prozesse/hebel.md#der-offizielle-umweg)) | schreibt, `guardian:`/`entra:` | — |
 | `PUT /parent-work-entries/{parent_work_entry_id}/decision` — bestätigen oder ablehnen | [14](../soll-prozesse/14-elternbonus.md) Z2 | die gewählte Person; `secretariat`, `school_management` (Umweg, „wenn die gewählte Person ausfällt") | genau die gewählte Person, per Ownership-Check (oben) — nicht per Rolle. **Ohne Begründung** — „Abgelehnt wird ohne Begründung im System". Nur solange noch nicht entschieden (`ck_parent_work_entries_decision`); eine Ablehnung ist endgültig, die Eltern tragen bei Bedarf neu ein. **Nur bis zum 31. Juli** des Schuljahrs, auf das der Eintrag zählt — „Eingetragen **und bestätigt** wird bis zum 31. Juli". Für Sekretariat und Schulleitung fällt die Frist weg wie beim Eintrag ([offizieller Umweg](../soll-prozesse/hebel.md#der-offizielle-umweg)): Sie tragen nach dem 31. Juli nach, und der nachgetragene Eintrag wäre sonst von niemandem mehr zu bestätigen | schreibt, `entra:` | — |
 | `GET /parent-work-entries/pending` — die eigene Warteschlange: alle Einträge, die auf eine Entscheidung warten | [14](../soll-prozesse/14-elternbonus.md) Z2, „eine offene Aufgabe mit allen Einträgen, die auf sie warten — nicht eine je Eintrag" | jede Mitarbeiterrolle; `secretariat`, `school_management` | die eigenen wartenden Einträge (`confirming_employee_id` = Aufrufer); **Sekretariat und Schulleitung sehen alle**, dieselbe Allsicht wie `GET /tasks` ([`querschnitt-api.md`](querschnitt-api.md)) — ohne sie liefe der Umweg ins Leere, weil niemand die fremden Einträge fände. Listenroute, deshalb nie über den OTP-Pfad | liest | — |
+| `GET /parent-work-entries/confirmed` — was die bestätigende Person in diesem Schuljahr schon bestätigt hat: Familie, Datum, halbe Stunden, Tätigkeit | [14](../soll-prozesse/14-elternbonus.md) „Was dabei erhoben wird": „die bestätigende Person sieht die Einträge, die auf sie warten, **und was sie in diesem Schuljahr schon bestätigt hat** — wer, wann, wie lange, wofür —, und keinen Schritt weiter in die Akte" | jede Mitarbeiterrolle | die eigenen bestätigten Einträge des laufenden Schuljahrs (`confirming_employee_id` = Aufrufer). **Keine Allsicht** daneben, anders als bei der Warteschlange: Der Umweg muss einen wartenden Eintrag *finden*, nicht fremde Entscheidungen nachlesen. Die Zeile nennt die gewählte Person, also erscheint auch die Entscheidung einer Vertretung in ihrer Liste — wer gedrückt hat, führt die Tabelle nicht. „Keinen Schritt weiter in die Akte": die Familie als Kennung, kein Name. Listenroute, deshalb nie über den OTP-Pfad | liest | — |
 
 ## Die Ansichten
 
