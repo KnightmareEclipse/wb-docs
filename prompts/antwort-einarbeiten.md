@@ -7,20 +7,40 @@ Eine Session je Antwortmail, im Hauptbaum von `wb-docs`. Effort `xhigh`. Dieser 
 er ist das Gegenteil der Reparaturläufe: Ich sitze daneben, und was gekippt wird, kippt nicht ohne
 mich.
 
-Vorher: `git status` sauber, und der Thread liegt als **Textdatei** — in Outlook „Speichern unter"
-mit Nur-Text, oder den Inhalt in eine `.txt` kopieren. Kein `.msg`: Das ist ein Binärformat, und
-das Werkzeug dafür ist auf dieser Maschine nicht installiert. Verloren geht dabei nichts, worauf es
-ankommt — die Kopfblöcke, an denen die Runden hängen, sind selbst Text. Der Pfad kommt unten
-anstelle von `MAILPFAD`.
+Vorher: `git status` sauber, und der Thread liegt als **`.eml`** — aus Outlook heruntergeladen, mehr
+nicht. Nicht als `.msg`: Das ist ein Binärformat, und das Werkzeug dafür ist hier nicht
+installiert. Der Pfad kommt unten anstelle von `MAILPFAD`.
 
 ---
 
 Es gelten [`gemeinsam.md`](gemeinsam.md) und `CLAUDE.md`. Beides liest du zuerst.
 
-Der Thread liegt in `MAILPFAD`, aus Outlook als Text gespeichert. Es ist **kein einzelner
-Briefwechsel, sondern die dritte oder vierte Runde**, und die Geschäftsführung schreibt ihre Sätze
-**in meine hinein** statt darunter. Daraus folgt die Reihenfolge der Arbeit: erst die Runden
-trennen, dann in jeder Runde die Sätze zuordnen, dann erst lesen, was es bedeutet.
+Der Thread liegt als `.eml` in `MAILPFAD`. Es ist **kein einzelner Briefwechsel, sondern die dritte
+oder vierte Runde**, und die Geschäftsführung schreibt ihre Sätze **in meine hinein** statt
+darunter. Daraus folgt die Reihenfolge der Arbeit: erst die Runden trennen, dann in jeder Runde die
+Sätze zuordnen, dann erst lesen, was es bedeutet.
+
+## Null: den Text herausholen
+
+Eine `.eml` ist MIME, und `email` steht in der Standardbibliothek — installiert wird nichts:
+
+```
+python3 -c "
+import email,email.policy,sys
+m=email.message_from_binary_file(open(sys.argv[1],'rb'),policy=email.policy.default)
+print('Von:',m['from'],'| Datum:',m['date'],'| Betreff:',m['subject'])
+print(m.get_body(preferencelist=('plain','html')).get_content())
+" MAILPFAD
+```
+
+`policy.default` ist hier nicht schmückend: Ohne sie stehen die Umlaute als
+quoted-printable (`ge=C3=A4ndert`) im Text, und du zerlegst einen Thread, dessen Wortlaut nicht der
+gesendete ist — den ich morgen aber vorlese. Kommt statt des Plain-Teils HTML zurück, führt die
+Mail keinen; entschlacke ihn dann mit `html.parser`, ebenfalls aus der Standardbibliothek.
+
+**Den Wortlaut liest du aus dieser Ausgabe, nicht aus der Rohdatei.** Und du speicherst ihn
+nirgends: Der Thread trägt Namen und Anliegen realer Personen und hat in diesem Repo nichts zu
+suchen.
 
 ## Erstens: die Runden trennen
 
