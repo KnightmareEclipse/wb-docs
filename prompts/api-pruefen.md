@@ -79,10 +79,30 @@ Für jede Regel, die du prüfst, genau das — von Hand, eine nach der anderen:
 
 1. Die Bedingung im Router entfernen oder umdrehen: `!=` statt `==`, die `where`-Klausel raus, das
    `if` auf `False`.
-2. `podman-compose -p wbp-DOMÄNE --profile tools run --rm --no-deps test pytest
+2. `podman-compose -p wbp-DOMÄNE --profile tools build test`, dann
+   `podman-compose -p wbp-DOMÄNE --profile tools run --rm --no-deps test pytest
    tests/test_DOMÄNE.py -x -q`
 3. **Rot heißt: die Regel ist geprüft. Grün heißt: sie ist es nicht, und das ist der Fund.**
 4. `git checkout -- app/` — sofort, nach jeder einzelnen Messung, nicht am Ende der Domäne.
+
+**Der Bau in Schritt 2 fällt nicht weg.** Der `test`-Dienst backt die Quellen ins Image und `run`
+baut nur ein *fehlendes*: Ohne ihn misst du die Quellen des letzten Baus, jede Messung wird grün,
+und aus „grün heißt, die Regel ist nicht geprüft" entsteht ein Bericht voller Funde, die keine
+sind. Er kostet Sekunden, weil alles bis `COPY app` aus dem Cache kommt — dieselbe Falle, die
+`wb-backend/README.md` zweimal ausschreibt. Sie gilt in beide Richtungen: `git checkout` nimmt das
+Image nicht zurück, und wer nach der letzten Messung ohne Bau noch einmal laufen lässt, misst die
+Mutation und meldet einen roten Nullpunkt, den es nicht gibt.
+
+**Nach einer roten Messung ist die Datenbank nicht mehr leer.** Bricht ein Test im Teardown ab,
+bleiben die Zeilen stehen, die sein Fixture angelegt hat, und der nächste Lauf scheitert an deren
+UNIQUE statt an deiner Mutation — auch das sieht aus wie ein Fund. Also hinterher räumen, wie
+`tests/conftest.py` es tut, samt der Wertelisten-Zeilen, die das Fixture der Domäne selbst anlegt:
+
+```
+podman exec -i wbp-DOMÄNE_db_1 psql -U postgres -d weltenbaum -q \
+  -c "TRUNCATE change_log, persons, families, cleaning_cycles, configured_values
+      RESTART IDENTITY CASCADE"
+```
 
 Das ist teuer, also nicht für alles: **gemessen wird bei Fehlerklasse 1 und 2 immer**, dazu bei
 jeder Regel, die laut Plan „kein Constraint trägt". Für den Rest genügt Lesen. Kommst du über
