@@ -201,6 +201,14 @@ Alternative: das Dokument als Hintergrundaufgabe bauen; Preis: eine Einschreibun
 niemandem auffällt, und die Prüfsumme, die 08 verlangt, entstünde nach der Bestätigungsmail.
 Dieselbe Wahl wie beim Aktenordner (`stammdaten-api.md`, `PUT /children/{child_id}/class`).
 
+**Die Bibliothek darf ein verwaistes Signaturbild tragen.** Jede Route, die einen Namenszug
+entgegennimmt, legt die PNG ab, bevor die `signatures`-Zeile steht, die sie benennt; bricht die
+Transaktion danach ab, bleibt sie liegen und das Aufräumen der Gegenzeichnung findet sie nie — es
+geht über die Zeile. Die Datenbank ist damit sauber und die Bibliothek nicht, und das ist der
+hingenommene Preis. — Alternative: den Upload hinter den letzten Flush ziehen; Preis: drei Routen
+mit zwei Schreibschritten je Unterschrift, und das Fenster wird kleiner statt zu, weil zwei Systeme
+ohne gemeinsame Transaktion es behalten.
+
 **Was die Freigabe des Schulvertrags außerdem tut**, in derselben Transaktion: Sie setzt
 `children.entry_date`, `school_branch_id` und `grade_level` aus dem Ziel der Bewerbung, beendet die
 Bewerbung mit dem Status *eingeschrieben* (ohne `ended_by` — sie beendet niemand), legt die
