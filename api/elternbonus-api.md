@@ -18,8 +18,12 @@ Abweichung.
   oder lehnt ab; niemand sonst … kann ihn abnehmen" — der Ownership-Check vergleicht
   `employees.entra_object_id` des Aufrufers gegen `parent_work_entries.confirming_employee_id`,
   dieselbe Mechanik wie die Klassenlehrkraft in [`gesundheit-api.md`](gesundheit-api.md). Wählbar ist
-  dafür jede Person mit einer Mitarbeiterrolle der Schule außer den beiden KITA-Rollen — das prüft
-  bereits `GET /employees/selectable` (unten), diese Datei erfindet keine zweite Prüfung.
+  dafür jede Person mit einer Mitarbeiterrolle der Schule außer den beiden KITA-Rollen, und **geprüft
+  wird das in der Route selbst**, je Datensatz in ihrer eigenen Query
+  (`wb-backend/CLAUDE.md` §6) — eine HTTP-Antwort von `GET /employees/selectable` ließe sich hier gar
+  nicht lesen. Diese Route füllt die Auswahlliste und ist damit Bedienführung, keine Grenze
+  ([`gemeinsam.md`](gemeinsam.md)); sie bietet heute auch KITA-Personal und rollenlose Mitarbeitende
+  an, die der Eintrag dann mit `400` abweist (`backlog/`, TASK-147).
 
 ## Enge Rolle
 
@@ -86,7 +90,8 @@ Ein zweites Ziel `optigem_parent_work` würde dieselbe Regel verletzen, die
 Je eine Zeile, benannt und nicht mitgeplant:
 
 - **Die wählbare Person** — `GET /employees/selectable` ([`stammdaten-api.md`](stammdaten-api.md)),
-  bereits gebaut und bereits auf diese Domäne zugeschnitten (die beiden KITA-Rollen fallen heraus).
+  gebaut, aber noch nicht auf diese Domäne zugeschnitten: Sie filtert allein auf den
+  Beschäftigungszeitraum, die KITA-Ausnahme fehlt ihr (`backlog/`, TASK-147).
 - **Der Monatsbetrag und die beiden Pflichtstundenzahlen** — `configured_values`, die vier Routen
   auf `/configured-values` ([`querschnitt-api.md`](querschnitt-api.md)), `executive_management`.
   Drei Codes nach demselben Muster wie `cleaning_buyout_cents`: `parent_work_monthly_cents`,
