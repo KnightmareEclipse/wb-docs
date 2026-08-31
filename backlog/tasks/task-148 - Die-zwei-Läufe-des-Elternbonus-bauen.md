@@ -4,6 +4,7 @@ title: Die zwei Läufe des Elternbonus bauen
 status: To Do
 assignee: []
 created_date: '2026-08-31 15:30'
+updated_date: '2026-08-31 21:48'
 labels:
   - wb-backend
   - elternbonus
@@ -34,9 +35,15 @@ Gefunden im API-Prüfzyklus als BONUS-R4.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Je Lauf ist die Marke entschieden und benannt, bevor Code entsteht
-- [ ] #2 Zwei Run-Zeilen in app/runs.py, Aktoren system:parent_work_reminder und system:rollover
+- [x] #1 Je Lauf ist die Marke entschieden und benannt, bevor Code entsteht
+- [x] #2 Zwei Run-Zeilen in app/runs.py, Aktoren system:parent_work_reminder und system:rollover
 - [ ] #3 Der Jahresschluss läuft vor dem Jahreslauf desselben Tages (TASK-142)
-- [ ] #4 Zweimal hintereinander gerufen passiert beim zweiten Mal nichts
+- [x] #4 Zweimal hintereinander gerufen passiert beim zweiten Mal nichts
 - [ ] #5 Elternvertreter- und Mitarbeiterfamilien bekommen die Mail vom 1. Juni nicht
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Gebaut: beide Läufe in app/services/elternbonus.py, registriert in app/runs.py, Tests in tests/test_runs.py (Erinnerungsmail inkl. Mitarbeiterfamilie, Jahresschluss-Task, je zweimal gerufen). AC#3 bleibt offen, bis TASK-142 den Jahreslauf anlegt und die Reihenfolge in app/runs.py wirklich greift. AC#5 nur zur Hälfte mit eigenem Test belegt: Mitarbeiterfamilie getestet, Elternvertreter-Ausschluss nur über die unveränderte, bereits in test_elternbonus.py geprüfte is_representative() mitgezogen, kein eigener Lauf-Test dafür.
+<!-- SECTION:NOTES:END -->
