@@ -4,7 +4,7 @@ Aus [`01-putzdienst.md`](../soll-prozesse/01-putzdienst.md); es gilt [`gemeinsam
 und was dort steht, wiederholt diese Datei nicht.
 
 **Gegenprobe:** Die Ablauftabelle des Blocks hat **12 Zeilen**; **7** tragen eine Route, **4** einen
-[Lauf](#die-vier-läufe), **1** liegt außerhalb des Systems. Es gibt **27 Routen**; **24** nennen eine
+[Lauf](#die-fünf-läufe), **1** liegt außerhalb des Systems. Es gibt **29 Routen**; **26** nennen eine
 Ablaufzeile, **3** eine andere Stelle des Blocks:
 
 - `POST …/cancellation` (Termin absagen) — Abschnitt „Sonderfälle", keine Ablaufzeile: Der Ablauf
