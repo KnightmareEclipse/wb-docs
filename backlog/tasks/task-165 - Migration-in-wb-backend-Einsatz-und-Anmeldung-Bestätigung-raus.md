@@ -1,10 +1,10 @@
 ---
 id: TASK-165
-title: 'Migration in wb-backend: Einsatz und Anmeldung, Bestätigung raus'
+title: 'Einsatz und Anmeldung in die Ursprungsrevision einarbeiten, Bestätigung raus'
 status: To Do
 assignee: []
 created_date: '2026-09-01 17:46'
-updated_date: '2026-09-01 18:09'
+updated_date: '2026-09-01 23:24'
 labels:
   - wb-backend
   - elternbonus
@@ -23,9 +23,9 @@ ordinal: 177000
 <!-- SECTION:DESCRIPTION:BEGIN -->
 Drei Tabellen kommen dazu — parent_work_sessions, parent_work_session_audiences und parent_work_signups —, parent_work_entries bekommt den freiwilligen Bezug auf den Einsatz und verliert vier Spalten, drei Constraints und den Index der Bestätigungsaufgabe.
 
-Dazu der **erste Trigger des Projekts**: trg_parent_work_signups_capacity hält die Platzzahl. Er sperrt die Einsatzzeile mit FOR UPDATE, bevor er zählt — ohne die Sperre sehen zwei gleichzeitige Anmeldungen denselben freien Platz, und bei einer Fahrt mit vier Plätzen ist der fünfte einer zu viel. Die Migration muss Funktion und Trigger mitbringen; ein Modell allein trägt sie nicht.
+**Keine neue Alembic-Revision**, wie bei TASK-154: Die Ursprungsrevision wird überschrieben, die Datenbank ohnehin neu aufgesetzt.
 
-Produktiv läuft nichts; die Migration darf den lokalen Testbestand fallen lassen, statt einen Umzugspfad für Daten zu bauen, die es nur hier gibt.
+Dazu der **erste Trigger des Projekts**: trg_parent_work_signups_capacity hält die Platzzahl. Er sperrt die Einsatzzeile mit FOR UPDATE, bevor er zählt — ohne die Sperre sehen zwei gleichzeitige Anmeldungen denselben freien Platz, und bei einer Fahrt mit vier Plätzen ist der fünfte einer zu viel. Die Revision muss Funktion und Trigger mitbringen; ein Modell allein trägt sie nicht.
 
 Entschieden am 01.09.2026 mit der Geschäftsführung.
 <!-- SECTION:DESCRIPTION:END -->

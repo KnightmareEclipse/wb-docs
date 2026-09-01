@@ -74,8 +74,10 @@ was offen ist, steht als Ticket in `backlog/` — und nur dort. Daraus folgt:
 Drei Dinge sagt das Dateisystem nicht, deshalb stehen sie hier:
 
 - **`wb-backend` führt das Schema.** Die `.sql` hier bleibt die Begründungsquelle, ist aber nicht
-  mehr die Quelle der Wahrheit: Eine Strukturänderung beginnt dort als Migration und wird hier
-  nachgezogen, nie umgekehrt.
+  mehr die Quelle der Wahrheit: Eine Strukturänderung beginnt dort und wird hier nachgezogen, nie
+  umgekehrt. **Solange nichts produktiv läuft, entsteht dabei keine Migrationskette** — die
+  Ursprungsrevision wird überschrieben und die Datenbank neu aufgesetzt. Eine Kette, die niemand je
+  durchläuft, liest sich später wie Geschichte und ist keine.
 - **Drei Schemata ohne Tabellen sind ihr Ergebnis, kein Versäumnis:** M365-Kontenverwaltung,
   Eltern-Selfservice, Klassenbildung. Ihr Prüfskript belegt genau das — dass nichts auf Verdacht
   entstanden ist.
