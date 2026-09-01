@@ -173,8 +173,8 @@ sonst hinge die Löschfrist einer Person daran, dass jemand eine Aufgabe abhakt.
 Der **Mitarbeitendeneintrag** folgt ab diesem Tag dem Lösch-Lauf; wie lange er aufbewahrt wird, ist
 die
 offene Frage in [00](00-zugang-und-portal.md) und wird dort beantwortet, nicht hier ein zweites Mal
-gestellt. Was seinen Namen anderswo trägt, überlebt ihn — ein Beleg ([12](12-rechnungsfreigabe.md)),
-eine bestätigte Mitarbeitsstunde ([14](14-elternbonus.md)).
+gestellt. Was seinen Namen anderswo trägt, überlebt ihn — ein von ihm freigegebener Beleg
+([12](12-rechnungsfreigabe.md)).
 
 ## Gehört nicht dazu
 

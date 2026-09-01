@@ -25,7 +25,7 @@ Zwei Ebenen, nie nur eine: **welche** Rolle eine Anfrage bekommt, liest die API 
 | Klassenlehrer:in | — | Entra | ihre Klasse |
 | Lehrkraft | `teacher` | Entra | alle, aber nur Foto-Ja/Nein und den Handlungshinweis |
 | Mensa | `canteen` | Entra | alle, aber nur das Küchenprofil |
-| Hauswirtschaftsleitung | `domestic_services_management` | Entra | das Küchenprofil, dazu die Teilnehmer ihrer Kochwerkstatt |
+| Hauswirtschaftsleitung | `domestic_services_management` | Entra | das Küchenprofil, dazu die Teilnehmer ihrer Akademie-Angebote |
 | Personalverwaltung | `personnel` | Entra | — (führt Mitarbeitende, keine Kinder) |
 | Führungskraft | `approver` | Entra | — (kennt keine Kinder) |
 | Hausmeister | `caretaker` | Entra | — (bestätigt Mitarbeitsstunden) |
@@ -65,17 +65,17 @@ _Avoid_: Lehrkraft (weiter gefasst, siehe unten)
 Jede unterrichtende Person. Sieht von den Gesundheitsdaten ausschließlich den handlungsrelevanten Hinweis, nie Diagnose oder vollständige Anweisung, und schlägt das Fotoeinverständnis nach (`grenzkarte.md`, Q1). Eine Zuordnung Lehrkraft↔Unterricht gibt es nicht — die lebt in Untis und bleibt draußen.
 
 **Hort**:
-Hortpersonal. Sieht den vollen Gesundheitssatz der betreuten Kinder (`schema/gesundheit-schema.sql`) und führt Hortvertrag samt Betreuungsmodulen (`schema/anmeldung-schema.sql`) — auch für Kinder, die weder Grund- noch Realschüler sind. Prüft den Hortvertrag auf Vollständigkeit; freigeben darf ihn die Hortleitung.
+Hortpersonal. Sieht den vollen Gesundheitssatz der betreuten Kinder (`schema/gesundheit-schema.sql`) und führt Hortvertrag samt Betreuungsmodulen (`schema/anmeldung-schema.sql`) — auch für Kinder, die weder Grund- noch Realschüler sind. Prüft den Hortvertrag auf Vollständigkeit; freigeben darf ihn die Hortleitung. **Die einzige Rolle mit einer eigenen Dateibibliothek**: der Hortakte, die niemand sonst sieht — auch das Sekretariat nicht (`grenzkarte.md`, Q2; `soll-prozesse/09-hortvertrag.md`).
 
 **Hortleitung**:
-Bereichsleitung Hort (`fachdomaenen.md` Abschnitt 5). Alles wie Hort, dazu die **Freigabe und Gegenzeichnung des Hortvertrags** — das Gegenstück der Schulleitung auf der Hortseite, und wie dort die Zweitprüfung: geprüft hat der Hort, wirksam macht ihn die Leitung (`schema/anmeldung-schema.sql`). Sie braucht denselben Ausgabe-Endpunkt wie die Schulleitung, um den Vertrag vor der Freigabe zu lesen, ohne Zugriff auf die Dateibibliothek zu bekommen (`grenzkarte.md`, Q2).
+Bereichsleitung Hort (`fachdomaenen.md` Abschnitt 5). Alles wie Hort, dazu die **Freigabe und Gegenzeichnung des Hortvertrags** — das Gegenstück der Schulleitung auf der Hortseite, und wie dort die Zweitprüfung: geprüft hat der Hort, wirksam macht ihn die Leitung (`schema/anmeldung-schema.sql`). Sie braucht denselben Ausgabe-Endpunkt wie die Schulleitung, um den Vertrag vor der Freigabe zu lesen, ohne Zugriff auf die Bibliothek der **Schülerakte** zu bekommen; die **Hortakte** dagegen ist ihre eigene (`grenzkarte.md`, Q2).
 
 **Mensa**:
 Küchenpersonal (`roles.code = 'canteen'`). Liest Küchenprofil, Essens-Tagesliste und Wochenübersicht für den Einkauf (`api/mensa-api.md`), **nie den Art.-9-Bestand der Gesundheitsdomäne**: Was sie von einer Unverträglichkeit sieht, kommt aus `kitchen_health_traits`, und mehr gibt ihre DB-Rolle `backend_kitchen` nicht frei.
 _Avoid_: Küche (mehrdeutig — die Hauswirtschaftsleitung liest denselben Ausschnitt)
 
 **Hauswirtschaftsleitung**:
-Bereichsleitung (`roles.code = 'domestic_services_management'`). Alles wie die Mensa, dazu die **Kochwerkstatt**: Sie legt deren Programme an und liest ihre Teilnehmerliste samt dem Küchen-Ausschnitt der Gesundheitsangaben (`api/ferien-api.md`) — dass sie es darf, steht als anbietende Rolle am Programm und nicht als Regel im Code.
+Bereichsleitung (`roles.code = 'domestic_services_management'`). Alles wie die Mensa, dazu ihre **Angebote in der Akademie** — die Kochwerkstatt voran: Sie legt sie an und liest ihre Teilnehmerliste samt dem Küchen-Ausschnitt der Gesundheitsangaben (`soll-prozesse/21-akademie.md`) — dass sie es darf, steht als anbietende Rolle am Angebot und nicht als Regel im Code.
 **Im Ist-Ablauf heißt dieselbe Stelle „Hausdienstverwaltung“** (`prozesse.md`, `fachdomaenen.md`) — dasselbe Verhältnis wie zwischen Verwaltung und Sekretariat: hier die Berechtigung, dort die handelnde Stelle.
 
 **Personalverwaltung**:
@@ -92,7 +92,7 @@ Bestätigt Zahlungen, die nicht über Stripe hereinkommen (Überweisung, Bargeld
 **Sie hält als Einzige die Bankverbindung** (`sepa_mandates.iban`/`bic`) — eigene, engere DB-Rolle mit Spalten-GRANT wie bei den Art.-9-Spalten, nicht Teil der pauschalen Laufzeit-Rolle (`schema/stammdaten-schema.sql`; `backlog/`). Sie ist der benannte Abnehmer dieser Spalten: die Bankverbindung wandert einmal von Hand nach Optigem, sobald die Verträge samt Mandat vorliegen (`fachdomaenen.md` Abschnitt 3). Die Mandatsreferenz daneben (`sepa_mandates.mandate_reference`) braucht keinen eigenen GRANT — das Mandat hängt am Kind, und die Kinder sieht sie ohnehin.
 
 **Hausmeister**:
-Rolle in Weltenbaum (`roles.code = 'caretaker'`) mit heute genau einem Anlass: Er **ruft Einsätze der Elternmitarbeit auf und bestätigt die Stunden**, die dabei anfallen (`soll-prozesse/00-zugang-und-portal.md`). Das ist dieselbe namentliche Bestätigung wie bei jeder anderen Person — sie hängt an seiner Identität und nicht an dieser Rolle (`api/elternbonus-api.md`). **Die Putzdienstleitung ist er ausdrücklich nicht**: Das ist eine eigene Person, und sie hat keine Rolle im System (`soll-prozesse/01-putzdienst.md`).
+Rolle in Weltenbaum (`roles.code = 'caretaker'`) mit heute genau einem Anlass: Er **schreibt Einsätze der Elternmitarbeit aus** und sieht, wer sich angemeldet hat (`soll-prozesse/00-zugang-und-portal.md`). Ausschreiben dürfen das **sechs Rollen**, nicht nur er — Lehrkraft, Sekretariat, Schulleitung, Hauswirtschafts- und Hortleitung ebenso (`soll-prozesse/14-elternbonus.md`); diese Rolle steht deshalb nicht für ein Recht, sondern für den, dessen einziger Anlass sie ist. **Bestätigt wird eine Stunde nicht mehr** (`soll-prozesse/14-elternbonus.md`). **Die Putzdienstleitung ist er ausdrücklich nicht**: Das ist eine eigene Person, und sie hat keine Rolle im System (`soll-prozesse/01-putzdienst.md`).
 
 **Mitarbeitende**:
 Die schlichte Rolle (`roles.code = 'staff'`) für jeden, der nichts Spezielleres trägt. Sie ist **keine Rolle zweiter Klasse**: Ohne sie käme eine Integrationskraft oder ein FSJler gar nicht ins Portal, obwohl auch er einen Beleg einzureichen hat (`api/rechnungsfreigabe-api.md`) — und sie **zählt aus demselben Grund voll**, wo Mitarbeiterfamilien ausgenommen werden, beim Putzdienst wie beim Elternbonus (`soll-prozesse/hebel.md`). Wer sie trägt, arbeitet an der Schule. Sie sieht kein Kind.

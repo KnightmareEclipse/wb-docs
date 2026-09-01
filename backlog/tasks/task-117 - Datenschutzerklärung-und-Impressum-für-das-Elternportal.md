@@ -1,9 +1,10 @@
 ---
 id: TASK-117
 title: Datenschutzerklärung und Impressum für das Elternportal
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 22:45'
+updated_date: '2026-08-31 20:45'
 labels:
   - dsgvo
   - frontend
@@ -26,6 +27,6 @@ Muss stehen, bevor der erste echte Elternzugriff läuft. zugang.md schreibt selb
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Nennt das Sitzungscookie und den Zweck, ohne Banner
-- [ ] #2 Nennt Stripe als Empfänger der Zahlungsdaten
+- [x] #1 Nennt das Sitzungscookie und den Zweck, ohne Banner
+- [x] #2 Nennt Stripe als Empfänger der Zahlungsdaten
 <!-- AC:END -->

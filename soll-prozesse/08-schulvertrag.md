@@ -31,7 +31,7 @@ und beim Abgang als Vorschlag zeigt.
   darf das Sekretariat nie, auch nicht vertretungsweise; der Preis ist, dass es dafür immer eine der
   beiden anderen Stellen braucht.
 - Ab 14 unterschreibt das Kind sein Fotoeinverständnis mit — über einen Signaturlink, keinen Zugang
-  ([00](00-zugang-und-portal.md)).
+  ([00](00-zugang-und-portal.md)). Es wird eine eigene Datei, wie Vertrag und Mandat.
 - Buchhaltung und Admin handeln nicht mit, bekommen aber ihre Handarbeit — beim unterjährigen
   Eintritt als [Aufgabe](hebel.md#nachzieh-aufgabe-und-wochenmail), zum Schuljahreswechsel über die
   Jahresansicht ([04](04-schuljahreswechsel.md)).
@@ -216,18 +216,28 @@ aber **zweimal** ab.
 Das **Schulgeld hängt an der Schulart und am Geschwisterrang**: derzeit 145 / 125 / 105 € in der
 Grundschule und 150 / 130 / 110 € in der Realschule, ab dem vierten Kind beitragsfrei. Gezählt wird
 über beide Schulen zusammen, weil der Vertrag mit dem Trägerverein geschlossen wird, der beide
-führt. Das SEPA-Mandat ist Teil des Vertrags und kein eigenes Dokument.
+führt. Das SEPA-Mandat gehört zum Vertrag und wird nicht eigens geschlossen — als Datei steht es
+trotzdem für sich, wie das Fotoeinverständnis auch: eine Unterlage, eine Datei. Sonst trüge es die
+Frist des Vertrags mit, und aus einem Bündel ist nichts einzeln zu löschen.
 
 Die **digitale Schülerakte** legt Weltenbaum selbst an: ein Ordner je Kind unter der
-Kohorten-Kennung wie heute, darin feste Namen für alles, was bei jedem gleich ist, und der Link
-darauf steht am Kind. Die Kennung kommt aus [15](15-klassenbildung.md): angelegt wird der Ordner
+Kohorten-Kennung wie heute, **darin ein Unterordner je Kategorie**, und der Link darauf steht am
+Kind. Die Kategorien gibt es, weil die Fristen verschieden lang sind — ein Ordner mit der längsten
+Frist behielte jedes Blatt so lange wie das langlebigste. Welche es sind und wie lange jede läuft,
+setzt der Datenschutzbeauftragte `[?]`; bis dahin legt Weltenbaum den Aktenordner an und sonst
+nichts. **Den Unterordner trifft nicht der Mensch, sondern die Maschine**: Beim Hochladen wird die
+Kategorie gewählt, abgelegt und benannt wird danach (`grenzkarte.md`). Die Kennung kommt aus [15](15-klassenbildung.md): angelegt wird der Ordner
 unter der Kohorte (`GS26`, aus Schulart und Zielschuljahr schon bekannt), umbenannt auf die volle
 Klassenkennung (`GS26a`), sobald das Kind gesetzt ist, und mitgezogen, wenn es die Klasse wechselt —
 der Link am Kind wandert mit.
 
-Abgelegt wird nur, was im System entsteht; Papier — Geburtsurkunde, Zeugnis, Beobachtungsbogen, das
-ASV-BW-Datenblatt — legt wie bisher ein Mensch dazu. Weltenbaum legt damit Dateien in SharePoint ab;
-an der M365-Verwaltung ändert das nichts ([00](00-zugang-und-portal.md)).
+**Abgelegt wird alles durch Weltenbaum, auch Papier.** Was im System entsteht, legt es selbst ab;
+was auf Papier hereinkommt — Zeugnis, Beobachtungsbogen, das ASV-BW-Datenblatt —, scannt das
+Sekretariat wie heute und lädt es am Kind hoch, samt Kategorie. **Den Dateinamen und den Unterordner
+setzt Weltenbaum**, nicht der Mensch: eine Datei je Unterlage, kein Sammel-PDF, denn ein Bündel
+liegt in einem Unterordner und trägt damit dessen Frist für alles, was darin steckt. Niemand
+arbeitet direkt in der Ablage (`grenzkarte.md`). An der M365-Verwaltung ändert das nichts
+([00](00-zugang-und-portal.md)).
 
 ## Sonderfälle
 

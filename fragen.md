@@ -1,6 +1,6 @@
 # Fragen an die Schule — was wen zu fragen ist
 
-Sechzehn Fragen, die Weltenbaum nicht selbst beantworten kann, sortiert nach dem Gespräch, in das
+Vierzehn Fragen, die Weltenbaum nicht selbst beantworten kann, sortiert nach dem Gespräch, in das
 sie gehören. Je Frage steht hier ihr **Wortlaut**, das **Kriterium**, an dem du erkennst, dass die
 Antwort reicht, und **woran sie hängt**.
 
@@ -72,17 +72,20 @@ mit Leuten, die nie an der Schule waren.
 
 *Steht in* `schema/anmeldung-schema.sql:1041` · `soll-prozesse/05-bewerbung.md:35`
 
-### 3. Ferienprogramm: Buchung und Kind
+### 3. Ferienprogramm und Akademie: Buchung und Kind
 
-> „Ein Kind war einmal im Ferienprogramm — auch eines, das gar nicht bei uns zur Schule geht. Wie
-> lange behalten wir seine Buchung und seine Daten nach dem letzten gebuchten Termin?"
+> „Ein Kind war einmal im Ferienprogramm oder in einem Kurs der Akademie — auch eines, das gar nicht
+> bei uns zur Schule geht. Wie lange behalten wir seine Buchung und seine Daten nach dem letzten
+> gebuchten Termin?"
 
-**Brauchbar ist die Antwort, wenn** sie eine Frist ab dem letzten gebuchten Termin nennt.
+**Brauchbar ist die Antwort, wenn** sie eine Frist ab dem letzten gebuchten Termin nennt. Sie gilt
+für beide Wege — ein Kurskind ist so fremd wie ein Ferienkind.
 
 **Daran hängt:** Ein schulfremdes Kind hat kein Austrittsdatum, an dem sonst gerechnet würde — bei
 ihm ist der letzte Termin der einzige Anker, den es gibt.
 
-*Steht in* `schema/ferien-schema.sql:481` · `soll-prozesse/10-ferienprogramm.md:37`
+*Steht in* `schema/ferien-schema.sql:481` · `soll-prozesse/10-ferienprogramm.md:37` ·
+`soll-prozesse/21-akademie.md:216`
 
 ### 4. Vertrags- und Zahlungsdaten
 
@@ -112,7 +115,7 @@ Datenschutzbeauftragte über die Personalakte** und damit über einen Bestand, d
 gibt — das gilt sinngemäß für jede der sechs Fristen.
 
 **Daran hängt:** Der Anker steht (`employees.last_working_day`), sein Ziel nicht. Was den Namen
-anderswo trägt — ein freigegebener Beleg, eine bestätigte Mitarbeitsstunde — überlebt ihn ohnehin.
+anderswo trägt — ein freigegebener Beleg — überlebt ihn ohnehin.
 
 *Steht in* `schema/stammdaten-schema.sql:943` · `schema/m365-schema.sql:60` ·
 `soll-prozesse/00-zugang-und-portal.md:34`
@@ -158,82 +161,41 @@ dieselbe Person.
 
 ---
 
-## Geschäftsführung — vier Fragen
+## Geschäftsführung — eine Frage
 
-Drei davon sind **Vertragstexte**, und jeder ist Vorbedingung für seinen Prozess, nicht Beiwerk:
-Solange der Text die alte Mechanik beschreibt, kann der digitale Ablauf nicht laufen, ohne dem zu
-widersprechen, was die Eltern unterschrieben haben.
+Die Vertragstexte stehen hier nicht mehr: Sie werden künftig anhand dessen nachgezogen, **was im
+Portal gebaut wird** — sie gehen keinem Ablauf mehr voraus und blockieren keine Domäne. Was daran zu
+tun bleibt, ist eine Aufgabe und keine Frage: `backlog/`, TASK-042.
 
-### 9. Betreuungsvertrag, drei Anpassungen — zusammen mit der Hortleitung
+### 9. Akademie: die Kategorien und wer freigibt
 
-> „Bevor der Hortvertrag digital laufen kann, müssen drei Stellen im Text geändert werden. Machen
-> wir das, und bis wann?"
->
-> 1. Der Vertrag endet zum Ende der Klasse 4 bzw. 5 **ohne Kündigung** — heute verlangt er eine.
-> 2. Die **Schriftform**: unterschrieben wird künftig im Portal, nicht auf Papier.
-> 3. Die Zusage, dass die Angaben **ausschließlich den Betreuungskräften** bekannt werden — die
->    stimmt schon heute nicht.
+> „Zwei Dinge fehlen mir noch zur Akademie. Welche **Kategorien** gibt es zum Start? Und: Anlegen
+> darf jede und jeder Mitarbeitende, freigegeben werden muss trotzdem jedes Angebot, bevor es
+> draußen steht — **welche Stelle gibt frei**? Du für jedes Angebot, oder die Leitung der Stelle, an
+> der die anbietende Person hängt?"
 
-**Brauchbar ist die Antwort, wenn** je Punkt ein Ja mit Termin dasteht. Gegen den Vertragsstand vom
-11.12.2025 geprüft: alle drei stehen weiterhin aus.
+**Brauchbar ist die Antwort, wenn** die Kategorien als Liste dastehen und die freigebende Stelle
+benannt ist.
 
-**Daran hängt:** Domäne 2/4 — der digitale Hortvertrag. **Punkt 3 trägt zugleich die Frage der
-Geschäftsführung**, ob der Hort die Gesundheitsangaben der Schule übernehmen darf, statt sie ein
-zweites Mal zu erheben: Es gibt ohnehin nur einen Bestand je Kind, und was ihn heute verstellt, ist
-allein dieser Satz im Vertragstext.
+**Daran hängt:** Die Kategorie ist eine Werteliste und kostet nichts — sie darf auch später wachsen.
+Die Freigabe dagegen entscheidet, wo der Wartezustand jedes Angebots sitzt: bei der
+Geschäftsführung ein Nadelöhr, bei der jeweiligen Leitung ein kurzer Weg, aber mehrere Maßstäbe.
 
-*Steht in* `schema/anmeldung-schema.sql:1046` · `soll-prozesse/09-hortvertrag.md:28`
-
-### 10. Essensbedingungen, zwei Anpassungen
-
-> „Für die Mensa-Anmeldung müssen zwei Stellen im Text geändert werden: Anmeldung und Kündigung
-> laufen künftig **im Portal statt mit Unterschrift**, und die **Lastschrift-Ermächtigung steht nicht
-> mehr in diesem Text** — das Mandat kommt künftig aus dem Schulvertrag."
-
-**Brauchbar ist die Antwort, wenn** beide Punkte ein Ja mit Termin haben.
-
-**Daran hängt:** Domäne 6 — das Mensa-Abo.
-
-*Steht in* `schema/mensa-schema.sql:218` · `soll-prozesse/11-mensa.md:27`
-
-### 11. Anlage zum Elternbonus
-
-> „Ist der Text der Anlage zur Elternmitarbeit anzupassen? Künftig trägt man die Stunden im Portal
-> statt auf einem Zettel ein, die Frist ist der 31. Juli, und es zählen nur bestätigte Stunden."
-
-**Brauchbar ist die Antwort, wenn** klar ist, ob der Text geändert wird — und wenn ja, wer ihn
-schreibt.
-
-**Daran hängt:** Domäne 11 — das Bonussystem. Ausdrücklich nicht v1, aber der Text geht dem Bau
-voraus.
-
-*Steht in* `schema/elternbonus-schema.sql:110` · `soll-prozesse/14-elternbonus.md:29`
-
-### 12. Elternbonus in Optigem — zusammen mit der Buchhaltung
-
-> „Wird der Elternbonus in Optigem als eigene Position geführt, damit der monatliche Aufschlag und
-> die Rückzahlung dort getrennt sichtbar sind?"
-
-**Brauchbar ist die Antwort, wenn** klar ist, ob eine eigene Position angelegt wird. Ein Nein ist
-auch eine Antwort — dann läuft die Rückzahlung ununterscheidbar im Schulgeld mit.
-
-**Daran hängt:** Nichts im Schema. Weltenbaum rechnet den Bonus nicht, es hält nur die bestätigten
-Stunden — gebucht wird in Optigem.
-
-*Steht in* `schema/elternbonus-schema.sql:113` · `soll-prozesse/14-elternbonus.md:29`
+*Steht in* `soll-prozesse/21-akademie.md:52` · `soll-prozesse/21-akademie.md:90`
 
 ---
 
 ## Sekretariat — vier Fragen
 
-### 13. Zuordnung der Fremdsysteme — zusammen mit Buchhaltung und Admin
+### 10. Zuordnung der Fremdsysteme — zusammen mit Buchhaltung und Admin
 
 > „Wenn sich bei einem Kind oder einer Familie etwas ändert, muss das teilweise auch in ASV-BW,
 > Optigem oder M365 nachgezogen werden. Wir haben eine Zuordnung erstellt, welche Änderung wohin
-> läuft. Stimmt sie, und fehlt etwas?"
+> läuft. Stimmt sie, und fehlt etwas? Und liegt in AGFEO eine Nummer, die mitziehen muss?"
 
 **Brauchbar ist die Antwort, wenn** je System bestätigt ist, welche Änderungen dort ankommen müssen —
-und was ergänzt gehört.
+und was ergänzt gehört. Untis, Fobizz, Teams und der Fotobestand sind bereits draußen; offen ist
+allein AGFEO, wo die Notfallnummer liegt.
 
 **Daran hängt:** Wie viele Nachzieh-Aufgaben täglich entstehen. Sie korrigiert sich mit der Zeit
 selbst: Häufen sich bei einem System Aufgaben, die als *war nichts zu tun* abgehakt werden, ist die
@@ -241,7 +203,7 @@ Zuordnung dort zu weit gefasst.
 
 *Steht in* `soll-prozesse/02-datenaenderung.md:32`
 
-### 14. Bescheinigungen beim Abgang
+### 11. Bescheinigungen beim Abgang
 
 > „Wenn ein Kind die Schule verlässt — welche Papiere schreibt ihr routinemäßig? Abgangszeugnis,
 > Schulbescheinigung für die neue Schule, Bestätigung der Abmeldung?"
@@ -253,7 +215,7 @@ oder nur auf Anfrage entsteht.
 
 *Steht in* `soll-prozesse/03-irregulaerer-abgang.md:25`
 
-### 15. Aufgaben des Jahreswechsels
+### 12. Aufgaben des Jahreswechsels
 
 > „Ende Juli zieht der zweite Admin alle Klassen von Hand auf die neue Stufe um, legt die Neuen an
 > und löscht die Abgänger. Was tut ihr in dieser Zeit sonst noch, jedes Jahr wieder?"
@@ -266,7 +228,7 @@ bleibt Zuruf.
 
 *Steht in* `soll-prozesse/04-schuljahreswechsel.md:30`
 
-### 16. Elternfragebogen der Grundschul-Checkliste — zusammen mit der Grundschulleitung
+### 13. Elternfragebogen der Grundschul-Checkliste — zusammen mit der Grundschulleitung
 
 > „Beim Anmeldetag der Grundschule bekommen die Eltern einen Fragebogen auf Papier mit. Was steht
 > darauf — und könnte er künftig vorab im Portal ausgefüllt werden?"
@@ -278,3 +240,26 @@ daraus ein Formular wird oder ob er Papier bleibt.
 gebaut.
 
 *Steht in* `soll-prozesse/06-anmeldetag.md:20` · `grenzkarte.md`, Weiße Flecken
+
+## Schulleitung — eine Frage
+
+### 14. Unterrichtlicher und außerunterrichtlicher Ausflug — ein Unterschied oder zwei Wörter?
+
+> „Für die Klassenfahrt gibt es eine mehrseitige Erklärung, die die Eltern unterschreiben —
+> Einverständnis, Vollmacht, Kostenzusage, Belehrung. Für den Unterrichtsgang oder den Wandertag
+> gibt es sie nicht, weil die Teilnahme dort Pflicht ist. Behandelt ihr die beiden wirklich
+> verschieden, oder ist das nur ein Wort auf dem Papier? Konkret: Bekommen die Eltern vor einem
+> Unterrichtsgang etwas zu unterschreiben, und muss jemand zustimmen, bevor er stattfindet?"
+
+**Brauchbar ist die Antwort, wenn** feststeht, ob der unterrichtliche Ausflug ohne Anmeldung,
+Unterschrift und Einwilligung auskommt — und ob die Ausflugspauschale beide Arten trägt oder nur
+eine.
+
+**Daran hängt:** Ob die beiden Arten ein Vorgang mit einer Unterscheidung bleiben oder zwei werden.
+Steht am Ende doch bei jedem Ausflug eine Unterschrift, ist die Unterscheidung überflüssig und das
+Schema trägt ein Feld, das nichts trennt. Steht sie nur bei der Fahrt, gilt der Schnitt aus dem
+Block — und dann darf beim Unterrichtsgang **kein** leeres Einwilligungsfeld stehen, weil es
+aussähe, als hätte jemand vergessen zu fragen.
+
+*Steht in* `soll-prozesse/19-ausfluege-und-fahrten.md` (Kopf, die Tabelle der zwei Arten)
+

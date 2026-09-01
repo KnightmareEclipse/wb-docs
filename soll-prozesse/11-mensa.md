@@ -10,8 +10,9 @@ gibt es nirgends.
 - Ein **Hortkind** isst an jedem Wochentag mit, an dem es ein Modul mit Essen gebucht hat — derzeit
   jedes, das über 13 Uhr geht; Modul mal Wochentag ist auch dafür die Einheit
   ([09](09-hortvertrag.md)).
-- Ein **Kind an einem Ferien- oder Werkstatttermin** isst mit, wenn dessen Modul ein Essen trägt: im
-  Ferienprogramm keines, in der Kochwerkstatt je nach Modul ([10](10-ferienprogramm.md)).
+- Ein **Kind in einem Akademie-Angebot** isst mit, wenn das Angebot ein Essen enthält — in der
+  Kochwerkstatt tut es das ([21](21-akademie.md)). Die **Ferienmodule tragen keines**, ein
+  Ferienkind steht deshalb aus diesem Grund nie auf der Liste ([10](10-ferienprogramm.md)).
 
 Beides entsteht dort und wird hier nur gelesen — keine Anmeldung und keine eigene Kündigung: Das
 Essen folgt dem gebuchten Modul. **Berechnet wird es trotzdem**, und zwar nach derselben Staffel —
@@ -62,7 +63,8 @@ Ausgelesen werden:
 - Einschreibung, Schulart und Klassenstufe ([04](04-schuljahreswechsel.md),
   [08](08-schulvertrag.md)).
 - Die gebuchten Betreuungsmodule samt Wochentagen ([09](09-hortvertrag.md)).
-- Die gebuchten Ferien- und Werkstatttermine samt Modul ([10](10-ferienprogramm.md)).
+- Die gebuchten Ferientermine samt Modul ([10](10-ferienprogramm.md)) und die Angebote der Akademie,
+  die ein Essen enthalten ([21](21-akademie.md)).
 - Die Gesundheitsangaben ([08](08-schulvertrag.md), [09](09-hortvertrag.md)).
 - Das SEPA-Mandat ([08](08-schulvertrag.md)).
 - Betrag und Bedingungen als [Werte im System](hebel.md#geld-im-system-alles-andere-fest).
@@ -187,9 +189,9 @@ Zugang.
 
 Derselbe Bestand, anders gezählt, ist die **Wochenübersicht** für den Einkauf: je Wochentag, wie
 viele Kinder in welcher Variante essen. Sie zählt den **laufenden Betrieb** — Abos und Hortmodule;
-ein Ferien- oder Werkstatttermin passt in kein Wochenraster und wird als Termin geplant, mit der
-Zahl, die an ihm steht ([10](10-ferienprogramm.md)). Sie ist für dieselben Stellen sichtbar wie die
-Tagesliste; eine dritte Liste daneben gibt es nicht.
+ein Ferientermin und ein Akademie-Angebot passen in kein Wochenraster und werden als Termin geplant,
+mit der Zahl, die an ihnen steht ([10](10-ferienprogramm.md), [21](21-akademie.md)). Sie ist für
+dieselben Stellen sichtbar wie die Tagesliste; eine dritte Liste daneben gibt es nicht.
 
 `[?]` Der Text der Essensbedingungen braucht zwei Anpassungen, bevor er so laufen kann: Anmeldung
 und Kündigung **im Portal statt mit Unterschrift**, und die **Lastschrift-Ermächtigung nicht mehr
@@ -240,8 +242,8 @@ bekommen nichts, SharePoint auch nicht, weil kein Dokument entsteht.
 
 Kein eigener Vorgang. Die **Essensvariante** verschwindet mit dem letzten bestätigten Ende dieses
 Kindes, wie die Gesundheitsangaben ([03](03-irregulaerer-abgang.md), [09](09-hortvertrag.md)); ein
-Kind, das sie nur wegen eines Werkstatttermins mit Essen trägt, hat kein solches Ende und folgt dem
-Anker aus [10](10-ferienprogramm.md), dem letzten gebuchten Termin. Abo und Beiträge folgen der
+Kind, das sie nur wegen eines Akademie-Angebots mit Essen trägt, hat kein solches Ende und folgt dem
+Anker aus [21](21-akademie.md), dem Ende seines letzten Angebots. Abo und Beiträge folgen der
 offenen Aufbewahrungsfrage aus [03](03-irregulaerer-abgang.md) und gehören zum Lösch-Lauf (17). Ein
 Essensabo trägt **keine eigene [laufende Verbindung](hebel.md#laufende-verbindung)**: Wer isst, ist
 eingeschrieben, hat einen Hortvertrag oder eine laufende Ferienbuchung ([10](10-ferienprogramm.md))

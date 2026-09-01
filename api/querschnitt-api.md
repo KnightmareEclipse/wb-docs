@@ -58,11 +58,10 @@ Zwei Sätze, aus denen der Schnitt dieser Datei folgt:
 | `GET /tasks` — die offenen Aufgaben, je Zeile Ziel, Bezug, Text und seit wann sie offen ist | [`hebel.md`](../soll-prozesse/hebel.md#nachzieh-aufgabe-und-wochenmail) | jede Mitarbeiterrolle | **die Route zählt keine Rolle auf**: sie vergleicht `sync_targets.role_id` mit den Rollen des Aufrufers. Eine Ausnahme, und sie steht im Hebel: **das Sekretariat sieht alle offenen Aufgaben**, auch fremde — die Allsicht ist eine Ansicht, keine Mail. Listenroute, deshalb nie über den OTP-Pfad | liest | — |
 | `PUT /tasks/{sync_task_id}` — abhaken als *erledigt* oder als *war nichts zu tun*; bei einem Vertragspunkt der Abgangsliste mit dem Enddatum, mit dem er bestätigt wird | [01](../soll-prozesse/01-putzdienst.md) Z12, [02](../soll-prozesse/02-datenaenderung.md) Z4, [03](../soll-prozesse/03-irregulaerer-abgang.md) Z3, [04](../soll-prozesse/04-schuljahreswechsel.md) Z1 und Z4, [13](../soll-prozesse/13-m365-konten.md) Z4, [14](../soll-prozesse/14-elternbonus.md) Z5, [15](../soll-prozesse/15-klassenbildung.md) Z3 | die Rolle des Ziels | nur die eigene Zielrolle, das Sekretariat nur für seine eigenen Ziele — **sehen und abhaken sind hier zweierlei**. Abhaken ist umkehrbar: „einen bestätigten Punkt nimmt zurück, wer ihn bestätigt hat" (03). `completed_at`, `outcome` und `completed_by` stehen zusammen oder gar nicht (`ck_sync_tasks_completed`); `confirmed_end_date` trägt allein ein Vertragspunkt | schreibt, `entra:` | — |
 
-Die beiden Aufgaben, die an einer **namentlich benannten Person** hängen, laufen nicht über diese
+Die eine Aufgabe, die an einer **namentlich benannten Person** hängt, läuft nicht über diese
 Routen: der Beleg bei seiner Führungskraft ist `expense_claims`
-([12](../soll-prozesse/12-rechnungsfreigabe.md)), die zu bestätigende Mitarbeitsstunde
-`parent_work_entries` ([14](../soll-prozesse/14-elternbonus.md)). Beide sind Aufgaben im Sinne des
-Hebels und keine `sync_tasks`-Zeilen; ihre Routen gehören ihrer Domäne.
+([12](../soll-prozesse/12-rechnungsfreigabe.md)). Sie ist eine Aufgabe im Sinne des Hebels und keine
+`sync_tasks`-Zeile; ihre Routen gehören ihrer Domäne.
 
 Eine Aufgabe **verweist** auf die Liste, die sie braucht — die Strafenliste des Monatslaufs
 (`GET /cleaning/penalties`), die Jahresliste des Elternbonus, die Abgangsliste des Kindes. Der
@@ -162,7 +161,7 @@ Keine Route, kein Endpunkt von außen ([`gemeinsam.md`](gemeinsam.md#was-keine-r
 
 | Lauf | Herkunft | Auslöser | Aktor |
 |---|---|---|---|
-| **Die Wochenmail**, je Stelle eine, mit ihren eigenen offenen Aufgaben — nicht mit allen, „sonst stünden dort die Stundenbestätigungen des ganzen Kollegiums". Die Rechnungsfreigabe läuft ausdrücklich **nicht** darin mit (12); 01 und 10 setzen ihre eigene Mail **neben** sie | [`hebel.md`](../soll-prozesse/hebel.md#nachzieh-aufgabe-und-wochenmail) | wöchentlich, ein festes Datum; sie geht nicht raus, wo eine Stelle nichts Offenes hat | `system:weekly` |
+| **Die Wochenmail**, je Stelle eine, mit ihren eigenen offenen Aufgaben — nicht mit allen, „sonst stünden dort die Belegfreigaben des ganzen Kollegiums". Die Rechnungsfreigabe läuft ausdrücklich **nicht** darin mit (12); 01 und 10 setzen ihre eigene Mail **neben** sie | [`hebel.md`](../soll-prozesse/hebel.md#nachzieh-aufgabe-und-wochenmail) | wöchentlich, ein festes Datum; sie geht nicht raus, wo eine Stelle nichts Offenes hat | `system:weekly` |
 | Die **unzustellbaren Mails einsammeln** und `outbound_emails.undeliverable_at` setzen | [`hebel.md`](../soll-prozesse/hebel.md#unzustellbare-mail), `zugang.md` | täglich; aus dem Absenderpostfach wird bewusst nichts weitergeleitet, der Rückläufer liegt also dort | `system:bounces` |
 
 ## Was an den Rand stößt

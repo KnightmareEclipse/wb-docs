@@ -1,10 +1,10 @@
 ---
 id: TASK-014
 title: 'Entscheiden: Personenzeilen vor oder nach der Zahlungsbestätigung'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 11:35'
-updated_date: '2026-08-27 22:23'
+updated_date: '2026-08-31 20:50'
 labels:
   - entscheidung
   - anmeldung

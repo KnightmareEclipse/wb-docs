@@ -1,10 +1,10 @@
 ---
 id: TASK-127
 title: 'Entscheiden: Akademie-Angebot und kostenpflichtige AG — ein Fall oder zwei'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-08-28 13:27'
-updated_date: '2026-08-28 15:49'
+updated_date: '2026-09-01 19:11'
 labels:
   - entscheidung
   - wb-docs
@@ -28,7 +28,13 @@ Die Geschäftsführung will die Kochwerkstatt als Akademie führen, neben der we
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Entschieden, ob ein Akademie-Angebot ein Ferientermin ist oder ein Schuljahresangebot
-- [ ] #2 Wenn Schuljahresangebot: es und die kostenpflichtige AG teilen einen Block, nicht zwei
-- [ ] #3 Umbenennung von Block und Domäne entschieden (heute »Ferienprogramm und Kochwerkstatt«)
+- [x] #1 Entschieden, ob ein Akademie-Angebot ein Ferientermin ist oder ein Schuljahresangebot
+- [x] #2 Wenn Schuljahresangebot: es und die kostenpflichtige AG teilen einen Block, nicht zwei
+- [x] #3 Umbenennung von Block und Domäne entschieden (heute »Ferienprogramm und Kochwerkstatt«)
 <!-- AC:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Beantwortet am 01.09.2026: Ein Akademie-Angebot ist kein Ferientermin, sondern trägt einen Zeitraum — Einzeltermin, Reihe und Schuljahresangebot sind dieselbe Form mit anderen Werten. Akademie und kostenpflichtige AG teilen deshalb einen Block, soll-prozesse/21-akademie.md. Umbenannt ist beides: Block 10 heißt nur noch Ferienprogramm, die Kochwerkstatt zieht in die Akademie um (TASK-177), und Domäne 6 heißt Mensa- und Akademie-Anmeldung.
+<!-- SECTION:FINAL_SUMMARY:END -->

@@ -1,0 +1,444 @@
+Betreff: Termin beim Datenschutzbeauftragten - dreizehn Fragen, alles vorbereitet
+
+
+Hallo Jürgen,
+
+ich habe dir hier alles zusammengeschrieben, was für den Termin relevant ist -
+du brauchst nichts weiter vorzubereiten.
+
+Unten stehen dreizehn Fragen. Sie sind so geschrieben, dass du sie im
+Screenshare einfach aufmachen und vorlesen kannst; der Datenschutzbeauftragte
+kann sie dabei mitlesen, es steht nichts darin, was nicht für seine Augen ist.
+Zu jeder Frage steht der Hintergrund dabei - vor allem, was in unserem System
+tatsächlich gespeichert ist. Das ist der wichtigste Teil: Ohne diese Angabe
+entscheidet er über "die Schülerdaten", also über einen Bestand, den es bei uns
+gar nicht gibt, und dann fallen alle Fristen zu lang aus.
+
+Antworten schreibst du am einfachsten direkt in dieser Mail hinter das jeweilige
+"ANTWORT:" und schickst sie mir zurück.
+
+Davor steht kurz, was Weltenbaum ist und wo die Daten liegen - das sind die zwei
+Minuten zum Einstieg, und die Frage nach dem Serverstandort kommt erfahrungsgemäß
+sowieso.
+
+Ganz unten steht, in welcher Reihenfolge ihr die Fragen durchgehen solltet, falls
+die Zeit nicht für alle reicht.
+
+Danke dir!
+
+
+==========================================================================
+VORAB: WAS WELTENBAUM IST
+==========================================================================
+
+Eine Plattform für unsere eigenen Verwaltungsabläufe, "meinCLEMENS". Heute
+laufen diese Abläufe auf sechs Jotform-Formularen, einer Reihe Excel-Listen und
+Papier, und keines davon weiß vom anderen - eine Familie, die umzieht, meldet
+das an drei Stellen.
+
+Abgebildet werden die Vorgänge, die es ohnehin gibt: Voranmeldung und
+Anmeldetag, Aufnahmeentscheidung, Schul- und Hortvertrag, Mensa,
+Ferienprogramm, Kurse und AGs, Ausflüge und Fahrten, Putzdienst,
+Elternmitarbeit, Datenänderungen, Abgang, Schuljahreswechsel, Klassen,
+Rechnungsfreigabe und die M365-Konten. Dazu gehört eine digitale Akte je Kind
+in SharePoint.
+
+Wer was sieht:
+
+  - Eltern melden sich mit ihrer Mailadresse und einem Code an, der ihnen per
+    Mail zugeht - kein Passwort. Sie sehen ihre eigenen Vorgänge, unterschreiben
+    dort und tragen einen Umzug selbst ein.
+  - Mitarbeitende melden sich mit ihrem Schulkonto an und sehen, was ihre Rolle
+    hergibt: das Sekretariat den ganzen Bestand, die Klassenlehrkraft ihre
+    Klasse, die Küche ihre Essensliste, die Buchhaltung ihre Zahlen. Das ist
+    keine Einstellung, die jemand pflegt, sondern in die Anwendung gebaut.
+  - Ein öffentlicher Teil ohne Anmeldung trägt Termine, Neuigkeiten, einen
+    Kostenrechner und die Ausschreibungen unserer Kurse. Dort steht nichts über
+    ein einzelnes Kind.
+
+Was es ausdrücklich nicht ist:
+
+  - Keine Schulverwaltungssoftware. ASV-BW bleibt, und die aufbewahrungs-
+    pflichtige Führung bleibt dort; bei uns steht eine Arbeitskopie für die
+    Abläufe, die wir digitalisieren.
+  - Keine Buchhaltung (Optigem bleibt), kein Klassenbuch (Untis bleibt).
+  - Keine Personalverwaltung. Von Mitarbeitenden stehen dort nur Name,
+    dienstliche Mailadresse, Zugehörigkeit zu Schule oder KITA, erster und
+    letzter Arbeitstag und die Rolle im System.
+  - Keine Noten, keine Bewertungen und keine Gesprächsnotizen aus dem
+    Aufnahmeverfahren; die bleiben bei den Lehrkräften und werden wie heute nach
+    Abschluss vernichtet.
+
+Wo die Daten liegen:
+
+  - Server: eigener virtueller Server bei der Hetzner Online GmbH, Standort
+    Falkenstein/Deutschland. Kein Drittland-Transfer. AVV liegt vor; seine
+    Anlage 1 nennt ausdrücklich die besonderen Kategorien nach Art. 9.
+  - Anmeldung, Mailversand, Dateien: Microsoft, unser bestehender Tenant -
+    Entra ID für die Mitarbeitendenanmeldung, Graph für den Mailversand,
+    SharePoint für die Akten. Vom Tenant-AVV gedeckt.
+  - Zahlungen: Stripe - Betrag und Zahlungsreferenz, kein Name; die Mailadresse
+    gibt der Elternteil auf Stripes eigener Bezahlseite selbst ein. Der AVV wird
+    mit dem Konto geschlossen.
+  - Überwachung: healthchecks.io - ein Lebenszeichen und ein Festplattenwert,
+    nie ein Personendatum.
+  - Sicherung: eigenes NAS im Haus, verschlüsselt. Kein weiterer Dienstleister.
+
+Ein Verzeichnis nach Art. 30 liegt vor - Zwecke, Datenkategorien, Empfänger,
+Fristen, Maßnahmen. Es wird nachgereicht, sobald die Fristen unten stehen.
+
+
+==========================================================================
+TEIL 1 - WAS ZUERST ENTSCHIEDEN WERDEN MUSS
+==========================================================================
+
+--------------------------------------------------------------------------
+FRAGE 1 - Aufbewahrungspflicht
+--------------------------------------------------------------------------
+Welche Aufbewahrungspflicht nach baden-württembergischem Schulrecht trifft uns,
+und gilt sie für unsere Arbeitskopie genauso wie für die Führung in ASV-BW?
+
+Hintergrund:
+  - Gespeichert sind die Stammdaten des Kindes und seiner Familie - Name,
+    Anschrift, Klasse, Ein- und Austrittsdatum - dazu die digitale Akte als
+    Ordner je Kind.
+  - Die aufbewahrungspflichtige Führung liegt in ASV-BW und Optigem.
+  - Hängt die Pflicht dort und nicht bei uns, dürfen wir deutlich früher
+    löschen. Dann erübrigen sich die meisten Fristen weiter unten.
+
+Was wir brauchen: ob die Pflicht die Arbeitskopie erfasst, und wenn ja, wie
+lange ein Kind nach dem Abgang bleiben muss.
+
+ANTWORT:
+
+
+--------------------------------------------------------------------------
+FRAGE 2 - Datenschutz-Folgenabschätzung nach Art. 35
+--------------------------------------------------------------------------
+Ist für dieses Verfahren eine Folgenabschätzung fällig, und steht es auf der
+Muss-Liste des Landesbeauftragten?
+
+Hintergrund:
+  - Betroffen sind alle Kinder der Schule und des Horts, ihre Familien sowie
+    schulfremde Kinder, die zu Ferienprogramm und Kursen kommen.
+  - Gespeichert sind Stammdaten, zu jedem Kind Gesundheitsangaben, die digitale
+    Akte mit den unterschriebenen Unterlagen, bei einzelnen Kindern der Bezug
+    einer Bildungskarte und die Betreuungsakte des Horts mit ihrer
+    Verhaltensdokumentation, dazu Zahlungen und Anmeldungen.
+  - Keine Profilbildung, keine automatisierte Entscheidung, keine Beobachtung
+    öffentlicher Bereiche.
+
+Was wir brauchen: ja oder nein. Bei ja: wer sie schreibt und bis wann.
+
+ANTWORT:
+
+
+--------------------------------------------------------------------------
+FRAGE 3 - Vier Felder auf der Voranmeldung (zusammen mit der Schulleitung)
+--------------------------------------------------------------------------
+Wir erheben auf der Voranmeldung vier Angaben, für die bei uns nirgends ein
+Zweck festgehalten ist: Konfession, Beruf und Staatsangehörigkeit der Eltern und
+die Kirchengemeinde des Kindes. Welchen Zweck hat jede einzelne davon, und darf
+sie bleiben?
+
+Hintergrund:
+  - Es sind vier Textangaben aus dem Voranmeldeformular, an den Eltern
+    beziehungsweise am Kind.
+  - Die Religionszugehörigkeit zählt nach Art. 9 DSGVO zu den besonderen
+    Kategorien; wir sehen dafür weder einen benannten Zweck noch eine
+    Rechtsgrundlage festgehalten.
+  - Solange keine echten Daten im System sind, ist ein Streichen ein Handgriff;
+    danach ist es ein Eingriff in bereits erhobene Personendaten. Deshalb steht
+    diese Frage vorn.
+
+Was wir brauchen: je Feld einen benannten Zweck oder ein klares Nein. Vier
+Antworten, nicht eine.
+
+ANTWORT:
+
+
+==========================================================================
+TEIL 2 - GESUNDHEITSDATEN
+==========================================================================
+
+--------------------------------------------------------------------------
+FRAGE 4 - Wer sieht was
+--------------------------------------------------------------------------
+Die Gesundheitsangaben eines Kindes speichern wir einmal, nicht sechsmal. Wer
+davon was sieht, legen wir je einzelner Angabe fest statt in Stufen: Die
+Sportlehrkraft sieht die Angaben, die den Sportunterricht betreffen, und sonst
+keine. Trägt das?
+
+Und beim Hortvertrag legen wir den Eltern ihre vorhandenen Angaben noch einmal
+vor: Sie bestätigen sie und geben sie für den Hort frei. Reicht diese
+Zustimmung, oder braucht der Hort eine eigene Einwilligung?
+
+Hintergrund:
+  - Der Zuschnitt entsteht schon bei der Abfrage: Die Kategorien sind so
+    gestellt, dass eine Angabe von vornherein zu dem gehört, der sie braucht.
+    Niemand legt hinterher aus, was der Sportunterricht wissen muss.
+  - Was im Alltag zu tun ist, schreiben die Eltern selbst - jede Angabe hat ein
+    Feld "Beachten".
+  - Alles ist freiwillig, je Kategorie einzeln. Wir halten drei Zustände
+    auseinander: nichts vorhanden, will nichts sagen, nie gefragt. Eine leere
+    Liste ist damit keine Entwarnung.
+  - Die Klassenlehrkraft darf einen kurzen Satz zum Kind ergänzen, den alle
+    unterrichtenden Personen sehen. Er sagt, was zu tun ist, nie was das Kind
+    hat.
+  - Feste Stufen tragen nicht: Der Hort braucht einen anderen Ausschnitt als die
+    Küche, nicht bloß einen kleineren.
+
+Was wir brauchen: ein Ja zur Sichtbarkeit je Angabe, und ein Ja oder Nein zur
+eigenen Einwilligung für den Hort.
+
+ANTWORT:
+
+
+--------------------------------------------------------------------------
+FRAGE 5 - Die Notfalleinsicht
+--------------------------------------------------------------------------
+Im Notfall kann jeder Mitarbeitende bei jedem Kind eine Schaltfläche drücken und
+sieht dann vier Dinge: Handlungshinweis, Notfallmedikament samt Erlaubnis,
+Allergien, Notfallkontakt. Keine Diagnose, kein Attest. Jeder Druck wird
+protokolliert - wer, wann, welches Kind. Trägt diese Konstruktion? Und wenn ja:
+Wie lange bewahren wir das Protokoll auf, und wer sieht es sich an?
+
+Hintergrund:
+  - Der Ausschnitt aus Frage 4 regelt den Alltag, nicht den Notfall: Eine
+    Fachlehrkraft, die vertritt oder allein einen Ausflug macht, ist für dieses
+    Kind nicht zuständig - und ein Kind mit einem Anfall kann nicht warten, bis
+    jemand eine Freigabe erteilt.
+  - Die Alternative wäre, die Angaben vorsorglich breit herauszugeben; dann
+    wüsste das ganze Kollegium dauerhaft von jeder Erkrankung. Wir halten den
+    engen Ausschnitt mit Protokoll für den geringeren Eingriff: Schutz durch
+    Nachvollziehbarkeit statt durch Sperre.
+  - Damit das funktioniert, muss jeder Mitarbeitende jedes Kind finden können,
+    auch über die Schularten hinweg. Das ist eine eigene Offenlegung von Name
+    und Klasse.
+
+Was wir brauchen: ein Ja oder Nein, eine Frist für das Protokoll und eine
+Person, die es ansieht.
+
+ANTWORT:
+
+
+--------------------------------------------------------------------------
+FRAGE 6 - Nachweisfrist nach einer Veranstaltung
+--------------------------------------------------------------------------
+Vor einer Klassenfahrt fragen wir zusätzliche Angaben ab - Impfschutz,
+Schwimmfähigkeit, Badeerlaubnis. Nach der Fahrt braucht sie im Alltag niemand
+mehr. Wie lange dürfen wir sie trotzdem behalten, damit wir im Streitfall
+belegen können, was uns mitgeteilt wurde?
+
+Hintergrund:
+  - Heute löschen die Gesundheitsangaben mit dem Kind; etwas anderes gibt es
+    noch nicht.
+  - Geplant sind zwei Termine je Angabe: ein Zweckende, ab dem sie aus dem
+    Alltag verschwindet, und ein Löschtermin. Dazwischen wäre sie nur noch
+    lesbar, wenn es um einen Rechtsanspruch geht (Art. 17 Abs. 3 lit. e,
+    Art. 18).
+  - Gebaut wird das erst, wenn die Frist steht.
+
+Was wir brauchen: eine Frist ab dem Ende der Veranstaltung.
+
+ANTWORT:
+
+
+--------------------------------------------------------------------------
+FRAGE 7 - Kinder, die nicht bei uns zur Schule gehen
+--------------------------------------------------------------------------
+Zum Ferienprogramm und zu unseren Kursen kommen auch fremde Kinder. Auch von
+ihnen brauchen wir Allergien und Notfallnummer. Wie lange dürfen wir das
+behalten, gerechnet ab ihrem letzten Tag bei uns?
+
+Hintergrund:
+  - Diese Kinder haben sonst keinen Bezug zu uns und kein Austrittsdatum, an dem
+    eine Frist hängen könnte. Der Anker wäre der letzte gebuchte Termin.
+  - Wir würden dieselbe Nachweisfrist ansetzen wie in Frage 6.
+
+Was wir brauchen: eine Frist ab dem letzten Termin.
+
+ANTWORT:
+
+
+==========================================================================
+TEIL 3 - WIE LANGE WIR BEHALTEN
+==========================================================================
+
+--------------------------------------------------------------------------
+FRAGE 8 - Vier Fristen und die Fotoerlaubnis
+--------------------------------------------------------------------------
+Vier Bestände wollen wir getrennt befristen statt über einen Kamm: den
+Schulvertrag als unterschriebenes PDF, das SEPA-Mandat, die Fotoerlaubnis je
+Person und die Gesundheitsangaben am Kind. Welche Frist trägt jeder der vier,
+und ab welchem Tag zählt sie?
+
+Und bei der Fotoerlaubnis: Dürfen wir sie so lange halten, wie es das
+Bildmaterial gibt, auf das sie sich bezieht - oder brauchen wir eine feste Frist
+ab dem letzten veröffentlichten Bild?
+
+Hintergrund:
+  - Jede Unterlage ist bei uns eine eigene Datei, kein Sammel-PDF: Vertrag,
+    SEPA-Mandat und Fotoerlaubnis je eine. Die Fristen lassen sich deshalb
+    unabhängig voneinander setzen; keine Datei nimmt eine andere mit.
+  - Die Gesundheitsangaben sind kein Dokument, sondern Einträge in der Datenbank
+    mit Zeitpunkt.
+  - Was tatsächlich eingezogen wurde, steht nicht bei uns, sondern in Optigem.
+  - Beim Foto sehen wir einen Widerspruch: "unbegrenzt" und "jederzeit
+    widerrufbar" vertragen sich nicht. Nach Art. 7 Abs. 3 kann jederzeit
+    widerrufen werden - dann ist die Einwilligung weg, der Nachweis, dass sie
+    bis dahin galt, aber nicht (Art. 7 Abs. 1). Ein einmal veröffentlichtes Foto
+    verschwindet nicht mehr.
+
+Was wir brauchen: vier Fristen, je mit dem Tag, ab dem sie zählt - und beim Foto
+die Aussage, ob "unbegrenzt" trägt.
+
+ANTWORT:
+
+
+--------------------------------------------------------------------------
+FRAGE 9 - Sechs weitere Fristen
+--------------------------------------------------------------------------
+Für sechs weitere Bestände fehlt uns die Löschfrist. Je Fall steht dabei, was
+genau gespeichert ist und ab wann gerechnet würde.
+
+  a) Eine Bewerbung, aus der nichts geworden ist.
+     Gespeichert: Name, Geburtsdatum, Anschrift des Kindes, gewünschte Schulart
+     und Stufe, die Formularangaben, das Ergebnis (Zusage, Warteplatz, Absage)
+     und die Elternzeilen, die dabei entstanden sind. Keine Gesprächsnotizen,
+     keine Bewertungen.
+     Zählt ab: dem Tag, an dem die Absage feststeht.
+
+  b) Eine Ferienbuchung, auch bei schulfremden Kindern.
+     Gespeichert: Name und Geburtsdatum des Kindes, bei schulfremden auch die
+     Anschrift, eine Notfallnummer, die gebuchten Tage, die Zahlung.
+     Zählt ab: dem letzten gebuchten Termin.
+
+  c) Eine Mail an Personen, die wir nicht als Familie führen.
+     Gespeichert: nur die Mailadresse, der Anlass in einem Wort, der
+     Versandzeitpunkt und ob sie zustellbar war. Kein Mailtext.
+     Zählt ab: dem Versanddatum.
+
+  d) Ein Rücktritt vor dem ersten Schultag.
+     Gespeichert: der unterschriebene Vertrag samt Unterschriften - ein
+     Rechtsdokument, auch wenn es niemand erfüllt hat.
+     Zählt ab: dem vereinbarten ersten Schultag.
+
+  e) Ein ersetzter Vertrag, dessen Nachfolger schon läuft.
+     Gespeichert: die alte Fassung als Beleg, dass sie bis dahin galt.
+     Zählt ab: dem Tag, an dem der neue freigegeben wurde.
+
+  f) Alles Übrige - Putzdienst, Elternmitarbeit, Mensa, Rechnungsfreigabe.
+     Betriebsdaten ohne Bezug zu einer Akte. Hier genügt uns die Bestätigung,
+     dass darauf keine Aufbewahrungspflicht liegt.
+
+Hintergrund zu a): Die Arbeitshilfe des Sekretariats kennt bereits die Kategorie
+"abgesagte Schüler, deren Daten gelöscht wurden". Es gibt also eine gelebte
+Praxis - offen ist nur die Frist.
+
+Was wir brauchen: fünf Zahlen und eine Bestätigung.
+
+ANTWORT:
+
+
+--------------------------------------------------------------------------
+FRAGE 10 - Ausgeschiedene Mitarbeitende
+--------------------------------------------------------------------------
+Wie lange behalten wir die Daten eines Mitarbeitenden nach seinem letzten
+Arbeitstag? Und was wird aus Vorgängen, an denen sein Name als Bestätigender
+hängt - ein freigegebener Beleg, eine geführte Klasse -, wenn sein Eintrag
+gelöscht wird?
+
+Hintergrund:
+  - Gespeichert ist keine Personalakte, sondern Name, dienstliche Mailadresse,
+    Zugehörigkeit zu Schule oder KITA, erster und letzter Arbeitstag, die Rolle
+    im System und höchstens eine Notiz zur Nachfolge.
+  - Der zweite Teil ist der unangenehmere: Verschwindet der Name aus einem
+    Nachweis, ist der Nachweis keiner mehr; bleibt er stehen, lebt der Name
+    weiter, obwohl der Eintrag gelöscht ist.
+
+Was wir brauchen: eine Frist und eine Aussage zu den Nachweisen.
+
+ANTWORT:
+
+
+--------------------------------------------------------------------------
+FRAGE 11 - Der Lösch-Lauf
+--------------------------------------------------------------------------
+Unser System löscht nicht von selbst: Einmal im Jahr stößt ein Mensch einen Lauf
+an, der alle abgelaufenen Fristen räumt - in der Datenbank und in SharePoint.
+Dafür wollen wir zwei verschiedene Personen: eine, die ihn anstößt, und eine,
+die hinterher bestätigt, dass er richtig gelaufen ist. Wer sollte das jeweils
+sein?
+
+Hintergrund:
+  - Dass ein Mensch ihn anstößt statt eines Automatismus, ist entschieden.
+  - Ohne benannte Rollen ist der Lauf gebaut und wird nie ausgelöst - dann
+    verfällt keine der Fristen, die hier festgelegt werden.
+
+Was wir brauchen: zwei benannte Rollen.
+
+ANTWORT:
+
+
+==========================================================================
+TEIL 4 - ZWEI BESTÄNDE, DIE ENG BLEIBEN MÜSSEN
+==========================================================================
+
+--------------------------------------------------------------------------
+FRAGE 12 - Die Bildungskarte
+--------------------------------------------------------------------------
+Zu einzelnen Kindern führen wir, dass sie eine Bildungskarte der Stadt haben,
+samt Guthaben und Gültigkeit - wir rechnen die Ausflugskosten darüber ab.
+Sichtbar wäre das in der Grundschule nur der Klassenlehrkraft, in der Realschule
+allen Lehrkräften, weil dort Fachlehrkräfte die Ausflüge machen, dazu
+Sekretariat und Rechnungswesen. Ist dieser Kreis eng genug? Oder sollte das
+Merkmal gar nicht dauerhaft sichtbar sein, sondern nur der Lehrkraft erscheinen,
+die gerade einen Ausflug anlegt?
+
+Hintergrund:
+  - Der Bezug einer Bildungskarte ist ein Sozialdatum - Bildungs- und
+    Teilhabepaket nach § 28 SGB II, Sozialgeheimnis nach § 35 SGB I -, kein
+    Datum nach Art. 9 DSGVO.
+  - Über beide Schularten hinweg sieht das Merkmal niemand.
+  - Guthaben und Gültigkeit kommen von den Eltern und vom Amt; eine
+    Schnittstelle zur Stadt gibt es nicht.
+
+Was wir brauchen: welcher der beiden Schnitte trägt.
+
+ANTWORT:
+
+
+--------------------------------------------------------------------------
+FRAGE 13 - Die Geburtsurkunde
+--------------------------------------------------------------------------
+Heute legen wir bei der Anmeldung eine Kopie der Geburtsurkunde ab. Spricht
+etwas dagegen, dass das Sekretariat das Original am Anmeldetag stattdessen nur
+ansieht und vermerkt, dass es vorlag - so wie wir es beim Masernnachweis schon
+halten?
+
+Hintergrund: Prüfung und Aufbewahrung sind zwei verschiedene Zwecke.
+Datenschutzrechtlich täten wir uns mit der bloßen Einsicht leichter; es fehlt
+nur der Beschluss.
+
+Was wir brauchen: ein Ja oder Nein zur bloßen Einsicht.
+
+ANTWORT:
+
+
+==========================================================================
+FALLS DIE ZEIT NICHT REICHT
+==========================================================================
+
+In dieser Reihenfolge, den Rest gern schriftlich:
+
+  1. Frage 1  - Aufbewahrungspflicht. Sie kürzt alles Folgende ab.
+  2. Frage 3  - die vier Felder. Daran hängt der Zeitpunkt unseres Datenimports.
+  3. Frage 2  - Folgenabschätzung. Ein Ja verschiebt den Zeitplan.
+  4. Frage 8 und 9 - die zehn Fristen. Ohne sie löscht das System gar nichts.
+  5. Frage 4 und 5 - Einsicht je Angabe und Notfalleinsicht. Daran hängt der
+     Betreuungsvertrag.
+  6. Frage 6  - Nachweisfrist. Ohne sie löscht das Ferienprogramm entweder zu
+     früh oder nie.
+
+Vielen Dank.

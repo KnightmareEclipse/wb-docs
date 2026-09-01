@@ -44,11 +44,12 @@ in `schema/` liegt.
 | Personengruppe | Datenkategorien |
 |---|---|
 | Kinder (eingeschrieben) | Name, Geburtsdatum, Geschlecht, Anschrift, Staatsangehörigkeit, Muttersprache, Klassenzugehörigkeit, Ein- und Abgangsdatum |
-| Kinder (schulfremd, Ferienprogramm) | derselbe Kern, ohne Klassen- und Vertragsbezug |
+| Kinder (schulfremd, Ferienprogramm und Akademie) | derselbe Kern, ohne Klassen- und Vertragsbezug |
 | Erziehungsberechtigte | Name, Anschrift, Telefon, E-Mail, Familienzugehörigkeit, Vertrags- und Zahlungsbezug, Arbeitsstundenkonto |
 | Notfallkontakte | Name und Telefonnummer, sonst nichts |
 | Bewerber ohne Aufnahme | die Voranmeldedaten bis zum Ablauf ihrer Frist |
 | Mitarbeitende | Entra-Object-ID, Name, Rolle; kein Personalaktendatum — das bleibt außerhalb (`grenzkarte.md`) |
+| Kinder im Hort | dazu die **Betreuungsakte** des Horts — Absprachen, Verhalten, Beobachtungsbögen. Sie enthält eine Bewertung, liegt in einer eigenen SharePoint-Bibliothek und wird allein vom Hort gelesen (`grenzkarte.md`, Q2) |
 | **Besondere Kategorien (Art. 9)** | Gesundheitsmerkmale und Masernnachweis (`schema/gesundheit-schema.sql`), Konfession (`schema/stammdaten-schema.sql`) |
 
 Die Art.-9-Spalten und die Bankverbindung liegen hinter eigenen Postgres-Rollen und sind für die
@@ -60,7 +61,7 @@ Laufzeitrolle nicht lesbar — die Grenze ist eine Datenbankberechtigung, keine 
 | Empfänger | Was er sieht | Grundlage |
 |---|---|---|
 | Hetzner Online GmbH | betreibt die VPS; sieht die Daten nicht, kann sie aber technisch erreichen | AVV, Art. 28 |
-| Microsoft | Identitätsanbieter (Entra ID), Mailversand über Graph, Ablage der Schülerakte in SharePoint | bestehender Tenant-AVV |
+| Microsoft | Identitätsanbieter (Entra ID), Mailversand über Graph, Ablage von Schüler- und Hortakte in SharePoint | bestehender Tenant-AVV |
 | Stripe | Betrag, Zahlungsreferenz und die vom Elternteil auf Stripes eigener Seite eingegebene Adresse — **kein Name** | AVV, offen bis TASK-034 |
 
 **Kein weiterer Empfänger.** Das Backupziel ist das schuleigene NAS und damit kein Dritter

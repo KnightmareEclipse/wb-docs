@@ -244,6 +244,35 @@ Die **Akte** legt Weltenbaum an wie in [08](08-schulvertrag.md); ein externes Ki
 und bekommt seinen Ordner in einer eigenen Ablage für externe Hortkinder — es sind sehr wenige, und
 eine gerechnete Kennung für sie zu erfinden wäre teurer als das Handanlegen.
 
+Dazu die **Hortakte**, die zweite Ablage am Kind und die einzige, die dem Hort gehört: Absprachen,
+Verhalten und die Beobachtungsbögen, die er künftig wieder führt. **Niemand außer Hortkräften und
+Hortleitung sieht sie** — nicht die Klassenlehrkraft, nicht das Sekretariat, nicht die Schulleitung.
+Das ist die benannte Abweichung von der [Standardantwort](hebel.md#standardantworten), und sie
+kostet einen Schritt bei der Auskunft: Wollen Eltern sie sehen, steuert der Hort seinen Teil bei
+([18](18-dsgvo-auskunft.md)). Weltenbaum legt den Ordner an und löscht ihn wieder; **was darin
+liegt, sieht es nie** — wie bei der Schülerakte.
+
+**Was darin liegt, sind fortgeschriebene Dokumente und keine Formulare**: eine Datei je Kind, in die
+Absprachen und Beobachtungen nach und nach hineinwandern. Deshalb liegt die Hortakte in einer
+eigenen Ablage statt in einem Unterordner der Schülerakte: Wer fortschreibt, öffnet die Datei, statt
+sie herunter- und wieder hochzuladen — er braucht direkten Zugriff, und den kann nur eine ganze
+Ablage tragen, sonst bekäme jedes Kind eigene Rechte (`grenzkarte.md`).
+
+**Nicht jedes Kind hat eine.** Sie entsteht nicht mit dem Vertrag, sondern wenn der Hort sie braucht:
+Er lässt sie in Weltenbaum anlegen, und **Weltenbaum legt den Ordner an — der Hort legt nur hinein**.
+Ein von Hand in SharePoint angelegter Ordner hätte keinen Anker in der Datenbank und würde vom
+Lösch-Lauf (17) nie erreicht; das ist der Grund für diesen einen Knopf und nicht Bequemlichkeit.
+Damit es nicht an der Disziplin hängt, ist die Bibliothek **nicht synchronisierbar** — der Hort
+arbeitet in ihr, im Browser oder in der Desktop-App, und zieht sie nicht als Ordner auf einen
+Rechner (`grenzkarte.md`). **Umbenennen und Verschieben darf er dagegen**, so viel er will: Der
+Anker ist die Element-Kennung und kein Pfad.
+
+**Der Hortvertrag gehört nicht dorthin.** Er ist das Gegenteil eines lebenden Dokuments — eine
+unterschriebene Urkunde mit Prüfsumme — und liegt als PDF in der Akte des Kindes wie jeder Vertrag
+([08](08-schulvertrag.md)). Der Hort liest ihn über Weltenbaum, so wie die Hortleitung ihn schon vor
+der Gegenzeichnung liest; ein Zugriff auf die Bibliothek der Schülerakte entsteht dafür nicht
+(`grenzkarte.md`).
+
 `[?]` Der Vertragstext braucht drei Anpassungen, bevor er so laufen kann: das Ende zum Ende der
 Klasse 4 bzw. 5 **ohne Kündigung** ([04](04-schuljahreswechsel.md)), die **Schriftform** für
 Abschluss, Änderung und Kündigung im Portal, und die Zusage, die Gesundheitsangaben
@@ -315,7 +344,9 @@ Kein eigener Vorgang. Die Gesundheitsangaben verschwinden nach dem **letzten bes
 Kindes** ([03](03-irregulaerer-abgang.md)) — damit ist die Zusage des Vertragstextes, sie nach dem
 Austritt aus dem Hort zu löschen, eingehalten, ohne dass dieser Block eine eigene Frist braucht.
 Vertrag, Modulanlagen und Mandat folgen derselben offenen Aufbewahrungsfrage wie in
-[08](08-schulvertrag.md) und gehören zum Lösch-Lauf (17). Endet der Vertrag eines externen Kindes,
+[08](08-schulvertrag.md) und gehören zum Lösch-Lauf (17). Die **Hortakte** hängt an demselben Ende —
+bei einem externen Kind ist das sein letzter Betreuungstag, ein Austrittsdatum hat es nicht —, trägt
+aber eine eigene Frist: `[?]` wie lang, entscheidet der Datenschutzbeauftragte. Endet der Vertrag eines externen Kindes,
 endet damit die letzte [laufende Verbindung](hebel.md#laufende-verbindung) seiner Familie und ihr
 Zugang ([00](00-zugang-und-portal.md)), sofern kein Geschwisterkind eine hat.
 

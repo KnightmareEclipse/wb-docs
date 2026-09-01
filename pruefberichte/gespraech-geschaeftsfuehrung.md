@@ -5,7 +5,7 @@ wandert in die Datei, die es trägt, was offen bleibt in `fragen.md` und `backlo
 
 **Am Mittwoch sitzt Jürgen beim Datenschutzbeauftragten.** Alles, was hier mit **⚑** steht, muss er
 danach in eigenen Worten erklären können — nicht ablesen. Das Blatt, das er mitnimmt, ist
-[`briefing-datenschutz.md`](briefing-datenschutz.md); es entsteht aus dem, was ich hier eintrage.
+`pruefberichte/fragen-datenschutz.txt`; es entsteht aus dem, was ich hier eintrage.
 
 **Was ich mir vorsage, bevor ich anfange:** Jürgen entscheidet, was ihm gehört — Preise, Abläufe,
 Vertragstexte, Termine. Nicht, was dem Datenschutzbeauftragten, der Schulleitung oder dem
@@ -50,6 +50,18 @@ Drei Sätze, mit denen ich anfange, damit das Gespräch nicht bei den Einzelheit
    nur ein, damit du es Mittwoch vortragen kannst.
 3. Am Ende bekommst du **ein Blatt** für Mittwoch. Alles, was wir hier mit ⚑ durchgehen, steht
    darauf.
+
+## Entscheidung Portalname
+Protalname: meinCLEMENS
+
+## Entscheidungen
+- Öffentlicher Teil hinzufügen der quasi eine Webseite ist mit allen Infos also News und so Sachen
+- Idee wäre es später eine eigene App zu bauen, worüber Informationen, News und alles was Eltern brauchen bekommen und die Kommunikation. Quasi ein ersatz für die Webseite
+- Hauptproblem ist auch, Webseite ist nicht aktuell, deswegen Webseite mit Portal verbinden
+- Kommunikation mit Eltern intern/extern über Portal + Preiskalkulator (einfacher zu verstehen was, wie kostet statt einfach eine Preisliste)
+- Portal ist wichtig, dass man die wichtigen Sachen direkt findet. Sollte nicht überladen sein!
+- Webseite soll nur grobe Infos haben zum katschen was wir sind und machen, aber nicht was es z.B. für Essen gibt.
+- News sollten ein standardtisiertes Format haben, dass es leicht umsetzbar ist
 
 ---
 
@@ -97,8 +109,12 @@ sie wenigstens **sehen**? Und ja, das Portal läuft auf dem Telefon; eine Stunde
 Felder, nach dem Wegfall der Bestätigung noch weniger.
 
 **Antwort:**
+- Sekretariat schickt eine Mail raus und Eltern können sich dann anmelden via Platform (xiondo) wo steht was für Anforderungen und first come first serve. Dann tragen Eltern es in die Liste ein.
+- Fahrdienst ist schwierig zu automatisieren
+- Kein Portal es bleibt komplett auf vertrauen. Keine Bestätigung!
 
 **Antwort (Sichtbarkeit):**
+- Nein, niemand muss die Stunde sehen. Wir vertrauen den Eltern beim Eintragen.
 
 ---
 
@@ -132,6 +148,8 @@ folgen lässt statt umgekehrt.
 Familie?
 
 **Antwort:**
+- Idee ist es transparent machen, dass es Schulvertragsänderungen gab.
+- Option C, mit richtiger Unterschrift von beiden Eltern.
 
 **Antwort (Sorgeberechtigte):**
 
@@ -209,6 +227,10 @@ denselben Bestand — abgestuft. Willst du das so, oder willst du wirklich eine 
 Hortkräfte eine eigene Einwilligung braucht oder ob der Betreuungsvertrag sie deckt.
 
 **Antwort:**
+- Es muss angegeben werden, dass geteilt werden muss und das muss akzeptiert werden (Ablehnung erlaubt => nicht unser Problem)
+- Zudem muss bestätigt werden, dass Daten noch aktuell sind. (Hortvertrag müssten wir die Gesundheitsdaten nochmals anzeigen)
+- Schullandheim Prozess mit bestätigung von Regeln und auch bestätigung von Gesundheitsdaten hier. Generell einen Prozess für außerschulische Veranstaltungen. Lehrer können dann den Prozess starten.
+- Kein Frist für Datenbestätigung die in bestimmten intervallen kommen müssen!
 
 ---
 
@@ -227,6 +249,8 @@ zu uns haben — und dafür gibt es weder eine Frist noch einen Ort im System."
 **Für Mittwoch:** nur, wenn das Formular sie erhebt. Dann als eigene Frist ins Briefing.
 
 **Antwort:**
+- Ferienprogramm interne Kinder Gesundheitsdaten erlauben für Nutzung
+- Gesundheitsdaten von externen direkt löschen aber komplett alle beantragen. Löschfrist vorhaltung für Nachweis!
 
 ---
 
@@ -287,6 +311,9 @@ Positionen ersetzen, die heute per Screenshot aus Vis365 und ASV kommen?"
 **Was daran hängt:** `dsgvo.md:13`, task-055, task-008.
 
 **Antwort:**
+- Portaldaten müssen mit dabei sein
+- Verfahrensbeschreibung muss Weltenbaum mit aufnehmen.
+- KLÄRUNG OB IM PORTAL LAUFEN MUSS!
 
 ---
 
@@ -311,6 +338,7 @@ Vorgesetzten. Der Weg muss auch von außerhalb des Kollegiums beginnen können."
 **Was daran hängt:** task-116.
 
 **Antwort:**
+- Thema für den Datenschutzbeauftragten.
 
 ---
 
@@ -332,6 +360,8 @@ ist. Wenn ja, sparen wir uns die Unterordner."
 **Brauchbar, wenn:** eine Aussage zur längsten Frist zurückkommt. task-058.10.
 
 **Antwort:**
+- Unterordner je Kategorie um Löschfristen besser einhaltne zu können.
+- Muss mit Datenschutzbeauftragen geklärt werden die Fristen.
 
 ---
 
@@ -347,6 +377,7 @@ gelaufen ist? Zwei verschiedene Personen — sonst ist der Lauf gebaut und wird 
 **Brauchbar, wenn:** zwei Rollen benannt sind, nicht dieselbe Person. task-056 #2.
 
 **Antwort:**
+- Datenschutzbauftrager
 
 ---
 
@@ -363,6 +394,7 @@ Bis zur Antwort bleibt es wie heute: Ein nicht erhobener Scan lässt sich nicht 
 Weglassen später ist billig. task-054.
 
 **Antwort:**
+- Datenschutzbeauftragter
 
 ---
 
@@ -395,6 +427,15 @@ sind. Ich würde es enger schneiden."
 **Brauchbar, wenn:** der Ablauf steht und ein Sichtbarkeitsschnitt gewählt ist.
 
 **Antwort:**
+- Bildungskarte sind Kinder die ein Budget von der Stadt bekommen, welche Guthaben hat, worüber Kosten abgerechnet werden können. Das kommt von der Stadt.
+- Eltern zahlen am Schuljahresanfang einen fixen Betrag für Ausflüge und so Sachen für das Jahr vorweg.
+- Bildungskarten haben verschiedene Fristen und auch verschiedene Budgets.
+- Wenn Bildungskarte leer oder nicht mehtr gültig bleiben die Kosten auf uns liegen
+- Lehrer muss Buchhaltung sagen, dieses Kind mit Bildungskarte ist auf Ausflug gewesen mit diesen Kosten. Buchhaltung fordert Geld von Stadt ein. Dann werden die Kosten den Eltern bei der nächsten Buchung der Monatskosten gutgeschrieben.
+- Wir brächten eine Liste aller Kinder die eine Bildungskarte haben mit Guthaben + Tracking der Ausgaben.
+- Müssten dann halt Schulausflüge tracken. Kosten gehen über die Pauschale die am Anfang des Jahres gezahlt wird. Nur bei Bildungskarte wird zurücküberwiesen.
+- Schullandheim wird separat mit eigenem Prozess abgerechnet nicht abzubilden.
+- Schulausflug wäre nicht schlecht hier den gesamten Prozess abzubilden
 
 ---
 
@@ -418,6 +459,8 @@ Das gehört ins Briefing.
 **Brauchbar, wenn:** Ordnerschnitt, Leserkreis und die Frage der externen Akte je eine Antwort haben.
 
 **Antwort:**
+- Hortakte geht in die digitale Schülerakte aber Zugriff auf Ordner nur für Hort!
+- Ob ein externes Hortkind eine eigene Akte bekommt: Frage für den Datenschutzbeauftragten.
 
 ---
 
@@ -441,6 +484,13 @@ mehrtägige Angebote und solche über ein halbes oder ganzes Schuljahr. Damit si
 Schuljahresangebot und eine kostenpflichtige AG derselbe Fall (task-127).
 
 **Antwort:**
+- Akademie bildet rein interne Angebote (z.B. Chor AG, Theater AG) ab aber auch externe (z.B. Kochwerkstatt). Aufteilen in verschiedene Kategorien.
+- Begrenze Plätze ja
+- Gebühren über Stripe + SEPA Mandat. Externe über Stripe immer!
+- Interne Sachen teilweise auch offen für externe
+- Informationen + Werbung über festen Rahmen
+- Kein aktueller Bestand wird übernommen — was heute läuft, ist deshalb egal.
+- Anlegen darf jeder Mitarbeiter ein Programm; freigeben muss es immer eine übergeordnete Stelle.
 
 ---
 
@@ -463,6 +513,10 @@ Frage ist nur, ob es aus D.Vinci kommt oder von Hand."
 **Brauchbar, wenn:** je System ein Ja oder Nein zu Stammdaten, und eine Aussage zu Untis.
 
 **Antwort:**
+- Fobizz, erstmal ignorieren
+- AGFEO Notfallnummer wäre hier wichtig zu hinterlegen
+- Untis out of scope
+
 
 ---
 
@@ -477,50 +531,62 @@ WCAG 2.1 AA. Teuer wird nur das Nachrüsten. **Was ihn betrifft: auch die Vertra
 müssen barrierefrei sein**, nicht nur die Oberfläche.
 
 **Antwort:**
+Ja
 
 **4.2 Rollen.** Seine Frage, ob rollenspezifisch noch etwas zu klären ist: Die Rollen stehen
 (`glossar.md`). Offen ist nicht *welche*, sondern **wer sie zuweist und wer sie pflegt**, wenn jemand
 die Stelle wechselt.
 
 **Antwort:**
+HINWEIS: verschiedene Lehrermodule (Sport, Fach, Klassen)
+- Je nach dem wie detailliert muss es Leitung machen oder Personalwesen
+- Rollen hängen an Personalwesen **und** Führungskräften: Manche Rollen kann nur die Führungskraft
+  beurteilen, nicht das Personalwesen.
 
 **4.3 Klassenliste.** Gebaut: Die Klassenlehrkraft der eigenen Klasse sieht alles, jede andere
 Lehrkraft die Alltagsangaben. Eine Rolle „Fachlehrer" gibt es nicht. Reicht das, oder braucht ein
 Fachlehrer weniger als eine fachfremde Klassenlehrkraft?
 
 **Antwort:**
+- Lehrer müssen Klassenliste sehen + ggf. Gesundheitsdaten falls Fachlehrer z.B. einen Ausflug machen
+- Problem: Wahlmodule bilden andere Subklassen
 
 **4.4 Cyber-Versicherung.** Leer geblieben: Bestätigt er noch einmal, dass die Bedingungen keine
 Verschlüsselung der Festplatten fordern, bevor echte Daten drauf sind? (task-087)
 
 **Antwort:**
+- Frage ist raus aber keine Antwort von zuständiger Stelle
 
 **4.5 Reihenfolge der Vertragstexte.** Jeder Text ist Vorbedingung seines Ablaufs: Text ändern →
 Eltern informieren → Ablauf starten, nie umgekehrt. Ich schlage die **Essensbedingungen** zuerst vor,
 weil das Mensa-Abo der einfachste der drei ist.
 
 **Antwort:**
+- Vertragstexte werden angepasst. Portalregeln gelten
 
 **4.6 Der Optigem-Verantwortliche.** Ich brauche seinen Namen — er wird ein eigener Gesprächspartner
 in `fragen.md`.
 
 **Antwort:**
+ Daniela
 
 **4.7 Putzdienst-Nachtrag.** Seine Frage, ob das über eine Eingabemaske läuft: Ja. Die Buchhaltung
 trägt je Familie ein, dass freigekauft ist; danach fällt sie aus Zuteilung, Anwesenheitslisten und
 Mails. Keine Excel-Liste.
 
 **Antwort:**
+- nicht relevant eine Antwort hier!
 
 **4.8 Der Name.** Sein Marketingexperte sollte gestern draufschauen. Ergebnis?
 
 **Antwort:**
+meinCLEMENS
 
 ---
 
 ## 5 · Was er mitnimmt — 15:58, 2 Min
 
-**Das Briefing für Mittwoch** — [`briefing-datenschutz.md`](briefing-datenschutz.md), ich schicke es
+**Das Briefing für Mittwoch** — `pruefberichte/fragen-datenschutz.txt`, ich schicke es
 ihm nach dem Gespräch mit dem, was wir hier entschieden haben.
 
 **Für den 07.09. mit den Führungskräften und Ines:** die vier Sekretariatsfragen (Zuordnung der
@@ -533,3 +599,12 @@ Weltenbaum einmal vorstelle, ist gut — dann hören es alle aus einer Hand.
 **Erledigt, nicht mehr zu besprechen:** Hortmodule mit Essen tragen dieselbe Preisstaffel wie das
 Abo der Realschüler. Der Lösch-Lauf darf von Hand angestoßen werden. Die Putzdienstzahlen stehen
 (35 €, 45 €, 5 + 1, Jahresfreikauf als Summe). Das Stripe-Konto legt er an, Frist 14.09.
+
+
+
+## 6. TODO
+
+- Corrado informieren über Design!
+- Download/Upload Button an entsprechenden Stellen beachten und in Dateien müssen teilweise verlinkunge zurück ins Portal an entsprechende Stellen sein!
+- Ferienprogramm: Verschieben von Terminen muss möglich sein + Stornierung über das Portal. Stornierung Kostenrückerstattung sofern noch nach Vertrag möglich. Verschieben über Guthaben, wenn Guthaben zu gering müssen nachzahlen via Stripe. Bei zu viel Erstattung über Storno.
+- Sichtbarkeit, wie darf ein Lehrer mehr sehen wenn er z.B. einen Ausflug macht und Notfallkontakte braucht. Prozess muss niederschwellig sein.

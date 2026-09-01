@@ -4,7 +4,7 @@ title: Essensbedingungen anpassen
 status: In Progress
 assignee: []
 created_date: '2026-08-27 11:37'
-updated_date: '2026-08-28 15:49'
+updated_date: '2026-09-01 20:28'
 labels:
   - wartet
   - geschaeftsfuehrung
@@ -20,5 +20,7 @@ ordinal: 44000
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Zwei Anpassungen: Anmeldung und Kündigung im Portal statt mit Unterschrift, dazu die Lastschrift-Ermächtigung nicht mehr aus ihnen selbst. Vor dem Mensa-Abo im Oktober.
+Zwei Anpassungen: Anmeldung und Kündigung im Portal statt mit Unterschrift, dazu die Lastschrift-Ermächtigung nicht mehr aus ihnen selbst — das Mandat kommt aus dem Schulvertrag.
+
+Der Text folgt dem gebauten Ablauf (TASK-042). Das Mensa-Abo wartet nicht auf ihn.
 <!-- SECTION:DESCRIPTION:END -->

@@ -1,10 +1,10 @@
 ---
 id: TASK-027
 title: Der zweite Signaturlink braucht eine Begründung in der Mailvorlage
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 11:35'
-updated_date: '2026-08-30 18:11'
+updated_date: '2026-08-31 21:11'
 labels:
   - wb-backend
   - anmeldung

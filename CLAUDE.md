@@ -76,7 +76,7 @@ Drei Dinge sagt das Dateisystem nicht, deshalb stehen sie hier:
 - **`wb-backend` führt das Schema.** Die `.sql` hier bleibt die Begründungsquelle, ist aber nicht
   mehr die Quelle der Wahrheit: Eine Strukturänderung beginnt dort als Migration und wird hier
   nachgezogen, nie umgekehrt.
-- **Vier Schemata ohne Tabellen sind ihr Ergebnis, kein Versäumnis:** AGs, M365-Kontenverwaltung,
+- **Drei Schemata ohne Tabellen sind ihr Ergebnis, kein Versäumnis:** M365-Kontenverwaltung,
   Eltern-Selfservice, Klassenbildung. Ihr Prüfskript belegt genau das — dass nichts auf Verdacht
   entstanden ist.
 - **`schema/` ist durch fünf Prüfzyklen gegangen**, kein Fund blieb offen.

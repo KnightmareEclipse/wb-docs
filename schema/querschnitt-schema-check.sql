@@ -893,7 +893,7 @@ END $$;
 -- eine Tabelle dazu, die eine Stufe festhält, bricht sie hier — und nicht beim
 -- ersten Lauf in Produktion, wo sie eine halb gelöschte Person hinterließe.
 -- Geprüft wird gegen jede Tabelle der sechs Stufen und nicht nur gegen Kind,
--- Familie und Person: `fk_contracts_document` und `fk_health_traits_certificate`
+-- Familie und Person: `fk_contracts_document` und `fk_health_trait_values_document`
 -- halten den Lauf an seinem ersten Schritt auf und fielen aus dem engeren
 -- Fenster heraus. Beides steht deshalb hier — die Aufzählung mit ihrem Platz im
 -- Lauf, und darüber zwei Fragen: Hält eine Tabelle den Lauf auf, die in keiner
@@ -908,12 +908,15 @@ INSERT INTO loeschlauf (platz, tabelle, im_lauf) VALUES
     -- Mailadresse und gehört keinem Kind.
     ( 6, 'holiday_cost_coverage_codes', true),
     ( 7, 'meal_subscriptions', true),
-    ( 8, 'health_traits',      true), ( 9, 'documents',          true),
+    ( 8, 'health_trait_values', true), ( 9, 'documents',          true),
     -- Stufe 2
     (10, 'children', true),
     -- Stufe 3. Der Einzel-Freikauf steht vor der Zuteilung, die ihn mit
     -- NO ACTION festhält.
     (11, 'parent_work_entries',   true), (12, 'cleaning_slot_buyouts', true),
+    -- Direkt hinter den Stunden, die aus ihm kamen: Er gehört keiner Familie,
+    -- trägt aber dieselbe Schuljahresfrist und nimmt seine Anmeldungen mit.
+    (11, 'parent_work_sessions',  true),
     (13, 'cleaning_assignments',  true), (14, 'cleaning_buyouts',      true),
     (15, 'cleaning_family_quotas', true),
     -- Stufe 4

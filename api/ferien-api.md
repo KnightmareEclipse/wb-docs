@@ -24,8 +24,11 @@ Z6 → die drei Storno-Routen · Z7 → `GET /holiday/sessions/{id}/participants
   Zahlungssitzung; Buchung, Familie, Kind und Sorgeberechtigte entstehen im Rückruf
   ([`gemeinsam.md`](gemeinsam.md#sofortzahlung)). **Der Kostenübernahme-Code ist die eine Ausnahme
   und tritt an die Stelle der Zahlung**: Dann schreibt dieselbe Route sofort.
-- **Diese Domäne erhebt keine Gesundheitsangabe und kein Fotoeinverständnis als Bestand.** „Was die
-  Betreuung über ein Kind weiß, steht am Kind (08, 09) und wird hier nur gelesen." Fotoeinverständnis
+- **Diese Domäne führt keinen eigenen Gesundheitsbestand und kein eigenes Fotoeinverständnis** —
+  „Der Bestand steht am Kind (08, 09) und nirgends sonst" (10). Erhoben wird er über sie trotzdem:
+  bei einem fremden Kind entsteht er mit der Buchung, bei einem Kind der Schule geben die Eltern den
+  vorhandenen frei. Beides sind Routen der Gesundheits-Domäne
+  ([`gesundheit-api.md`](gesundheit-api.md)), die diese Strecke ruft. Fotoeinverständnis
   und Werbe-Einwilligung sind Q1-Routen ([`querschnitt-api.md`](querschnitt-api.md)), die
   Essensvariante eine Mensa-Route ([`mensa-api.md`](mensa-api.md)), die Notfallnummer eine
   Stammdaten-Route — das Formular führt sie zusammen, die API nicht.

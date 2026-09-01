@@ -31,8 +31,10 @@ Die Rollenliste steht vollständig, auch wo eine Rolle vorerst nichts tun kann:
 - Die **Personalverwaltung** an der Kontenverwaltung ([13](13-m365-konten.md)).
 - Die schlichte Rolle **Mitarbeitende** trägt, wer nichts Spezielleres hat — ohne sie käme nicht
   herein, wer nur einen Beleg einzureichen hat ([12](12-rechnungsfreigabe.md)).
-- Der **Hausmeister** trägt die **Elternmitarbeit**: Er ruft Einsätze auf und bestätigt die Stunden,
-  die dabei anfallen ([14](14-elternbonus.md)) — heute sein einziger Anlass im System, künftig mehr.
+- Der **Hausmeister** hat heute genau einen Anlass im System, künftig mehr: die
+  **Elternmitarbeit** ([14](14-elternbonus.md)). Ausschreiben darf er sie aber nicht als Einziger:
+  Das dürfen sechs Rollen, weil die Klassenlehrkraft die Begleitung ihres Ausflugs selbst
+  ausschreibt und die Hortleitung ihre Aktionen. Die Stunden bestätigt niemand.
   Die Putzdienstleitung ist er dabei ausdrücklich nicht, das ist eine eigene Person ohne Rolle
   ([01](01-putzdienst.md)).
 
@@ -144,8 +146,8 @@ Kein eigener Vorgang:
 hinge die Löschfrist einer Person daran, dass jemand eine Aufgabe abhakt. Ab ihm rechnet der
 Lösch-Lauf (17), und Rollen wie letzte Anmeldung gehen mit der Person. Ein Sorgeberechtigter, der
 zugleich Mitarbeitender ist, ist trotzdem **eine** Person und verschwindet erst, wenn beide Anker
-erreicht sind. Was seinen Namen anderswo trägt, überlebt ihn: eine bestätigte Mitarbeitsstunde
-([14](14-elternbonus.md)) folgt ihrer eigenen Frist.
+erreicht sind. Was seinen Namen anderswo trägt, überlebt ihn: ein von ihm freigegebener Beleg
+([12](12-rechnungsfreigabe.md)) folgt seiner eigenen Frist.
 
 `[?]` Wie lange werden die Daten eines ausgeschiedenen Mitarbeitenden aufbewahrt —
 Datenschutzbeauftragte

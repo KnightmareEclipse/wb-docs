@@ -1,9 +1,10 @@
 ---
 id: TASK-008
 title: 'Soll-Block 18 schreiben: DSGVO-Auskunft'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 11:35'
+updated_date: '2026-08-31 20:43'
 labels:
   - wb-docs
   - soll-block
@@ -23,5 +24,6 @@ Wer bekommt was, in welcher Frist.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Häkchen und Link in soll-prozesse/README.md gesetzt
+- [x] #1 Häkchen und Link in soll-prozesse/README.md gesetzt
+- [ ] #2 1
 <!-- AC:END -->

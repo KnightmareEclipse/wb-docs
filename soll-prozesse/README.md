@@ -37,7 +37,7 @@ Zuerst am Stück, weil sie die Zustände setzt, auf die sich alles Weitere bezie
 
 Bewusst hinter die Anmeldekette gestellt, obwohl die Termine früher liegen: Beide betreffen auch Kinder, die noch keine Einschreibung haben, und diese Zustände entstehen erst in 6 und 7.
 
-- [x] 10. [Ferienprogramm und Kochwerkstatt](10-ferienprogramm.md) — läuft in den Herbstferien
+- [x] 10. [Ferienprogramm](10-ferienprogramm.md) — läuft in den Herbstferien
 - [x] 11. [Mensa-Anmeldung](11-mensa.md) — das Abo beginnt im Oktober
 
 **Vorgezogen — kommt als Nächstes**
@@ -54,11 +54,20 @@ Bewusst hinter die Anmeldekette gestellt, obwohl die Termine früher liegen: Bei
 **Querschnitt — leicht zu vergessen, tragen aber die Zusagen**
 
 - [ ] 17. Lösch-Lauf (was verschwindet wann, in welcher Reihenfolge)
-- [ ] 18. DSGVO-Auskunft (wer bekommt was, in welcher Frist)
+- [x] 18. [DSGVO-Auskunft](18-dsgvo-auskunft.md) (wer bekommt was, in welcher Frist)
+
+**Neu aus dem Gespräch vom 01.09.2026 — beides zusammen ein Vorgang und sein Geld**
+
+- [x] 19. [Ausflüge und Fahrten](19-ausfluege-und-fahrten.md) (Tagesausflug, Klassenfahrt, Schullandheim) — **nicht** Elternabend und öffentliche Termine, die sind Termine und kein Vorgang
+- [x] 20. [Ausflugskonto und Bildungskarte](20-ausflugskonto.md) (Pauschale, Verbrauch, Erstattung beim Amt)
+
+**Ebenfalls aus dem Gespräch — was aus den AGs geworden ist**
+
+- [x] 21. [Akademie](21-akademie.md) (AG, Kurs und Reihe als ein Angebot, mit Kategorien, Plätzen und Zielgruppe) — nimmt die **Kochwerkstatt** aus [10](10-ferienprogramm.md) mit
 
 Reihenfolge nach dieser Liste — nicht nach Lust, sondern nach Termin. **Die Nummer ist die Kennung eines Blocks, nicht sein Rang:** Sie steht im Dateinamen und in den Verweisen der fertigen Blöcke und bleibt deshalb, wo sie ist, auch wenn ein Prozess vorgezogen wird. Die Liste läuft von oben nach unten, nicht der Zahl nach.
 
-**Bewusst nicht in der Liste:** AGs (`../prozesse.md` Abschnitt 20) — **geplant, aber es gibt heute keine**; solange keine läuft, gibt es nichts zu erheben und keinen Ablauf zu beschreiben. Ein Block dazu entsteht, wenn die erste AG ansteht, und nicht vorher. Die Krankmeldung entfällt ganz (dort Abschnitt 19).
+**Bewusst nicht in der Liste:** Die Krankmeldung entfällt ganz (`../prozesse.md` Abschnitt 19).
 
 ## Was danach passiert
 
@@ -74,7 +83,7 @@ Reihenfolge nach dieser Liste — nicht nach Lust, sondern nach Termin. **Die Nu
 
 - der **Betreuungsvertrag** ([09](09-hortvertrag.md)): Ende zum Ende der Klasse 4 bzw. 5 ohne Kündigung, Schriftform im Portal, und die Zusage zur Gesundheitsangabe, die heute „ausschließlich den Betreuungskräften" verspricht und die volle Einsicht der Klassenlehrkraft ([15](15-klassenbildung.md)) ausschließen würde — Geschäftsführung und Hortleitung
 - die **Essensbedingungen** ([11](11-mensa.md)): Anmeldung und Kündigung im Portal statt mit Unterschrift, und die Lastschrift-Ermächtigung nicht mehr aus ihnen selbst — Geschäftsführung
-- die **Anlage zum Elternbonus** ([14](14-elternbonus.md)): Eintragung im Portal statt Zettel, Frist 31. Juli, und dass nur bestätigte Stunden zählen — Geschäftsführung
+- die **Anlage zum Elternbonus** ([14](14-elternbonus.md)): Eintragung im Portal statt Zettel, Frist 31. Juli, und dass die Einsätze künftig im Portal ausgeschrieben und dort angemeldet werden — Geschäftsführung
 
 **Und eine Nacharbeit, die nach dem Import beginnt und dauern darf.** Der Vollimport bringt die eingeschriebenen Kinder mit, aber nicht die Bestände, die [08](08-schulvertrag.md) und [09](09-hortvertrag.md) sonst anlegen: Gesundheitsangaben, Fotoeinverständnis, Notfallnummer, SEPA-Mandat, Hortmodule. Die liegen auf Papier, in Jotform und in den sechs Formularen, die sich widersprechen — genau der Bestand, den [08](08-schulvertrag.md) künftig zu einem zusammenführt. **Das Sekretariat trägt sie aus den Akten nach**, Kind für Kind, mit dem Rückhalt der Geschäftsführung und ohne Frist. Den Eltern wird dafür nichts geschickt und niemand hinterhergelaufen; es darf dauern.
 

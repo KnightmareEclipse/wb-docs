@@ -6,9 +6,16 @@
 -- Zahlung. Dateien entstehen in dieser Domäne keine.
 --
 -- Setzt stammdaten-schema.sql und querschnitt-schema.sql voraus.
--- Bewusst KEINE Gesundheitsangaben und kein Fotoeinverständnis hier: „Was die
--- Betreuung über ein Kind weiß, steht am Kind (08, 09) und wird hier nur
--- gelesen." Bewusst KEINE Warteliste und kein Nachrücken: „Ist ein Termin zu,
+-- Bewusst KEINE Gesundheitsangaben und kein Fotoeinverständnis als eigene
+-- Tabellen hier: „Der Bestand steht am Kind (08, 09) und nirgends sonst" (10).
+-- Erhoben werden sie über diese Domäne trotzdem — bei einem fremden Kind
+-- entsteht der Gesundheitsbestand mit der Ferienbuchung, weil es keinen anderen
+-- Weg gibt, auf dem er entstünde; bei einem Kind der Schule geben die Eltern
+-- den vorhandenen Bestand für dieses Programm frei (`gesundheit-schema.sql`).
+-- [?] Die eigene Frist dieses Bestands — gerechnet vom letzten gebuchten Termin
+-- und nicht vom Ende des Programms — liegt beim Datenschutzbeauftragten
+-- (pruefberichte/fragen-datenschutz.txt, Fragen „Nachweisfrist nach einer Veranstaltung" und „Kinder, die nicht bei uns zur Schule gehen").
+-- Bewusst KEINE Warteliste und kein Nachrücken: „Ist ein Termin zu,
 -- ist er zu."
 
 

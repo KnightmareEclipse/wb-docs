@@ -41,17 +41,18 @@
 --      verwaiste Datei … ist genauso ein DSGVO-Verstoß wie eine verwaiste
 --      Zeile"), `sepa_mandates`, `contracts`, dann `applications` — der Vertrag
 --      hält seine Bewerbung fest und geht ihr voraus —, `holiday_bookings`,
---      `meal_subscriptions`, `health_traits` und zuletzt `documents`. Jeder
+--      `meal_subscriptions`, `health_trait_values` und zuletzt `documents`. Jeder
 --      nimmt mit, was an ihm hängt: Unterschriften, Antworten, Modulanlagen,
 --      Zahlungen, Esstage.
 --      `documents` steht am Ende dieser Stufe und nicht an ihrem Anfang: der
 --      freigegebene Vertrag (`fk_contracts_document`) und das Attest
---      (`fk_health_traits_certificate`) halten das Dokument mit NO ACTION fest.
---      Weiter nach hinten kann es nicht — es hält selbst das Kind
+--      (`fk_health_trait_values_document`) halten das Dokument mit NO ACTION
+--      fest. Weiter nach hinten kann es nicht — es hält selbst das Kind
 --      (`fk_documents_child`) und muss vor Stufe 2 fort sein. Deshalb steht
---      auch `health_traits` hier und nicht erst in Stufe 2, wo es per Cascade
---      mit dem Gesundheitssatz ginge, ohne dass der Lauf es sieht: bis dahin
---      hielte es das Attest fest.
+--      auch `health_trait_values` hier und nicht erst in Stufe 2, wo es per
+--      Cascade mit dem Gesundheitssatz ginge, ohne dass der Lauf es sieht: bis
+--      dahin hielte es das Attest fest. Merkmal und Antwortzeile darüber nennt
+--      der Lauf nicht — sie halten nichts fest und gehen mit dem Bestand.
 --      Gleich nach `holiday_bookings` und noch in dieser Stufe steht der
 --      eingelöste `holiday_cost_coverage_codes`: die Buchung hält ihn mit
 --      NO ACTION fest (`fk_holiday_bookings_coverage_code`), und er trägt eine
@@ -64,16 +65,19 @@
 --      Essensprofil, Nachzieh-Aufgabe und Änderungsspur per Cascade mit — ohne
 --      dass der Lauf sie einzeln sieht.
 --   3. Die Vorgänge an der Familie, jeder auf dem Jahreslauf seiner eigenen
---      Domäne und nicht auf dem Austritt: `parent_work_entries` (14),
---      `cleaning_slot_buyouts` — vor der Zuteilung, die er mit NO ACTION
+--      Domäne und nicht auf dem Austritt: `parent_work_entries` (14) und
+--      dahinter `parent_work_sessions` — der ausgeschriebene Einsatz gehört
+--      keiner Familie, folgt aber derselben Schuljahresfrist und nimmt seine
+--      Anmeldungen per Cascade mit; die Stunde daraus überlebt ihn und behält
+--      ihre Tätigkeit (elternbonus-schema.sql). Dann `cleaning_slot_buyouts` — vor der Zuteilung, die er mit NO ACTION
 --      festhält, damit das Streichen eines einzelnen Termins den bezahlten
 --      Freikauf nicht mitnimmt (putzdienst-schema.sql) —, dann
 --      `cleaning_assignments`, `cleaning_buyouts`, `cleaning_family_quotas`
 --      (01).
 --   4. `families`. Sorgerecht und Kontakte gehen per Cascade mit.
 --   5. `employees`, ab `last_working_day` (13). Die Rollen gehen mit; was
---      seinen Namen anderswo trägt, überlebt ihn (Beleg 12, Mitarbeitsstunde
---      14) und braucht den Namen vorher gesetzt.
+--      seinen Namen anderswo trägt, überlebt ihn (Beleg 12) und braucht den
+--      Namen vorher gesetzt.
 --   6. `persons`. Telefonnummern, die Sorgeberechtigten-Angaben (`guardians`),
 --      kindlose Zustimmungen, versandte Mails, Aufgaben, Spur und das
 --      Elternvertretungsamt gehen mit.
@@ -136,7 +140,7 @@
 -- Gesundheitsmerkmal"), Block 08 zählt sie unter den Punkten der
 -- Gesundheitsangaben auf und unter dem, was Lehrkräfte und Hort im Alltag
 -- sehen. Der Block ist jünger und schlägt die Karte; sie steht deshalb als
--- Merkmalsart in `health_traits` (gesundheit-schema.sql) und nicht hier.
+-- Merkmalsart in `health_trait_types` (gesundheit-schema.sql) und nicht hier.
 -- Ebenso ohne die Lastschrift-Ermächtigung: 11 sagt „Das Schulgeld-Mandat steht
 -- schon (08), eingezogen wird darüber", 08 sagt zum Mandat „hier steht nur, dass
 -- eingezogen werden darf", und die Karte selbst „ein Mandat je Kind, aber nicht
