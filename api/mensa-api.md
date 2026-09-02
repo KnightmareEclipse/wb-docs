@@ -55,16 +55,17 @@ Schlüssel, Kind und die Audit-Spalten. Daraus folgt für jede Route dieser Date
   [`anmeldung-api.md`](anmeldung-api.md). `PUT /children/{child_id}/meal-profile` gibt die Variante
   deshalb entweder gar nicht zurück oder liest sie im engen Block nach.
 
-**Dieselbe Rolle trägt den Küchen-Ausschnitt der Gesundheitsangaben**, und zwar über eine **View mit
-eigenem GRANT** statt über einen Filter im Anwendungscode: Die Grenze läuft dort **zeilenweise**
-(`health_trait_types.is_kitchen_relevant`), und ein Spalten-GRANT kann keine Zeilen ausnehmen. Es ist
-der Aufstiegspfad, den `zugang.md` schon beschreibt („View plus eigene DB-Rolle",
-`otp_eligible_persons`). — Alternative: `health_traits.description` unter `backend_health` lesen und
-selbst auf das Häkchen filtern; Preis: die Küchenroute hielte eine Rolle, die Diagnose, Attestlage
-und Notfallanweisung lesen darf, und der schmalste Ausschnitt des Systems hinge an einem `if` statt
-an einem GRANT. **Gebaut wird `kitchen_health_traits` in der Migration dieser Domäne**, nicht in
-der der Gesundheit: `backend_kitchen` entsteht hier, und eine View lässt sich nicht an eine Rolle
-granten, die es noch nicht gibt.
+**Dieselbe Rolle trägt den Küchen-Ausschnitt der Gesundheitsangaben**: den Sichtkreis `kitchen`
+([`gesundheit-api.md`](gesundheit-api.md)) über eine **View mit eigenem GRANT** statt über einen
+Filter im Anwendungscode — die Grenze läuft **zeilenweise** über `health_field_visibility`, und ein
+Spalten-GRANT kann keine Zeilen ausnehmen. Es ist der Aufstiegspfad, den `zugang.md` schon
+beschreibt („View plus eigene DB-Rolle", `otp_eligible_persons`). — Alternative: die Werte unter
+`backend_health` lesen und selbst auf den Sichtkreis filtern; Preis: die Küchenroute hielte eine
+Rolle, die Diagnose, Attestlage und Notfallanweisung lesen darf, und der schmalste Ausschnitt des
+Systems hinge an einem `if` statt an einem GRANT. Die Tagesliste liest `kitchen_health_traits`
+(`child_id, description`), eine abgeleitete Sicht des Sichtkreises; was er trägt — Bezeichnung und
+Beachten von Unverträglichkeit und Allergie —, steht als Seed in der Gesundheits-Domäne, und beide
+Sichten entstehen dort, weil die Tabellen dorthin gehören.
 
 ## Küchenprofil und Werte
 
@@ -201,14 +202,6 @@ Kein Eingriff, das Schema führt `wb-backend`:
   ([`stammdaten-api.md`](stammdaten-api.md), „Die Prüfung"), und die Schlüsselspalten stehen jetzt
   im GRANT. Eine Ausweitung ist es nicht: **`meal_variants` bekommt die Rolle nicht**, der Code wird
   außerhalb des engen Blocks nachgeschlagen — gelesen wird dort weiterhin die eine Spalte.
-- **`backend_health` hat dasselbe Problem** und ebenso keinen Schlüssel im GRANT. Die View oben
-  nimmt der Tagesliste die Frage ab; die Rolle behält sie, und die Gesundheits-Domäne entscheidet
-  sie, wenn sie ihre Routen bekommt.
-- **`health_traits` lässt sich als `backend_runtime` nicht anlegen, ohne `has_certificate`
-  mitzugeben.** Die Spalte hat einen Server-Default, den SQLAlchemy per `RETURNING` zurückliest, und
-  die Laufzeit-Rolle hat darauf kein `SELECT` — dieselbe Ebene wie `sepa_mandates.created_at`
-  ([`anmeldung-api.md`](anmeldung-api.md)). Gefunden hat es der Test dieser Domäne, entschieden wird
-  es dort, wo der Bestand gebaut wird.
 - **Das Abo hat keine Marke für „gekündigt".** Ob eine Kündigung vorlag, steht allein daran, dass
   `ends_on` der 31. Januar ist — das genügt, weil es nur zwei mögliche Tage gibt und beide
   ausgewählt und nicht gerechnet werden; ein Abgang setzt einen dritten. Wer später einmal zählen

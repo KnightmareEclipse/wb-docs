@@ -1,9 +1,10 @@
 ---
 id: TASK-153
 title: api/gesundheit-api.md nach dem Schema-Umbau neu planen
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-01 17:19'
+updated_date: '2026-09-02 00:17'
 labels:
   - wb-docs
   - api-plan
@@ -33,9 +34,15 @@ Grund und Modell stehen in schema/gesundheit-schema.sql (Dateikopf, „Warum ein
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Das Zugriffsmodell nennt Sichtkreise statt der drei Stufen und sagt je Rolle, welchen sie bekommt
-- [ ] #2 Die Routen für Merkmal und Wert stehen, samt der Frage, ob ein Wert einzeln oder der Fragensatz am Stück geschrieben wird
-- [ ] #3 Die Notfalleinsicht hat eine eigene Route, die ihre Protokollzeile schreibt
-- [ ] #4 Die Gegenprobe Ablaufzeilen ↔ Routen ist gerechnet und ohne Abweichung
-- [ ] #5 ferien-api.md und mensa-api.md sind mitgezogen
+- [x] #1 Das Zugriffsmodell nennt Sichtkreise statt der drei Stufen und sagt je Rolle, welchen sie bekommt
+- [x] #2 Die Routen für Merkmal und Wert stehen, samt der Frage, ob ein Wert einzeln oder der Fragensatz am Stück geschrieben wird
+- [x] #3 Die Notfalleinsicht hat eine eigene Route, die ihre Protokollzeile schreibt
+- [x] #4 Die Gegenprobe Ablaufzeilen ↔ Routen ist gerechnet und ohne Abweichung
+- [x] #5 ferien-api.md und mensa-api.md sind mitgezogen
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Neu geplant in api/gesundheit-api.md: sechs Sichtkreise als Sichten mit eigener DB-Rolle, die Kategorie wird am Stück geschrieben, der Abschluss prüft die Vollständigkeit je Kategorie, die Notfalleinsicht ist POST /children/{child_id}/emergency-accesses. ferien-api.md und mensa-api.md mitgezogen. Die Blöcke (TASK-152) sind noch nicht nachgezogen — der Plan folgt Schema und Grenzkarte, die jünger sind.
+<!-- SECTION:NOTES:END -->

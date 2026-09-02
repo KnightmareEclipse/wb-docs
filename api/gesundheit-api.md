@@ -3,203 +3,183 @@
 Aus [`08-schulvertrag.md`](../soll-prozesse/08-schulvertrag.md) (der Bestand entsteht),
 [`09-hortvertrag.md`](../soll-prozesse/09-hortvertrag.md) (externe Kinder, Masernnachweis) und
 [`06-anmeldetag.md`](../soll-prozesse/06-anmeldetag.md) (Masernnachweis regulärer Kinder); es gilt
-[`gemeinsam.md`](gemeinsam.md), und was dort steht, wiederholt diese Datei nicht.
+[`gemeinsam.md`](gemeinsam.md), und was dort steht, wiederholt diese Datei nicht. Das Modell steht
+in `schema/gesundheit-schema.sql` (Dateikopf, „Warum eine Zeile je Feld und nicht je Merkmal") und
+in `grenzkarte.md` („Zugriff, je Angabe"); beides wird hier nicht wiederholt, nur angewandt.
 
 **Diese Domäne hat keinen eigenen Ablauf.** Sie liefert die Routen, die andere Blöcke an ihrer
-Stelle referenzieren, ohne sie zu bauen — [`anmeldung-api.md`](anmeldung-api.md) („Enge Rolle") und
-[`ferien-api.md`](ferien-api.md) („Enge Rolle") haben das bereits so vorgesehen: „ihre Routen
-entstehen mit dieser Domäne", „was das je Rolle ist, entscheidet die Gesundheits-Domäne".
+Stelle referenzieren, ohne sie zu bauen — [`anmeldung-api.md`](anmeldung-api.md) und
+[`ferien-api.md`](ferien-api.md) haben das so vorgesehen.
 
 **Gegenprobe:** Die berührten Ablauftabellen tragen **3 Zeilen**, die im System handeln: 06 Z5
 (Masernnachweis regulärer Kinder), 08 Z2 (Gesundheitsangaben beantworten oder ablehnen), 09 Z3
-(externes Kind: beides zum ersten Mal). Alle drei haben hier eine Route. Es gibt **7 Routen**; **3**
-nennen eine dieser Zeilen, **4** einen Hebel oder Abschnitt der Karte
-([`grenzkarte.md`](../grenzkarte.md) „Zugriff, zweistufig", [15](../soll-prozesse/15-klassenbildung.md)
-„Zwei Einsichten"). Keine Abweichung.
+(externes Kind: beides zum ersten Mal). Alle drei haben hier eine Route. Es gibt **8 Routen**; **4**
+nennen eine dieser Zeilen, **4** einen Hebel oder Abschnitt der Karte (`grenzkarte.md` „Zugriff, je
+Angabe", [15](../soll-prozesse/15-klassenbildung.md) „Zwei Einsichten", das Gespräch mit der
+Geschäftsführung vom 01.09.2026 für die Notfalleinsicht). Keine Abweichung.
 
 ## Zugriffsmodell
 
-Der Bestand hat **drei** Sichten, keine deckungsgleich, alle über dieselbe Route ausgeliefert
-(unten) und nie über eine Filterung im Anwendungscode:
+Sichtbarkeit hängt am **Paar aus Kategorie und Feld**, vergeben an einen **Sichtkreis**
+(`health_field_visibility`). Sichtkreise überschneiden sich, ohne einander zu enthalten — es gibt
+keine Stufen mehr, und keine Route entscheidet in einer Fallunterscheidung, welches Feld sie
+ausliefert: **Jeder Sichtkreis ist eine Sicht in der Datenbank, an eine eigene DB-Rolle vergeben**,
+und die Route liest durch die Sicht ihrer Rolle. Ein Feld, das der Sichtkreis nicht trägt, kommt
+unter dieser Rolle gar nicht aus der Datenbank.
 
-| Sicht | Wer | Was | Träger |
+Sechs Sichtkreise, und **welche Rolle welchen bekommt, steht nur hier**:
+
+| Sichtkreis (`code`) | Wer | Worauf eingeschränkt (welche Kinder) | DB-Rolle |
 |---|---|---|---|
-| **Voll** | `secretariat`, `school_management` (eigene Schulart), Klassenlehrkraft (eigene Klasse) | alles: Merkmal, Beschreibung, Behandlungsgrund und -zeitraum, Attestlage, Erlaubnis | `backend_health` |
-| **Alltag** | `day_care_staff`, `day_care_management` (betreute Kinder); jede Rolle mit `teacher` (unbeschränkt) | nur `is_everyday_relevant`-Merkmale — Unverträglichkeit, Allergie, Notfallmedikation samt Erlaubnis, Zeckenentfernung, ohne Diagnose, Behandlungsgrund oder Attestlage | `backend_health_everyday`, über die View `everyday_health_traits` |
-| **Küche** | `canteen` | nur `is_kitchen_relevant` (Unverträglichkeit, Allergie) | bereits gebaut: `kitchen_health_traits` ([`mensa-api.md`](mensa-api.md)) |
+| **volle Akte** (`full`) | `secretariat`; `school_management`; Erziehungsberechtigte | Sekretariat unbeschränkt; Schulleitung nur ihre Schulart; Eltern nur die eigene Familie | `backend_health` |
+| **Klassenleitung** (`class_lead`) | die Klassenlehrkraft (`classes.class_teacher_id`, keine `roles`-Zeile) | nur die Kinder der eigenen Klasse | `backend_health_class_lead` |
+| **Betreuung** (`care`) | `day_care_staff`, `day_care_management` | nur Kinder mit laufendem Hortvertrag | `backend_health_care` |
+| **Sport** (`sports`) | jede Rolle mit `teacher`, die für dieses Kind nicht Klassenlehrkraft ist | unbeschränkt über alle Kinder | `backend_health_sports` |
+| **Küche** (`kitchen`) | `canteen`, `domestic_services_management` | über die Tagesliste ([`mensa-api.md`](mensa-api.md)) und die Teilnehmerliste ([`ferien-api.md`](ferien-api.md)), nie am einzelnen Kind | `backend_kitchen` |
+| **Notfall** (`emergency`) | jede Mitarbeiterrolle | **jedes Kind**, ohne Zuständigkeit — dafür protokolliert | `backend_health_emergency` |
 
-Die drei sind konzentrisch. **Der handlungsrelevante Hinweis ist keine vierte Sicht, sondern ein
-Feld**: `child_health_records.action_note`, von der Klassenlehrkraft formuliert, ausgeliefert an die
-volle Sicht und an jede Rolle mit `teacher` — „den alle unterrichtenden Personen sehen"
-(`grenzkarte.md`). Der Hort bekommt ihn nicht; er unterrichtet nicht, und kein Block nennt ihn.
-`backend_health_note` ist dabei eine *Schreib*beschränkung — `backend_runtime` liest die Spalte
-tabellenweit, wie es `stammdaten-api.md` an der Klassenliste bereits festhält. **Die Eltern bekommen
-ihn ebenfalls nicht.** — Alternative: ihn im Portal mitliefern; Preis: die fachliche Einschätzung
-der Klassenlehrkraft wird ein Feld, das sie der Familie gegenüber begründen muss, und der kurze
-Betriebssatz („Notfallmedikament im Sekretariat") liest sich als Auskunft an die Familie statt als
-Handlungsregel für den Unterricht.
+Was jeder Sichtkreis **enthält**, ist Konfiguration und steht begründet im Seed (`wb-backend`,
+„value list seed", Abschnitt Gesundheit), nicht hier: Ein Feld dazu ist dort eine Zeile.
 
-`[A!]` **Der Hort bekommt die Alltags-Sicht, nicht die volle** —
-[09](../soll-prozesse/09-hortvertrag.md) sagt es direkt: „Hortkräfte den Alltag, Sekretariat und
-Schulleitung auch Diagnose und Attestlage". Das widerspricht zwei älteren Stellen: `grenzkarte.md`
-„Zugriff, zweistufig" zählt den Hort noch zur vollen Sicht, und `ferien-api.md` hat vorsorglich
-„der Hort sieht den vollen Satz (`backend_health`)" angenommen, bevor diese Domäne entschied. Der
-Block ist jünger und schlägt beide (`CLAUDE.md`-Rangfolge, dieselbe Reihenfolge wie bei der
-Kochwerkstatt-Korrektur). — Alternative: dem Hort die volle Sicht lassen; Preis: `health_traits`
-über Diagnose und Behandlungsgrund läge damit einer Rolle offen, für die kein Block das begründet,
-und genau das ist die Über-Offenlegung, die die Karte selbst als Grund für die zweite Spalte nennt.
-`grenzkarte.md` und `ferien-api.md` sind mit dieser Datei korrigiert (unten).
+`[A]` **Sport steht für den Fachunterricht insgesamt.** Die einzige Fachlehrkraft, die ein Block
+nennt, ist die des Sportunterrichts (`grenzkarte.md`), und bis die zweite Achse steht — Wahlmodul,
+AG, Begleitung einer Veranstaltung (`backlog/`) — ist jede Lehrkraft ohne Klassenleitung für jedes
+Kind Fachlehrkraft. Der Sichtkreis trägt deshalb die Handlungshinweise („Beachten") und Erlaubnisse,
+nicht die Bezeichnungen. — Alternative: ein siebter Sichtkreis `teaching` mit der Alltagsliste aus
+08 Z. 95 (Unverträglichkeit, Allergie, Notfallmedikation, Zeckenentfernung samt Bezeichnung); Preis:
+genau die Stufe, die TASK-152 aus den Blöcken nimmt, lebte als Sichtkreis weiter, und die
+Fachlehrkraft sähe Diagnosenamen, für die kein Block einen Grund nennt.
 
-**Die Lehrkraft sieht die Alltags-Merkmale, nicht nur den Hinweis.**
-[08](../soll-prozesse/08-schulvertrag.md) Z. 95 nennt sie in einem Atemzug mit dem Hort:
-„Lehrkräfte und Hort sehen davon, was im Alltag zu tun ist — Unverträglichkeit, Allergie,
-Notfallmedikation samt Erlaubnis, Zeckenentfernung —, nicht Diagnose, Behandlungsgrund und
-Attestlage"; [15](../soll-prozesse/15-klassenbildung.md) sagt dasselbe von der anderen Seite, die
-Klassenlehrkraft sehe „mehr als jede andere Lehrkraft, die nur die Alltagsangaben sieht ([08])".
-`grenzkarte.md` „Zugriff, zweistufig" zählt dagegen drei Sichten und gibt der Lehrkraft allein den
-Hinweis — Rang 3 gegen zwei Blöcke auf Rang 1 (`CLAUDE.md`-Rangfolge), dieselbe Reihenfolge wie
-beim Hort einen Absatz höher. Die Begründung der Karte bleibt davon unberührt und trägt weiter:
-Verschlossen bleiben der Fachlehrkraft Diagnose, Behandlungsgrund und Attestlage, und genau die
-stehen nicht in `everyday_health_traits`. `stammdaten-api.md` gibt `teacher` denselben Ausschnitt
-über die Klassenliste ohnehin schon („den Alltagsangaben zur Gesundheit", unbeschränkt für
-Lehrkräfte) — diese Route war die einzige Stelle, an der er enger war.
+`[A]` **Die Eltern lesen die volle Akte ihres Kindes**, nicht einen Sichtkreis: Sie haben jede
+Zeile selbst geschrieben. — Alternative: ein eigener Sichtkreis `guardian`; Preis: eine Zeile je
+Paar, die immer alle Paare enthält.
 
-**`teacher` ist keine neue Rolle** — sie steht bereits im `roles`-Seed und als `TEACHER_ROLE` in
-`wb-backend/app/core/security.py`, gebaut für dieselbe Frage an `GET /children/{child_id}`
-(`stammdaten-api.md`, „everyday_only"). Sie ist unbeschränkt über alle Kinder, weil es „eine
-Zuordnung Lehrkraft↔Unterricht … nicht [gibt] — die lebt in Untis" (`glossar.md`); genau deshalb
-bleibt ihr Ausschnitt der schmale und nicht der volle. Diese Domäne nutzt die vorhandene Rolle,
-führt keine neue ein.
+**Zwei Angaben liegen neben den Sichtkreisen**, weil sie am Bestand und nicht am Merkmal stehen:
+
+- **Der handlungsrelevante Hinweis** (`child_health_records.action_note`), von der
+  Klassenlehrkraft formuliert, „den alle unterrichtenden Personen sehen" (`grenzkarte.md`): geht an
+  `full` (Personal), `class_lead`, `sports` und `emergency`. Nicht an den Hort — er unterrichtet
+  nicht — und nicht an die Eltern. — Alternative: ihn im Portal mitliefern; Preis: die fachliche
+  Einschätzung der Klassenlehrkraft wird ein Feld, das sie der Familie gegenüber begründen muss.
+  `backend_health_note` ist eine *Schreib*beschränkung; `backend_runtime` liest die Spalte
+  tabellenweit.
+- **Der Zustand je Kategorie** (`child_health_answers`: beantwortet, abgelehnt, nie gefragt) geht
+  an jeden Sichtkreis für die Kategorien, von denen er mindestens ein Feld sieht. Er ist keine
+  Angabe über das Kind, sondern darüber, ob eine vorliegt — und ohne ihn läse sich eine leere Liste
+  als Entwarnung, „die eine Fehldeutung, die bei Art.-9-Daten wirklich schadet"
+  (`schema/gesundheit-schema.sql`).
 
 **Die Klassenlehrkraft ist keine `roles`-Zeile, sondern ein Ownership-Check** über
-`classes.class_teacher_id`: Wer als `employee` dort steht, sieht die Kinder dieser Klasse voll —
-dieselbe Mechanik wie bei jeder anderen Eigentümerprüfung dieser Dateien, keine neue Rolle nötig.
+`classes.class_teacher_id` — dieselbe Mechanik wie in [`klassenorganisation-api.md`](klassenorganisation-api.md).
+`class_lead` vor `sports`: Wer für dieses Kind die Klasse führt, bekommt den weiteren Kreis, und es
+gibt keinen Fall, in dem der engere gewinnen soll.
 
 **Was diese Domäne nicht selbst entscheidet:** Ob eine `school_management`- oder
-`day_care_management`-Person überhaupt zu diesem Kind darf, prüft die Ownership-Spalte am Kind
-(Schulart, laufender Hortvertrag) — dieselbe Prüfung wie in jeder anderen Domäne, hier nicht
-wiederholt.
+`day_care_management`-Person überhaupt zu diesem Kind darf, prüft die Ownership-Spalte am Kind —
+dieselbe Prüfung wie in jeder anderen Domäne. **Eine Rolle ohne Sichtkreis bekommt `404`, nicht
+`403`** ([`gemeinsam.md`](gemeinsam.md#fehler)): `accounting` und `executive_management` erreichen
+jedes Kind und sehen hier nichts.
 
 ## Pfad
 
-Alles hängt am Kind, nicht an der Familie: Der Bestand ist „ein Bestand je Kind, den heute sechs
-Formulare getrennt erheben" (08), keine Angabe je Person. Drei Anker, nicht einer:
+Alles hängt am Kind, nicht an der Familie: Der Bestand ist „ein Bestand je Kind" (08). Vier Anker:
 
-- `/children/{child_id}/health-record` — der Bestand: Status (beantwortet/abgelehnt) und die
-  Merkmale in einer Antwort.
-- `/children/{child_id}/health-note` — **eigener Pfad, nicht `.../health-record/action-note`**:
-  anderer Autor (Klassenlehrkraft statt Eltern), andere enge Rolle (`backend_health_note` statt
-  `backend_health`), eine eigene Handlung und kein Feld am Formular der Eltern. — Alternative:
-  als Unterpfad des Bestands; Preis: eine Route, deren Berechtigung mitten im Pfad wechselt, wo
-  jede andere Datei den Wechsel am Pfad selbst zeigt (`sepa-mandates` vs. `photo-consent-invitation`
-  in `anmeldung-api.md`).
-- `/children/{child_id}/measles-proof` — eigene Tabelle, eigener Anlass (§20 IfSG), eigener Autor
-  (Sekretariat, nie die Eltern).
+- `/children/{child_id}/health-record` — der Bestand: die vorgeschaltete Frage und alle Kategorien
+  in einer Antwort; darunter `/answers/{trait_type_code}` für die Antwort einer Kategorie.
+- `/children/{child_id}/health-note` — **eigener Pfad**: anderer Autor (Klassenlehrkraft statt
+  Eltern), andere enge Rolle, eine eigene Handlung.
+- `/children/{child_id}/emergency-accesses` — die Notfalleinsicht: eine Handlung, die eine
+  Protokollzeile hinterlässt, deshalb `POST` und kein `GET` mit Nebenwirkung.
+- `/children/{child_id}/measles-proof` — eigene Tabelle, eigener Anlass (§20 IfSG), eigener Autor.
+
+Dazu ein Anker ohne Kind: `/health-questionnaire`, der Fragensatz — Kategorien, Felder, Wertarten
+—, ohne den kein Formular weiß, was es fragt.
 
 ## Enge Rolle
 
-**Drei.** `backend_health` und `backend_health_note` standen schon vor diesem Durchgang in der
-Migration der Domäne — ihre Tabellen, Rollen und GRANTs entstanden mit dem übrigen Schema, bevor
-diese Datei geschrieben war. `backend_health_everyday` ist neu und kommt mit dem Bau dazu, denn
-erst diese Datei entscheidet, dass der Hort die schmalere Sicht bekommt (oben).
+**Sieben**, und sechs davon sind Sichtkreise. `backend_runtime` hält auf den vier Datentabellen
+nur die Schlüssel- und Zustandsspalten (`*_id`, `health_trait_type_id`, `health_field_id`,
+`value_kind_code`, `answered_at`, `declined_at`, `created_*`) und das `INSERT`/`DELETE`; die fünf
+Wertspalten von `health_trait_values` liest **keine** Rolle an der Tabelle — sie kommen allein
+durch die Sichten heraus. Schreiben tut `backend_runtime`: Die Eltern tragen selbst ein, die engen
+Rollen sind Lesegrenzen.
 
-- **`backend_health`** — `SELECT` auf `health_traits` und auf `child_health_records.answered_at`/
-  `declined_at`; **`INSERT`/`UPDATE`/`DELETE` bleiben bei `backend_runtime`**, denn die Eltern
-  tragen selbst ein, und die enge Rolle ist eine Lese-Grenze für Diagnose und Attestlage, keine
-  Schreib-Grenze — dieselbe Aufteilung wie bei `sepa_mandates.iban` in
-  [`anmeldung-api.md`](anmeldung-api.md), nur mit vertauschten Seiten: dort hält die enge Rolle das
-  `INSERT`, hier das `SELECT`. Das GRANT trägt die Schlüsselspalten (`child_health_record_id`,
-  `health_trait_id`) — sie fehlten in der Migration, die vor diesem Durchgang schon stand, aus
-  demselben Grund wie bei `backend_kitchen` beim Bau von Mensa (`mensa-api.md` „Am Schema
-  aufgefallen"); dieser Durchgang zieht sie nach (unten).
-- **`backend_health_note`** — `SELECT`, `INSERT`, `UPDATE` auf `child_health_records.action_note`
-  und dessen Schlüssel; **kein `DELETE`** — ein aufgehobener Hinweis wird mit leerem Text
-  überschrieben (`PUT /children/{child_id}/health-note`), nicht die Zeile gelöscht, denn sie trägt
-  auch `answered_at`/`declined_at`. `action_note` selbst ist für `backend_runtime` **lesbar** —
-  nur das Schreiben ist eng, und ein Lese-Filter dafür wäre die zweite Stelle, an der dieselbe
-  Grenze steht.
-- **`backend_health_everyday`** — `SELECT` auf der View `everyday_health_traits`
-  (`child_id, health_trait_id, health_trait_type_id, description, needs_permission,
-  is_emergency_medication, emergency_description, permission_granted_at, permission_declined_at`),
-  gefiltert auf `is_everyday_relevant`. Nicht `backend_health` mit einer `WHERE`-Klausel im
-  Anwendungscode: `backend_health` hat bereits das ganze Merkmal, und ein `if` auf ein Häkchen wäre
-  „die zweite Stelle, an der derselbe Ausschnitt entschieden wird" — genau die Alternative, die
-  `mensa-api.md` für die Küche schon verworfen hat, eine Grenze weiter außen. Die View entsteht in
-  dieser Migration, nicht in der des Horts: Die Tabellen, über die sie geht, gehören hierher, und
-  die Rolle existiert erst mit ihr.
+- **Je Sichtkreis eine Sicht** `health_values_<code>` (Kind, Antwort, Merkmal, Feld, die fünf
+  Wertspalten), gefiltert über `health_field_visibility` auf den einen Sichtkreis, `SELECT` an die
+  DB-Rolle aus der Tabelle oben. Alle sechs entstehen aus **einer** Definition in der Migration,
+  und die Vergabe an die Rolle ist ein `GRANT` — „wird über GRANTs vergeben"
+  (`schema/gesundheit-schema.sql`). `[A]` Sichten je Sichtkreis, keine Policy: Die Zeilenfilterung
+  per RLS ist TASK-157 und ein Urteil bei Tageslicht; bis dahin ist ein neuer Sichtkreis eine Zeile
+  **und** eine Sicht. — Alternative: eine Sicht mit `scope_code`-Spalte und dem Sichtkreis als
+  Parameter der Route; Preis: die Grenze läge im Anwendungscode, und dieselbe DB-Rolle könnte jeden
+  Kreis lesen.
+- **`backend_health_note`** — unverändert: `SELECT`, `INSERT`, `UPDATE` auf
+  `child_health_records.action_note` samt Schlüssel, **kein `DELETE`**.
+- **`backend_kitchen`** bekommt statt `kitchen_health_traits` die Sicht `health_values_kitchen`;
+  `kitchen_health_traits` und `everyday_health_traits` bleiben als **abgeleitete Sichten** mit
+  ihrer alten Form (`child_id, description`) stehen, damit Tagesliste und Teilnehmerliste
+  unverändert lesen — `description` ist dort „Bezeichnung — Beachten" aus den Feldern, die der
+  Kreis sieht. `[A]` Sie fallen mit TASK-157, wenn Mensa und Ferien auf die Policy umziehen. —
+  Alternative: beide Router jetzt umbauen; Preis: zwei Domänen samt Tests in einem Durchgang, der
+  dieser nicht ist.
 
 ## Der Bestand
 
 | Handlung | Herkunft | Wer darf | Worauf eingeschränkt | Schreibt/liest | Enge Rolle |
 |---|---|---|---|---|---|
-| `GET /children/{child_id}/health-record` — Status, Merkmale, Hinweis und (nur volle Sicht, nur Personal) der Masernnachweis in einer Antwort, je nach Rolle unterschiedlich weit | [`grenzkarte.md`](../grenzkarte.md) „Zugriff, zweistufig"; [09](../soll-prozesse/09-hortvertrag.md) „Hortkräfte den Alltag …"; [15](../soll-prozesse/15-klassenbildung.md) „Zwei Einsichten"; [`grenzkarte.md`](../grenzkarte.md) „schnell nachprüfbar" für den Masernnachweis | Erziehungsberechtigte; `secretariat`, `school_management`, `day_care_staff`, `day_care_management`, `teacher`; Klassenlehrkraft | eigene Familie; Schulleitung nur ihre Schulart; Hort nur Kinder mit laufendem Hortvertrag, und nur die Alltags-Merkmale; `teacher` unbeschränkt, aber nur die Alltags-Merkmale; Klassenlehrkraft nur die eigene Klasse, dafür voll. Der Hinweis geht an die volle Sicht und an `teacher`, nicht an den Hort und nicht an die Eltern. Der Masernnachweis steht nur Personal der vollen Sicht zur Verfügung, den Eltern nicht — kein Block gibt ihnen dafür einen Anlass. **Eine Rolle ohne Nennung bekommt `404`, nicht `403`** ([`gemeinsam.md`](gemeinsam.md#fehler)) | liest | `backend_health`, `backend_health_everyday` |
-| `PUT /children/{child_id}/health-record` — beantworten oder ausdrücklich ablehnen | [08](../soll-prozesse/08-schulvertrag.md) Z2, „ändern die Eltern danach jederzeit im Portal — hier, nicht in 02"; [09](../soll-prozesse/09-hortvertrag.md) Z3 | Erziehungsberechtigte; `secretariat` (Umweg) | eigene Familie, nach [Einsichtsstufe](../soll-prozesse/hebel.md#einsichtsstufe) **nur „voll"** — der Bestand ist keine „eigene Angabe" einer eingeschränkten Person, sondern eine des Kindes. Legt `child_health_records` beim ersten Mal an (`uq_child_health_records`); setzt `answered_at` **oder** `declined_at`, nie beides (`ck_child_health_records_answer`). **Jederzeit umschaltbar** — ein Wechsel von abgelehnt zu beantwortet rührt vorhandene Merkmale nicht an, dafür nennt kein Block einen Grund | schreibt, `guardian:`/`entra:` | — |
-| `PUT /children/{child_id}/health-note` — den handlungsrelevanten Hinweis setzen oder leeren | [`grenzkarte.md`](../grenzkarte.md) „Zugriff, zweistufig" | Klassenlehrkraft der eigenen Klasse | nur die eigene Klasse (`classes.class_teacher_id`); **kein Umweg** — es gibt keine Rolle, die für die Klassenlehrkraft einspringt, und das ist gewollt: der Hinweis ist ihre fachliche Einschätzung, keine Verwaltungsangabe | schreibt, `entra:` | `backend_health_note` |
-| `PUT /children/{child_id}/measles-proof` — Vorlagedatum und -art eintragen oder ersetzen | [06](../soll-prozesse/06-anmeldetag.md) Z5; [09](../soll-prozesse/09-hortvertrag.md) Z3 (externes Kind) | `secretariat` | unbeschränkt; **keine Elternroute** — kein Block lässt die Familie selbst eintragen, das Sekretariat sieht das Original. Eine Zeile je Kind (`uq_measles_proofs`), ein erneuter `PUT` ersetzt sie — „festgehalten wird nur, ob und wie er vorlag", eine Korrektur ist keine zweite Vorlage | schreibt, `entra:` | — |
+| `GET /health-questionnaire` — der Fragensatz: aktive Kategorien mit `allows_multiple`, je Kategorie ihre aktiven Felder mit Wertart | [08](../soll-prozesse/08-schulvertrag.md) Z2 — ohne die Fragen kein Formular | jede angemeldete Person | unbeschränkt; keine Personendaten | liest | — |
+| `GET /children/{child_id}/health-record` — der Bestand: die vorgeschaltete Frage, je Kategorie ihr Zustand (`unasked`, `answered`, `declined`) und ihre Merkmale mit **genau den Feldern des Sichtkreises**, dazu Hinweis und (nur `full`, nur Personal) Masernnachweis | `grenzkarte.md` „Zugriff, je Angabe"; [09](../soll-prozesse/09-hortvertrag.md) „Hortkräfte den Alltag …"; [15](../soll-prozesse/15-klassenbildung.md) „Zwei Einsichten"; `grenzkarte.md` „schnell nachprüfbar" für den Masernnachweis | Erziehungsberechtigte; `secretariat`, `school_management`, `day_care_staff`, `day_care_management`, `teacher`; Klassenlehrkraft | wie die Tabelle oben; die Kategorienliste der Antwort trägt nur Kategorien, von denen der Sichtkreis ein Feld sieht. **Drei Zustände sichtbar unterschieden:** `answered` mit leerer Merkmalsliste heißt „nichts vorhanden", `declined` heißt „will nicht sagen", `unasked` heißt „nie gefragt" — der Normalfall über Monate, weil der Bestand von Hand nachgetragen wird (`soll-prozesse/README.md`, „Nacharbeit"). Der Masernnachweis steht nur Personal der vollen Sicht offen | liest | die Sicht des Sichtkreises |
+| `PUT /children/{child_id}/health-record` — die vorgeschaltete Frage: beantworten oder ausdrücklich ablehnen | [08](../soll-prozesse/08-schulvertrag.md) Z2, „ändern die Eltern danach jederzeit im Portal — hier, nicht in 02"; [09](../soll-prozesse/09-hortvertrag.md) Z3 | Erziehungsberechtigte; `secretariat` (Umweg) | eigene Familie, nach [Einsichtsstufe](../soll-prozesse/hebel.md#einsichtsstufe) **nur „voll"**. Setzt `answered_at` **oder** `declined_at`. **`beantwortet` ist der Abschluss der Erhebung und trägt die eine Regel, die die Datenbank nicht halten kann:** Jede aktive Kategorie muss eine Antwortzeile haben — beantwortet oder abgelehnt. Fehlt eine, antwortet die Route `400` und **nennt die Kategorie**; nichts wird geschrieben. Ablehnen ist jederzeit möglich und rührt vorhandene Zeilen nicht an. `[A]` Die Vollständigkeit heißt „jede Kategorie beantwortet", nicht „jedes Feld gefüllt": Die Tiefe je Merkmal wählen die Eltern selbst („selber entscheiden, wie tief"), eine Kategorie ohne Antwort dagegen ist eine vergessene Frage. — Alternative: je Feld eine Pflicht; Preis: ein `is_required` am Paar, und damit der Formularbaukasten, den das Schema ausdrücklich nicht baut | schreibt, `guardian:`/`entra:` | — |
+| `PUT /children/{child_id}/health-record/answers/{trait_type_code}` — **eine Kategorie am Stück**: `declined`, oder `answered` mit der vollständigen Liste ihrer Merkmale, je Merkmal die Werte je Feld (`{feldcode: wert}`) | [08](../soll-prozesse/08-schulvertrag.md) Z2; [09](../soll-prozesse/09-hortvertrag.md) Z3; das Gespräch vom 01.09.2026 („je Kategorie freiwillig und in der Tiefe wählbar") | Erziehungsberechtigte (voll); `secretariat` (Umweg) | eigene Familie. Legt den Bestand an, wenn es ihn noch nicht gibt — noch unbeantwortet, der Abschluss ist die Route darüber. **Ersetzt** die Merkmale der Kategorie: Ein Merkmal mit `health_trait_id` bleibt dieselbe Zeile (die Änderungsspur trägt dann die Änderung, nicht Löschen und Neuanlage), eines ohne entsteht, eines, das im Rumpf fehlt, wird gelöscht — Zeile für Zeile, keine Massenoperation ([`gemeinsam.md`](gemeinsam.md#schreiben)). Was die Datenbank prüft, prüft die Route nicht noch einmal: Feld an der falschen Kategorie, Wert in der falschen Art, zweite Zeile einer Kategorie mit `allows_multiple = false`, leerer Text — jede dieser Verletzungen wird als `400` mit dem Feldnamen beantwortet, nicht als 500. **Ein Merkmal ohne einen einzigen Wert ist keines** und wird abgewiesen — die eine Regel, die kein CHECK sieht, weil ein fehlender Wert eine fehlende Zeile ist. `[A]` Der Fragensatz einer Kategorie wird am Stück geschrieben, nicht der Wert einzeln: Die Kategorie ist, was die Eltern als eine Frage sehen, und ein Abbruch nach der Hälfte darf keine halbe Allergie hinterlassen. — Alternative: `PUT` je Wert; Preis: die Vollständigkeit eines Merkmals ist dann nie prüfbar, und der Ablauf steht im Frontend | schreibt, `guardian:`/`entra:` | — |
+| `PUT /children/{child_id}/health-note` — den handlungsrelevanten Hinweis setzen oder leeren | `grenzkarte.md` „Zugriff, je Angabe" | Klassenlehrkraft der eigenen Klasse | nur die eigene Klasse; **kein Umweg** — der Hinweis ist ihre fachliche Einschätzung, keine Verwaltungsangabe | schreibt, `entra:` | `backend_health_note` |
+| `POST /children/{child_id}/emergency-accesses` — die Notfalleinsicht: liefert den Notfallausschnitt **und schreibt dabei die Protokollzeile** | das Gespräch mit der Geschäftsführung vom 01.09.2026 („eine Taste bei dem Schüler"); `grenzkarte.md` „im Notfall" | **jede Mitarbeiterrolle** | **jedes Kind**, auch der anderen Schulart, auch ein externes Hortkind: Die Zuständigkeitsprüfung entfällt hier ausdrücklich, an ihre Stelle tritt `health_emergency_accesses`. Antwort: die Felder des Sichtkreises `emergency` mit ihren Zuständen je Kategorie, der Hinweis der Klassenlehrkraft, **und die Notfallkontakte der Familie** (`family_contacts.is_emergency_contact`, [02](../soll-prozesse/02-datenaenderung.md)) mit Telefonnummer — die vier Dinge aus `pruefberichte/fragen-datenschutz.txt`, Frage 5. Keine Eltern: „Eltern haben diesen Weg nicht" (`ck_health_emergency_accesses_created_by`). **Keine Begründung im Rumpf**, die Route nimmt keinen Rumpf an. `[A]` Der Notfallkontakt kommt mit, obwohl er den Stammdaten gehört: Wer im Notfall auf die Taste drückt, ruft danach an, und ein zweiter Aufruf einer Stammdaten-Route, den die Rolle vielleicht gar nicht darf, ist im einzigen Moment, der zählt, das falsche Bauteil. — Alternative: nur der Gesundheitsausschnitt; Preis: die Fachlehrkraft ohne Zuständigkeit kommt an die Nummer nicht heran | schreibt (das Protokoll) und liest, `entra:` | `backend_health_emergency` |
+| `PUT /children/{child_id}/measles-proof` — Vorlagedatum und -art eintragen oder ersetzen | [06](../soll-prozesse/06-anmeldetag.md) Z5; [09](../soll-prozesse/09-hortvertrag.md) Z3 (externes Kind) | `secretariat` | unbeschränkt; **keine Elternroute** — kein Block lässt die Familie selbst eintragen. Eine Zeile je Kind (`uq_measles_proofs`), ein erneuter `PUT` ersetzt sie | schreibt, `entra:` | — |
 
-## Die Merkmale
+**Das Attest ist kein Upload dieser Datei.** Ein Feld der Wertart `document` trägt die
+`document_id` aus der generischen Dokumentablage (`PUT /documents`,
+[`stammdaten-api.md`](stammdaten-api.md)); die Route prüft, dass das Dokument diesem Kind gehört.
 
-| Handlung | Herkunft | Wer darf | Worauf eingeschränkt | Schreibt/liest | Enge Rolle |
-|---|---|---|---|---|---|
-| `POST /children/{child_id}/health-traits` — ein Merkmal eintragen: Art, Beschreibung, je nach Art Behandlungsgrund/-zeitraum, Selbstverabreichung, Notfallbeschreibung, Attestlage, Erlaubnis | [08](../soll-prozesse/08-schulvertrag.md) Z2; [09](../soll-prozesse/09-hortvertrag.md) Z3 | Erziehungsberechtigte (voll); `secretariat` (Umweg) | eigene Familie, nur wo `answered_at` gesetzt ist — **wer ablehnt, füllt die Strecke gar nicht erst aus**, dieselbe Regel wie bei `ck_contract_responses_review` (`anmeldung-api.md`). Die vier Flags der Art (`needs_permission` usw.) diktieren, welche Felder die Route annimmt (`fk_health_traits_type`); ein Feld außerhalb seiner Art wird abgewiesen, nicht stillschweigend verworfen. Kein zweites Notfallmedikament mit derselben Beschreibung (`ix_health_traits_unique`) | schreibt, `guardian:`/`entra:` | — |
-| `PUT /children/{child_id}/health-traits/{health_trait_id}` — ein Merkmal ändern, samt Erlaubnis erteilen oder verweigern | [08](../soll-prozesse/08-schulvertrag.md) „ändern die Eltern danach jederzeit im Portal" | Erziehungsberechtigte (voll); `secretariat` (Umweg) | eigene Familie. **Die Erlaubnis hat keinen Anker neben sich** ([`hebel.md`](../soll-prozesse/hebel.md#drei-zustände-erteilt-verweigert-nicht-gefragt)) — sie steht am Merkmal selbst und wird mit demselben `PUT` gesetzt, kein zweiter Signaturweg: „ein mitten im Schuljahr ergänztes Notfallmedikament hat kein unterschriebenes Blatt" | schreibt, `guardian:`/`entra:` | — |
-| `DELETE /children/{child_id}/health-traits/{health_trait_id}` — ein Merkmal entfernen, weil es nicht mehr zutrifft | [08](../soll-prozesse/08-schulvertrag.md) „ändern die Eltern danach jederzeit im Portal" | Erziehungsberechtigte (voll); `secretariat` (Umweg) | eigene Familie. **Löschen, nicht datieren** — „bei Art.-9-Daten wird ein nicht mehr zutreffendes Merkmal gelöscht statt datiert" (`schema/gesundheit-schema.sql`); der breit sichtbare Hinweis einer beendeten Sache stünde sonst weiter | schreibt, `guardian:`/`entra:` | — |
+**Die Erlaubnis („darf die Schule handeln") ist ein Feld der Wertart `bool`** und wird mit
+derselben Kategorie-Route gesetzt — kein zweiter Signaturweg, „ein mitten im Schuljahr ergänztes
+Notfallmedikament hat kein unterschriebenes Blatt" (`hebel.md`). Erteilt und verweigert sind der
+Wert, „nicht gefragt" ist die fehlende Zeile (`schema/gesundheit-schema.sql`).
 
-**Das Attest ist kein Upload dieser Datei.** `certificate_document_id` kommt über die generische
-Dokumentablage (`PUT /documents`, [`stammdaten-api.md`](stammdaten-api.md)); diese Route trägt nur
-die Referenz und den `has_certificate`-Haken, dessen `CHECK` ohne Dokument keine Referenz zulässt.
+**Löschen, nicht datieren:** Ein Merkmal, das nicht mehr zutrifft, fehlt in der nächsten
+Kategorie-Antwort und wird damit gelöscht — „bei Art.-9-Daten wird ein nicht mehr zutreffendes
+Merkmal gelöscht statt datiert".
 
 ## Was an den Rand stößt
 
 Je eine Zeile, benannt und nicht mitgeplant:
 
-- **Die Betreuungsliste der Hortleitung trägt bewusst keinen Gesundheits-Ausschnitt** — anders als
-  bei Mensa und Ferien. [09](../soll-prozesse/09-hortvertrag.md) sagt es direkt: „Hortkräfte [sehen]
-  von alldem nur die Betreuungsliste — was sie sonst über ein Kind sehen, steht in [02] und [08]
-  **und nicht hier**". Die Alltags-Sicht dieser Domäne ist der eigene Zugriff dafür
-  (`GET /children/{child_id}/health-record`); `anmeldung-api.md` (`GET /care/attendance-list`)
-  braucht keine Ergänzung.
-- **Eine künftige Klassenliste** (15, noch nicht geplant) — sie liest die volle Sicht wie die
-  Klassenlehrkraft selbst; die Route dafür gehört [`klassenbildung-api.md`](klassenbildung-api.md),
-  wenn es sie gibt, nicht dieser Datei — dieselbe Aufteilung wie bei `kitchen_health_traits`
-  (`mensa-api.md`).
-- **Die Aufgabe aus dem fehlenden Masernnachweis** (`measles_report`) — bereits gebaut,
-  [`anmeldung-api.md`](anmeldung-api.md) Z. 223: sie liest `measles_proofs` direkt, ohne eine Route
-  dieser Datei zu rufen.
-- **Die Löschung** — kein eigener Lauf: Der ganze Bestand hängt per Cascade am Kind und geht mit dem
-  Lösch-Lauf (17), „das letzte bestätigte Ende dieses Kindes" (03).
-- **Die Änderungsspur** — [`querschnitt-api.md`](querschnitt-api.md).
+- **Die Konfiguration selbst** — Kategorien, Felder, Zuordnungen, Sichtkreise — hat keine Route:
+  Kein Block nennt eine Stelle, die sie im Betrieb pflegt; sie kommt als Seed (TASK-158) und
+  ändert sich mit einer Migration.
+- **Die Freigabe des Bestands für ein Ferienprogramm** (10) ist eine Ferien-Route
+  ([`ferien-api.md`](ferien-api.md)); was die Betreuung dann sieht, ist der Sichtkreis `care`.
+- **Der Erhebungsanlass** — welche Kategorie aus welchem Vorgang stammt, samt eigener Frist — ist
+  nicht gebaut (`schema/gesundheit-schema.sql`, offene Fragen); bis dahin fragt der Abschluss alle
+  aktiven Kategorien.
+- **Die zweite Achse** — von welchen Kindern eine Fachlehrkraft liest — bleibt bei Klasse,
+  Betreuungsvertrag und Familie (TASK-157).
+- **Wer das Notfallprotokoll ansieht und wie lange es bleibt** — beim Datenschutzbeauftragten
+  (`pruefberichte/fragen-datenschutz.txt`, Frage 5); bis dahin hat es keine Leseroute.
+- **Die Betreuungsliste der Hortleitung** trägt weiterhin keinen Gesundheits-Ausschnitt (09).
+- **Die Aufgabe aus dem fehlenden Masernnachweis** (`measles_report`) —
+  [`anmeldung-api.md`](anmeldung-api.md), liest `measles_proofs` direkt.
+- **Die Löschung** — kein eigener Lauf, der ganze Bestand hängt per Cascade am Kind (03).
+- **Die Änderungsspur** — [`querschnitt-api.md`](querschnitt-api.md); die Wertspalten erreichen
+  sie als `<protected>`, wie jede geschützte Spalte.
 
 ## Korrigiert an anderer Stelle
 
-Zwei Sätze, die diese Domäne widerlegt, jetzt nachgezogen statt offen gelassen:
-
-- `grenzkarte.md` „Zugriff, zweistufig": „Den vollen Satz sehen Sekretariat, Klassenlehrer:in **und
-  Hort**" wird „Den vollen Satz sehen Sekretariat und Klassenlehrer:in, der Hort die
-  Alltags-Merkmale" — Begründung oben.
-- `ferien-api.md`: „der Hort sieht den vollen Satz (`backend_health`)" wird „der Hort sieht die
-  Alltagsmerkmale (`backend_health_everyday`)" — eine eigene Rolle statt der vollen, mit
-  demselben Datei-Update nachgezogen.
-- `grenzkarte.md` „Zugriff, zweistufig", zweiter Punkt: Die Lehrkraft sieht die Alltagsmerkmale und
-  dazu den Hinweis, nicht den Hinweis allein; der Hort sieht den Hinweis nicht — Begründung oben.
-
-## Am Schema aufgefallen
-
-Zwei Stellen, beim Bau nachgezogen, nicht neu geplant:
-
-- **`backend_health` fehlten die Schlüsselspalten.** Die Migration stand seit dem
-  Gerüst-Durchgang vor dieser Domäne, mit `SELECT` nur auf die sensiblen Spalten von
-  `health_traits` — ohne `health_trait_id`, `child_health_record_id`, `created_at`, `created_by`
-  ließ sich unter der Rolle kein `WHERE` bilden, derselbe Fund wie bei `backend_kitchen`
-  (`mensa-api.md`). Nachgezogen im GRANT.
-- **`backend_health_note` brauchte den Schlüssel von `child_health_records` zusätzlich.** Ein
-  `UPDATE … WHERE child_health_record_id = …` verlangt `SELECT` auf die Spalte der `WHERE`-Klausel,
-  auch wenn `backend_runtime` sie längst tabellenweit lesen darf — `SET ROLE` erbt dessen Rechte
-  nicht. Der generische Prüflauf (`tests/test_privileges.py`, „narrow role undercut") widerspricht
-  dem zunächst zu Recht: Ohne Eintrag in `READ_HELPERS` sieht er in jedem so gegrenzten Schlüssel
-  eine ausgehöhlte enge Rolle. Der Eintrag steht jetzt dort, mit derselben Begründung wie die beiden
-  vorhandenen für `backend_cleaning_waiver`.
+- [`ferien-api.md`](ferien-api.md): Die Teilnehmerliste liest den Sichtkreis `care` über
+  `backend_health_care` statt „die Alltagsmerkmale über `backend_health_everyday`".
+- [`mensa-api.md`](mensa-api.md): `kitchen_health_traits` ist eine abgeleitete Sicht des
+  Sichtkreises `kitchen`, und die Küche sieht, was dieser Sichtkreis trägt — Bezeichnung und
+  Beachten von Unverträglichkeit und Allergie.
 
 ## Offene Fragen
 
-Keine neuen. Die Aufbewahrungsfrist steht fest (`schema/gesundheit-schema.sql`, Dateikopf).
+Keine neuen. Die Aufbewahrungsfrist des Bestands steht fest (`schema/gesundheit-schema.sql`,
+Dateikopf); die des Notfallprotokolls liegt beim Datenschutzbeauftragten (dort, offene Fragen).
