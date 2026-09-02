@@ -1,6 +1,6 @@
 # Prompt: das Schema auf Normalform prüfen
 
-Ein Durchgang über alle vierzehn Dateien in `schema/`, mit **genau einer** Frage: Steht jedes
+Ein Durchgang über alle dreizehn Dateien in `schema/`, mit **genau einer** Frage: Steht jedes
 Nicht-Schlüsselfeld voll und unmittelbar an seinem Schlüssel? Das ist nicht
 [`prompts/schema-pruefen.md`](schema-pruefen.md) — der prüft das Schema gegen die Blöcke, dieser
 prüft es gegen sich selbst. Wer beide Fragen in einem Lauf stellt, beantwortet keine.
@@ -63,7 +63,7 @@ wenn die Abweichung richtig ist. Der Kommentar am Artefakt trägt, was gilt (`CL
 ## Wie du läufst
 
 Aufruf, `ON_ERROR_STOP=1` und Ladereihenfolge stehen in `CLAUDE.md`. Lies nicht nur, sondern frag
-den Katalog — er ist hier die verlässlichere Quelle als vierzehn Dateien im Gedächtnis:
+den Katalog — er ist hier die verlässlichere Quelle als dreizehn Dateien im Gedächtnis:
 
 1. **Alle `schema/*.sql` in eine Wegwerf-Datenbank.**
 2. **Die Kandidatenschlüssel je Tabelle** aus `pg_constraint` (`p` und `u`) ziehen. Ohne sie ist

@@ -160,7 +160,7 @@ Dazu drei Dinge, die für diesen Lauf gelten:
 - **Der Replay-Rhythmus im Bericht.** Die Datenbank wird in diesem Lauf mehrfach neu abgespielt; die
   lokale Personal-Anmeldung hängt an einer Zeile, die das nicht überlebt (`wb-backend/README.md`,
   „seed, work, test, seed"). Wer sie vergisst, sucht den Fehler in `security.py`.
-- **Die vierzehn Prüfskripte mit ihrem Rückgabewert**, gegen die neu abgespielte Datenbank — auch
+- **Die dreizehn Prüfskripte mit ihrem Rückgabewert**, gegen die neu abgespielte Datenbank — auch
   wenn dieser Lauf keine Tabelle anfasst. Genau das ist die Aussage.
 
 ## Was nicht in diesen Durchgang gehört

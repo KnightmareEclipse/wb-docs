@@ -1,6 +1,6 @@
 # Prompt: eine Fachdomäne nach SQLAlchemy und Alembic übertragen
 
-Gegenstück zu [`prompts/schema-bauen.md`](schema-bauen.md). Dort entsteht das SQL, hier wird daraus Code. **Eine Domäne je Durchgang** — dieselbe Portionierung wie beim Bau, und aus demselben Grund. Die vierzehn Domänen des ersten Bestands sind übertragen; dieser Prompt gilt der fünfzehnten.
+Gegenstück zu [`prompts/schema-bauen.md`](schema-bauen.md). Dort entsteht das SQL, hier wird daraus Code. **Eine Domäne je Durchgang** — dieselbe Portionierung wie beim Bau, und aus demselben Grund. Die dreizehn Domänen des ersten Bestands sind übertragen; dieser Prompt gilt der vierzehnten.
 
 Dieser Auftrag läuft in **`wb-backend`**, nicht hier. `wb-docs` ist dabei Quelle und wird nur gelesen.
 
@@ -50,7 +50,7 @@ Sie sind der eigentliche Grund, warum dieser Auftrag Handarbeit ist. Alembic mel
 
 ## Was nicht in diesen Durchgang gehört
 
-- **Änderungen an der Schreibschicht.** Sie steht und trägt vierzehn Domänen; eine fünfzehnte fügt sich ein oder meldet einen Fund.
+- **Änderungen an der Schreibschicht.** Sie steht und trägt dreizehn Domänen; eine vierzehnte fügt sich ein oder meldet einen Fund.
 - **Router, Endpunkte, Pydantic-Modelle.** Erst wenn die Domäne steht.
 - **Jede Änderung an `wb-docs`.** Auch keine „offensichtliche" Korrektur in der `.sql`. Was dort falsch aussieht, kommt auf die Findungsliste.
 

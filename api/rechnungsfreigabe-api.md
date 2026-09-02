@@ -166,7 +166,7 @@ Abschluss pingen den Einreicher nicht, sie stehen in seiner Übersicht.
 Diese Domäne hat **keinen einzigen** ([`gemeinsam.md`](gemeinsam.md#was-keine-route-ist)), und das
 ist eine Aussage: „Kein Beleg verfällt, keine Aufgabe verfällt, es wird nicht eskaliert", kein
 Löschlauf („es verschwindet nichts von selbst"), keine Wochenmail. Sie ist damit die einzige der
-vierzehn ohne Zeitgeber — der einzige Zeitbezug ist das Kalenderjahr der Einreichung, und das rechnet
+dreizehn ohne Zeitgeber — der einzige Zeitbezug ist das Kalenderjahr der Einreichung, und das rechnet
 `ck_expense_claims_calendar_year` aus `created_at`.
 
 ## Zwei Werte im System

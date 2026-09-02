@@ -9,7 +9,7 @@ Abgrenzung zu den Nachbardateien, damit nichts zweimal dasteht:
 | **hier** | Ablauf heute, Beteiligte, Werkzeug, erhobene Felder, bekannte Bruchstellen |
 | `fachdomaenen.md` | Scope, Zielbild, Domänen-Liste samt Priorität, Jahreskalender der Verwaltung |
 | `grenzkarte.md` | Entitäten je Domäne, wem welche Tatsache gehört |
-| `schema/*.sql` | das Datenmodell — vierzehn Schemata mit je einem Prüfskript |
+| `schema/*.sql` | das Datenmodell — dreizehn Schemata mit je einem Prüfskript |
 
 Zeitliche Einordnung steht im Jahreskalender in `fachdomaenen.md` Abschnitt 1; hier nur die prozesseigenen Termine, die dort nicht auflösbar sind.
 

@@ -52,7 +52,7 @@ der Spalte „Worauf eingeschränkt" nicht in die Query schreibt, ist grün und 
 4. **Router**, einer je Domäne, registriert in `main.py`.
 5. **Tests**, je Route mindestens einer auf die Ownership-Bedingung — nicht auf die Rolle. Der Test,
    der zählt, ist der, in dem ein Berechtigter eine fremde Id rät und eine Absage bekommt.
-6. **Die Prüfskripte aus `wb-docs/schema/`** gegen die neu abgespielte Datenbank, alle vierzehn und
+6. **Die Prüfskripte aus `wb-docs/schema/`** gegen die neu abgespielte Datenbank, alle dreizehn und
    nicht nur die der Domäne (`wb-docs/CLAUDE.md`, Abschnitt Schemaarbeit). In den Bericht kommt der
    Rückgabewert je Datei, nicht der Text auf dem Schirm.
 
@@ -90,7 +90,7 @@ Abweichung eine Zeile.
 - `ruff check`, `ruff format --check`, `mypy app` ohne Befund.
 - `tests/test_privileges.py` und `tests/test_changelog.py` ausdrücklich genannt: Sie fangen die zwei
   Fehler, die von außen unsichtbar sind.
-- Die vierzehn Prüfskripte mit ihrem Rückgabewert.
+- Die dreizehn Prüfskripte mit ihrem Rückgabewert.
 - **Ein Pull Request**, damit `ci` denselben Lauf unabhängig nachfährt. Ein Push auf `main` löst ihn
   nicht aus (`rules.md` Abschnitt 2) — und ein Bau, den nur die eigene Maschine gesehen hat, ist
   nicht geprüft, sondern nur beobachtet.
