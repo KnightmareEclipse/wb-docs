@@ -1,10 +1,10 @@
 ---
 id: TASK-166
 title: 'Routen des Elternbonus umbauen: Einsatz, Anmeldung, keine Bestätigung'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-01 17:46'
-updated_date: '2026-09-01 18:09'
+updated_date: '2026-09-02 01:00'
 labels:
   - wb-backend
   - elternbonus
@@ -35,9 +35,15 @@ Die Tests ziehen mit: Was von der Bestätigung geprüft wurde, fällt; die neuen
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Die zwei Bestätigungsrouten sind entfernt, _confirmable() mit ihnen
-- [ ] #2 Routen für Einsatz und Anmeldung stehen und folgen dem API-Plan
-- [ ] #3 Die Eltern bekommen die Zahl der Angemeldeten, nie die Namen — ein Test hält das fest
-- [ ] #4 Die Absage löst die Mail an die Angemeldeten aus
-- [ ] #5 test_elternbonus.py läuft grün, jeder neue Fall war einmal rot
+- [x] #1 Die zwei Bestätigungsrouten sind entfernt, _confirmable() mit ihnen
+- [x] #2 Routen für Einsatz und Anmeldung stehen und folgen dem API-Plan
+- [x] #3 Die Eltern bekommen die Zahl der Angemeldeten, nie die Namen — ein Test hält das fest
+- [x] #4 Die Absage löst die Mail an die Angemeldeten aus
+- [x] #5 test_elternbonus.py läuft grün, jeder neue Fall war einmal rot
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Router neu nach api/elternbonus-api.md: zehn Routen, Sichtbarkeit über session_reaches in der Query, Trigger-Fang als 400 (Der Einsatz ist voll), Namen nur für Ausschreibenden, Sekretariat, Schulleitung. Absage-Mail und Vortag-Erinnerung (dritter Lauf parent_work_session_reminder). test_elternbonus.py neu (49 Tests); die acht neuen Fälle je einmal rot gesehen. Gesamtlauf 803 passed, ruff und mypy grün.
+<!-- SECTION:NOTES:END -->

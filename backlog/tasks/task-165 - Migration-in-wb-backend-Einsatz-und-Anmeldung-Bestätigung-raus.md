@@ -1,10 +1,10 @@
 ---
 id: TASK-165
 title: 'Einsatz und Anmeldung in die Ursprungsrevision einarbeiten, Bestätigung raus'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-01 17:46'
-updated_date: '2026-09-01 23:24'
+updated_date: '2026-09-02 01:00'
 labels:
   - wb-backend
   - elternbonus
@@ -32,8 +32,14 @@ Entschieden am 01.09.2026 mit der Geschäftsführung.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 alembic upgrade head läuft gegen eine leere und gegen die lokale Datenbank durch
-- [ ] #2 schema-check.sh ist grün — schema/elternbonus-schema-check.sql ist der Maßstab
-- [ ] #3 Die Modelle bilden beide neuen Tabellen ab und tragen keine Bestätigungsspalte mehr
-- [ ] #4 Der Bau ist vor dem migrate gelaufen
+- [x] #1 alembic upgrade head läuft gegen eine leere und gegen die lokale Datenbank durch
+- [x] #2 schema-check.sh ist grün — schema/elternbonus-schema-check.sql ist der Maßstab
+- [x] #3 Die Modelle bilden beide neuen Tabellen ab und tragen keine Bestätigungsspalte mehr
+- [x] #4 Der Bau ist vor dem migrate gelaufen
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Revision 28ae70e9c2eb überschrieben: parent_work_sessions, parent_work_session_audiences, parent_work_signups, parent_work_entries ohne Bestätigungsspalten, Funktion enforce_parent_work_capacity samt Trigger. Datenbank neu aufgesetzt, alembic upgrade head rc=0, schema-check.sh alle 13 Skripte rc=0. Modelle in app/models/elternbonus.py.
+<!-- SECTION:NOTES:END -->
