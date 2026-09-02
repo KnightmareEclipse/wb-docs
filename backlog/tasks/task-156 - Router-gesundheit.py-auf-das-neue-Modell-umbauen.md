@@ -1,9 +1,10 @@
 ---
 id: TASK-156
 title: Router gesundheit.py auf das neue Modell umbauen
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-01 17:19'
+updated_date: '2026-09-02 00:40'
 labels:
   - wb-backend
   - gesundheit
@@ -31,9 +32,15 @@ Grund und Modell stehen in schema/gesundheit-schema.sql (Dateikopf, „Warum ein
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 GET liefert je Rolle genau die Felder ihres Sichtkreises, ohne Filter im Anwendungscode
-- [ ] #2 Die Antwort unterscheidet sichtbar „nicht beantwortet" von „nichts vorhanden" und von „nicht gefragt"
-- [ ] #3 Schreibrouten für Antwort je Kategorie und Wert je Feld stehen
-- [ ] #4 Die Notfallroute liefert den Notfallausschnitt und schreibt dabei ihre Protokollzeile
-- [ ] #5 _validate_against_type und die vier Flags sind restlos entfernt
+- [x] #1 GET liefert je Rolle genau die Felder ihres Sichtkreises, ohne Filter im Anwendungscode
+- [x] #2 Die Antwort unterscheidet sichtbar „nicht beantwortet" von „nichts vorhanden" und von „nicht gefragt"
+- [x] #3 Schreibrouten für Antwort je Kategorie und Wert je Feld stehen
+- [x] #4 Die Notfallroute liefert den Notfallausschnitt und schreibt dabei ihre Protokollzeile
+- [x] #5 _validate_against_type und die vier Flags sind restlos entfernt
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Router liest je Sichtkreis durch die Sicht seiner Rolle (raw SQL gegen health_values_<code>), Kategorien mit state answered/declined/unasked. PUT /health-record/answers/{type_code} schreibt die Kategorie, PUT /health-record schließt ab. POST /children/{id}/emergency-accesses liefert Notfallausschnitt, Hinweis und Notfallkontakte und schreibt die Protokollzeile. _validate_against_type und die Flags sind fort.
+<!-- SECTION:NOTES:END -->

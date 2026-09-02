@@ -3,9 +3,10 @@ id: TASK-155
 title: >-
   Modelle und Schreibschicht in wb-backend auf Kategorie, Feld und Wert
   umstellen
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-01 17:19'
+updated_date: '2026-09-02 00:40'
 labels:
   - wb-backend
   - gesundheit
@@ -29,8 +30,14 @@ Grund und Modell stehen in schema/gesundheit-schema.sql (Dateikopf, „Warum ein
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Die vier Ebenen sind als Modelle abgebildet, health_traits trägt keine Merkmalsspalten mehr
-- [ ] #2 Ein Wert wird nur über die Schreibschicht geschrieben, kein Endpunkt schreibt daran vorbei
-- [ ] #3 Die Vollständigkeitsprüfung beim Abschluss einer Erhebung ist gebaut und meldet, welches Feld fehlt
-- [ ] #4 Die Prüfung liegt genau einmal, nicht zusätzlich als Trigger in der Datenbank
+- [x] #1 Die vier Ebenen sind als Modelle abgebildet, health_traits trägt keine Merkmalsspalten mehr
+- [x] #2 Ein Wert wird nur über die Schreibschicht geschrieben, kein Endpunkt schreibt daran vorbei
+- [x] #3 Die Vollständigkeitsprüfung beim Abschluss einer Erhebung ist gebaut und meldet, welches Feld fehlt
+- [x] #4 Die Prüfung liegt genau einmal, nicht zusätzlich als Trigger in der Datenbank
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+app/models/gesundheit.py trägt die vier Ebenen; die fünf Wertspalten sind deferred und für backend_runtime nicht lesbar. app/services/health.py ist die Schreibschicht: replace_category schreibt eine Kategorie am Stück, close_record prüft die Vollständigkeit (jede aktive Kategorie beantwortet oder abgelehnt) und nennt die fehlende. test_only_the_write_layer_constructs_a_value liest die Quellen. Kein Trigger daneben.
+<!-- SECTION:NOTES:END -->

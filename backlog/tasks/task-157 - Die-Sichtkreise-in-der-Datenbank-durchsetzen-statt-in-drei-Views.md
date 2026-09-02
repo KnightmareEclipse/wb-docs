@@ -4,6 +4,7 @@ title: Die Sichtkreise in der Datenbank durchsetzen statt in drei Views
 status: To Do
 assignee: []
 created_date: '2026-09-01 17:19'
+updated_date: '2026-09-02 00:40'
 labels:
   - wb-backend
   - gesundheit
@@ -38,3 +39,9 @@ Grund und Modell stehen in schema/gesundheit-schema.sql (Dateikopf, „Warum ein
 - [ ] #4 Die Küche sieht weiterhin ausschließlich Unverträglichkeit und Allergie
 - [ ] #5 test_privileges.py läuft mit den geänderten Rollen durch
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Zwischenstand aus dem Nachtlauf (02.09.2026): Bis zur Policy sind die Sichtkreise sechs Sichten health_values_<code> aus einer Definition in der Gesundheits-Revision, je mit eigener DB-Rolle (backend_health, _class_lead, _care, _sports, _emergency; kitchen liest backend_kitchen). everyday_health_traits und kitchen_health_traits bleiben als abgeleitete Sichten über care und kitchen, damit Ferien und Mensa nicht anfassen mussten. test_a_field_added_to_a_sight_is_a_row_and_not_a_release zeigt, dass ein Feld eine Zeile ist; ein neuer Sichtkreis ist bis hierhin noch eine Zeile plus eine Sicht.
+<!-- SECTION:NOTES:END -->

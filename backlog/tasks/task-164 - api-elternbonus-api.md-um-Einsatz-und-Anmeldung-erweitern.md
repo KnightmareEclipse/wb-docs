@@ -1,10 +1,10 @@
 ---
 id: TASK-164
 title: api/elternbonus-api.md um Einsatz und Anmeldung erweitern
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-01 17:46'
-updated_date: '2026-09-01 18:09'
+updated_date: '2026-09-02 00:41'
 labels:
   - wb-docs
   - api-plan
@@ -37,9 +37,15 @@ Entschieden am 01.09.2026 mit der Geschäftsführung. Ablauf in soll-prozesse/14
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Die zwei Bestätigungsrouten sind fort, keine Datei verweist noch auf sie
-- [ ] #2 Routen für Einsatz und Anmeldung stehen, samt der Rolle, die ausschreiben darf
-- [ ] #3 Der Sichtbarkeitsschnitt der Anmeldeliste ist begründet: Zahl für die Eltern, Namen für den Hausmeister
-- [ ] #4 Die Absage nennt ihre Mail an die Angemeldeten
-- [ ] #5 Die Gegenprobe Ablaufzeilen zu Routen ist gerechnet und ohne Abweichung
+- [x] #1 Die zwei Bestätigungsrouten sind fort, keine Datei verweist noch auf sie
+- [x] #2 Routen für Einsatz und Anmeldung stehen, samt der Rolle, die ausschreiben darf
+- [x] #3 Der Sichtbarkeitsschnitt der Anmeldeliste ist begründet: Zahl für die Eltern, Namen für den Hausmeister
+- [x] #4 Die Absage nennt ihre Mail an die Angemeldeten
+- [x] #5 Die Gegenprobe Ablaufzeilen zu Routen ist gerechnet und ohne Abweichung
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+api/elternbonus-api.md neu: zehn Routen, die zwei Bestätigungsrouten und die Warteschlange fort; Einsatz mit Zielgruppe in der Query gegen das Kind, Anmeldung je Person mit Trigger-Fang (400, Der Einsatz ist voll), Namen nur für den Ausschreibenden, Sekretariat und Schulleitung; Absage mit Mail an die Angemeldeten; drei Läufe (Vortag, 1. Juni, 1. August). stammdaten-api.md: der Elternbonus ruft GET /employees/selectable nicht mehr. Gegenprobe 7 Zeilen / 10 Routen ohne Abweichung.
+<!-- SECTION:NOTES:END -->

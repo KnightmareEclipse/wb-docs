@@ -1,9 +1,10 @@
 ---
 id: TASK-159
 title: Die Tests der Gesundheitsdomäne nachziehen
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-01 17:19'
+updated_date: '2026-09-02 00:40'
 labels:
   - wb-backend
   - gesundheit
@@ -31,8 +32,14 @@ Grund und Modell stehen in schema/gesundheit-schema.sql (Dateikopf, „Warum ein
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 test_gesundheit.py und test_privileges.py laufen grün
-- [ ] #2 Je ein Test für die drei neuen Fälle, jeder einmal rot gesehen
-- [ ] #3 Ein Test hält fest, dass eine leere Feldliste nicht als „nichts vorhanden" ausgeliefert wird
-- [ ] #4 Kein Test prüft noch is_everyday_relevant, is_kitchen_relevant oder eine der vier Flags
+- [x] #1 test_gesundheit.py und test_privileges.py laufen grün
+- [x] #2 Je ein Test für die drei neuen Fälle, jeder einmal rot gesehen
+- [x] #3 Ein Test hält fest, dass eine leere Feldliste nicht als „nichts vorhanden" ausgeliefert wird
+- [x] #4 Kein Test prüft noch is_everyday_relevant, is_kitchen_relevant oder eine der vier Flags
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+tests/test_gesundheit.py neu (42 Tests), test_privileges.py unverändert grün. Die drei neuen Fälle je einmal rot gesehen: Sichtkreis auf die volle Sicht gelenkt (2 Tests rot), unasked als answered gemeldet (2 Tests rot), Protokollzeile weggelassen (1 Test rot). Gesamtlauf 790 passed, ruff und mypy grün.
+<!-- SECTION:NOTES:END -->

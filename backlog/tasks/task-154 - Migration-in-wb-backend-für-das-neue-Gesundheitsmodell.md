@@ -1,10 +1,10 @@
 ---
 id: TASK-154
 title: Das neue Gesundheitsmodell in die Ursprungsrevision einarbeiten
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-01 17:19'
-updated_date: '2026-09-01 23:24'
+updated_date: '2026-09-02 00:40'
 labels:
   - wb-backend
   - gesundheit
@@ -34,8 +34,14 @@ Grund und Modell stehen in schema/gesundheit-schema.sql (Dateikopf, "Warum eine 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 alembic upgrade head läuft gegen eine leere und gegen die lokale Datenbank durch
-- [ ] #2 Die downgrade-Richtung ist gebaut oder ausdrücklich als nicht unterstützt vermerkt
-- [ ] #3 schema-check.sh gegen die migrierte Datenbank ist grün — das Prüfskript aus wb-docs ist der Maßstab
-- [ ] #4 Der Bau ist vor dem migrate gelaufen (sonst nutzt compose run migrate die alten Quellen)
+- [x] #1 alembic upgrade head läuft gegen eine leere und gegen die lokale Datenbank durch
+- [x] #2 Die downgrade-Richtung ist gebaut oder ausdrücklich als nicht unterstützt vermerkt
+- [x] #3 schema-check.sh gegen die migrierte Datenbank ist grün — das Prüfskript aus wb-docs ist der Maßstab
+- [x] #4 Der Bau ist vor dem migrate gelaufen (sonst nutzt compose run migrate die alten Quellen)
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Ursprungsrevision 08fc49476134 überschrieben (Branch gesundheit-umbau in wb-backend). Downgrade gebaut; alembic upgrade head gegen die frisch aufgesetzte Datenbank rc=0, schema-check.sh: gesundheit rc=0 (elternbonus rc=3 ist der ausstehende Umbau aus TASK-165). Sechs Sichtkreise als Sichten health_values_<code> mit je eigener DB-Rolle; kitchen_health_traits und everyday_health_traits bleiben als abgeleitete Sichten, bis TASK-157 Mensa und Ferien umzieht.
+<!-- SECTION:NOTES:END -->

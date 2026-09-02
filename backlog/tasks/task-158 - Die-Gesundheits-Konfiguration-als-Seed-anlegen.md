@@ -1,9 +1,10 @@
 ---
 id: TASK-158
 title: Die Gesundheits-Konfiguration als Seed anlegen
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-01 17:19'
+updated_date: '2026-09-02 00:40'
 labels:
   - wb-backend
   - gesundheit
@@ -30,7 +31,13 @@ Grund und Modell stehen in schema/gesundheit-schema.sql (Dateikopf, „Warum ein
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Der Seed legt Wertarten, Kategorien, Felder, Zuordnungen und Sichtkreise an und ist wiederholbar
-- [ ] #2 Jede Zuordnung Sichtkreis × Kategorie × Feld ist im Seed begründet, nicht geraten
-- [ ] #3 Ein Lauf gegen die leere Datenbank ergibt einen Bestand, in dem eine Erhebung vollständig durchläuft
+- [x] #1 Der Seed legt Wertarten, Kategorien, Felder, Zuordnungen und Sichtkreise an und ist wiederholbar
+- [x] #2 Jede Zuordnung Sichtkreis × Kategorie × Feld ist im Seed begründet, nicht geraten
+- [x] #3 Ein Lauf gegen die leere Datenbank ergibt einen Bestand, in dem eine Erhebung vollständig durchläuft
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Seed in der Wertelisten-Revision ebf1b8885558, Abschnitt Gesundheit: 5 Wertarten, 10 Kategorien, 6 Felder, 37 Paare, 6 Sichtkreise, Zuordnungen je Sichtkreis mit Begründung im Kommentar. Wiederholbar über den Downgrade/Upgrade der Revision; schema-check.sh truncatet die Tabellen je Prüfskript. test_seed.py prüft die sechs Tabellen; test_the_close_passes_once_every_category_has_an_answer läuft eine Erhebung komplett durch.
+<!-- SECTION:NOTES:END -->
