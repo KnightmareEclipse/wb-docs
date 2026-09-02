@@ -73,7 +73,7 @@ BEGIN
         'pk_contract_texts', 'uq_contract_texts',
         'uq_consent_purposes_requires_child', 'fk_consents_purpose',
         'ck_consents_child',
-        'fk_documents_library'
+        'fk_documents_library', 'fk_consents_document', 'fk_sepa_mandates_document'
     ]) AS c
     WHERE NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = c);
     IF missing IS NOT NULL THEN
@@ -145,7 +145,8 @@ INSERT INTO sharepoint_libraries (sharepoint_library_id, code, name, graph_drive
     VALUES (1, 'student_file', 'Digitale Schülerakte', 'b!drive-1', 'system:check');
 INSERT INTO document_types (code, name, created_by)
     VALUES ('school_contract', 'Schulvertrag', 'system:check'),
-           ('observation_sheet', 'Beobachtungsbogen', 'system:check');
+           ('observation_sheet', 'Beobachtungsbogen', 'system:check'),
+           ('sepa_mandate', 'SEPA-Mandat', 'system:check');
 INSERT INTO consent_purposes (code, name, requires_child, self_consent_age, created_by)
     VALUES ('photo', 'Fotoeinverständnis', true, 14, 'system:check'),
            ('marketing_holiday', 'Werbe-Einwilligung Ferienbetreuung', false, NULL, 'system:check');
@@ -334,6 +335,31 @@ SELECT pg_temp.expect_reject(
        VALUES ('44444444-4444-4444-4444-444444444444',
                (SELECT document_type_id FROM document_types WHERE code='school_contract'),
                1, '01ABC', 'system:check')$q$);
+
+-- 08: „eine Unterlage, eine Datei" — Mandat und unterschriebene Zustimmung
+-- zeigen auf ihre eigene Datei, und die Datei geht nicht, solange eines von
+-- beiden sie festhält (Lösch-Lauf, Stufe 1).
+INSERT INTO documents (document_id, child_id, document_type_id, sharepoint_library_id,
+                       graph_item_id, filed_at, created_by)
+    VALUES ('99999999-9999-9999-9999-999999999998', '44444444-4444-4444-4444-444444444444',
+            (SELECT document_type_id FROM document_types WHERE code='sepa_mandate'),
+            1, '01MANDAT', now(), 'system:check');
+SELECT pg_temp.expect_accept(
+    'Q2 — das Mandat zeigt auf seine eigene Datei',
+    $q$UPDATE sepa_mandates SET document_id = '99999999-9999-9999-9999-999999999998'
+        WHERE sepa_mandate_id = '66666666-6666-6666-6666-666666666666'$q$);
+SELECT pg_temp.expect_reject(
+    'Q2 — die Datei des Mandats geht nicht, solange das Mandat steht',
+    $q$DELETE FROM documents WHERE document_id = '99999999-9999-9999-9999-999999999998'$q$);
+SELECT pg_temp.expect_reject(
+    'Q2 — Zustimmung mit einer Datei, die es nicht gibt',
+    $q$INSERT INTO consents (person_id, child_id, consent_purpose_id, requires_child, granted_at,
+                             delivery_address, document_id, created_by)
+       VALUES ('22222222-2222-2222-2222-222222222223',
+               '44444444-4444-4444-4444-444444444444',
+               (SELECT consent_purpose_id FROM consent_purposes WHERE code='photo'), true,
+               now(), 'kind@example.org', '99999999-9999-9999-9999-999999999990',
+               'system:check')$q$);
 
 INSERT INTO child_file_folders (child_id, sharepoint_library_id, graph_item_id, created_by)
     VALUES ('44444444-4444-4444-4444-444444444444', 1, '01FOLDER', 'system:check');
@@ -908,7 +934,8 @@ INSERT INTO loeschlauf (platz, tabelle, im_lauf) VALUES
     -- Mailadresse und gehört keinem Kind.
     ( 6, 'holiday_cost_coverage_codes', true),
     ( 7, 'meal_subscriptions', true),
-    ( 8, 'health_trait_values', true), ( 9, 'documents',          true),
+    ( 8, 'health_trait_values', true), ( 8, 'consents',           true),
+    ( 9, 'documents',          true),
     -- Stufe 2
     (10, 'children', true),
     -- Stufe 3. Der Einzel-Freikauf steht vor der Zuteilung, die ihn mit

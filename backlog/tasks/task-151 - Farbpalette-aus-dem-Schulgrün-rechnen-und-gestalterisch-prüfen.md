@@ -4,7 +4,7 @@ title: Farbpalette aus dem Schulgrün rechnen und gestalterisch prüfen
 status: In Progress
 assignee: []
 created_date: '2026-08-31 22:00'
-updated_date: '2026-09-01 14:45'
+updated_date: '2026-09-02 07:44'
 labels:
   - frontend
   - gestaltung
@@ -285,3 +285,9 @@ Stufenaufbau nach **Radix** (1–2 Grund, 3–5 Elementflächen, 6–8 Rahmen, 9
 - [ ] #8 Corrado hat den Entwurf gesehen und Feedback gegeben; das Feedback ist eingearbeitet oder mit Begründung verworfen
 - [ ] #9 Nach der Abnahme: Werte als @theme-Block in beide Frontend-Repos, Begründungen als Absatz in oberflaechen.md
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Stand 02.09.2026: Drei anklickbare Entwürfe für Corrado liegen in wb-elternportal/entwuerfe/ (README dort, pnpm dev, /entwuerfe/a|b|c/), gebaut mit den Tokens dieses Tickets als eigenes palette.css neben src/index.css.
+<!-- SECTION:NOTES:END -->

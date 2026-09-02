@@ -41,11 +41,14 @@
 --      verwaiste Datei … ist genauso ein DSGVO-Verstoß wie eine verwaiste
 --      Zeile"), `sepa_mandates`, `contracts`, dann `applications` — der Vertrag
 --      hält seine Bewerbung fest und geht ihr voraus —, `holiday_bookings`,
---      `meal_subscriptions`, `health_trait_values` und zuletzt `documents`. Jeder
---      nimmt mit, was an ihm hängt: Unterschriften, Antworten, Modulanlagen,
---      Zahlungen, Esstage.
+--      `meal_subscriptions`, `health_trait_values`, die unterschriebene
+--      Zustimmung (`consents`, wo sie eine Datei trägt) und zuletzt
+--      `documents`. Jeder nimmt mit, was an ihm hängt: Unterschriften,
+--      Antworten, Modulanlagen, Zahlungen, Esstage.
 --      `documents` steht am Ende dieser Stufe und nicht an ihrem Anfang: der
---      freigegebene Vertrag (`fk_contracts_document`) und das Attest
+--      freigegebene Vertrag (`fk_contracts_document`), das Mandat
+--      (`fk_sepa_mandates_document`), die unterschriebene Zustimmung
+--      (`fk_consents_document`) und das Attest
 --      (`fk_health_trait_values_document`) halten das Dokument mit NO ACTION
 --      fest. Weiter nach hinten kann es nicht — es hält selbst das Kind
 --      (`fk_documents_child`) und muss vor Stufe 2 fort sein. Deshalb steht
@@ -459,6 +462,12 @@ CREATE TABLE documents (
     CONSTRAINT ck_documents_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
+-- Das Mandat zeigt auf seine Datei; die Tabelle steht in stammdaten-schema.sql,
+-- die Datei entsteht erst hier — deshalb der Schlüssel an dieser Stelle.
+ALTER TABLE sepa_mandates
+    ADD CONSTRAINT fk_sepa_mandates_document
+        FOREIGN KEY (document_id) REFERENCES documents (document_id);
+
 -- Herkunft: grenzkarte.md, Q2 — „Nur der Ordner der Schülerakte braucht einen
 -- Anker in der Datenbank: dort legen Menschen frei ab, und ohne ihn erreichte
 -- der Lösch-Job das nicht." Löschanker: geht mit dem Kind, aber bewusst OHNE
@@ -520,6 +529,11 @@ CREATE TABLE consents (
     delivery_address   text,
     revoked_at         timestamptz,
     signature_id       uuid,
+    -- Die erzeugte Datei einer unterschriebenen Zustimmung — beim
+    -- Fotoeinverständnis ab 14 die des Kindes über den Signaturlink (08):
+    -- „eine Unterlage, eine Datei", einzeln befristet statt im Vertrag gebündelt.
+    -- Leer, wo eine Antwort ohne Unterschrift steht.
+    document_id        uuid,
     created_at         timestamptz NOT NULL DEFAULT now(),
     created_by         text NOT NULL,
 
@@ -535,6 +549,7 @@ CREATE TABLE consents (
     CONSTRAINT ck_consents_child
         CHECK (NOT requires_child OR child_id IS NOT NULL),
     CONSTRAINT fk_consents_signature FOREIGN KEY (signature_id) REFERENCES signatures (signature_id),
+    CONSTRAINT fk_consents_document  FOREIGN KEY (document_id)  REFERENCES documents (document_id),
     CONSTRAINT ck_consents_answer
         CHECK ((granted_at IS NOT NULL) <> (declined_at IS NOT NULL)),
     -- Widerrufen wird eine Erteilung, nie eine Ablehnung.

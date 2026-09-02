@@ -1,10 +1,10 @@
 ---
 id: TASK-192
-title: 'Mandat und Fotoeinverständnis als eigene Dateien erzeugen'
-status: To Do
+title: Mandat und Fotoeinverständnis als eigene Dateien erzeugen
+status: Done
 assignee: []
 created_date: '2026-09-01 22:50'
-updated_date: '2026-09-01 22:54'
+updated_date: '2026-09-02 07:44'
 labels:
   - wartet
   - dsgvo
@@ -35,9 +35,15 @@ Dasselbe gilt für das **Fotoeinverständnis**: Es trägt heute eine Unterschrif
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Zweite Vorlage und zweite erzeugte Datei fürs Mandat
-- [ ] #2 Eigener document_type und eigene Aktenkategorie, damit der Lösch-Lauf sie einzeln greift
-- [ ] #3 Die Mandats-Unterschrift hängt an dieser Datei, nicht am Vertrag
-- [ ] #4 Block 08 sagt danach an beiden Stellen dasselbe
-- [ ] #5 Das Fotoeinverständnis wird ebenso erzeugt, abgelegt und einzeln befristet
+- [x] #1 Zweite Vorlage und zweite erzeugte Datei fürs Mandat
+- [x] #2 Eigener document_type und eigene Aktenkategorie, damit der Lösch-Lauf sie einzeln greift
+- [x] #3 Die Mandats-Unterschrift hängt an dieser Datei, nicht am Vertrag
+- [x] #4 Block 08 sagt danach an beiden Stellen dasselbe
+- [x] #5 Das Fotoeinverständnis wird ebenso erzeugt, abgelegt und einzeln befristet
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Gebaut in wb-backend (Branch gesundheit-umbau): app/documents/mandate-template.docx und photo-consent-template.docx, render_and_file als der eine Weg für alle erzeugten Dateien, build_mandate_document im Mandats-POST (Datei vor der Zeile, sepa_mandates.document_id ab dem INSERT), build_consent_document im Signaturlink des Kindes (consents.document_id). Schema: sepa_mandates.document_id und consents.document_id mit fk_sepa_mandates_document (ALTER in querschnitt-schema.sql) und fk_consents_document; Prüfskript querschnitt mit drei Gegenproben und consents als Stufe vor documents im Lösch-Lauf. Zur Aktenkategorie: Die Unterordner je Kategorie der Akte sind noch nicht modelliert (08, offene Frage an den Datenschutzbeauftragten); bis dahin ist die Aktenkategorie der document_type, und beide Dateien tragen ihren eigenen (sepa_mandate, photo_consent), sodass der Lösch-Lauf sie einzeln greift. Block 08 sagt an Zeile 219 und 235 bereits dasselbe, dort war nichts zu ändern. Offen: Die Antwort der Eltern per PUT trägt keine Unterschrift und bekommt keine Datei; der Mandatstext kommt aus contract_texts (Code sepa_mandate) und ist bis zum Eintrag leer. Suite 804 passed, 13 Prüfskripte rc=0, ruff und mypy grün.
+<!-- SECTION:NOTES:END -->

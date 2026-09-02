@@ -739,6 +739,12 @@ CREATE TABLE sepa_mandates (
     -- Gesetzt, sobald ein neues Mandat dieses ablöst; das abgelöste bleibt
     -- stehen und wird nie geändert.
     superseded_at    timestamptz,
+    -- Die erzeugte Datei des Mandats — „eine Unterlage, eine Datei" (08): Es
+    -- steht als Datei für sich und nicht im PDF des Vertrags, sonst trüge es
+    -- dessen Frist, und aus einem Bündel ist nichts einzeln zu löschen. Ein
+    -- ersetztes Mandat bekommt seine eigene Datei, die alte bleibt stehen. Der
+    -- Fremdschlüssel steht in querschnitt-schema.sql, wo `documents` entsteht.
+    document_id      uuid,
     created_at       timestamptz NOT NULL DEFAULT now(),
     created_by       text NOT NULL,
 
