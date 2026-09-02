@@ -1,6 +1,6 @@
 # Fragen an die Schule — was wen zu fragen ist
 
-Vierzehn Fragen, die Weltenbaum nicht selbst beantworten kann, sortiert nach dem Gespräch, in das
+Fünfzehn Fragen, die Weltenbaum nicht selbst beantworten kann, sortiert nach dem Gespräch, in das
 sie gehören. Je Frage steht hier ihr **Wortlaut**, das **Kriterium**, an dem du erkennst, dass die
 Antwort reicht, und **woran sie hängt**.
 
@@ -241,7 +241,7 @@ gebaut.
 
 *Steht in* `soll-prozesse/06-anmeldetag.md:20` · `grenzkarte.md`, Weiße Flecken
 
-## Schulleitung — eine Frage
+## Schulleitung — zwei Fragen
 
 ### 14. Unterrichtlicher und außerunterrichtlicher Ausflug — ein Unterschied oder zwei Wörter?
 
@@ -262,4 +262,27 @@ Block — und dann darf beim Unterrichtsgang **kein** leeres Einwilligungsfeld s
 aussähe, als hätte jemand vergessen zu fragen.
 
 *Steht in* `soll-prozesse/19-ausfluege-und-fahrten.md` (Kopf, die Tabelle der zwei Arten)
+
+### 15. Was sieht eine Lehrkraft vom Gesundheitsbestand eines Kindes, das sie nicht als Klasse hat? — zusammen mit dem/der Datenschutzbeauftragten
+
+> „Der Gesundheitsbestand eines Kindes ist nach Sichtkreisen geschnitten: Die Klassenlehrkraft sieht
+> ihn ganz, die Küche nur Unverträglichkeit und Allergie, der Hort das Nötige für den Nachmittag.
+> Offen ist der Schnitt für alle anderen Lehrkräfte. Heute sehen sie zu jedem Kind den
+> Handlungshinweis — „bei Anstrengung auf Atemnot achten" — und die Erlaubnisse, aber keinen
+> Diagnosenamen und kein Attest; die Bezeichnung nur beim Notfallmedikament. Reicht euch das für
+> den Fachunterricht, für eine Vertretungsstunde, für die Begleitung eines Ausflugs? Oder muss eine
+> Lehrkraft, die ein Kind nur zwei Stunden in der Woche sieht, auch wissen, **woran** es leidet?"
+
+**Brauchbar ist die Antwort, wenn** je Kategorie feststeht, ob die Bezeichnung mitgeht oder nur der
+Hinweis — und ob dieselbe Antwort für den Hort gilt, der heute den Hinweis jeder Kategorie sieht
+und nicht nur der vier Alltagskategorien.
+
+**Daran hängt:** Ob der gebaute Schnitt bestätigt wird oder ein siebter Sichtkreis dazukommt. Beides
+ist billig — ein Sichtkreis ist eine Seed-Zeile je Paar und keine Migration —, aber es entscheidet,
+was in den Blöcken 08, 09 und 15 steht: Block 08 sagt heute noch, Lehrkräfte und Hort sähen
+Unverträglichkeit, Allergie, Notfallmedikation und Zeckenentfernung **mit** Bezeichnung, und das ist
+weiter als das Gebaute. Solange das offen ist, widersprechen Block und Bestand einander.
+
+*Steht in* `api/gesundheit-api.md` (Zugriffsmodell, die `[A]` zum Sichtkreis `sports`)
+
 
