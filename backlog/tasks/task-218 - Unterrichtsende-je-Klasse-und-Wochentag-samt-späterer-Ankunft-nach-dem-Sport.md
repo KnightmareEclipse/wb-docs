@@ -31,7 +31,7 @@ Verworfen, mit kleinem Preis: ein **Freitext-Grund** statt des Häkchens wäre n
 
 **Das ist kein Stundenplan und wird keiner.** Eine Zeit je Klasse und Wochentag beantwortet die Frage des Horts vollständig; Untis bleibt out of scope, und weder Fächer noch Stunden noch Räume entstehen hier. Wer später eine Stundenplanfrage stellt, bekommt eine eigene Domäne und nicht diese Tabelle.
 
-**Zwei verworfene Wege samt Preis**, damit sie nicht neu erfunden werden: Eine **Ankunftszeit als zweite Uhrzeit** wäre genauer, als die Wirklichkeit ist — sie existiert nirgends und müsste erfunden werden. Und die Abweichung je **Datum** statt je Wochentag träfe auch den Wandertag, wäre für die wöchentliche Sportabweichung aber jede Woche eine Zeile, die jemand einträgt — die Pflege, die liegen bleibt. Käme der einmalige Fall doch, ist er eine Tabelle **daneben** und kein Umbau dieser einen.
+**Ein weiterer verworfener Weg samt Preis**, damit er nicht neu erfunden wird: Die Abweichung je **Datum** statt je Wochentag träfe auch den Wandertag, wäre für die wöchentliche Sportabweichung aber jede Woche eine Zeile, die jemand einträgt — die Pflege, die liegen bleibt. Käme der einmalige Fall doch, ist er eine Tabelle **daneben** und kein Umbau dieser einen.
 
 Zwei Dinge bewusst nicht: **keine Abweichung je Kind** — holt ein Elternteil sein Kind an der Halle ab, sieht der Hort das am Nachmittag und braucht dafür keine Vorhersage. Und **keine Verbindung zum Modul**: Ein Kind mit „Nachmittag 2 bis 14:30" ist an Sporttagen später da, am gebuchten Modul ändert das nichts. Vertrag und Betrieb bleiben getrennt, sonst rechnet irgendwann jemand Beiträge nach Anwesenheit.
 
