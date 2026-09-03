@@ -4,7 +4,7 @@ title: Die Hort-Belegungsliste aus dem Bestand erzeugen
 status: To Do
 assignee: []
 created_date: '2026-09-03 16:38'
-updated_date: '2026-09-03 17:09'
+updated_date: '2026-09-03 17:14'
 labels:
   - anmeldung
 dependencies: []
@@ -27,9 +27,9 @@ Aus [M3]: Jürgen fragt, ob die Hort-Belegungsliste künftig aus Weltenbaum erze
 - **Kinder mit dem, was zu beachten ist** — der Hinweis am Kind (`child_health_records.action_note`) im Sichtkreis des Horts; die Domäne trägt ihn bereits, dieses Ticket nur die Anzeige.
 - **Abrechnungsliste** — Beitrag je Kind und Monat aus `care_module_prices`. Zu prüfen ist, ob sie rechnet oder nur zusammenstellt; die Buchhaltung führt Optigem, nicht Weltenbaum.
 
-**Drei Dinge sind neu:**
+**Die Hausaufgabenbetreuung kostet nichts** (Betreiber, 03.09.2026): Sie steckt im Modul und wird nicht gesondert gebucht. Wer sie besucht, ist damit die Liste der Kinder mit dem entsprechenden Modul an diesem Tag — ein Filter, kein Datum am Kind. Offen bleibt nur eine Kleinigkeit für die Hortleitung: ob es Module über Mittag **ohne** Hausaufgabenbetreuung gibt. Wenn nicht, ist die Liste der Nachmittagsliste gleich und es entsteht gar nichts; wenn doch, ist es ein Häkchen am Modul, mit derselben Begründung wie `includes_lunch` daneben.
 
-- Die **Hausaufgabenbetreuung**: welche Kinder darin sind, ist ein Datum, das der Bestand heute nicht kennt. Erst zu klären ist, ob es aus dem gebuchten Modul folgt oder daneben steht — im ersten Fall entsteht gar nichts.
+**Zwei Dinge sind neu:**
 - Die **Abfrage an Brückentagen** — sie ist ein eigener Vorgang und steht in einem eigenen Ticket (TASK-217).
 - **Unterrichtsende je Klasse und Wochentag**, samt der späteren Ankunft nach dem Sport: ebenfalls ein eigenes Ticket (TASK-218), weil es ein Datum ist und keine Sicht.
 
@@ -39,7 +39,7 @@ Aus [M3]: Jürgen fragt, ob die Hort-Belegungsliste künftig aus Weltenbaum erze
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [ ] #1 Jede Sicht ist frisch erzeugt und liest den Bestand, keine wird gepflegt
-- [ ] #2 Entschieden, ob die Hausaufgabenbetreuung aus dem Modul folgt oder ein eigenes Datum ist
+- [ ] #2 Die Hausaufgabenbetreuung entsteht als Filter über die Module, nicht als Datum am Kind
 - [ ] #3 Die Gruppeneinteilung steht nicht in der Datenbank — und der Grund steht als Kommentar da
 - [ ] #4 Bei der Abrechnungsliste ist entschieden, ob sie rechnet oder zusammenstellt
 <!-- AC:END -->

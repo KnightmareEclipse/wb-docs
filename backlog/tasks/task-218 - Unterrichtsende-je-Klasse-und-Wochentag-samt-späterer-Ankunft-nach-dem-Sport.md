@@ -28,14 +28,4 @@ Und er führt eine Abweichung mit: **Wo Sport am Unterrichtsende liegt, kommen d
 
 Sie gehört zu `klassenorganisation` — dieselbe Domäne wie das Unterrichtsverhältnis, dieselbe Pflege: je Schuljahr, von der Stelle, die den Deputatsplan ohnehin macht (TASK-161).
 
-`[?]` **Nebenbefund für den Elternbonus:** Die Fahrten zur Sporthalle sind Elternarbeit. Ob sie als Einsatz im Portal ausgeschrieben und angemeldet werden sollen wie die übrigen (14), ist nicht gefragt worden — es liegt aber nahe und wäre ein Anlass mehr, kein neuer Mechanismus.
-<!-- SECTION:DESCRIPTION:END -->
-
-## Acceptance Criteria
-<!-- AC:BEGIN -->
-- [ ] #1 Eine Zeile je Klasse und Wochentag mit Unterrichtsende und, wo abweichend, der Ankunftszeit im Hort
-- [ ] #2 Der Grund steht als Notiz und nicht als Häkchen — kein Feld für 'Sport'
-- [ ] #3 Kein Fach, keine Stunde, kein Raum: Die Tabelle bleibt eine Zeit je Klasse und Wochentag
-- [ ] #4 Eine Ankunftszeit vor dem Unterrichtsende wird abgewiesen
-- [ ] #5 Die Zeiten hängen am Schuljahr und werden wie die Unterrichtsverteilung gepflegt
-<!-- AC:END -->
+**Die Fahrten zur Sporthalle werden nicht ausgeschrieben** (Betreiber, 03.09.2026). Sie sind Elternarbeit, aber die Eltern regeln sie unter sich und tragen die Stunden hinterher ein — die Eintragung läuft ohnehin auf Vertrauensbasis. Das Schema trägt das bereits und nennt genau diesen Fall: `parent_work_entries.parent_work_session_id` ist freiwillig, „Was die Eltern unter sich regeln — der Fahrdienst der Grundschule vor allem — wird ohne Einsatz eingetragen" (14 Z4). Für dieses Ticket folgt daraus nichts als die Feststellung, dass daraus nichts folgt.
