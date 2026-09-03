@@ -342,6 +342,14 @@ CREATE TABLE academy_cost_coverage_codes (
 -- dieselbe Frist wie die Ferienbuchung, und für die Teilnehmer der
 -- Erwachsenen-Seminare dieselbe wie für schulfremde Kinder
 -- (Datenschutzbeauftragter, 02.09.2026; `fragen.md`).
+-- **Diese Zeile ist der einzige Anker ihres Teilnehmers**, wo er sonst keinen
+-- hat: Ein Kind, das allein über ein Angebot in den Bestand kam, hat kein
+-- Austrittsdatum, und die erwachsene Teilnehmerin hat überhaupt keine
+-- Rollenzeile — `persons` trägt „keinen eigenen [Anker]" und wartet auf seine
+-- Rollenanker (stammdaten-schema.sql). Beide gehen deshalb mit ihrer letzten
+-- Anmeldung, wie das schulfremde Kind mit seiner letzten Ferienbuchung
+-- (ferien-schema.sql); der Lösch-Lauf räumt sie in Stufe 1 und kommt damit in
+-- Stufe 2 und 6 an ihnen vorbei (querschnitt-schema.sql).
 -- Bewusst KEIN Verweis auf das SEPA-Mandat: Das Mandat steht am Kind und wird
 -- abgelöst, welcher Weg gegangen wurde, sagt der Zahlweg.
 CREATE TABLE academy_registrations (

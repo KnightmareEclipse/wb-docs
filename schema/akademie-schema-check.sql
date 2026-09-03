@@ -656,15 +656,15 @@ SELECT pg_temp.expect_accept(
     'Q3 — Zahlung auf die Akademie-Anmeldung',
     $q$INSERT INTO payments (academy_registration_id, amount_cents, status, confirmed_at,
                              created_by)
-       VALUES ('66666666-6666-6666-6666-666666666605', 4500, 'confirmed', now(),
+       VALUES ('66666666-6666-6666-6666-666666666604', 3000, 'confirmed', now(),
                'system:check')$q$);
 
 SELECT pg_temp.expect_reject(
     'Q3 — Zahlung mit zwei Anlässen',
     $q$INSERT INTO payments (academy_registration_id, application_id, amount_cents,
                              created_by)
-       VALUES ('66666666-6666-6666-6666-666666666605',
-               '99999999-9999-9999-9999-999999999999', 4500, 'system:check')$q$);
+       VALUES ('66666666-6666-6666-6666-666666666604',
+               '99999999-9999-9999-9999-999999999999', 3000, 'system:check')$q$);
 
 -- Q5, 21: „je Anmeldung eine Aufgabe bei der Buchhaltung mit dem einzuziehenden
 -- oder zu berechnenden Betrag" — je Anmeldung eine, nicht je Familie.
@@ -703,7 +703,7 @@ SELECT pg_temp.expect_reject(
 SELECT pg_temp.expect_accept(
     'Q3 — die Zahlung geht mit ihrer Akademie-Anmeldung',
     $q$DELETE FROM academy_registrations
-        WHERE academy_registration_id = '66666666-6666-6666-6666-666666666605'$q$);
+        WHERE academy_registration_id = '66666666-6666-6666-6666-666666666604'$q$);
 
 DO $$
 BEGIN
@@ -712,6 +712,23 @@ BEGIN
     END IF;
     RAISE NOTICE 'ok (erlaubt): Q3 — keine Zahlung überlebt ihren Vorgang';
 END $$;
+
+-- 21/17: Die Anmeldung ist der einzige Anker ihres Teilnehmers, wo er sonst
+-- keinen hat — die erwachsene Teilnehmerin hat keine Rollenzeile. Der Lauf
+-- räumt deshalb erst die Anmeldung und dann die Person; umgekehrt hält ihn der
+-- Fremdschlüssel auf, und genau das ist die Reihenfolge, die der Kommentar an
+-- der Tabelle zusagt.
+SELECT pg_temp.expect_reject(
+    '17 — die erwachsene Teilnehmerin gelöscht, während ihre Anmeldung sie hält',
+    $q$DELETE FROM persons
+        WHERE person_id = '11111111-1111-1111-1111-111111111203'$q$);
+
+SELECT pg_temp.expect_accept(
+    '17 — nach der Anmeldung geht die Person, die sonst keinen Anker hat',
+    $q$DELETE FROM academy_registrations
+              WHERE person_id = '11111111-1111-1111-1111-111111111203';
+       DELETE FROM persons
+              WHERE person_id = '11111111-1111-1111-1111-111111111203'$q$);
 
 DO $$ BEGIN RAISE NOTICE 'akademie-schema-check: alle Gegenproben bestanden'; END $$;
 
