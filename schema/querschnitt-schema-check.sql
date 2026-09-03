@@ -11,9 +11,9 @@
 -- Die vertragsgebundenen Gegenproben zu `signatures` stehen in
 -- anmeldung-schema-check.sql, weil ihr Fremdschlüssel dort entsteht; die
 -- Unterschrift unter dem SEPA-Mandat steht hier, sie kennt keinen Vertrag.
--- Dazu vierzehn partielle Unique-Indizes (drei für signatures, zwei für
--- consents, neun für sync_tasks) und zwei Lese-Indizes, auf outbound_emails und
--- auf change_log. `payments` trägt außerdem ein UNIQUE auf der Zahlungsreferenz;
+-- Dazu fünfzehn partielle Unique-Indizes (drei für signatures, zwei für
+-- consents, neun für sync_tasks, einer über die erste Zeile je angehaltenem
+-- Fall) und zwei Lese-Indizes, auf outbound_emails und auf change_log. `payments` trägt außerdem ein UNIQUE auf der Zahlungsreferenz;
 -- seine Gegenprobe steht in putzdienst-schema-check.sql, weil sie wie die
 -- übrigen Q3-Proben einen echten Anlass braucht.
 --
@@ -80,6 +80,10 @@ BEGIN
         'uq_consent_purposes_requires_child', 'fk_consents_purpose',
         'ck_consents_child',
         'fk_documents_library', 'fk_consents_document', 'fk_sepa_mandates_document',
+        'uq_documents_graph_item', 'uq_documents_id_child', 'uq_signatures_id_person',
+        'pk_contract_text_kinds', 'uq_contract_text_kinds_code',
+        'fk_contract_texts_kind', 'uq_contract_texts_id_code',
+        'uq_sync_targets_branch_bound', 'ck_sync_tasks_branch_bound',
         'pk_retention_subjects', 'uq_retention_subjects_code',
         'pk_retention_hold_reasons', 'uq_retention_hold_reasons_code',
         'pk_retention_notice_recipients', 'uq_retention_notice_recipients',
@@ -106,7 +110,8 @@ BEGIN
         'ix_sync_tasks_open_academy',
         'ix_sync_tasks_open_slot', 'ix_sync_tasks_open_payment', 'ix_change_log_row',
         'ix_signatures_contract', 'ix_signatures_agreement', 'ix_signatures_mandate',
-        'ix_outbound_emails_undeliverable', 'ix_retention_holds_held_until'
+        'ix_outbound_emails_undeliverable', 'ix_retention_holds_held_until',
+        'ix_retention_holds_first'
     ]) AS i
     WHERE to_regclass('public.' || i) IS NULL;
     IF missing IS NOT NULL THEN
@@ -141,6 +146,10 @@ INSERT INTO countries (code, name, nationality_name) VALUES ('DE', 'Deutschland'
 INSERT INTO school_branches (code, name, first_grade_level, final_grade_level, created_by)
     VALUES ('GS', 'Grundschule', 1, 4, 'system:check');
 INSERT INTO roles (code, name, created_by) VALUES ('secretariat', 'Sekretariat', 'system:check');
+-- Die eine zweiggebundene Rolle: „eine Schulleitung sieht … für die andere
+-- Schulform nichts" (hebel.md). An ihr hängen die Proben zur Schulart unten.
+INSERT INTO roles (code, name, is_branch_bound, created_by)
+    VALUES ('school_management', 'Schulleitung', true, 'system:check');
 -- Beide Personen wohnen an derselben Anschrift — „ein Häkchen, kein zweiter
 -- Vorgang" (02). Sie ist der Anlass für Stufe 7 des Lösch-Laufs unten.
 INSERT INTO addresses (address_id, street, house_number, postal_code, city, country_id, created_by)
@@ -183,6 +192,20 @@ INSERT INTO contract_texts (code, valid_from, body, created_by)
 INSERT INTO sync_targets (code, name, role_id, created_by)
     VALUES ('asv_bw', 'ASV-BW', (SELECT role_id FROM roles WHERE code='secretariat'), 'system:check'),
            ('optigem', 'Optigem', (SELECT role_id FROM roles WHERE code='secretariat'), 'system:check');
+-- 08 Z4: „die Freigabe bei der Schulleitung dieser Schulart" — das einzige Ziel
+-- dieser Datei, dessen Rolle an eine Schulart gebunden ist.
+INSERT INTO sync_targets (code, name, role_id, is_branch_bound, created_by)
+    VALUES ('contract_release', 'Freigabe Schulvertrag',
+            (SELECT role_id FROM roles WHERE code='school_management'), true, 'system:check');
+
+-- Das Flag ist an seine Rollenzeile gebunden; ein geliehenes gibt es nicht
+-- (rules.md Abschnitt 1) — sonst trüge jedes Ziel die Zweigbindung, die es
+-- gerade braucht.
+SELECT pg_temp.expect_reject(
+    'Q5 — Ziel mit dem Zweig-Flag einer Rolle, die es nicht hat',
+    $q$INSERT INTO sync_targets (code, name, role_id, is_branch_bound, created_by)
+       VALUES ('geliehen', 'Geliehenes Flag',
+               (SELECT role_id FROM roles WHERE code='secretariat'), true, 'system:check')$q$);
 INSERT INTO sepa_mandates (sepa_mandate_id, child_id, account_holder_person_id, iban,
                            credit_institution, mandate_reference, created_by)
     VALUES ('66666666-6666-6666-6666-666666666666',
@@ -373,14 +396,58 @@ SELECT pg_temp.expect_accept(
 SELECT pg_temp.expect_reject(
     'Q2 — die Datei des Mandats geht nicht, solange das Mandat steht',
     $q$DELETE FROM documents WHERE document_id = '99999999-9999-9999-9999-999999999998'$q$);
+-- Die Person ist das Kind selbst: Es hat an dieser Stelle noch keine Antwort,
+-- also kann allein der Fremdschlüssel auf die Datei abweisen.
 SELECT pg_temp.expect_reject(
     'Q2 — Zustimmung mit einer Datei, die es nicht gibt',
     $q$INSERT INTO consents (person_id, child_id, consent_purpose_id, requires_child, granted_at,
                              delivery_address, document_id, created_by)
-       VALUES ('22222222-2222-2222-2222-222222222223',
+       VALUES ('22222222-2222-2222-2222-222222222221',
                '44444444-4444-4444-4444-444444444444',
                (SELECT consent_purpose_id FROM consent_purposes WHERE code='photo'), true,
                now(), 'kind@example.org', '99999999-9999-9999-9999-999999999990',
+               'system:check')$q$);
+
+-- Ein zweites Kind mit eigener Akte: Es trägt die beiden Verwechslungsproben
+-- darunter und sonst nichts. Seine Person hat bewusst keine Anschrift — Stufe 7
+-- des Lösch-Laufs prüft weiter unten, dass keine übrig bleibt.
+INSERT INTO persons (person_id, first_name, last_name, created_by)
+    VALUES ('22222222-2222-2222-2222-222222222226', 'Kind D', 'Muster', 'system:check');
+INSERT INTO children (child_id, person_id, family_id, birth_date, created_by)
+    VALUES ('44444444-4444-4444-4444-444444444447',
+            '22222222-2222-2222-2222-222222222226',
+            '33333333-3333-3333-3333-333333333333', DATE '2017-05-01', 'system:check');
+INSERT INTO documents (document_id, child_id, document_type_id, sharepoint_library_id,
+                       graph_item_id, filed_at, created_by)
+    VALUES ('99999999-9999-9999-9999-999999999997', '44444444-4444-4444-4444-444444444447',
+            (SELECT document_type_id FROM document_types WHERE code='school_contract'),
+            1, '01KINDD', now(), 'system:check');
+
+-- grenzkarte.md, Q2: „Jede Datei bekommt eine Zeile" — und keine Datei zwei.
+-- Ohne `uq_documents_graph_item` zeigten hier zwei Kinder auf dasselbe
+-- Graph-Element, und der Lösch-Lauf nähme dem einen die Datei des anderen mit.
+SELECT pg_temp.expect_reject(
+    'Q2 — zweite Dokumentzeile auf dasselbe Graph-Element',
+    $q$INSERT INTO documents (child_id, document_type_id, sharepoint_library_id,
+                              graph_item_id, filed_at, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444447',
+               (SELECT document_type_id FROM document_types WHERE code='school_contract'),
+               1, '01MANDAT', now(), 'system:check')$q$);
+
+-- grenzkarte.md, Q2: „Eine Datei beim falschen Kind … die Verwechslung wäre
+-- damit nicht behoben, sondern eingebaut." Der Zweck ist ein dritter, damit
+-- allein der zusammengesetzte Fremdschlüssel abweisen kann und nicht der
+-- Eindeutigkeits-Index.
+INSERT INTO consent_purposes (code, name, requires_child, created_by)
+    VALUES ('health_data', 'Gesundheitsangaben', true, 'system:check');
+SELECT pg_temp.expect_reject(
+    'Q2 — Zustimmung für ein Kind mit der Datei eines anderen',
+    $q$INSERT INTO consents (person_id, child_id, consent_purpose_id, requires_child, granted_at,
+                             delivery_address, document_id, created_by)
+       VALUES ('22222222-2222-2222-2222-222222222222',
+               '44444444-4444-4444-4444-444444444444',
+               (SELECT consent_purpose_id FROM consent_purposes WHERE code='health_data'), true,
+               now(), 'mutter@example.org', '99999999-9999-9999-9999-999999999997',
                'system:check')$q$);
 
 INSERT INTO child_file_folders (child_id, sharepoint_library_id, graph_item_id, created_by)
@@ -434,8 +501,9 @@ SELECT pg_temp.expect_reject(
 SELECT pg_temp.expect_accept(
     '08 — Unterschrift des Kindes am Fotoeinverständnis, ohne Vertrag',
     $q$WITH s AS (
-         INSERT INTO signatures (child_id, person_id, signed_at, created_by)
-         VALUES ('44444444-4444-4444-4444-444444444444',
+         INSERT INTO signatures (signature_id, child_id, person_id, signed_at, created_by)
+         VALUES ('55555555-5555-5555-5555-555555555511',
+                 '44444444-4444-4444-4444-444444444444',
                  '22222222-2222-2222-2222-222222222221', now(), 'system:check')
          RETURNING signature_id)
        INSERT INTO consents (person_id, child_id, consent_purpose_id, requires_child,
@@ -445,6 +513,19 @@ SELECT pg_temp.expect_accept(
               (SELECT consent_purpose_id FROM consent_purposes WHERE code='photo'), true,
               now(), 'kind@example.org', s.signature_id, 'system:check'
        FROM s$q$);
+
+-- Dieselbe Verwechslung an der Unterschrift: Die Signatur oben gehört dem Kind,
+-- die Antwort hier der Mutter. Ohne den zusammengesetzten Fremdschlüssel
+-- belegte eine fremde Unterschrift ihre Zustimmung.
+SELECT pg_temp.expect_reject(
+    'Q1 — Zustimmung einer Person mit der Unterschrift einer anderen',
+    $q$INSERT INTO consents (person_id, child_id, consent_purpose_id, requires_child,
+                             granted_at, delivery_address, signature_id, created_by)
+       VALUES ('22222222-2222-2222-2222-222222222222',
+               '44444444-4444-4444-4444-444444444444',
+               (SELECT consent_purpose_id FROM consent_purposes WHERE code='health_data'), true,
+               now(), 'mutter@example.org', '55555555-5555-5555-5555-555555555511',
+               'system:check')$q$);
 
 -- grenzkarte.md, Q2: „heute durchgängig einfache elektronische Signatur", und
 -- das elektronische Siegel „wird bewusst nicht beschafft" (08) — ein höheres
@@ -512,17 +593,36 @@ SELECT pg_temp.expect_reject(
 -- Schuljahr als Bezug, weil es keinen der übrigen Fälle dieser Datei berührt.
 SELECT pg_temp.expect_accept(
     'Q5 — Aufgabe mit Bezug und Schulart',
+    $q$INSERT INTO sync_tasks (sync_target_id, school_year, school_branch_id, is_branch_bound,
+                              task_text, created_by)
+       VALUES ((SELECT sync_target_id FROM sync_targets WHERE code='contract_release'), 2099,
+               (SELECT school_branch_id FROM school_branches ORDER BY school_branch_id LIMIT 1),
+               true, 'Freigabe erteilen', 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    'Q5 — Schulart allein ist kein Bezug',
+    $q$INSERT INTO sync_tasks (sync_target_id, school_branch_id, is_branch_bound,
+                              task_text, created_by)
+       VALUES ((SELECT sync_target_id FROM sync_targets WHERE code='contract_release'),
+               (SELECT school_branch_id FROM school_branches ORDER BY school_branch_id LIMIT 1),
+               true, 'Freigabe erteilen', 'system:check')$q$);
+
+-- 08 Z4: „ohne diese Spalte liest die Grundschulleitung in ihrer Wochenmail die
+-- Namen der Realschulkinder." Die Umkehrung gilt genauso: Ein Ziel, dessen
+-- Rolle nicht an eine Schulart gebunden ist, bekommt keine — sonst verlöre die
+-- Aufgabe die Hälfte ihrer Empfänger.
+SELECT pg_temp.expect_reject(
+    'Q5 — Schulart an einem Ziel, dessen Rolle nicht zweiggebunden ist',
     $q$INSERT INTO sync_tasks (sync_target_id, school_year, school_branch_id, task_text, created_by)
-       VALUES ((SELECT sync_target_id FROM sync_targets WHERE code='asv_bw'), 2099,
+       VALUES ((SELECT sync_target_id FROM sync_targets WHERE code='asv_bw'), 2098,
                (SELECT school_branch_id FROM school_branches ORDER BY school_branch_id LIMIT 1),
                'Jahrgang nachtragen', 'system:check')$q$);
 
 SELECT pg_temp.expect_reject(
-    'Q5 — Schulart allein ist kein Bezug',
-    $q$INSERT INTO sync_tasks (sync_target_id, school_branch_id, task_text, created_by)
-       VALUES ((SELECT sync_target_id FROM sync_targets WHERE code='asv_bw'),
-               (SELECT school_branch_id FROM school_branches ORDER BY school_branch_id LIMIT 1),
-               'Kind anlegen', 'system:check')$q$);
+    'Q5 — zweiggebundenes Ziel ohne Schulart',
+    $q$INSERT INTO sync_tasks (sync_target_id, school_year, is_branch_bound, task_text, created_by)
+       VALUES ((SELECT sync_target_id FROM sync_targets WHERE code='contract_release'), 2097,
+               true, 'Freigabe erteilen', 'system:check')$q$);
 
 SELECT pg_temp.expect_reject(
     'Q5 — Aufgabe ohne Bezug',
@@ -531,7 +631,7 @@ SELECT pg_temp.expect_reject(
                'Kind anlegen', 'system:check')$q$);
 
 
--- Der achte Bezug, und der Grund für ihn steht an `ck_payments_single_cause`:
+-- Der neunte Bezug, und der Grund für ihn steht an `ck_payments_single_cause`:
 -- die vorgangslose Zahlung wartet auf die Entscheidung eines Menschen, und ohne
 -- diesen Bezug hinge sie an niemandem.
 SELECT pg_temp.expect_accept(
@@ -774,10 +874,43 @@ SELECT pg_temp.expect_reject(
     $q$INSERT INTO contract_texts (code, valid_from, body, created_by)
        VALUES ('school_contract_gs', DATE '2026-08-01', 'zweite Fassung', 'system:check')$q$);
 
+-- „Ein Tippfehler ließe die Bedingungen sonst still verschwinden": Die Sorte
+-- kommt aus der Werteliste, nicht aus dem Freitext.
+SELECT pg_temp.expect_reject(
+    'hebel.md — Vertragstext mit einer Sorte, die es nicht gibt',
+    $q$INSERT INTO contract_texts (code, valid_from, body, created_by)
+       VALUES ('schulvertrag_gs', DATE '2026-08-01', 'Fassung mit Tippfehler', 'system:check')$q$);
+
 SELECT pg_temp.expect_accept(
     'hebel.md — spätere Fassung desselben Vertragstexts',
     $q$INSERT INTO contract_texts (code, valid_from, body, created_by)
        VALUES ('school_contract_gs', DATE '2027-08-01', 'neue Fassung', 'system:check')$q$);
+
+-- Eine Werteliste legt kein Elternteil an: Zweck, Bibliothek, Dokumentart,
+-- Aufgabenart und Vertragsfassung entstehen im Haus, und `contract_texts`
+-- pflegt ausdrücklich die Geschäftsführung (hebel.md). Fünf Proben, eine je
+-- Tabelle — die vier Wertelisten des Lösch-Laufs sind schon eng.
+SELECT pg_temp.expect_reject(
+    'rules.md — Zustimmungszweck, angelegt von einem Elternteil',
+    $q$INSERT INTO consent_purposes (code, name, created_by)
+       VALUES ('eigenmaechtig', 'Selbst erfunden', 'guardian:1')$q$);
+SELECT pg_temp.expect_reject(
+    'rules.md — Bibliothek, angelegt von einem Elternteil',
+    $q$INSERT INTO sharepoint_libraries (code, name, graph_drive_id, created_by)
+       VALUES ('eigen', 'Eigene Ablage', 'b!drive-9', 'guardian:1')$q$);
+SELECT pg_temp.expect_reject(
+    'rules.md — Dokumentart, angelegt von einem Elternteil',
+    $q$INSERT INTO document_types (code, name, created_by)
+       VALUES ('eigen', 'Eigene Unterlage', 'guardian:1')$q$);
+SELECT pg_temp.expect_reject(
+    'rules.md — Aufgabenart, angelegt von einem Elternteil',
+    $q$INSERT INTO sync_targets (code, name, role_id, created_by)
+       VALUES ('eigen', 'Eigenes Ziel',
+               (SELECT role_id FROM roles WHERE code='secretariat'), 'guardian:1')$q$);
+SELECT pg_temp.expect_reject(
+    'hebel.md — Vertragsfassung, angelegt von einem Elternteil',
+    $q$INSERT INTO contract_texts (code, valid_from, body, created_by)
+       VALUES ('school_contract_gs', DATE '2028-08-01', 'Eigene Fassung', 'guardian:1')$q$);
 
 -- hebel.md, „Unzustellbare Mail": „Bleibt eine Mail unzustellbar, ist das im
 -- System sichtbar" — der Rückläufer trägt seinen Grund.
@@ -1220,6 +1353,33 @@ SELECT pg_temp.expect_accept(
                '44444444-4444-4444-4444-444444444445',
                (SELECT retention_hold_reason_id FROM retention_hold_reasons WHERE code='legal_dispute'),
                '88888888-8888-8888-8888-888888888881',
+               current_date - 10, current_date + 60, 'entra:hortleitung')$q$);
+
+-- hebel.md: „Der ursprüngliche Löschtermin bleibt beim Verlängern stehen."
+-- Ohne `ix_retention_holds_first` bliebe genau das freiwillig: Wer über die
+-- Oberfläche „neu anhalten" statt „verlängern" wählt, legte eine zweite erste
+-- Zeile mit neuem Termin an und setzte die Zählung zurück.
+SELECT pg_temp.expect_reject(
+    '17 — zweites „neu anhalten" am selben Fall statt einer Verlängerung',
+    $q$INSERT INTO retention_holds (retention_subject_id, child_id, retention_hold_reason_id,
+                                    original_delete_on, held_until, created_by)
+       VALUES ((SELECT retention_subject_id FROM retention_subjects WHERE code='child_health_record'),
+               '44444444-4444-4444-4444-444444444445',
+               (SELECT retention_hold_reason_id FROM retention_hold_reasons WHERE code='legal_dispute'),
+               current_date + 5, current_date + 90, 'entra:hortleitung')$q$);
+
+-- „Eine Zeile ist nicht ihre eigene erste; sonst ginge der Fremdschlüssel oben
+-- für jede beliebige Verlängerung auf."
+SELECT pg_temp.expect_reject(
+    '17 — Anhalten, das sich selbst als erste Zeile einträgt',
+    $q$INSERT INTO retention_holds (retention_hold_id, retention_subject_id, child_id,
+                                    retention_hold_reason_id, first_hold_id,
+                                    original_delete_on, held_until, created_by)
+       VALUES ('88888888-8888-8888-8888-888888888883',
+               (SELECT retention_subject_id FROM retention_subjects WHERE code='child_health_record'),
+               '44444444-4444-4444-4444-444444444445',
+               (SELECT retention_hold_reason_id FROM retention_hold_reasons WHERE code='legal_dispute'),
+               '88888888-8888-8888-8888-888888888883',
                current_date - 10, current_date + 60, 'entra:hortleitung')$q$);
 
 -- Das dritte Kind: ein Anhalten, das gestern abgelaufen ist.

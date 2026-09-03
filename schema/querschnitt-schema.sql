@@ -166,16 +166,15 @@
 -- ---------------------------------------------------------------------------
 
 -- Herkunft: grenzkarte.md, Q1 — „Braucht sie: Schulvertrag, Gesundheitsdaten,
--- Fotoeinverständnis, die Zeckenentfernung …, Werbe-Einwilligung
--- Ferienbetreuung, die Einwilligung zum Informationsaustausch zwischen Hort und
--- Schule … und die Lastschrift-Ermächtigung". Kein Löschanker: keine
--- Personendaten. Audit-Spalten, weil ein hier ergänzter Zweck sofort eine
--- abzufragende Einwilligung wird.
--- Ohne die Zeckenentfernung: grenzkarte.md führt sie hier („Erlaubnis, kein
--- Gesundheitsmerkmal"), Block 08 zählt sie unter den Punkten der
--- Gesundheitsangaben auf und unter dem, was Lehrkräfte und Hort im Alltag
--- sehen. Der Block ist jünger und schlägt die Karte; sie steht deshalb als
--- Merkmalsart in `health_trait_types` (gesundheit-schema.sql) und nicht hier.
+-- Fotoeinverständnis, Werbe-Einwilligung Ferienbetreuung, die Einwilligung zum
+-- Informationsaustausch zwischen Hort und Schule … und die
+-- Lastschrift-Ermächtigung". Kein Löschanker: keine Personendaten.
+-- Audit-Spalten, weil ein hier ergänzter Zweck sofort eine abzufragende
+-- Einwilligung wird.
+-- Die Zeckenentfernung fehlt in dieser Liste, und das ist keine Abweichung von
+-- der Karte, sondern ihr eigener Satz: „Die Zeckenentfernung steht entgegen
+-- einer älteren Fassung dieser Karte nicht hier" (Q1) — sie ist eine
+-- Merkmalsart in `health_trait_types` (gesundheit-schema.sql).
 -- Ebenso ohne die Lastschrift-Ermächtigung: 11 sagt „Das Schulgeld-Mandat steht
 -- schon (08), eingezogen wird darüber", 08 sagt zum Mandat „hier steht nur, dass
 -- eingezogen werden darf", und die Karte selbst „ein Mandat je Kind, aber nicht
@@ -204,10 +203,15 @@ CREATE TABLE consent_purposes (
     -- Trägt den zusammengesetzten Fremdschlüssel von `consents` (rules.md
     -- Abschnitt 1) und ist deshalb zusätzlich zum Primärschlüssel nötig.
     CONSTRAINT uq_consent_purposes_requires_child UNIQUE (consent_purpose_id, requires_child),
-    CONSTRAINT ck_consent_purposes_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
+    -- Ohne `guardian:`, wie an den Wertelisten des Lösch-Laufs: Eine Werteliste
+    -- legt kein Elternteil an, sie entsteht im Haus.
+    CONSTRAINT ck_consent_purposes_created_by CHECK (created_by ~ '^(entra:|system:)')
 );
 
--- Herkunft: grenzkarte.md, Q2 — „Die Bibliotheksgrenze ist die Zugriffsgrenze."
+-- Herkunft: oberflaechen.md — „die Bibliotheksgrenze ist die Zugriffsgrenze".
+-- Der Satz steht dort und nicht in der Grenzkarte; die Karte trägt die Regel
+-- dahinter: „Direkten Zugriff auf eine Bibliothek bekommt nur, wer *in* den
+-- Dateien arbeitet" (Q2).
 -- Zwei Zeilen, und zwei Sites: die digitale Schülerakte mit einem Ordner je
 -- Kind, in dem alles liegt — die von Weltenbaum erzeugten Unterlagen wie das,
 -- was Menschen dazulegen —, und die Ablage der Rechnungsfreigabe, die eine
@@ -241,11 +245,17 @@ CREATE TABLE sharepoint_libraries (
 
     CONSTRAINT pk_sharepoint_libraries      PRIMARY KEY (sharepoint_library_id),
     CONSTRAINT uq_sharepoint_libraries_code UNIQUE (code),
-    CONSTRAINT ck_sharepoint_libraries_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
+    -- Ohne `guardian:`: eine Bibliothek richtet ein Admin ein, kein Elternteil.
+    CONSTRAINT ck_sharepoint_libraries_created_by CHECK (created_by ~ '^(entra:|system:)')
 );
 
--- Herkunft: grenzkarte.md, Q2 — „Eine Dokumentzeile entsteht nur, wo ein Prozess
--- sie liest: die signierten Unterlagen und die am Anmeldetag angeforderten".
+-- Herkunft: grenzkarte.md, Q2 — „Damit muss niemand die Liste der
+-- Dokumentarten vorher kennen. Sie ist eine Werteliste und wächst um eine
+-- Zeile, sobald ein Prozess eine Unterlage beim Namen nennen will — nie um eine
+-- Migration, und nie auf Vorrat: Eine Art, nach der kein Prozess fragt, hätte
+-- keinen Leser." Die Zeile daneben entsteht trotzdem für jede Datei („Jede
+-- Datei bekommt eine Zeile", Q2); nur die **Art** bleibt der Teilmenge
+-- vorbehalten, nach der ein Prozess fragt.
 -- Kein Löschanker: keine Personendaten.
 CREATE TABLE document_types (
     document_type_id integer GENERATED ALWAYS AS IDENTITY,
@@ -260,7 +270,8 @@ CREATE TABLE document_types (
 
     CONSTRAINT pk_document_types      PRIMARY KEY (document_type_id),
     CONSTRAINT uq_document_types_code UNIQUE (code),
-    CONSTRAINT ck_document_types_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
+    -- Ohne `guardian:`: eine Dokumentart legt an, wer den Prozess pflegt.
+    CONSTRAINT ck_document_types_created_by CHECK (created_by ~ '^(entra:|system:)')
 );
 
 -- Herkunft: hebel.md, „Nachzieh-Aufgabe und Wochenmail" — „Was nach draußen
@@ -293,13 +304,24 @@ CREATE TABLE sync_targets (
     -- zeigt (rules.md Abschnitt 3).
     is_active       boolean NOT NULL DEFAULT true,
     role_id        integer NOT NULL,
+    -- Das Flag der Rollenzeile, hier mitgeführt, damit `sync_tasks` es sehen
+    -- kann; `fk_sync_targets_role` hält beide zusammen (rules.md Abschnitt 1).
+    -- Dieselbe Bauform wie an `employee_roles` (stammdaten-schema.sql) und aus
+    -- demselben Grund: Ohne sie bliebe „leer bei jedem Ziel, dessen Rolle nicht
+    -- an eine Schulart gebunden ist" ein Satz ohne Halt.
+    is_branch_bound boolean NOT NULL DEFAULT false,
     created_at     timestamptz NOT NULL DEFAULT now(),
     created_by     text NOT NULL,
 
     CONSTRAINT pk_sync_targets      PRIMARY KEY (sync_target_id),
     CONSTRAINT uq_sync_targets_code UNIQUE (code),
-    CONSTRAINT fk_sync_targets_role FOREIGN KEY (role_id) REFERENCES roles (role_id),
-    CONSTRAINT ck_sync_targets_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
+    CONSTRAINT fk_sync_targets_role
+        FOREIGN KEY (role_id, is_branch_bound) REFERENCES roles (role_id, is_branch_bound),
+    -- Trägt den zusammengesetzten Fremdschlüssel von `sync_tasks` (rules.md
+    -- Abschnitt 1) und ist deshalb zusätzlich zum Primärschlüssel nötig.
+    CONSTRAINT uq_sync_targets_branch_bound UNIQUE (sync_target_id, is_branch_bound),
+    -- Ohne `guardian:`: eine Aufgabenart legt ein Admin an, kein Elternteil.
+    CONSTRAINT ck_sync_targets_created_by CHECK (created_by ~ '^(entra:|system:)')
 );
 
 
@@ -314,7 +336,8 @@ CREATE TABLE sync_targets (
 -- (Betreiber, 03.09.2026): Die Geschäftsführung pflegt die Fassungen, und wer
 -- einen Text an ein Angebot oder eine Terminart bindet, wählt aus dieser Liste
 -- — ein Tippfehler ließe die Bedingungen sonst still verschwinden, obwohl sie
--- „sichtbar sein müssen, bevor angemeldet wird" (10, 21).
+-- „sichtbar bevor angemeldet wird" (21) bzw. „sichtbar bevor gebucht wird"
+-- (10) sein müssen.
 -- Kein Löschanker: keine Personendaten.
 CREATE TABLE contract_text_kinds (
     contract_text_kind_id integer GENERATED ALWAYS AS IDENTITY,
@@ -369,7 +392,8 @@ CREATE TABLE contract_texts (
     CONSTRAINT uq_contract_texts_id_code UNIQUE (contract_text_id, code),
     CONSTRAINT ck_contract_texts_code CHECK (code <> ''),
     CONSTRAINT ck_contract_texts_body CHECK (body <> ''),
-    CONSTRAINT ck_contract_texts_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
+    -- Ohne `guardian:`: „geändert von der Geschäftsführung" (hebel.md).
+    CONSTRAINT ck_contract_texts_created_by CHECK (created_by ~ '^(entra:|system:)')
 );
 
 -- Herkunft: 08 (Schulvertrag) — „Namenszug zeichnen, dazu hält das System fest,
@@ -438,6 +462,9 @@ CREATE TABLE signatures (
 
     CONSTRAINT pk_signatures        PRIMARY KEY (signature_id),
     CONSTRAINT fk_signatures_person FOREIGN KEY (person_id) REFERENCES persons (person_id),
+    -- Trägt den zusammengesetzten Fremdschlüssel von `consents` (rules.md
+    -- Abschnitt 1) und ist deshalb zusätzlich zum Primärschlüssel nötig.
+    CONSTRAINT uq_signatures_id_person UNIQUE (signature_id, person_id),
     -- Löschanker: geht mit dem Mandat, das sie trägt.
     CONSTRAINT fk_signatures_mandate
         FOREIGN KEY (sepa_mandate_id) REFERENCES sepa_mandates (sepa_mandate_id) ON DELETE CASCADE,
@@ -518,6 +545,18 @@ CREATE TABLE documents (
     CONSTRAINT fk_documents_type  FOREIGN KEY (document_type_id) REFERENCES document_types (document_type_id),
     CONSTRAINT fk_documents_library
         FOREIGN KEY (sharepoint_library_id) REFERENCES sharepoint_libraries (sharepoint_library_id),
+    -- „Jede Datei bekommt eine Zeile" (grenzkarte.md, Q2) — und keine Datei
+    -- zwei. Ohne diesen Schlüssel zeigten die Zeilen zweier Kinder auf dasselbe
+    -- Graph-Element, und der Lösch-Lauf entfernte in Stufe 1 die Datei, auf die
+    -- die Zeile des anderen Kindes noch zeigt. Derselbe Schlüssel wie an den
+    -- Beleganhängen (`uq_expense_claim_attachments`,
+    -- rechnungsfreigabe-schema.sql). Ein schlichtes UNIQUE genügt: NULL zählt
+    -- in Postgres als verschieden, die bloße Anforderung ohne Datei fällt also
+    -- von selbst heraus.
+    CONSTRAINT uq_documents_graph_item UNIQUE (sharepoint_library_id, graph_item_id),
+    -- Trägt den zusammengesetzten Fremdschlüssel von `consents` (rules.md
+    -- Abschnitt 1) und ist deshalb zusätzlich zum Primärschlüssel nötig.
+    CONSTRAINT uq_documents_id_child UNIQUE (document_id, child_id),
     -- Eine Zeile, die weder angefordert wurde noch eine Datei trägt noch als
     -- nicht nötig festgestellt ist, sagt nichts.
     CONSTRAINT ck_documents_purpose
@@ -539,9 +578,10 @@ ALTER TABLE sepa_mandates
     ADD CONSTRAINT fk_sepa_mandates_document
         FOREIGN KEY (document_id) REFERENCES documents (document_id);
 
--- Herkunft: grenzkarte.md, Q2 — „Nur der Ordner der Schülerakte braucht einen
--- Anker in der Datenbank: dort legen Menschen frei ab, und ohne ihn erreichte
--- der Lösch-Job das nicht." Löschanker: geht mit dem Kind, aber bewusst OHNE
+-- Herkunft: grenzkarte.md, Q2 — „Der Ordner-Anker bleibt daneben bestehen
+-- (`child_file_folders`): Er trägt den Ordner selbst, den der Lösch-Lauf
+-- zusätzlich zu seinen Dateien entfernen muss, und er ist der Bezug, über den
+-- die Zeile ihre Kategorie kennt." Löschanker: geht mit dem Kind, aber bewusst OHNE
 -- Cascade — wie bei `documents` muss der Lösch-Lauf den Ordner in SharePoint
 -- zuerst mitentfernen, mit Papierkorb und Versionsverlauf; er erwischt damit
 -- auch, was Weltenbaum nie gesehen hat.
@@ -575,14 +615,12 @@ CREATE TABLE child_file_folders (
 -- beiden Fälle stehen bleiben darf — die beiden Anker rechnen verschieden (das
 -- Kind ab seinem Ende (03), der Sorgeberechtigte an der Familie), und es
 -- löscht, wessen Frist zuerst abläuft.
--- Das Fotoeinverständnis ist davon ausgenommen: Es wird **unbegrenzt**
--- aufbewahrt (Datenschutzbeauftragter, 02.09.2026). Der Grund ist nicht die
--- Erlaubnis, sondern ihr Nachweis — ein einmal veröffentlichtes Bild
--- verschwindet nicht mehr, und es muss auch Jahre später ersichtlich bleiben,
--- dass die Erlaubnis bis zu einem bestimmten Tag galt (Art. 7 Abs. 1 DSGVO).
--- Der Widerruf steht dem nicht entgegen, er beendet die Nutzung: `revoked_at`
--- setzen, die weitere Verwendung unterbinden und das Bildmaterial auf Verlangen
--- löschen. Was unbegrenzt bleibt, ist die Zeile, nicht das Recht daran. Bewusst KEIN Boolean und keine
+-- Das Fotoeinverständnis macht davon keine Ausnahme: Es „hängt am Kind und
+-- verschwindet mit ihm im Lösch-Lauf (17)" (08). Der Widerruf beendet die
+-- Nutzung und nicht die Zeile — `revoked_at` setzen, die weitere Verwendung
+-- unterbinden, das Bildmaterial auf Verlangen löschen. Ob der Nachweis der
+-- Erlaubnis das Kind überdauern muss, ist offen und steht als Frage am Ende
+-- dieser Datei. Bewusst KEIN Boolean und keine
 -- Werteliste für die Antwort: der Zeitpunkt ist der Nachweis nach Art. 7
 -- Abs. 1 DSGVO.
 CREATE TABLE consents (
@@ -628,8 +666,19 @@ CREATE TABLE consents (
     -- das Sekretariat ohne Umweg sichtbar" (08).
     CONSTRAINT ck_consents_child
         CHECK (NOT requires_child OR child_id IS NOT NULL),
-    CONSTRAINT fk_consents_signature FOREIGN KEY (signature_id) REFERENCES signatures (signature_id),
-    CONSTRAINT fk_consents_document  FOREIGN KEY (document_id)  REFERENCES documents (document_id),
+    -- Die Datei gehört demselben Kind wie die Zustimmung, die auf sie zeigt:
+    -- „Eine Datei beim falschen Kind ist keine ältere Fassung … die
+    -- Verwechslung wäre damit nicht behoben, sondern eingebaut"
+    -- (grenzkarte.md, Q2). Der einspaltige Fremdschlüssel band nur die Zeile.
+    -- Bei einer Zustimmung ohne Kind greift er nicht (MATCH SIMPLE) — die
+    -- kindlose Antwort trägt keine erzeugte Datei, und ein NOT NULL auf
+    -- `child_id` verböte die Werbe-Einwilligung.
+    CONSTRAINT fk_consents_document
+        FOREIGN KEY (document_id, child_id) REFERENCES documents (document_id, child_id),
+    -- Und dieselbe Bindung an der Unterschrift: Sie gehört der Person, deren
+    -- Antwort sie belegt, nicht irgendeiner.
+    CONSTRAINT fk_consents_signature
+        FOREIGN KEY (signature_id, person_id) REFERENCES signatures (signature_id, person_id),
     CONSTRAINT ck_consents_answer
         CHECK ((granted_at IS NOT NULL) <> (declined_at IS NOT NULL)),
     -- Widerrufen wird eine Erteilung, nie eine Ablehnung.
@@ -721,7 +770,7 @@ CREATE TABLE payments (
     -- oder das Fenster zu. Mit `= 1` wäre diese Zahlung nicht eintragbar und
     -- verschwände still, was der einzige Fall ist, in dem das System Geld
     -- verlöre. Wer sie hält, hält auch die Aufgabe daran: `sync_tasks`
-    -- trägt sie als achten Bezug, Ziel `payment_without_cause`, damit ein
+    -- trägt sie als neunten Bezug, Ziel `payment_without_cause`, damit ein
     -- Mensch über die Rückzahlung entscheidet. Ein Constraint, der das
     -- Aufgaben-Paar erzwingt, ginge nur über zwei Tabellen und steht deshalb
     -- nicht hier, sondern an der Rückrufroute.
@@ -756,7 +805,8 @@ CREATE TABLE sync_tasks (
     -- Genau einer der neun Bezüge: die Person (02), das Kind (03, 08), die
     -- Familie (01), das Schuljahr (04), ein Zeitraum (01, Monatslauf der
     -- Strafen; als Erster des Monats), die einzelne Ferienbuchung (10), die
-    -- einzelne Akademie-Anmeldung (21) oder der einzelne Putztermin (01).
+    -- einzelne Akademie-Anmeldung (21), der einzelne Putztermin (01) oder die
+    -- einzelne Zahlung ohne Vorgang (api/gemeinsam.md).
     person_id        uuid,
     child_id         uuid,
     family_id        uuid,
@@ -798,8 +848,11 @@ CREATE TABLE sync_tasks (
     -- diese Spalte liest die Grundschulleitung in ihrer Wochenmail die Namen
     -- der Realschulkinder. Leer bei jedem Ziel, dessen Rolle nicht an eine
     -- Schulart gebunden ist — das ist jede außer der Schulleitung
-    -- (`roles.is_branch_bound`).
+    -- (`roles.is_branch_bound`); `ck_sync_tasks_branch_bound` hält das.
     school_branch_id integer,
+    -- Das Flag des Ziels, hier mitgeführt, damit der CHECK unten es sehen kann;
+    -- `fk_sync_tasks_target` hält beide zusammen (rules.md Abschnitt 1).
+    is_branch_bound  boolean NOT NULL DEFAULT false,
     -- Was zu tun ist, in einem Satz; die zuständige Stelle folgt aus dem Ziel
     -- und steht deshalb nicht hier.
     task_text      text NOT NULL,
@@ -815,12 +868,20 @@ CREATE TABLE sync_tasks (
     created_by     text NOT NULL,
 
     CONSTRAINT pk_sync_tasks        PRIMARY KEY (sync_task_id),
-    CONSTRAINT fk_sync_tasks_target FOREIGN KEY (sync_target_id) REFERENCES sync_targets (sync_target_id),
+    CONSTRAINT fk_sync_tasks_target
+        FOREIGN KEY (sync_target_id, is_branch_bound)
+        REFERENCES sync_targets (sync_target_id, is_branch_bound),
     CONSTRAINT fk_sync_tasks_person FOREIGN KEY (person_id) REFERENCES persons (person_id) ON DELETE CASCADE,
     CONSTRAINT fk_sync_tasks_child  FOREIGN KEY (child_id)  REFERENCES children (child_id) ON DELETE CASCADE,
     CONSTRAINT fk_sync_tasks_family FOREIGN KEY (family_id) REFERENCES families (family_id) ON DELETE CASCADE,
     CONSTRAINT fk_sync_tasks_payment FOREIGN KEY (payment_id) REFERENCES payments (payment_id) ON DELETE CASCADE,
     CONSTRAINT fk_sync_tasks_branch FOREIGN KEY (school_branch_id) REFERENCES school_branches (school_branch_id),
+    -- Die Schulart steht an jedem zweiggebundenen Ziel und nur dort: ohne sie
+    -- sähe die Grundschulleitung die Realschulkinder (08 Z4), mit ihr an einem
+    -- zweigfreien Ziel verlöre die Aufgabe die Hälfte ihrer Empfänger.
+    -- Dieselbe Form wie `ck_employee_roles_branch_bound` (stammdaten-schema.sql).
+    CONSTRAINT ck_sync_tasks_branch_bound
+        CHECK (is_branch_bound = (school_branch_id IS NOT NULL)),
     CONSTRAINT ck_sync_tasks_single_subject CHECK (
         (person_id        IS NOT NULL)::int
       + (child_id         IS NOT NULL)::int
@@ -1129,7 +1190,7 @@ CREATE TABLE retention_subjects (
     -- „child_health_record" und „health_occasion" (17), „holiday_booking" (10),
     -- „holiday_care_note" (10), „academy_registration" (21), „excursion" (19),
     -- „contract" und „sepa_mandate" (08), „child_file" (08), „care_file" (09),
-    -- „employee" (13), „change_log" (17). Der Code ist die Verankerung im
+    -- „employee" (13). Der Code ist die Verankerung im
     -- Anwendungscode; wächst die Liste, ist das eine Zeile und keine Migration.
     code                 text NOT NULL,
     name                 text NOT NULL,
@@ -1153,7 +1214,8 @@ CREATE TABLE retention_subjects (
 -- sie geht mit der Mitarbeitendenzeile, auf die sie zeigt.
 -- Bewusst KEINE Tabelle für die versandten Ankündigungen daneben: Der Lauf
 -- läuft täglich und schickt am Tag vor dem Termin minus vierzehn und minus
--- sieben — „ein festes Datum schlägt ein gerechnetes" (hebel.md); was er
+-- sieben — „ein festes Datum wie ‚am 1. jedes Monats' schlägt ein gerechnetes"
+-- (hebel.md); was er
 -- geschickt hat, steht als Zeile in `outbound_emails`.
 CREATE TABLE retention_notice_recipients (
     retention_notice_recipient_id integer GENERATED ALWAYS AS IDENTITY,
@@ -1215,9 +1277,9 @@ CREATE TABLE retention_notice_recipients (
 -- Herkunft: hebel.md, „Löschankündigung und Anhalten" — „ob ein Vorgang
 -- vorliegt, der die Löschung verzögert — Arztbesuch, Unfall, medizinische
 -- Ausnahmesituation, drohender Rechtsstreit". Kein Löschanker: keine
--- Personendaten. Werteliste und kein CHECK, weil sie wächst: „wer einen Grund
--- findet, den es geben muss, bekommt eine fünfte Zeile und keinen Freitext"
--- (17) — ein Freitext stünde daneben, und danach ließe sich nicht mehr zählen,
+-- Personendaten. Werteliste und kein CHECK, weil sie wächst: „wer einen
+-- findet, den es geben muss, bekommt eine fünfte Zeile in der Liste und keinen
+-- Freitext" (17) — ein Freitext stünde daneben, und danach ließe sich nicht mehr zählen,
 -- warum angehalten wird.
 CREATE TABLE retention_hold_reasons (
     retention_hold_reason_id integer GENERATED ALWAYS AS IDENTITY,
@@ -1309,6 +1371,23 @@ CREATE TABLE retention_holds (
 -- heute in der Liste der angehaltenen Löschungen.
 CREATE INDEX ix_retention_holds_held_until ON retention_holds (held_until);
 
+-- Je Bestand und Anker gibt es höchstens **eine erste** Zeile; jede weitere ist
+-- eine Verlängerung und muss `first_hold_id` tragen. Erst damit greift der
+-- zusammengesetzte Fremdschlüssel darüber, und „der ursprüngliche Löschtermin
+-- bleibt beim Verlängern stehen" (hebel.md) gilt auch für den, der über die
+-- Oberfläche „neu anhalten" statt „verlängern" wählt — sonst setzte genau er
+-- die Zählung zurück, um die es geht. `NULLS NOT DISTINCT` (Postgres 15+, Ziel
+-- ist 18), weil zwei der drei Ankerspalten je Zeile leer sind und die Zeile
+-- sonst für sich einzigartig wäre; dieselbe Form wie `uq_employee_roles`
+-- (stammdaten-schema.sql). Bewusst KEIN Index über die *laufenden* Anhaltungen:
+-- „laufend" verglich `held_until` mit dem heutigen Tag, und `current_date` ist
+-- in keinem Indexprädikat zulässig — dieselbe Grenze wie beim Gültigkeitstag an
+-- `configured_values`.
+CREATE UNIQUE INDEX ix_retention_holds_first
+    ON retention_holds (retention_subject_id, child_id, person_id, family_id)
+    NULLS NOT DISTINCT
+    WHERE first_hold_id IS NULL;
+
 
 -- ---------------------------------------------------------------------------
 -- Offene Fragen an die Schule
@@ -1329,8 +1408,22 @@ CREATE INDEX ix_retention_holds_held_until ON retention_holds (held_until);
 --     Was daran hängt: Bis die Frist steht, räumt der Lösch-Lauf diese Zeilen
 --     gar nicht; danach ist es eine WHERE-Bedingung und keine Migration.
 
+-- [?] Muss der Nachweis des Fotoeinverständnisses das Kind überdauern?
+--     Heute nicht: Die Zustimmung hängt am Kind und geht mit ihm (08, Block
+--     „Löschen"), beide Fremdschlüssel kaskadieren. Dagegen steht, dass ein
+--     einmal veröffentlichtes Bild nicht mehr verschwindet und Jahre später
+--     ersichtlich bleiben muss, dass die Erlaubnis bis zu einem bestimmten Tag
+--     galt (Art. 7 Abs. 1 DSGVO). Am 02.09.2026 zusammen mit den vier Fristen
+--     vorgelegt und **nicht beantwortet** zurückgekommen.
+--     — Datenschutzbeauftragte
+--     Was daran hängt: Fällt die Antwort auf „ja", ist das ein eigener
+--     Bestandscode in `retention_subjects` und ein Eingriff in die
+--     Löschmechanik — die Cascade an `fk_consents_child` müsste fallen —, kein
+--     Satz an einem Kommentar.
+
 -- Beantwortet: Der Hort bekommt keine eigene Bibliothek. Es bleibt bei der
 -- einen Schülerakte, ein Ordner je Kind; was der Hort sieht, sieht er über
 -- Weltenbaum und nicht über SharePoint. `sharepoint_libraries` trägt beliebig
--- viele Zeilen, gebraucht wird eine — käme je eine zweite dazu, wäre das eine
--- Zeile und ein zweites Grant, kein Umbau.
+-- viele Zeilen, gebraucht werden zwei — die Schülerakte und die Ablage der
+-- Rechnungsfreigabe (rechnungsfreigabe-schema.sql). Käme je eine dritte dazu,
+-- wäre das eine Zeile und ein weiteres Grant, kein Umbau.

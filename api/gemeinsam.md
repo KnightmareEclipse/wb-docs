@@ -182,7 +182,7 @@ Fünf Festlegungen dazu, die für alle drei Anlässe gelten:
   [Aufgabe](../soll-prozesse/hebel.md#nachzieh-aufgabe-und-wochenmail) bei der Buchhaltung, denn eine
   Rückzahlung entscheidet ein Mensch. Der Fall ist selten und darf trotzdem nicht still
   verschwinden, und das Schema hält ihn: `ck_payments_single_cause` lässt **höchstens** einen
-  Vorgangs-Schlüssel zu statt genau einen, `sync_tasks` trägt die Zahlung als achten Bezug, und
+  Vorgangs-Schlüssel zu statt genau einen, `sync_tasks` trägt die Zahlung als neunten Bezug, und
   `sync_targets` kennt dafür `payment_without_cause` bei der Buchhaltung. Die Route legt beides in
   derselben Transaktion an — eine Zahlung ohne Vorgang, die keine Aufgabe bekommt, ist Geld, das
   niemand mehr sucht. Ein Kauf aus mehreren Zeilen trägt dabei **ganz oder gar nicht**: die eine

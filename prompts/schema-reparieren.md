@@ -25,10 +25,10 @@ Es gelten [`gemeinsam.md`](gemeinsam.md) (wie du mit mir redest, kein Subagent u
 Wir schließen Funde aus `pruefberichte/aktuell.md` im Datenmodell unter `schema/`. Der Bericht ist
 die Arbeitsliste, nicht die Anweisung.
 
-**Derzeit gibt es hier nichts zu tun.** Fünf Zyklen sind abgeschlossen, kein Fund wurde verworfen.
-Was aus ihnen weiterträgt, steht als Satz an seiner Stelle im Schema und nicht in einer Liste
-daneben — offen ist allein die Frist, nach der eine versandte Mail ohne Person verfällt, als `[?]`
-im Kopf von `schema/querschnitt-schema.sql`.
+**Derzeit gibt es hier nichts zu tun.** Kein Fund wurde verworfen. Was aus den Zyklen weiterträgt,
+steht als Satz an seiner Stelle im Schema und nicht in einer Liste daneben — offen sind allein die
+zwei `[?]` am Ende von `schema/querschnitt-schema.sql`: die Frist, nach der eine versandte Mail ohne
+Person verfällt, und ob der Nachweis des Fotoeinverständnisses das Kind überdauern muss.
 
 Ein neuer Prüflauf legt `pruefberichte/aktuell.md` frisch an; erst dann gibt es hier wieder etwas zu
 tun. **Am Ende des Zyklus wird die Datei gelöscht** — der Beleg, dass ein Fund geschlossen ist, ist
