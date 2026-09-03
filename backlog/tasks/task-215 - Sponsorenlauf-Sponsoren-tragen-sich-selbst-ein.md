@@ -4,6 +4,7 @@ title: 'Sponsorenlauf: Sponsoren tragen sich selbst ein'
 status: To Do
 assignee: []
 created_date: '2026-09-03 16:38'
+updated_date: '2026-09-03 16:43'
 labels:
   - schema
   - dsgvo
@@ -13,6 +14,7 @@ references:
   - schema/stammdaten-schema.sql
   - schema/querschnitt-schema.sql
   - fragen.md
+priority: low
 ordinal: 228000
 ---
 
@@ -26,7 +28,12 @@ Aus [M3]: Ein Kind läuft Runden, Sponsoren aus seinem persönlichen Umfeld zeic
 - **Ein Personenkreis ohne jedes Vertragsverhältnis.** Fremde Erwachsene, die weder Eltern noch Mitarbeitende sind. `persons` trägt sie ohne Weiteres — kein Fremdschlüssel auf `families`, Adresse und Mail sind nullable. Was fehlt, ist ihre Löschfrist und die Rechtsgrundlage.
 - **Ein Schreibweg ohne Anmeldung.** Bisher schreibt niemand ins System, ohne sich anzumelden; die Ausschreibung der Akademie ist der erste Endpunkt ohne Zugang, aber sie liest nur. Hier nimmt eine Route Namen fremder Erwachsener entgegen — das braucht einen Schutz gegen Müll und gegen das Eintragen im fremden Namen.
 
-**Blockiert von zwei Fragen** (fragen.md): Frage 4 klärt Rechtsgrundlage, Zweck, Frist und die Pflichtangaben des Formulars beim Datenschutzbeauftragten; Frage 12 klärt bei der Geschäftsführung, wie der Weg hinein aussehen soll — Link je Kind, QR-Code wie heute, offenes Formular — und wer den Abgleich mit dem Spendeneingang macht. Vor beiden Antworten wird nicht gebaut.
+**Auf der langen Bank** (03.09.2026): Es war eine Idee, ob sich das über das Portal abbilden ließe — kein Auftrag. Der heutige Weg über QR-Code, Liste und Spendenaufforderungsbrief läuft weiter, und nichts hängt daran.
+
+**Zwei Fragen wären zu stellen, wenn es soweit ist** — sie stehen bewusst *nicht* in fragen.md, weil Antworten auf etwas, das niemand bauen will, nur den Fragenkatalog aufblähen:
+
+- **An den Datenschutzbeauftragten:** Rechtsgrundlage, Zweck und Frist für einen Personenkreis fremder Erwachsener, dazu die Pflichtangaben des Formulars. Ein Zugang ohne Anmeldung, der Namen Dritter entgegennimmt, wäre der erste seiner Art im System.
+- **An die Geschäftsführung:** wie der Weg hinein aussehen soll — Link je Kind, QR-Code wie heute, offenes Formular — und wer den Abgleich mit dem Spendeneingang macht.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria

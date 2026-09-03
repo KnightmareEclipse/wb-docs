@@ -44,6 +44,11 @@ den Blöcken 03, 05, 10, 19 und 00, in `fragen.md` und `grenzkarte.md`; die Tick
 Einzelfall, Meldung an die Geschäftsführung — steht jetzt einmal als Hebel in
 `soll-prozesse/hebel.md` und wird von den Blöcken nur genannt.
 
+**Der ganze Abschnitt B ist gestrichen:** Jedes der acht neuen Themen hat inzwischen sein Ticket —
+B1 und B2 in TASK-176, TASK-211 und TASK-212, B3 in TASK-214, B4 in TASK-216, B5 in TASK-207, B6 in
+TASK-215 (auf der langen Bank, es war eine Idee), B7 in TASK-208 und B8 in TASK-209. Damit ist das
+Papier auf das zusammengeschmolzen, was die Quellen gesagt haben und was noch einzutragen ist.
+
 **Ebenfalls am 03.09.2026 abgearbeitet und deshalb gestrichen:** der grobe Sichtschnitt (DS4), der
 Attest-Teil von DS5 und der Vorgang B9. Das Modell dazu steht in **TASK-205** — ein Bestand je Kind,
 die Freigabe je Angabe und Instanz: Schule und Hort sind zwei Instanzen derselben Angabe, nicht zwei
@@ -229,54 +234,6 @@ Aus der **Deputatsverteilung 2026/27** (V.1), einem Foto der ausgedruckten Tabel
 **Nebenbefund für TASK-049:** Dieser Deputatsplan ist eine der „nebenher gepflegten Listen". Als
 Quelle für das Unterrichtsverhältnis kommt er nicht in Frage — dass er es als Einziger trüge, war
 der Grund, ihn anzufordern, und genau der ist mit der Handpflege entfallen.
-
----
-
-## B — Neue Themen, für die es noch kein Ticket gibt
-
-Hier entstehen Tickets, teils Blöcke. Jeder Punkt ist eine eigene Sitzung wert.
-
-**Am 03.09.2026 in Tickets überführt und deshalb gestrichen:** B5 (Platzwarnung → TASK-207, als ein
-Mechanismus für Ferienprogramm und Akademie statt zweier), B7 (Alumni → TASK-208, gewachsen zu
-Newsletter-Themen mit Einwilligung je Thema; gebaut wird der Bestand, nicht die Versandstrecke) und
-B8 (Folgenabschätzung → TASK-209, niedrige Priorität, fällig vor dem Livegang der
-Gesundheitsdaten).
-
-**B1. Seminarangebote für Erwachsene — zum Start dabei** · [M2], entschieden am 03.09.2026
-Die Akademie hat einen zweiten Zweig, der auf Teilnehmer zielt, die weder Kind noch Mitarbeitende
-sind. Das Datenmodell kennt diese Person nicht: kein Kind, kein Vertrag, kein Portalzugang über eine
-Familie. **Er ist zum Start dabei** — damit kann die Anmeldung in TASK-176 nicht am Kind hängen,
-sondern am Personeneintrag, und der Zweig ist kein Ableger des Kursangebots, sondern ein eigener
-Personenkreis. **Seine Löschfrist steht seit dem 03.09.2026:** dieselbe wie bei schulfremden
-Kindern, also sechs Monate nach dem letzten gebuchten Termin.
-
-**B2. LogaHR — und die umgekehrte Richtung** · [M1], beantwortet am 03.09.2026 → TASK-211, TASK-212
-Das Tool heißt **LogaHR**, Einführung voraussichtlich ab Januar. Die Einschätzung, die Jürgen wollte,
-ist damit schreibbar (TASK-211); die halbe Antwort stand ohnehin fest — Weltenbaum führt Name,
-dienstliche Mailadresse, Schule oder KITA, ersten und letzten Arbeitstag, Rolle und Nachfolgenotiz,
-mehr nicht. **Die eigentliche Nachricht ist die Richtung:** Nicht LogaHR soll Weltenbaum füttern,
-sondern Weltenbaum beim Eintritt das Microsoft-Konto anlegen und den Teams zuordnen, auf lange Sicht
-das ganze Onboarding (TASK-212). Das dreht Block 13 um und kostet Tenant-Rechte, mit denen sich der
-ganze Tenant umbauen ließe — deshalb ein eigener Durchgang und keine Fußnote.
-
-**B3. Notfallbetreuung als buchbarer Vorgang** · [M3]
-Eltern sollen sie im Portal buchen können — **Hortkinder wie Nicht-Hortkinder**. Die Mitarbeitenden
-haken ab beziehungsweise tragen nach. Für die Kinder, die unangekündigt in der Notbetreuung landen,
-bleibt es bei Papier und Übertragung. Die Preise stehen in der Hortliste (A2), ihre Zuordnung ist
-unklar (E2). Berührt Block 09 und die Mensa (Tagesessen 5,90 €).
-
-**B4. Hort-Belegungsliste aus dem System** · [M3]
-Jürgen fragt, ob die Belegungsliste mit ihren verschiedenen Sheets künftig erzeugt werden kann. Die
-Datei ist bewusst ungelesen, damit ist die Frage nicht beantwortbar — es fehlt, welche Sheets es
-gibt und welche Spalten darin stehen (`fragen.md` Frage 14).
-
-**B6. Sponsorenlauf** · [M3]
-Ein Kind läuft Runden, Sponsoren aus dem persönlichen Umfeld zeichnen einen Betrag je Runde. Heute:
-QR-Code, Liste, hinterher Spendenaufforderungsbrief. Gewünscht: die Sponsoren tragen sich selbst
-ein, **ohne Zugang zu meinCLEMENS**. Buchhaltung braucht Person und Betrag, weil es
-spendenbescheinigungsrelevant ist, und den Abgleich mit dem Spendeneingang. Das ist ein neuer
-Prozess mit einem neuen Personenkreis (fremde Erwachsene ohne Vertragsverhältnis) — Erhebung,
-Zweck, Frist und ein zugangsloser Schreibweg sind alle offen.
 
 ---
 
