@@ -1,10 +1,10 @@
 ---
 id: TASK-218
 title: 'Unterrichtsende je Klasse und Wochentag, samt Häkchen für Sport am Ende'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-03 17:11'
-updated_date: '2026-09-03 18:20'
+updated_date: '2026-09-03 19:05'
 labels:
   - schema
   - klassenorganisation
@@ -43,9 +43,18 @@ Sie gehört zu `klassenorganisation` — dieselbe Domäne wie das Unterrichtsver
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Eine Zeile je Klasse und Wochentag mit dem Unterrichtsende als Uhrzeit
-- [ ] #2 Ein Häkchen sagt, dass an diesem Tag Sport am Ende liegt und die Kinder später kommen
-- [ ] #3 Keine Ankunftszeit je Klasse — sie unterscheidet sich von Kind zu Kind
-- [ ] #4 Kein Fach, keine Stunde, kein Raum: Die Tabelle bleibt eine Zeit je Klasse und Wochentag
-- [ ] #5 Die Zeiten hängen am Schuljahr und werden wie die Unterrichtsverteilung gepflegt
+- [x] #1 Eine Zeile je Klasse und Wochentag mit dem Unterrichtsende als Uhrzeit
+- [x] #2 Ein Häkchen sagt, dass an diesem Tag Sport am Ende liegt und die Kinder später kommen
+- [x] #3 Keine Ankunftszeit je Klasse — sie unterscheidet sich von Kind zu Kind
+- [x] #4 Kein Fach, keine Stunde, kein Raum: Die Tabelle bleibt eine Zeit je Klasse und Wochentag
+- [x] #5 Die Zeiten hängen am Schuljahr und werden wie die Unterrichtsverteilung gepflegt
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+class_end_times in schema/klassenorganisation-schema.sql, Primärschlüssel aus Klasse,
+Schuljahr und Wochentag. Das Prüfskript weist die Ankunftszeit, das Fach, die Stunde
+und den Raum als Spalten ab und lässt den Samstag nicht durch. Beschrieben in
+soll-prozesse/15, weil die Zeit an der Klasse hängt; gelesen wird sie im Hort (09).
+<!-- SECTION:NOTES:END -->

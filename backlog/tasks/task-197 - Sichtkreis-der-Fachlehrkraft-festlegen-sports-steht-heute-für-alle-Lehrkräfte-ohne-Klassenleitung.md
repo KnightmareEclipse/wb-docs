@@ -1,10 +1,10 @@
 ---
 id: TASK-197
 title: 'Die Sichtkreise von sechs auf fünf zurückbauen, sports fällt weg'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-02 07:55'
-updated_date: '2026-09-03 18:18'
+updated_date: '2026-09-03 19:05'
 labels:
   - entscheidung
   - gesundheit
@@ -33,8 +33,21 @@ Die Begründung im Kopf von schema/gesundheit-schema.sql nennt als Beispiel für
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 class_lead und sports sind ein Sichtkreis; care ist eigen geblieben, und der Grund steht als Kommentar
-- [ ] #2 Der Seed trägt die zwei verbliebenen Unterscheidungen: Küche und Attest
-- [ ] #3 api/gesundheit-api.md nennt fünf Sichtkreise und keine sports-Begründung mehr
+- [x] #1 class_lead und sports sind ein Sichtkreis; care ist eigen geblieben, und der Grund steht als Kommentar
+- [x] #2 Der Seed trägt die zwei verbliebenen Unterscheidungen: Küche und Attest
+- [x] #3 api/gesundheit-api.md nennt fünf Sichtkreise und keine sports-Begründung mehr
 - [ ] #4 Die zusammengelegten DB-Rollen sind in wb-backend zurückgebaut, kein Grant zeigt auf eine entfallene Rolle
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+api/gesundheit-api.md nennt fünf Sichtkreise, class_lead heißt school, die
+sports-Begründung ist fort, und der Grund für care steht als Kommentar an
+health_visibility_scopes. Was der Seed künftig trägt, steht unter „Korrigiert an
+anderer Stelle".
+
+Offen: Kriterium 4 — backend_health_class_lead und backend_health_sports in
+wb-backend zu backend_health_school verschmelzen. Das gehört hinter den Prüflauf des
+Schemas, nicht davor.
+<!-- SECTION:NOTES:END -->

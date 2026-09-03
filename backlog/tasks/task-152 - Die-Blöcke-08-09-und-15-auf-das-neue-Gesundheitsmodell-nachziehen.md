@@ -1,10 +1,10 @@
 ---
 id: TASK-152
 title: 'Die Blöcke 08, 09 und 15 auf das neue Gesundheitsmodell nachziehen'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-01 17:19'
-updated_date: '2026-09-03 18:18'
+updated_date: '2026-09-03 19:05'
 labels:
   - wb-docs
   - gesundheit
@@ -38,10 +38,20 @@ Grund und Modell stehen in schema/gesundheit-schema.sql (Dateikopf) und in grenz
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 08 Z2 beschreibt die Freiwilligkeit je Kategorie und den Unterschied zwischen 'nichts vorhanden' und 'nicht beantwortet'
-- [ ] #2 09 Z3 beschreibt die Freigabe an den Hort als Instanz-Freigabe je Angabe, samt Ablehnungsrecht und Sammelfreigabe
-- [ ] #3 15 beschreibt die Einsicht der Klassenlehrkraft als Sichtkreis, nicht als oberste Stufe
-- [ ] #4 Keine der drei Dateien nennt noch 'Alltagsangaben' als Stufe oder die drei konzentrischen Sichten
-- [ ] #5 Die Notfalleinsicht steht in genau einem Block und wird von den anderen nur genannt
-- [ ] #6 Wo ein Block 'die Lehrkräfte' sagt, steht jetzt, welche — die zweite Achse wird genannt, nicht wiederholt
+- [x] #1 08 Z2 beschreibt die Freiwilligkeit je Kategorie und den Unterschied zwischen 'nichts vorhanden' und 'nicht beantwortet'
+- [x] #2 09 Z3 beschreibt die Freigabe an den Hort als Instanz-Freigabe je Angabe, samt Ablehnungsrecht und Sammelfreigabe
+- [x] #3 15 beschreibt die Einsicht der Klassenlehrkraft als Sichtkreis, nicht als oberste Stufe
+- [x] #4 Keine der drei Dateien nennt noch 'Alltagsangaben' als Stufe oder die drei konzentrischen Sichten
+- [x] #5 Die Notfalleinsicht steht in genau einem Block und wird von den anderen nur genannt
+- [x] #6 Wo ein Block 'die Lehrkräfte' sagt, steht jetzt, welche — die zweite Achse wird genannt, nicht wiederholt
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+08 trägt die Freiwilligkeit je Kategorie samt der drei Zustände, den groben Schnitt,
+das Attest als Vorliegen, die Freigabe je Instanz und die Notfalleinsicht — Letztere
+in genau diesem Block, 09 und 15 nennen sie nur. 09 beschreibt den Hort als eigene
+Instanz desselben Bestands. 15 trägt die zweite Achse und nennt sie, statt sie zu
+wiederholen. „Alltagsangaben" als Stufe kommt in keiner der drei Dateien mehr vor.
+<!-- SECTION:NOTES:END -->

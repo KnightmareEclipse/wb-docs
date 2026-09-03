@@ -1,10 +1,10 @@
 ---
 id: TASK-205
 title: Die Freigabe je Angabe und Instanz als zweite Bedingung der Sichtbarkeit
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-03 11:33'
-updated_date: '2026-09-03 18:20'
+updated_date: '2026-09-03 19:05'
 labels:
   - schema
   - gesundheit
@@ -54,16 +54,32 @@ Vor dem Bau dem Datenschutzbeauftragten zur Bestätigung vorlegen: Das Modell is
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Ein Bestand je Kind bleibt: keine Tabelle trägt Gesundheitswerte je Instanz
-- [ ] #2 child_health_releases unterscheidet 'nicht gefragt' von 'abgelehnt' — mit Gegenprobe
-- [ ] #3 Eine Angabe ohne Freigabe ist für den Sichtkreis unsichtbar; das Prüfskript weist den Lesefall ab
-- [ ] #4 Der Notfallausschnitt liefert auch die Angaben, die dieser Instanz nie freigegeben wurden — als Gegenprobe
-- [ ] #5 Eine Freigabe an einen Sichtkreis mit needs_release = false wird abgewiesen
-- [ ] #6 Zweckende und Löschtermin stehen an der Freigabe, nicht an der Angabe; die Angabe geht mit der letzten verfallenen Freigabe
-- [ ] #7 care ist ein eigener Sichtkreis geblieben, und der Grund steht als Kommentar an der Werteliste
-- [ ] #8 Entschieden, ob die Freigabe den Bestandsbezug mitführt (zusammengesetzter Fremdschlüssel) oder ob die Schreibschicht sie hält
-- [ ] #9 Die Küchenregel steht in genau einer Datei und wird anderswo nur genannt
-- [ ] #10 Der Kopfkommentar von schema/gesundheit-schema.sql begründet 'eine Zeile je Feld' nicht mehr mit dem abgelehnten Sportbeispiel, sondern mit Küche und Attest
+- [x] #1 Ein Bestand je Kind bleibt: keine Tabelle trägt Gesundheitswerte je Instanz
+- [x] #2 child_health_releases unterscheidet 'nicht gefragt' von 'abgelehnt' — mit Gegenprobe
+- [x] #3 Eine Angabe ohne Freigabe ist für den Sichtkreis unsichtbar; das Prüfskript weist den Lesefall ab
+- [x] #4 Der Notfallausschnitt liefert auch die Angaben, die dieser Instanz nie freigegeben wurden — als Gegenprobe
+- [x] #5 Eine Freigabe an einen Sichtkreis mit needs_release = false wird abgewiesen
+- [x] #6 Zweckende und Löschtermin stehen an der Freigabe, nicht an der Angabe; die Angabe geht mit der letzten verfallenen Freigabe
+- [x] #7 care ist ein eigener Sichtkreis geblieben, und der Grund steht als Kommentar an der Werteliste
+- [x] #8 Entschieden, ob die Freigabe den Bestandsbezug mitführt (zusammengesetzter Fremdschlüssel) oder ob die Schreibschicht sie hält
+- [x] #9 Die Küchenregel steht in genau einer Datei und wird anderswo nur genannt
+- [x] #10 Der Kopfkommentar von schema/gesundheit-schema.sql begründet 'eine Zeile je Feld' nicht mehr mit dem abgelehnten Sportbeispiel, sondern mit Küche und Attest
 - [ ] #11 Eine Handlung gibt alles frei: die Eltern müssen nicht jede Angabe einzeln anklicken, das Einzelne bleibt möglich (03.09.2026)
 - [ ] #12 Das Modell ist von der Geschäftsführung bestätigt (03.09.2026); der Datenschutzbeauftragte wird unterrichtet, nicht gefragt — es ist strenger als seine Vorgabe
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Gebaut: child_health_releases und health_trait_releases in
+schema/gesundheit-schema.sql, needs_release an health_visibility_scopes.
+Kriterium 8 ist entschieden — die Freigabe führt den Bestandsbezug mit: health_traits
+trägt child_health_record_id, child_health_releases eine abgeleitete Spalte
+is_released, und der zusammengesetzte Fremdschlüssel weist eine Einzelfreigabe an
+einer abgelehnten Instanz ab. Der Widerruf einer Instanz scheitert, solange eine
+Einzelfreigabe daran hängt — die gewollte Reihenfolge.
+
+Offen: Kriterium 11 (eine Handlung gibt alles frei) ist Oberfläche und gehört zu
+TASK-163; Kriterium 12 — den Datenschutzbeauftragten unterrichten — ist eine
+Handlung außerhalb des Repos.
+<!-- SECTION:NOTES:END -->

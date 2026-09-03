@@ -1,10 +1,10 @@
 ---
 id: TASK-161
 title: Unterrichtsgruppen als zweite Achse der Sichtbarkeit
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-01 17:19'
-updated_date: '2026-09-03 16:33'
+updated_date: '2026-09-03 19:05'
 labels:
   - schema
   - wb-docs
@@ -99,21 +99,35 @@ Woher die Zuordnung kommt, ist entschieden: **von Hand in Weltenbaum**, nicht au
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Zwei Zuordnungen: Klasse je Schuljahr, und die Wahlmodulgruppe mit eigener Kennung
-- [ ] #2 Das Kind zeigt mit einem Feld auf seine Gruppe — keine Verbindungstabelle, keine Mitgliederliste
-- [ ] #3 Zwei Gruppen desselben Moduls im selben Jahrgang sind darstellbar, mit verschiedenen Lehrkräften — als Gegenprobe
-- [ ] #4 Die Gruppe trägt ihre Kohorte, damit beim Eintragen die richtigen zur Auswahl stehen und eine leere Gruppe ein Zuhause hat
-- [ ] #5 Genau eine Lehrkraft je Gruppe; kein Schuljahr an der Gruppe, sie lebt so lange wie die Kohorte
-- [ ] #6 Eine Zuordnung Lehrkraft ↔ Klasse ohne Schuljahr wird abgewiesen
-- [ ] #7 Die Werteliste trägt genau die drei Wahlmodule; die übrigen Fächer entstehen nicht
-- [ ] #8 Listen entstehen je Zuordnung, nicht je Lehrkraft: Klassenliste und Gruppenliste sind zwei
-- [ ] #9 children.class_id bleibt die Stammklasse, die Gruppe steht daneben
-- [ ] #10 Für Akademie und Veranstaltungsbegleitung entsteht keine zweite Kindermenge — die Anmeldung dort ist sie
-- [ ] #11 Fehlt die Zuordnung, sieht die Lehrkraft nichts statt zu viel — das Prüfskript zeigt es
+- [x] #1 Zwei Zuordnungen: Klasse je Schuljahr, und die Wahlmodulgruppe mit eigener Kennung
+- [x] #2 Das Kind zeigt mit einem Feld auf seine Gruppe — keine Verbindungstabelle, keine Mitgliederliste
+- [x] #3 Zwei Gruppen desselben Moduls im selben Jahrgang sind darstellbar, mit verschiedenen Lehrkräften — als Gegenprobe
+- [x] #4 Die Gruppe trägt ihre Kohorte, damit beim Eintragen die richtigen zur Auswahl stehen und eine leere Gruppe ein Zuhause hat
+- [x] #5 Genau eine Lehrkraft je Gruppe; kein Schuljahr an der Gruppe, sie lebt so lange wie die Kohorte
+- [x] #6 Eine Zuordnung Lehrkraft ↔ Klasse ohne Schuljahr wird abgewiesen
+- [x] #7 Die Werteliste trägt genau die drei Wahlmodule; die übrigen Fächer entstehen nicht
+- [x] #8 Listen entstehen je Zuordnung, nicht je Lehrkraft: Klassenliste und Gruppenliste sind zwei
+- [x] #9 children.class_id bleibt die Stammklasse, die Gruppe steht daneben
+- [x] #10 Für Akademie und Veranstaltungsbegleitung entsteht keine zweite Kindermenge — die Anmeldung dort ist sie
+- [x] #11 Fehlt die Zuordnung, sieht die Lehrkraft nichts statt zu viel — das Prüfskript zeigt es
 - [ ] #12 Bestätigt, wer die Verteilung pflegt — Annahme ist die Schulleitung je Schulart, sie ist ungeprüft
-- [ ] #13 Solange je Modul und Kohorte eine Gruppe existiert, wählt die Oberfläche das Modul und legt die Gruppe selbst an; die Auswahl erscheint erst bei der zweiten
-- [ ] #14 Das Aufteilen in zwei Gruppen ist eine benannte Handlung mit dem Schritt 'wer kommt wohin'
-- [ ] #15 Die Wahl von A ist im Schema begründet: Wer in einer Klasse unterrichtet, sieht diese Klasse — auch die Kinder, die er nicht selbst fördert
-- [ ] #16 Die Zuordnung Kind ↔ Gruppe steht als Tabelle, nicht als Feld — heute eine Zeile je Kind, ohne Umstellung auch zwei
-- [ ] #17 Das Prüfskript zeigt beides: ein Kind in einer Gruppe und ein Kind in zweien
+- [x] #13 Solange je Modul und Kohorte eine Gruppe existiert, wählt die Oberfläche das Modul und legt die Gruppe selbst an; die Auswahl erscheint erst bei der zweiten
+- [x] #14 Das Aufteilen in zwei Gruppen ist eine benannte Handlung mit dem Schritt 'wer kommt wohin'
+- [x] #15 Die Wahl von A ist im Schema begründet: Wer in einer Klasse unterrichtet, sieht diese Klasse — auch die Kinder, die er nicht selbst fördert
+- [x] #16 Die Zuordnung Kind ↔ Gruppe steht als Tabelle, nicht als Feld — heute eine Zeile je Kind, ohne Umstellung auch zwei
+- [x] #17 Das Prüfskript zeigt beides: ein Kind in einer Gruppe und ein Kind in zweien
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Gebaut in schema/klassenorganisation-schema.sql: elective_modules, elective_groups,
+child_group_memberships, class_teaching_assignments, Prüfskript grün gegen die
+vollständige Datenbank. Die Werteliste steht dort und nicht in stammdaten — der
+Ladereihenfolge-Grund entfiel mit der Zuordnungstabelle, [A!] im Dateikopf.
+Kriterium 13 und 14 (Oberfläche) stehen als Ablauf in soll-prozesse/15.
+
+Offen ist allein Kriterium 12: Wer die Verteilung pflegt, ist eine [?]-Marke im
+Prüfskript-Kopf der Domäne und ungeprüft. Dazu der Prüflauf nach
+prompts/schema-pruefen.md in einer frischen Session.
+<!-- SECTION:NOTES:END -->

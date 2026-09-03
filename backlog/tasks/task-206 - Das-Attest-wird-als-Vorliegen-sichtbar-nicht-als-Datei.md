@@ -1,10 +1,10 @@
 ---
 id: TASK-206
 title: 'Das Attest wird als Vorliegen sichtbar, nicht als Datei'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-03 11:36'
-updated_date: '2026-09-03 18:20'
+updated_date: '2026-09-03 19:05'
 labels:
   - schema
   - gesundheit
@@ -36,10 +36,20 @@ Die Prüfung selbst braucht keine Struktur: "das Sekretariat wird dann die Angab
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 presence_only steht an health_field_visibility, mit Begründung als Spaltenkommentar
-- [ ] #2 Ein Sichtkreis mit presence_only liefert nie eine document_id — Gegenprobe im Prüfskript
-- [ ] #3 Derselbe Sichtkreis liefert sehr wohl, DASS ein Attest vorliegt — zweite Gegenprobe
-- [ ] #4 full behält das Attest im Klartext, damit das Sekretariat abgleichen kann
-- [ ] #5 Kein Prüfzustand an health_traits: die Korrektur des Sekretariats ist ein gewöhnlicher Schreibvorgang
-- [ ] #6 Sollstand im Kopf des Prüfskripts nachgezogen, alle Prüfskripte grün gegen die vollständige Datenbank
+- [x] #1 presence_only steht an health_field_visibility, mit Begründung als Spaltenkommentar
+- [x] #2 Ein Sichtkreis mit presence_only liefert nie eine document_id — Gegenprobe im Prüfskript
+- [x] #3 Derselbe Sichtkreis liefert sehr wohl, DASS ein Attest vorliegt — zweite Gegenprobe
+- [x] #4 full behält das Attest im Klartext, damit das Sekretariat abgleichen kann
+- [x] #5 Kein Prüfzustand an health_traits: die Korrektur des Sekretariats ist ein gewöhnlicher Schreibvorgang
+- [x] #6 Sollstand im Kopf des Prüfskripts nachgezogen, alle Prüfskripte grün gegen die vollständige Datenbank
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+presence_only steht an health_field_visibility, samt mitgeführter Wertart: Das
+Häkchen lässt sich nur an einem Dokumentfeld setzen, sonst wäre der geleerte Wert
+die ganze Angabe. Sollstand im Prüfskript-Kopf nachgezogen, alle 13 Prüfskripte grün
+gegen die vollständige Datenbank. Dass die Sicht die document_id leert, steht in
+api/gesundheit-api.md und wird in wb-backend gebaut.
+<!-- SECTION:NOTES:END -->

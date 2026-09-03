@@ -1,10 +1,10 @@
 ---
 id: TASK-220
 title: 'Notizfeld an der Person, mit drei Auflagen'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-03 17:44'
-updated_date: '2026-09-03 18:20'
+updated_date: '2026-09-03 19:05'
 labels:
   - dsgvo
   - stammdaten
@@ -41,10 +41,24 @@ Gefragt und entschieden am 03.09.2026: Es gibt heute kein Notizfeld je Kind — 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Die Notiz steht an persons und trägt damit Kind und Sorgeberechtigten
-- [ ] #2 Eine Notiz an einer Person mit employees-Zeile wird abgewiesen — als Gegenprobe
+- [x] #1 Die Notiz steht an persons und trägt damit Kind und Sorgeberechtigten
+- [x] #2 Eine Notiz an einer Person mit employees-Zeile wird abgewiesen — als Gegenprobe
 - [ ] #3 Am Eingabefeld steht, dass die Familie sie bei der Auskunft liest
 - [ ] #4 Die Notiz am Kind sieht, wer für das Kind zuständig ist, dazu Sekretariat und Schulleitung; die am Sorgeberechtigten nur diese beiden
-- [ ] #5 Der Kommentar an der Spalte sagt, was dort nicht hingehört — Gesundheit, Einschätzungen, Verdacht
-- [ ] #6 Löschanker an der Person, Änderungsspur über change_log
+- [x] #5 Der Kommentar an der Spalte sagt, was dort nicht hingehört — Gesundheit, Einschätzungen, Verdacht
+- [x] #6 Löschanker an der Person, Änderungsspur über change_log
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+persons.note steht, und die Grenze zu den Mitarbeitenden ist gebaut statt vereinbart:
+persons.has_note ist abgeleitet, employees.has_note führt sie mit und ist per CHECK
+immer falsch — der zusammengesetzte Fremdschlüssel weist beide Richtungen ab, die
+Notiz an einer Person mit Mitarbeitendeneintrag wie den Eintrag für eine Person mit
+Notiz. Ein Trigger war damit nicht nötig.
+
+Offen: Kriterium 3 (der Hinweis am Eingabefeld) gehört nach oberflaechen.md, Kriterium
+4 (der Leserkreis) nach grenzkarte.md — beide Dateien gehören in diesem Lauf keiner
+Sitzung, die Sätze stehen im Bericht.
+<!-- SECTION:NOTES:END -->
