@@ -4,7 +4,7 @@ title: Die Freigabe je Angabe und Instanz als zweite Bedingung der Sichtbarkeit
 status: In Progress
 assignee: []
 created_date: '2026-09-03 11:33'
-updated_date: '2026-09-03 19:05'
+updated_date: '2026-09-03 19:40'
 labels:
   - schema
   - gesundheit
@@ -82,4 +82,8 @@ Einzelfreigabe daran hängt — die gewollte Reihenfolge.
 Offen: Kriterium 11 (eine Handlung gibt alles frei) ist Oberfläche und gehört zu
 TASK-163; Kriterium 12 — den Datenschutzbeauftragten unterrichten — ist eine
 Handlung außerhalb des Repos.
+
+Nachgezogen: grenzkarte.md trägt die Freigabe als zweite der drei Bedingungen,
+api/mensa-api.md die Erbregel der Küche — über die Mensa-Tagesliste gilt die
+Freigabe an die Schule, über die Hortliste die an den Hort.
 <!-- SECTION:NOTES:END -->

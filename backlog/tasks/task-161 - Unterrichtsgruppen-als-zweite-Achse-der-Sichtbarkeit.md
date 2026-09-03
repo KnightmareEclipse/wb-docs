@@ -4,7 +4,7 @@ title: Unterrichtsgruppen als zweite Achse der Sichtbarkeit
 status: In Progress
 assignee: []
 created_date: '2026-09-01 17:19'
-updated_date: '2026-09-03 19:05'
+updated_date: '2026-09-03 19:40'
 labels:
   - schema
   - wb-docs
@@ -130,4 +130,8 @@ Kriterium 13 und 14 (Oberfläche) stehen als Ablauf in soll-prozesse/15.
 Offen ist allein Kriterium 12: Wer die Verteilung pflegt, ist eine [?]-Marke im
 Prüfskript-Kopf der Domäne und ungeprüft. Dazu der Prüflauf nach
 prompts/schema-pruefen.md in einer frischen Session.
+
+Nachgezogen: grenzkarte.md nennt die zweite Achse jetzt mit ihren Pfaden statt als
+offene Stelle, api/klassenorganisation-api.md sagt, dass die vier neuen Tabellen
+bewusst noch keine Route haben.
 <!-- SECTION:NOTES:END -->

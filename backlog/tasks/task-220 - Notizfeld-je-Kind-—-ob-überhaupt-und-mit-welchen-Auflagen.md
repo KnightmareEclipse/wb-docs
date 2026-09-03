@@ -1,10 +1,10 @@
 ---
 id: TASK-220
 title: 'Notizfeld an der Person, mit drei Auflagen'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-03 17:44'
-updated_date: '2026-09-03 19:05'
+updated_date: '2026-09-03 19:40'
 labels:
   - dsgvo
   - stammdaten
@@ -43,8 +43,8 @@ Gefragt und entschieden am 03.09.2026: Es gibt heute kein Notizfeld je Kind — 
 <!-- AC:BEGIN -->
 - [x] #1 Die Notiz steht an persons und trägt damit Kind und Sorgeberechtigten
 - [x] #2 Eine Notiz an einer Person mit employees-Zeile wird abgewiesen — als Gegenprobe
-- [ ] #3 Am Eingabefeld steht, dass die Familie sie bei der Auskunft liest
-- [ ] #4 Die Notiz am Kind sieht, wer für das Kind zuständig ist, dazu Sekretariat und Schulleitung; die am Sorgeberechtigten nur diese beiden
+- [x] #3 Am Eingabefeld steht, dass die Familie sie bei der Auskunft liest
+- [x] #4 Die Notiz am Kind sieht, wer für das Kind zuständig ist, dazu Sekretariat und Schulleitung; die am Sorgeberechtigten nur diese beiden
 - [x] #5 Der Kommentar an der Spalte sagt, was dort nicht hingehört — Gesundheit, Einschätzungen, Verdacht
 - [x] #6 Löschanker an der Person, Änderungsspur über change_log
 <!-- AC:END -->
@@ -61,4 +61,10 @@ Notiz. Ein Trigger war damit nicht nötig.
 Offen: Kriterium 3 (der Hinweis am Eingabefeld) gehört nach oberflaechen.md, Kriterium
 4 (der Leserkreis) nach grenzkarte.md — beide Dateien gehören in diesem Lauf keiner
 Sitzung, die Sätze stehen im Bericht.
+
+Nachgetragen: Leserkreis und der Hinweis am Eingabefeld stehen in grenzkarte.md
+(Abschnitt „Die Notiz an der Person“), nicht in oberflaechen.md — die entscheidet
+Hostnamen und Auslieferung, nicht den Text an einem Feld. Der Verweis am
+Spaltenkommentar zeigt entsprechend dorthin. Der Text selbst erscheint mit der
+Oberfläche in wb-intern; die Auflage steht hier, wo sie gilt.
 <!-- SECTION:NOTES:END -->
