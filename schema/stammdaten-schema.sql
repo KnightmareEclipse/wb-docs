@@ -342,7 +342,7 @@ CREATE TABLE persons (
     -- dieselbe Sorte Notiz dreimal auf, ist das keine Notiz, sondern eine
     -- fehlende Spalte. Die Familie liest sie bei der Auskunft nach Art. 15;
     -- dass das am Eingabefeld steht, ist der wirksamste Schutz und kostet
-    -- nichts (oberflaechen.md).
+    -- nichts (grenzkarte.md, „Die Notiz an der Person").
     note          text,
     -- Abgeleitet und gespeichert, weil ein Fremdschlüssel eine Spalte braucht
     -- und keinen Ausdruck: `employees` zeigt darauf und kann deshalb neben einer

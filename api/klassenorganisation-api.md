@@ -1,13 +1,20 @@
 # Klassenorganisation — Routen
 
 Aus [`16-elternvertretung.md`](../soll-prozesse/16-elternvertretung.md); es gilt
-[`gemeinsam.md`](gemeinsam.md), und was dort steht, wiederholt diese Datei nicht. **Eine Tabelle,
-`class_representatives`** — Klassenlehrkraft und Raum stehen in den Stammdaten
-(`schema/klassenorganisation-schema.sql`), und ein Gremium über der Klasse gibt es nicht.
+[`gemeinsam.md`](gemeinsam.md), und was dort steht, wiederholt diese Datei nicht. **Geplant ist hier
+die Elternvertretung und sonst nichts** — Klassenlehrkraft und Raum stehen in den Stammdaten
+(`schema/stammdaten-schema.sql`), und ein Gremium über der Klasse gibt es nicht.
 
-**Gegenprobe:** Die Ablauftabelle hat **2 Zeilen**; beide handeln im System und beide tragen eine
-Route. Es gibt **4 Routen**; **2** nennen eine Ablaufzeile, **2** einen Abschnitt des Blocks. Keine
-Abweichung.
+**Die Domäne trägt inzwischen mehr als eine Tabelle.** Zur Elternvertretung sind die zweite Achse
+der Sichtbarkeit — Unterrichtsverteilung, Wahlmodul samt Gruppe und Mitgliedschaft — und das
+Unterrichtsende je Klasse und Wochentag gekommen (`schema/klassenorganisation-schema.sql`, aus
+[15](../soll-prozesse/15-klassenbildung.md)). **Routen haben sie noch keine:** Sie entstehen in
+einem eigenen Durchgang, und der beginnt erst mit dem grünen Prüfbericht zum Schema. Bis dahin
+gilt alles Folgende für `class_representatives`.
+
+**Gegenprobe** (Elternvertretung): Die Ablauftabelle von 16 hat **2 Zeilen**; beide handeln im
+System und beide tragen eine Route. Es gibt **4 Routen**; **2** nennen eine Ablaufzeile, **2** einen
+Abschnitt des Blocks. Keine Abweichung.
 
 ## Die Regel, aus der die vier Routen folgen
 
@@ -81,7 +88,13 @@ Je eine Zeile, benannt und nicht mitgeplant:
   ([`querschnitt-api.md`](querschnitt-api.md)). Sie ist hier nicht Beiwerk, sondern der einzige Ort,
   an dem ein ausgetragenes Amt noch steht.
 - **Der Lösch-Lauf** (17) berührt diese Domäne nicht eigens: Der Eintrag geht mit der Person
-  (`fk_class_representatives_person … ON DELETE CASCADE`) und mit der Klasse.
+  (`fk_class_representatives_person … ON DELETE CASCADE`) und mit der Klasse. Dasselbe gilt für die
+  vier neuen Tabellen — die Mitgliedschaft geht mit dem Kind, die Unterrichtsverteilung mit dem
+  Mitarbeitendeneintrag, und die Gruppe bleibt mit leerer Lehrkraft stehen, statt ihre Kinder
+  mitzunehmen.
+- **Die zweite Achse als Leseregel** — von welchen Kindern jemand liest, wenden
+  [`gesundheit-api.md`](gesundheit-api.md) und jede weitere Domäne mit Kindbezug an; geführt werden
+  die Zeilen hier, gepflegt hat sie noch keine Route.
 
 ## Am Schema aufgefallen
 
@@ -103,4 +116,8 @@ Kein Eingriff, das Schema führt `wb-backend`:
 
 ## Offene Fragen
 
-**Keine.** Block 16 lässt nichts offen, und das Schema trägt keine `[?]`.
+**Eine, und sie gehört nicht der Elternvertretung.** Block 16 lässt nichts offen. Das Schema trägt
+seit der zweiten Achse eine `[?]`: wer die Unterrichtsverteilung und die Wahlmodulgruppen pflegt —
+angenommen ist die Schulleitung je Schulart, ungeprüft
+(`schema/klassenorganisation-schema.sql`). An ihr hängt, wer die Routen dieses Durchgangs aufrufen
+darf.

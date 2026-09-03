@@ -67,6 +67,14 @@ Systems hinge an einem `if` statt an einem GRANT. Die Tagesliste liest `kitchen_
 Beachten von Unverträglichkeit und Allergie —, steht als Seed in der Gesundheits-Domäne, und beide
 Sichten entstehen dort, weil die Tabellen dorthin gehören.
 
+**Die Küche ist kein Freigabeziel, sie erbt** (`schema/gesundheit-schema.sql`): Seit die Eltern je
+Instanz freigeben, gilt über die Mensa-Tagesliste die Freigabe an die **Schule**, über die
+Hortliste die an den **Hort** ([`ferien-api.md`](ferien-api.md), [09](../soll-prozesse/09-hortvertrag.md)).
+Ohne diesen Satz wäre unbestimmt, was ein Kind isst, dessen Eltern die Schule freigegeben und den
+Hort abgelehnt haben. Für diese Datei folgt daraus **eine** Änderung, und sie liegt in der
+abgeleiteten Sicht und nicht in der Route: `kitchen_health_traits` nimmt die Freigabe an die Schule
+in ihren Filter auf. Gebaut wird sie mit der Policy (`gesundheit-api.md`, TASK-157), nicht hier.
+
 ## Küchenprofil und Werte
 
 | Handlung | Herkunft | Wer darf | Worauf eingeschränkt | Schreibt/liest | Enge Rolle |
