@@ -142,6 +142,10 @@ INSERT INTO school_branches (school_branch_id, code, name, first_grade_level,
                              final_grade_level, created_by)
     OVERRIDING SYSTEM VALUE
     VALUES (1, 'GS', 'Grundschule', 1, 4, 'system:check');
+INSERT INTO school_branches (school_branch_id, code, name, first_grade_level,
+                             final_grade_level, created_by)
+    OVERRIDING SYSTEM VALUE
+    VALUES (2, 'RS', 'Realschule', 5, 10, 'system:check');
 INSERT INTO classes (class_id, school_branch_id, start_school_year, stream, created_by)
     OVERRIDING SYSTEM VALUE
     VALUES (1, 1, 2026, 'a', 'system:check');
@@ -152,6 +156,7 @@ INSERT INTO persons (person_id, first_name, last_name, created_by) VALUES
     ('11111111-1111-1111-1111-111111111103', 'Drei',  'Schulkind',  'system:check'),
     ('11111111-1111-1111-1111-111111111104', 'Vier',  'Schulkind',  'system:check'),
     ('11111111-1111-1111-1111-111111111105', 'Fünf',  'Hortkind',   'system:check'),
+    ('11111111-1111-1111-1111-111111111106', 'Sechs', 'Realschulkind', 'system:check'),
     ('11111111-1111-1111-1111-111111111201', 'Leitet', 'Kurs',      'system:check'),
     ('11111111-1111-1111-1111-111111111202', 'Gibt',   'Frei',      'system:check'),
     ('11111111-1111-1111-1111-111111111203', 'Erwachsen', 'Person', 'system:check');
@@ -173,6 +178,12 @@ INSERT INTO children (child_id, person_id, family_id, birth_date, school_branch_
      DATE '2026-08-01', 'system:check'),
     ('33333333-3333-3333-3333-333333333304', '11111111-1111-1111-1111-111111111104',
      '22222222-2222-2222-2222-222222222201', DATE '2018-07-01', 1, 2, 1, 4,
+     DATE '2026-08-01', 'system:check');
+INSERT INTO children (child_id, person_id, family_id, birth_date, school_branch_id,
+                      grade_level, first_grade_level, final_grade_level, entry_date,
+                      created_by) VALUES
+    ('33333333-3333-3333-3333-333333333306', '11111111-1111-1111-1111-111111111106',
+     '22222222-2222-2222-2222-222222222201', DATE '2015-04-01', 2, 5, 5, 10,
      DATE '2026-08-01', 'system:check');
 INSERT INTO children (child_id, person_id, family_id, birth_date, created_by) VALUES
     ('33333333-3333-3333-3333-333333333302', '11111111-1111-1111-1111-111111111102',
@@ -295,26 +306,68 @@ SELECT pg_temp.expect_accept(
                'Wir backen Brot', DATE '2027-04-10', DATE '2027-04-10',
                'samstags 10–14 Uhr', false, 3, 3000, 500, 'Lebensmittel', true, 0,
                TIME '09:00', 'academy_cancellation_cooking',
-               TIMESTAMPTZ '2027-01-01 08:00+01', 'entra:hauswirtschaftsleitung')$q$);
+               TIMESTAMPTZ '2026-01-01 08:00+01', 'entra:hauswirtschaftsleitung')$q$);
 
 -- „Die Kochwerkstatt ist für alle" — dasselbe Häkchen, anderer Wert; ein Platz.
 INSERT INTO academy_offerings (academy_offering_id, academy_category_id, title,
                                starts_on, ends_on, allows_external_children, places,
                                amount_cents, cancellation_deadline_days,
-                               cancellation_terms_code, registration_opens_at, created_by)
+                               cancellation_terms_code, registration_opens_at,
+                               approved_at, approved_by, created_by)
     VALUES ('55555555-5555-5555-5555-555555555502', 1, 'Offene Kochwerkstatt',
             DATE '2027-05-08', DATE '2027-05-08', true, 1, 3000, 3,
-            'academy_cancellation_cooking', TIMESTAMPTZ '2027-01-01 08:00+01',
-            'entra:hauswirtschaftsleitung');
+            'academy_cancellation_cooking', TIMESTAMPTZ '2026-01-01 08:00+01',
+            now(), 'entra:gf', 'entra:hauswirtschaftsleitung');
 
 -- Der Erwachsenen-Zweig: „Seminarangebote für Erwachsene" (03.09.2026).
 INSERT INTO academy_offerings (academy_offering_id, academy_category_id, for_adults,
                                title, starts_on, ends_on, places, amount_cents,
-                               cancellation_terms_code, registration_opens_at, created_by)
+                               cancellation_terms_code, registration_opens_at,
+                               approved_at, approved_by, created_by)
     VALUES ('55555555-5555-5555-5555-555555555503', 1, true, 'Seminar Brotbacken',
-            DATE '2027-06-05', DATE '2027-06-05', 1, 4500,
-            'academy_cancellation_cooking', TIMESTAMPTZ '2027-01-01 08:00+01',
-            'entra:hauswirtschaftsleitung');
+            DATE '2027-06-05', DATE '2027-06-05', 20, 4500,
+            'academy_cancellation_cooking', TIMESTAMPTZ '2026-01-01 08:00+01',
+            now(), 'entra:gf', 'entra:hauswirtschaftsleitung');
+
+-- Sechs weitere Angebote, je eines für eine Probengruppe. Sie stehen getrennt,
+-- damit keine Probe an einer Regel scheitert, die sie nicht meint — ein volles
+-- oder ein noch nicht freigegebenes Angebot weist sonst alles ab, und die
+-- Gegenprobe belegt dann nichts.
+INSERT INTO academy_offerings (academy_offering_id, academy_category_id, for_adults,
+                               title, starts_on, ends_on, places, amount_cents,
+                               cancellation_terms_code, registration_opens_at,
+                               registration_closes_at, approved_at, approved_by,
+                               cancelled_at, cancellation_reason, created_by) VALUES
+    -- Zielgruppe: nur Realschule, Stufe 5 bis 6.
+    ('55555555-5555-5555-5555-555555555504', 1, false, 'Theater RS',
+     DATE '2027-02-01', DATE '2027-07-31', 20, 3000, 'academy_cancellation_cooking',
+     TIMESTAMPTZ '2026-01-01 08:00+01', NULL, now(), 'entra:gf', NULL, NULL,
+     'entra:lehrkraft'),
+    -- Freie Plätze für die Proben zur Form der Anmeldung.
+    ('55555555-5555-5555-5555-555555555505', 1, false, 'Chor',
+     DATE '2027-02-01', DATE '2027-07-31', 20, 3000, 'academy_cancellation_cooking',
+     TIMESTAMPTZ '2026-01-01 08:00+01', NULL, now(), 'entra:gf', NULL, NULL,
+     'entra:lehrkraft'),
+    -- Entwurf: angelegt, nicht freigegeben.
+    ('55555555-5555-5555-5555-555555555506', 1, false, 'Entwurf',
+     DATE '2027-02-01', DATE '2027-07-31', 20, 3000, 'academy_cancellation_cooking',
+     TIMESTAMPTZ '2026-01-01 08:00+01', NULL, NULL, NULL, NULL, NULL,
+     'entra:lehrkraft'),
+    -- Freigegeben und abgesagt.
+    ('55555555-5555-5555-5555-555555555507', 1, false, 'Fällt aus',
+     DATE '2027-02-01', DATE '2027-07-31', 20, 3000, 'academy_cancellation_cooking',
+     TIMESTAMPTZ '2026-01-01 08:00+01', NULL, now(), 'entra:gf', now(), 'Leitung krank',
+     'entra:lehrkraft'),
+    -- Freigegeben, Anmeldefenster öffnet erst 2030.
+    ('55555555-5555-5555-5555-555555555508', 1, false, 'Später',
+     DATE '2031-02-01', DATE '2031-07-31', 20, 3000, 'academy_cancellation_cooking',
+     TIMESTAMPTZ '2030-01-01 08:00+01', NULL, now(), 'entra:gf', NULL, NULL,
+     'entra:lehrkraft'),
+    -- Freie Plätze für die Proben zum Kostenübernahme-Code.
+    ('55555555-5555-5555-5555-555555555509', 1, false, 'Werkstatt',
+     DATE '2027-03-01', DATE '2027-03-01', 20, 3000, 'academy_cancellation_cooking',
+     TIMESTAMPTZ '2026-01-01 08:00+01', NULL, now(), 'entra:gf', NULL, NULL,
+     'entra:lehrkraft');
 
 SELECT pg_temp.expect_reject(
     '21 — negativer Zusatzbetrag',
@@ -387,34 +440,34 @@ SELECT pg_temp.expect_reject(
 SELECT pg_temp.expect_reject(
     '21 — Zielgruppenzeile ohne jede Angabe',
     $q$INSERT INTO academy_offering_audiences (academy_offering_id, created_by)
-       VALUES ('55555555-5555-5555-5555-555555555501', 'entra:hauswirtschaftsleitung')$q$);
+       VALUES ('55555555-5555-5555-5555-555555555504', 'entra:hauswirtschaftsleitung')$q$);
 
 SELECT pg_temp.expect_reject(
     '21 — benannte Klasse und Zuschnitt in einer Zeile',
     $q$INSERT INTO academy_offering_audiences (academy_offering_id, class_id,
                                                school_branch_id, created_by)
-       VALUES ('55555555-5555-5555-5555-555555555501', 1, 1,
+       VALUES ('55555555-5555-5555-5555-555555555504', 1, 1,
                'entra:hauswirtschaftsleitung')$q$);
 
 SELECT pg_temp.expect_accept(
     '21 — ein Zuschnitt aus Schulart und Stufenspanne',
     $q$INSERT INTO academy_offering_audiences (academy_offering_id, school_branch_id,
                                                grade_from, created_by)
-       VALUES ('55555555-5555-5555-5555-555555555501', 1, 2,
+       VALUES ('55555555-5555-5555-5555-555555555504', 2, 5,
                'entra:hauswirtschaftsleitung')$q$);
 
 SELECT pg_temp.expect_reject(
     '21 — derselbe Zuschnitt zweimal an einem Angebot',
     $q$INSERT INTO academy_offering_audiences (academy_offering_id, school_branch_id,
                                                grade_from, created_by)
-       VALUES ('55555555-5555-5555-5555-555555555501', 1, 2,
+       VALUES ('55555555-5555-5555-5555-555555555504', 2, 5,
                'entra:hauswirtschaftsleitung')$q$);
 
 SELECT pg_temp.expect_reject(
     '21 — Stufenspanne, die rückwärts läuft',
     $q$INSERT INTO academy_offering_audiences (academy_offering_id, grade_from, grade_to,
                                                created_by)
-       VALUES ('55555555-5555-5555-5555-555555555501', 4, 2,
+       VALUES ('55555555-5555-5555-5555-555555555504', 4, 2,
                'entra:hauswirtschaftsleitung')$q$);
 
 -- ---------------------------------------------------------------------------
@@ -505,14 +558,14 @@ SELECT pg_temp.expect_reject(
     '21 — Anmeldung ohne Teilnehmer',
     $q$INSERT INTO academy_registrations (academy_offering_id, amount_cents, payment_mode,
                                           cancellation_terms_contract_text_id, created_by)
-       VALUES ('55555555-5555-5555-5555-555555555502', 3000, 'paid', 1, 'guardian:x')$q$);
+       VALUES ('55555555-5555-5555-5555-555555555505', 3000, 'paid', 1, 'guardian:x')$q$);
 
 SELECT pg_temp.expect_reject(
     '21 — Anmeldung mit Kind und Person zugleich',
     $q$INSERT INTO academy_registrations (academy_offering_id, child_id, person_id,
                                           amount_cents, payment_mode,
                                           cancellation_terms_contract_text_id, created_by)
-       VALUES ('55555555-5555-5555-5555-555555555502',
+       VALUES ('55555555-5555-5555-5555-555555555505',
                '33333333-3333-3333-3333-333333333304',
                '11111111-1111-1111-1111-111111111203', 3000, 'paid', 1, 'guardian:x')$q$);
 
@@ -529,8 +582,63 @@ SELECT pg_temp.expect_reject(
     $q$INSERT INTO academy_registrations (academy_offering_id, for_adults, person_id,
                                           amount_cents, payment_mode,
                                           cancellation_terms_contract_text_id, created_by)
-       VALUES ('55555555-5555-5555-5555-555555555502', true,
+       VALUES ('55555555-5555-5555-5555-555555555505', true,
                '11111111-1111-1111-1111-111111111203', 3000, 'paid', 1, 'guardian:x')$q$);
+
+-- 21 Z2: „Bis zur Freigabe steht das Angebot nirgends — nicht im öffentlichen
+-- Teil und nicht im Portal —, und niemand kann sich anmelden."
+SELECT pg_temp.expect_reject(
+    '21 — Anmeldung zu einem Angebot, das nicht freigegeben ist',
+    $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
+                                          payment_mode,
+                                          cancellation_terms_contract_text_id, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555506',
+               '33333333-3333-3333-3333-333333333304', 3000, 'paid', 1, 'guardian:x')$q$);
+
+SELECT pg_temp.expect_reject(
+    '21 — Anmeldung zu einem abgesagten Angebot',
+    $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
+                                          payment_mode,
+                                          cancellation_terms_contract_text_id, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555507',
+               '33333333-3333-3333-3333-333333333304', 3000, 'paid', 1, 'guardian:x')$q$);
+
+-- 21: „wer es verpasst, ist nicht dabei, und der offizielle Umweg trägt den
+-- Einzelfall."
+SELECT pg_temp.expect_reject(
+    '21 — Anmeldung, bevor das Anmeldefenster öffnet',
+    $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
+                                          payment_mode,
+                                          cancellation_terms_contract_text_id, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555508',
+               '33333333-3333-3333-3333-333333333304', 3000, 'paid', 1, 'guardian:x')$q$);
+
+SELECT pg_temp.expect_accept(
+    '21 — dasselbe stellvertretend durch das Sekretariat (offizieller Umweg)',
+    $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
+                                          payment_mode,
+                                          cancellation_terms_contract_text_id, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555508',
+               '33333333-3333-3333-3333-333333333304', 3000, 'paid', 1,
+               'entra:sekretariat')$q$);
+
+-- 21 Z4: „Geprüft wird, ob das Kind zur Zielgruppe gehört und ob noch ein Platz
+-- frei ist." Angebot 504 spricht die Realschule ab Stufe 5 an.
+SELECT pg_temp.expect_reject(
+    '21 — Grundschulkind an einem Angebot für die Realschule',
+    $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
+                                          payment_mode,
+                                          cancellation_terms_contract_text_id, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555504',
+               '33333333-3333-3333-3333-333333333304', 3000, 'paid', 1, 'guardian:x')$q$);
+
+SELECT pg_temp.expect_accept(
+    '21 — Realschulkind an demselben Angebot',
+    $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
+                                          payment_mode,
+                                          cancellation_terms_contract_text_id, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555504',
+               '33333333-3333-3333-3333-333333333306', 3000, 'paid', 1, 'guardian:x')$q$);
 
 -- ---------------------------------------------------------------------------
 -- Gegenproben — Zahlweg und Kostenübernahme
@@ -568,31 +676,46 @@ SELECT pg_temp.expect_reject(
         WHERE academy_registration_id = '66666666-6666-6666-6666-666666666601'$q$);
 
 -- 21: „Er … gilt für diese eine Anmeldung." Zweimal eingelöst zahlt das Amt
--- einmal und die Schule berechnet zweimal.
+-- einmal und die Schule berechnet zweimal. Die drei Proben laufen gegen ein
+-- eigenes Angebot mit freien Plätzen, damit keine von ihnen an der Platzzahl
+-- scheitert.
+INSERT INTO academy_cost_coverage_codes (academy_cost_coverage_code_id,
+                                         academy_offering_id, email, code_hash,
+                                         invoice_note, created_by)
+    VALUES ('77777777-7777-7777-7777-777777777709',
+            '55555555-5555-5555-5555-555555555509', 'amt@example.org', 'z',
+            'Landratsamt', 'entra:sekretariat'),
+           ('77777777-7777-7777-7777-777777777702',
+            '55555555-5555-5555-5555-555555555502', 'familie@example.org', 'y',
+            'Landratsamt', 'entra:sekretariat');
+
+SELECT pg_temp.expect_accept(
+    '21 — erste Anmeldung mit dem Kostenübernahme-Code',
+    $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
+                                          payment_mode, academy_cost_coverage_code_id,
+                                          cancellation_terms_contract_text_id, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555509',
+               '33333333-3333-3333-3333-333333333304', 3000, 'invoiced',
+               '77777777-7777-7777-7777-777777777709', 1, 'guardian:x')$q$);
+
 SELECT pg_temp.expect_reject(
     '21 — derselbe Kostenübernahme-Code an einer zweiten offenen Anmeldung',
     $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
                                           payment_mode, academy_cost_coverage_code_id,
                                           cancellation_terms_contract_text_id, created_by)
-       VALUES ('55555555-5555-5555-5555-555555555501',
-               '33333333-3333-3333-3333-333333333304', 3500, 'invoiced',
-               '77777777-7777-7777-7777-777777777701', 1, 'guardian:x')$q$);
+       VALUES ('55555555-5555-5555-5555-555555555509',
+               '33333333-3333-3333-3333-333333333305', 3000, 'invoiced',
+               '77777777-7777-7777-7777-777777777709', 1, 'guardian:x')$q$);
 
 -- 21: erzeugt wird er „für eine Mailadresse und ein Angebot" — er bezahlt
 -- deshalb kein anderes.
-INSERT INTO academy_cost_coverage_codes (academy_cost_coverage_code_id,
-                                         academy_offering_id, email, code_hash,
-                                         invoice_note, created_by)
-    VALUES ('77777777-7777-7777-7777-777777777702',
-            '55555555-5555-5555-5555-555555555502', 'familie@example.org', 'y',
-            'Landratsamt', 'entra:sekretariat');
 SELECT pg_temp.expect_reject(
-    '21 — Code der offenen Kochwerkstatt an einer Anmeldung zur geschlossenen',
+    '21 — Code der offenen Kochwerkstatt an einer Anmeldung zur Werkstatt',
     $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
                                           payment_mode, academy_cost_coverage_code_id,
                                           cancellation_terms_contract_text_id, created_by)
-       VALUES ('55555555-5555-5555-5555-555555555501',
-               '33333333-3333-3333-3333-333333333304', 3500, 'invoiced',
+       VALUES ('55555555-5555-5555-5555-555555555509',
+               '33333333-3333-3333-3333-333333333305', 3000, 'invoiced',
                '77777777-7777-7777-7777-777777777702', 1, 'guardian:x')$q$);
 
 -- Wie im Ferienprogramm: Ablauf und Einlösen des Codes haben keine eigene

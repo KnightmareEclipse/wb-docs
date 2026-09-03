@@ -367,7 +367,10 @@ CREATE TABLE academy_registrations (
     -- Im Kinder-Zweig das Kind, im Erwachsenen-Zweig die Person: „dort ein Kind,
     -- hier die erwachsene Person selbst, die sich anmeldet und für die keine
     -- Familie entsteht" (21). Genau eine der beiden Spalten steht, und welche,
-    -- sagt der Zweig.
+    -- sagt der Zweig. Der Erwachsenen-Zweig kommt dabei mit dem aus, was
+    -- `persons` trägt: „Ein Geburtsdatum wird von ihr nicht erhoben" (21) —
+    -- Stammdaten führen es am Kind und nur dort, und der Zweig verlangt der
+    -- Tabelle deshalb keine Spalte ab (Betreiber, 03.09.2026).
     child_id                uuid,
     person_id               uuid,
     -- Was beim Absenden galt — Gebühr plus Zusatzbetrag; „eine spätere
@@ -468,8 +471,8 @@ CREATE INDEX ix_academy_registrations_offering
     ON academy_registrations (academy_offering_id)
     WHERE cancellation_recorded_at IS NULL;
 
--- DER EINZIGE TRIGGER DIESES SCHEMAS, und er trägt die beiden Regeln, die das
--- Angebot über seine Zeile hinaus stellt — dieselbe Begründung wie an
+-- DER EINZIGE TRIGGER DIESES SCHEMAS, und er trägt die Regeln, die das Angebot
+-- über seine Zeile hinaus stellt — dieselbe Begründung wie an
 -- `enforce_parent_work_capacity` (elternbonus-schema.sql), die hier nicht
 -- wiederholt wird:
 --   * Die **Platzzahl ist hart** (21) und zählt fremde Zeilen; einen
@@ -479,16 +482,29 @@ CREATE INDEX ix_academy_registrations_offering
 --     das eingeschrieben ist (08) oder einen laufenden Hortvertrag hat (09)"
 --     (10 Z3) — beides steht in anderen Tabellen, und ein CHECK sieht nur seine
 --     eigene Zeile.
--- Im Ferienprogramm liegt die zweite Prüfung in der Anwendung; hier nicht, weil
--- die Regel sonst keine Gegenprobe hätte. `FOR UPDATE` serialisiert die
--- Anmeldungen je Angebot, sonst zählen zwei gleichzeitige denselben freien
--- Platz.
+--   * **Was den Vorgang anhält**, sobald ein Elternteil selbst absendet: „Bis
+--     zur Freigabe steht das Angebot nirgends … und niemand kann sich anmelden"
+--     (21 Z2), ein abgesagtes Angebot nimmt niemanden mehr auf, das
+--     Anmeldefenster gilt, und „geprüft wird, ob das Kind zur Zielgruppe gehört"
+--     (21 Z4). Alle vier hängen an Zeilen, die diese nicht sieht.
+-- **Für Mitarbeitende sperren die letzten vier nicht**: „Das Sekretariat
+-- erledigt den Vorgang stellvertretend" und kann „jedes Datum setzen, auch eines
+-- in der Vergangenheit" (hebel.md, der offizielle Umweg) — der Trigger liest das
+-- am Urheber ab, wie es sonst nur der `created_by`-CHECK tut. Platzzahl und
+-- fremdes Kind gelten dagegen für alle: Die eine ist eine physische Grenze, die
+-- andere die Zulassung des Angebots, und für beide nennt kein Block einen Ausweg.
+-- `FOR UPDATE` serialisiert die Anmeldungen je Angebot, sonst zählen zwei
+-- gleichzeitige denselben freien Platz. Das Prädikat des laufenden Hortvertrags
+-- ist dasselbe wie in `ex_contracts_care_period` (anmeldung-schema.sql) — zwei
+-- Fassungen desselben Satzes liefen auseinander.
 CREATE FUNCTION enforce_academy_registration() RETURNS trigger AS $$
 DECLARE
     offering record;
     taken    bigint;
 BEGIN
-    SELECT places, allows_external_children INTO offering
+    SELECT places, allows_external_children, approved_at, cancelled_at, closed_at,
+           registration_opens_at, registration_closes_at
+      INTO offering
       FROM academy_offerings
      WHERE academy_offering_id = NEW.academy_offering_id
        FOR UPDATE;
@@ -513,9 +529,55 @@ BEGIN
                         WHERE child_id = NEW.child_id
                           AND contract_type = 'care'
                           AND released_at IS NOT NULL
-                          AND (end_date IS NULL OR end_date >= current_date)) THEN
+                          AND daterange(admission_date, coalesce(end_date, runs_until), '[]')
+                              @> current_date) THEN
         RAISE EXCEPTION 'Angebot % steht fremden Kindern nicht offen',
                         NEW.academy_offering_id
+              USING ERRCODE = 'check_violation';
+    END IF;
+
+    -- Ab hier nur die Selbstanmeldung der Eltern: „wer es verpasst, ist nicht
+    -- dabei, und der offizielle Umweg trägt den Einzelfall" (21). Das
+    -- Sekretariat trägt stellvertretend ein und „kann jedes Datum setzen, auch
+    -- eines in der Vergangenheit" (hebel.md) — für es sperrt hier nichts.
+    IF NEW.created_by NOT LIKE 'guardian:%' THEN
+        RETURN NEW;
+    END IF;
+
+    IF offering.approved_at IS NULL THEN
+        RAISE EXCEPTION 'Angebot % ist nicht freigegeben', NEW.academy_offering_id
+              USING ERRCODE = 'check_violation';
+    END IF;
+
+    IF offering.cancelled_at IS NOT NULL THEN
+        RAISE EXCEPTION 'Angebot % ist abgesagt', NEW.academy_offering_id
+              USING ERRCODE = 'check_violation';
+    END IF;
+
+    IF offering.closed_at IS NOT NULL
+       OR now() < offering.registration_opens_at
+       OR (offering.registration_closes_at IS NOT NULL
+           AND now() >= offering.registration_closes_at) THEN
+        RAISE EXCEPTION 'Anmeldung zu Angebot % ist nicht offen', NEW.academy_offering_id
+              USING ERRCODE = 'check_violation';
+    END IF;
+
+    IF NEW.child_id IS NOT NULL
+       AND EXISTS (SELECT 1 FROM academy_offering_audiences a
+                    WHERE a.academy_offering_id = NEW.academy_offering_id)
+       AND NOT EXISTS (
+            SELECT 1
+              FROM academy_offering_audiences a
+              JOIN children c ON c.child_id = NEW.child_id
+             WHERE a.academy_offering_id = NEW.academy_offering_id
+               AND (CASE WHEN a.class_id IS NOT NULL THEN c.class_id = a.class_id
+                         ELSE (a.school_branch_id IS NULL
+                               OR a.school_branch_id = c.school_branch_id)
+                          AND (a.grade_from IS NULL OR c.grade_level >= a.grade_from)
+                          AND (a.grade_to   IS NULL OR c.grade_level <= a.grade_to)
+                    END)) THEN
+        RAISE EXCEPTION 'Kind % gehört nicht zur Zielgruppe von Angebot %',
+                        NEW.child_id, NEW.academy_offering_id
               USING ERRCODE = 'check_violation';
     END IF;
 

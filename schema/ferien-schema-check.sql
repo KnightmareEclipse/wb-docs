@@ -8,7 +8,8 @@
 -- auf die Teilnehmerliste, ein partieller Unique-Index über die nicht
 -- stornierten Buchungen und die Fremdschlüssel von Q3 und Q5 auf diese Domäne;
 -- der von Q3 zeigt einfach auf `holiday_booking_id`, weil ein Absenden über
--- mehrere Kinder eine Zahlung über die Summe ist. `holiday_session_types` trägt
+-- mehrere Kinder eine Zahlung über die Summe ist. Dazu der eine Trigger, der
+-- fremde Kinder, abgesagte Termine und das Anmeldefenster abweist. `holiday_session_types` trägt
 -- mit `cancellation_deadline_days` die Stornosperre der Eltern als Zahl.
 --
 -- Setzt stammdaten-schema.sql und querschnitt-schema.sql voraus:
@@ -71,7 +72,11 @@ BEGIN
     IF missing IS NOT NULL THEN
         RAISE EXCEPTION 'Fehlende Indizes: %', missing;
     END IF;
-    RAISE NOTICE 'ok: alle geprüften Constraints und Indizes vorhanden';
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger
+                    WHERE tgname = 'trg_holiday_bookings_admission') THEN
+        RAISE EXCEPTION 'Der Trigger fehlt — die Zulassung wäre ungeprüft';
+    END IF;
+    RAISE NOTICE 'ok: alle geprüften Constraints, Indizes und der Trigger vorhanden';
 END $$;
 
 CREATE FUNCTION pg_temp.expect_reject(rule text, stmt text) RETURNS void AS $$
@@ -120,6 +125,17 @@ INSERT INTO contract_texts (contract_text_id, code, valid_from, body, created_by
     (2, 'holiday_cancellation_day',  DATE '2026-01-01', 'bis 21 Tage vorher kostenlos', 'system:check'),
     (3, 'holiday_cancellation_week', DATE '2026-01-01', 'bis 21 Tage vorher kostenlos', 'system:check');
 
+-- „bekannt ist dabei ein Kind, das eingeschrieben ist (08) oder einen laufenden
+-- Hortvertrag hat (09)" — hier über den Hortvertrag, der zugleich das Prädikat
+-- belegt: Der zweite Vertrag ist 2021 ausgelaufen, ohne je ein `end_date` zu
+-- tragen.
+INSERT INTO persons (person_id, first_name, last_name, created_by)
+    VALUES ('22222222-2222-2222-2222-222222222223', 'Dritt', 'Muster', 'system:check');
+INSERT INTO children (child_id, person_id, family_id, birth_date, created_by)
+    VALUES ('44444444-4444-4444-4444-444444444446',
+            '22222222-2222-2222-2222-222222222223',
+            '33333333-3333-3333-3333-333333333333', DATE '2017-06-01', 'system:check');
+
 INSERT INTO holiday_session_types (holiday_session_type_id, code, name,
                                    allows_external_children, cancellation_terms_code, created_by)
     OVERRIDING SYSTEM VALUE VALUES
@@ -128,14 +144,29 @@ INSERT INTO holiday_session_types (holiday_session_type_id, code, name,
     -- markiert nur, wo eine geschlossene Terminart stünde; geprüft wird hier,
     -- dass es die Spalte gibt, nicht welchen Wert sie heute trägt.
     (1, 'holiday_day',  'Ferientag',   true, 'holiday_cancellation_day',  'system:check'),
-    (2, 'holiday_week', 'Ferienwoche', true, 'holiday_cancellation_week', 'system:check');
+    (2, 'holiday_week', 'Ferienwoche', true, 'holiday_cancellation_week', 'system:check'),
+    -- Die geschlossene Terminart, die es heute nicht gibt: „das Häkchen … ist
+    -- heute überall gesetzt" (10). Ohne sie hätte die einzige Zulassungsregel
+    -- dieser Domäne keine Gegenprobe.
+    (3, 'holiday_closed', 'Nur für Schulkinder', false, 'holiday_cancellation_day',
+     'system:check');
 
 INSERT INTO holiday_modules (holiday_module_id, holiday_session_type_id, code, name,
                              created_by)
     OVERRIDING SYSTEM VALUE VALUES
     (1, 1, 'day_morning', 'Ferientag vormittags', 'system:check'),
     (2, 1, 'day_full',    'Ferientag ganztags',   'system:check'),
-    (3, 2, 'week_full',   'Ferienwoche ganztags', 'system:check');
+    (3, 2, 'week_full',   'Ferienwoche ganztags', 'system:check'),
+    (4, 3, 'closed_full', 'Nur für Schulkinder',  'system:check');
+
+INSERT INTO contracts (contract_id, child_id, contract_type, contract_text_id,
+                       may_walk_home_alone, admission_date, runs_until, released_at,
+                       released_by, created_by) VALUES
+    ('88888888-8888-8888-8888-888888888801', '44444444-4444-4444-4444-444444444445',
+     'care', 1, false, DATE '2026-08-01', NULL, now(), 'entra:hortleitung', 'system:check'),
+    ('88888888-8888-8888-8888-888888888802', '44444444-4444-4444-4444-444444444446',
+     'care', 1, false, DATE '2019-08-01', DATE '2021-07-31', now(), 'entra:hortleitung',
+     'system:check');
 
 INSERT INTO holiday_programmes (holiday_programme_id, name, offering_role_id,
                                 registration_opens_at, created_by)
@@ -158,7 +189,9 @@ INSERT INTO holiday_sessions (holiday_session_id, holiday_programme_id,
                               holiday_session_type_id, title, places, created_by)
     VALUES ('55555555-5555-5555-5555-555555555551', 1, 1, 'Woche 1 — Wald', 20, 'system:check'),
            ('55555555-5555-5555-5555-555555555552', 1, 2, 'Woche 2 — Wasser', 8, 'system:check'),
-           ('55555555-5555-5555-5555-555555555553', 2, 1, 'Herbst — Wald',  20, 'system:check');
+           ('55555555-5555-5555-5555-555555555553', 2, 1, 'Herbst — Wald',  20, 'system:check'),
+           ('55555555-5555-5555-5555-555555555554', 1, 3, 'Nur für Schulkinder', 20,
+            'system:check');
 
 -- ---------------------------------------------------------------------------
 -- Gegenproben
@@ -523,6 +556,73 @@ SELECT pg_temp.expect_reject(
     '10 — derselbe Modulbetrag zweimal zum selben Gültigkeitstag',
     $q$INSERT INTO holiday_module_prices (holiday_module_id, valid_from, amount_cents, created_by)
        VALUES (1, DATE '2027-01-01', 2500, 'system:check')$q$);
+
+-- 10 Z3: „Geprüft wird nur eines: ob die Terminart fremden Kindern offensteht."
+SELECT pg_temp.expect_reject(
+    '10 — fremdes Kind an einer Terminart, die keine fremden zulässt',
+    $q$INSERT INTO holiday_bookings (child_id, holiday_session_id, holiday_module_id,
+                                     holiday_session_type_id, holiday_programme_id,
+                                     amount_cents, payment_mode,
+                                     terms_contract_text_id, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444444',
+               '55555555-5555-5555-5555-555555555554', 4, 3, 1, 3000, 'paid', 1,
+               'system:check')$q$);
+
+SELECT pg_temp.expect_accept(
+    '10 — Kind mit laufendem Hortvertrag an derselben Terminart',
+    $q$INSERT INTO holiday_bookings (child_id, holiday_session_id, holiday_module_id,
+                                     holiday_session_type_id, holiday_programme_id,
+                                     amount_cents, payment_mode,
+                                     terms_contract_text_id, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444445',
+               '55555555-5555-5555-5555-555555555554', 4, 3, 1, 3000, 'paid', 1,
+               'system:check')$q$);
+
+-- Derselbe Vertrag, 2021 ausgelaufen und ohne `end_date`: „laufend" rechnet über
+-- den Zeitraum, wie `ex_contracts_care_period` (anmeldung-schema.sql).
+SELECT pg_temp.expect_reject(
+    '10 — Kind, dessen Hortvertrag 2021 ausgelaufen ist',
+    $q$INSERT INTO holiday_bookings (child_id, holiday_session_id, holiday_module_id,
+                                     holiday_session_type_id, holiday_programme_id,
+                                     amount_cents, payment_mode,
+                                     terms_contract_text_id, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444446',
+               '55555555-5555-5555-5555-555555555554', 4, 3, 1, 3000, 'paid', 1,
+               'system:check')$q$);
+
+-- 10 Z5: der abgesagte Termin ist „nicht mehr buchbar" — Termin 552 ist eine
+-- Probe weiter oben abgesagt worden.
+SELECT pg_temp.expect_reject(
+    '10 — Buchung an einem abgesagten Termin',
+    $q$INSERT INTO holiday_bookings (child_id, holiday_session_id, holiday_module_id,
+                                     holiday_session_type_id, holiday_programme_id,
+                                     amount_cents, payment_mode,
+                                     terms_contract_text_id, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444445',
+               '55555555-5555-5555-5555-555555555552', 3, 2, 1, 2500, 'paid', 1,
+               'guardian:x')$q$);
+
+-- 10: „wer es verpasst, ist nicht dabei, und der offizielle Umweg trägt den
+-- Einzelfall" — das Fenster des Sommerprogramms öffnet erst 2027.
+SELECT pg_temp.expect_reject(
+    '10 — Buchung, bevor das Anmeldefenster öffnet',
+    $q$INSERT INTO holiday_bookings (child_id, holiday_session_id, holiday_module_id,
+                                     holiday_session_type_id, holiday_programme_id,
+                                     amount_cents, payment_mode,
+                                     terms_contract_text_id, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444446',
+               '55555555-5555-5555-5555-555555555551', 1, 1, 1, 3000, 'paid', 1,
+               'guardian:x')$q$);
+
+SELECT pg_temp.expect_accept(
+    '10 — dasselbe stellvertretend durch das Sekretariat (offizieller Umweg)',
+    $q$INSERT INTO holiday_bookings (child_id, holiday_session_id, holiday_module_id,
+                                     holiday_session_type_id, holiday_programme_id,
+                                     amount_cents, payment_mode,
+                                     terms_contract_text_id, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444446',
+               '55555555-5555-5555-5555-555555555551', 1, 1, 1, 3000, 'paid', 1,
+               'entra:sekretariat')$q$);
 
 -- F1 — 10: „Erstattungen sind kein Fremdsystem, aber Handarbeit, die auf einen
 -- Menschen wartet: je Fall eine Aufgabe bei der Buchhaltung." „Je Fall" heißt

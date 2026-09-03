@@ -42,13 +42,12 @@ CREATE TABLE holiday_session_types (
     -- zeigt (rules.md Abschnitt 3).
     is_active                boolean NOT NULL DEFAULT true,
     -- 10, Schritt 3: „Geprüft wird nur eines: ob die Terminart fremden Kindern
-    -- offensteht; das Alter nicht." Die Prüfung selbst leistet die Anwendung —
-    -- „bekannt ist dabei ein Kind, das eingeschrieben ist (08) oder einen
-    -- laufenden Hortvertrag hat (09)", und das steht in zwei anderen Tabellen;
-    -- ein CHECK sieht nur seine eigene Zeile, und Trigger gibt es in diesem
-    -- Schema nirgends (wie bei der Platzgrenze in 06). Am Akademie-Angebot,
-    -- das dasselbe Häkchen je Angebot trägt, weist ihn ein Trigger ab
-    -- (`akademie-schema.sql`) — dort ist die Platzzahl ohnehin hart.
+    -- offensteht; das Alter nicht." Es ist die einzige Zulassungsregel dieser
+    -- Domäne, und sie wird deshalb nicht der Route überlassen: „bekannt ist
+    -- dabei ein Kind, das eingeschrieben ist (08) oder einen laufenden
+    -- Hortvertrag hat (09)" steht in zwei anderen Tabellen, ein CHECK sieht nur
+    -- seine eigene Zeile — sie trägt der Trigger unten, in derselben Fassung
+    -- wie am Akademie-Angebot (`akademie-schema.sql`).
     -- Beide Terminarten stehen heute auf wahr: „Derzeit Ferientag und
     -- Ferienwoche … Beide stehen fremden Kindern offen, das Häkchen dafür ist
     -- heute überall gesetzt" (10). Das Häkchen unterscheidet damit vorerst
@@ -434,6 +433,74 @@ CREATE UNIQUE INDEX ix_holiday_bookings_coverage_code
 
 CREATE INDEX ix_holiday_bookings_session ON holiday_bookings (holiday_session_id)
     WHERE cancellation_recorded_at IS NULL;
+
+
+-- DER EINZIGE TRIGGER DIESES SCHEMAS. Er trägt die drei Regeln, die eine
+-- Buchung über ihre eigene Zeile hinaus prüfen muss und die keine davon sieht;
+-- die Begründung für die Bauform steht an `enforce_parent_work_capacity`
+-- (elternbonus-schema.sql) und wird hier nicht wiederholt:
+--   * **Fremde Kinder**, wo die Terminart sie nicht zulässt (10 Z3) — dieselbe
+--     Fassung des Prädikats wie in `enforce_academy_registration()` und in
+--     `ex_contracts_care_period` (anmeldung-schema.sql).
+--   * **Ein abgesagter Termin** nimmt keine Buchung mehr an, und **das
+--     Anmeldefenster** gilt: „wer es verpasst, ist nicht dabei" (10).
+-- Die letzten beiden sperren nur die Selbstbuchung der Eltern: „der offizielle
+-- Umweg trägt den Einzelfall" (10), und das Sekretariat kann „jedes Datum
+-- setzen, auch eines in der Vergangenheit" (hebel.md).
+-- **Die Platzzahl steht ausdrücklich NICHT hier**: Sie ist „Obergrenze für die
+-- Anzeige, keine Sperre" (10) — anders als am Akademie-Angebot, und der Block
+-- nennt die Überschreitung um eins als hinnehmbar.
+CREATE FUNCTION enforce_holiday_booking() RETURNS trigger AS $$
+DECLARE
+    session record;
+BEGIN
+    SELECT s.cancelled_at, p.closed_at, p.registration_opens_at,
+           p.registration_closes_at, t.allows_external_children
+      INTO session
+      FROM holiday_sessions s
+      JOIN holiday_programmes p  ON p.holiday_programme_id = s.holiday_programme_id
+      JOIN holiday_session_types t ON t.holiday_session_type_id = s.holiday_session_type_id
+     WHERE s.holiday_session_id = NEW.holiday_session_id;
+
+    IF NOT session.allows_external_children
+       AND NOT EXISTS (SELECT 1 FROM children
+                        WHERE child_id = NEW.child_id
+                          AND entry_date IS NOT NULL
+                          AND (exit_date IS NULL OR exit_date >= current_date))
+       AND NOT EXISTS (SELECT 1 FROM contracts
+                        WHERE child_id = NEW.child_id
+                          AND contract_type = 'care'
+                          AND released_at IS NOT NULL
+                          AND daterange(admission_date, coalesce(end_date, runs_until), '[]')
+                              @> current_date) THEN
+        RAISE EXCEPTION 'Termin % steht fremden Kindern nicht offen',
+                        NEW.holiday_session_id
+              USING ERRCODE = 'check_violation';
+    END IF;
+
+    IF NEW.created_by NOT LIKE 'guardian:%' THEN
+        RETURN NEW;
+    END IF;
+
+    IF session.cancelled_at IS NOT NULL THEN
+        RAISE EXCEPTION 'Termin % ist abgesagt', NEW.holiday_session_id
+              USING ERRCODE = 'check_violation';
+    END IF;
+
+    IF session.closed_at IS NOT NULL
+       OR now() < session.registration_opens_at
+       OR (session.registration_closes_at IS NOT NULL
+           AND now() >= session.registration_closes_at) THEN
+        RAISE EXCEPTION 'Anmeldung zu Termin % ist nicht offen', NEW.holiday_session_id
+              USING ERRCODE = 'check_violation';
+    END IF;
+
+    RETURN NEW;
+END $$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_holiday_bookings_admission
+    BEFORE INSERT ON holiday_bookings
+    FOR EACH ROW EXECUTE FUNCTION enforce_holiday_booking();
 
 
 -- Herkunft: 10 (Ferienprogramm) — „Dazu je Kind eine Anmerkung für die
