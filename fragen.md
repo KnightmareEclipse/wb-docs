@@ -1,6 +1,6 @@
 # Fragen an die Schule — was wen zu fragen ist
 
-Dreizehn Fragen, die Weltenbaum nicht selbst beantworten kann, sortiert nach dem Gespräch, in
+Sechzehn Fragen, die Weltenbaum nicht selbst beantworten kann, sortiert nach dem Gespräch, in
 das sie gehören. **Sie stehen nur hier** — das Arbeitspapier in `pruefberichte/` trägt, was die
 Mails gesagt haben und was wir daraus bauen, aber keine Frage mehr. Je Frage steht hier ihr **Wortlaut**, das **Kriterium**, an dem du erkennst, dass die
 Antwort reicht, und **woran sie hängt**.
@@ -27,10 +27,11 @@ die Zahlen mit: die im Vorspann und die in der Überschrift des Gesprächs.
 
 ---
 
-## Datenschutzbeauftragte:r — drei Fragen
+## Datenschutzbeauftragte:r — vier Fragen
 
 **Die sechs Löschfristen sind beantwortet** (02.09.2026) und stehen an ihren Ankern im Schema; was
-hier bleibt, sind drei Reste; die vier Fragen aus dem Gespräch vom 02.09.2026 sind am 03.09.2026
+hier bleibt, sind drei Reste — dazu die Frist der Hortakte, die als eigener Bestand erst mit
+Block 09 dazugekommen ist; die vier Fragen aus dem Gespräch vom 02.09.2026 sind am 03.09.2026
 von der Geschäftsführung beantwortet worden.
 
 **Vier Dinge gehen mit, ohne Fragen zu sein.** Erstens, dass das **Protokoll der Notfalleinsicht mit
@@ -111,9 +112,28 @@ Lösch-Lauf sie überhaupt nicht — danach ist es eine `WHERE`-Bedingung und ke
 
 *Steht in* `schema/querschnitt-schema.sql`
 
+### 4. Wie lange die Hortakte nach dem letzten Betreuungstag bleibt
+
+> „Der Hort führt je Kind eine eigene Akte — Absprachen, Verhalten, Beobachtungsbögen —, die außer
+> Hortkräften und Hortleitung niemand sieht: nicht die Klassenlehrkraft, nicht das Sekretariat,
+> nicht die Schulleitung. Sie ist kein Formular, sondern **ein Dokument, das über Jahre
+> fortgeschrieben wird**, und nicht jedes Kind hat eine. Die Gesundheitsangaben löschen wir mit dem
+> letzten bestätigten Ende des Kindes. Wie lange darf die Hortakte danach noch stehen?"
+
+**Brauchbar ist die Antwort, wenn** eine Frist als Zahl dasteht, gerechnet ab dem letzten
+bestätigten Ende des Kindes — bei einem externen Hortkind ist das sein letzter Betreuungstag, ein
+Austrittsdatum hat es nicht.
+
+**Daran hängt:** Der Lösch-Lauf räumt den SharePoint-Ordner über seinen Anker in der Datenbank mit;
+ohne Frist räumt er ihn gar nicht, und die Akte steht unbegrenzt. Weltenbaum legt den Ordner an und
+löscht ihn wieder, **sieht aber nie hinein** — was in der Frist steckt, ist deshalb allein eine
+Frage der Aufbewahrung und keine der Sichtbarkeit.
+
+*Steht in* `soll-prozesse/09-hortvertrag.md` (Löschen)
+
 ---
 
-## Geschäftsführung — vier Fragen
+## Geschäftsführung — sechs Fragen
 
 Die Vertragstexte stehen hier nicht mehr: Sie werden künftig anhand dessen nachgezogen, **was im
 Portal gebaut wird** — sie gehen keinem Ablauf mehr voraus und blockieren keine Domäne. Was daran zu
@@ -122,7 +142,7 @@ tun bleibt, ist eine Aufgabe und keine Frage: `backlog/`, TASK-042.
 **Die ersten beiden sind Nachfragen, keine Entscheidungen** — sie standen schon in der letzten Mail
 und blieben ohne Antwort. Eine davon hat eine Frist.
 
-### 4. Stripe-Konto und Auftragsverarbeitungsvertrag
+### 5. Stripe-Konto und Auftragsverarbeitungsvertrag
 
 > „Ein Punkt aus der letzten Mail ist ohne Antwort geblieben: das **Stripe-Konto samt
 > Auftragsverarbeitungsvertrag**. Ohne es kann im September niemand online freikaufen; wir hatten den
@@ -138,7 +158,7 @@ Bedingungen keine Verschlüsselung der Festplatten fordern (TASK-087).
 
 *Steht in* `verarbeitungsverzeichnis.md` · `backlog/` TASK-034
 
-### 5. Zieht der Mailversand mit meinCLEMENS mit?
+### 6. Zieht der Mailversand mit meinCLEMENS mit?
 
 > „Die Domain **meinclemens.schule** ist beauftragt. Soll die Absenderadresse künftig auch von dort
 > kommen — und wie soll das Postfach heißen, aus dem die Mails gehen? Beides ist von außen sichtbar
@@ -152,7 +172,7 @@ Der Name der Domain selbst ist entschieden (03.09.2026) und nicht mehr Teil der 
 
 *Steht in* `zugang.md` · `host.md`
 
-### 6. AGFEO: Anlagentyp und der Weg hinein
+### 7. AGFEO: Anlagentyp und der Weg hinein
 
 > „Für die Telefonanlage brauchen wir den **Anlagentyp** und die verwendete Datenbank. Vorab eine
 > Gegenfrage von uns: Das Dashboard bindet ODBC- und LDAP-Quellen ein — soll eine Telefonanlage
@@ -166,7 +186,7 @@ Zugriffs machen wir, sie gehört nicht in die Antwort.
 
 *Steht in* `backlog/` TASK-189
 
-### 7. Wie erfahren wir, wer Alumni werden will?
+### 8. Wie erfahren wir, wer Alumni werden will?
 
 > „Für den Alumni-Verteiler brauchen wir eine Einwilligung: Name und Mailadresse dürfen bleiben, bis
 > widersprochen wird. Offen ist, **wann und wie wir fragen** — beim Abgang im Portal, mit den letzten
@@ -182,11 +202,53 @@ muss bis dahin erreichbar sein — die Adresse fällt aber drei Monate nach dem 
 
 *Steht in* `soll-prozesse/03-irregulaerer-abgang.md` · `backlog/` TASK-208
 
+### 9. Notfallbetreuung: Nachweis am Telefon, Ablehnung, nicht wahrgenommene Buchung
+
+> „Die Notfallbetreuung buchen Eltern künftig im Portal, und wer stattdessen anruft, den trägt der
+> Hort nach — abgerechnet wird je Fall. Drei Dinge sind daran offen. **Erstens der Nachweis:** Wer
+> im Portal klickt, hat selbst gebucht; wer anruft, hat nichts Schriftliches. Weigert sich eine
+> Familie später zu zahlen, weil ihr Kind an dem Tag angeblich nicht da war, steht Aussage gegen
+> Aussage. Soll die Familie eine Bestätigung bekommen, soll der Hort eine Tagesliste zeichnen lassen
+> wie beim Putzdienst, oder lassen wir es, weil der Fall in der Praxis nicht vorkommt?
+> **Zweitens:** Darf der Hort eine Notfallbetreuung überhaupt ablehnen? **Drittens:** Wird eine
+> gebuchte, aber nicht wahrgenommene berechnet?"
+
+**Brauchbar ist die Antwort, wenn** zum ersten Punkt eine der drei Stufen benannt ist und die
+beiden anderen ein Ja oder Nein tragen.
+
+**Daran hängt:** `backlog/` TASK-214, das einzige offene Kriterium dieses Vorgangs. Die Struktur
+trägt alle drei Antworten schon: Buchung und Vollzug sind zwei Zeitpunkte, eine Buchung ohne
+Vollzug ist genau die nicht wahrgenommene. Nur eine **Ablehnung** wäre etwas Neues — heute ist ein
+Nein wie beim Hortvertrag kein Eintrag.
+
+*Steht in* `soll-prozesse/09-hortvertrag.md` · `schema/anmeldung-schema.sql` · `backlog/` TASK-214
+
+### 10. Betreuungsvertragstext: drei Anpassungen — zusammen mit der Hortleitung
+
+> „Der Betreuungsvertrag in der Fassung vom 11.12.2025 passt an drei Stellen nicht zu dem, was
+> künftig läuft. **Erstens** endet die Betreuungsberechtigung mit dem Ende der Klasse 4 bzw. 5, ohne
+> dass jemand kündigt — der Text sieht das nicht vor. **Zweitens** werden Abschluss, Änderung und
+> Kündigung im Portal erklärt; der Text verlangt Schriftform. **Drittens** sagt er zu, die
+> Gesundheitsangaben gelangten ausschließlich den Betreuungskräften zur Kenntnis — das stimmt schon
+> heute nicht: Sekretariat und Schulleitung sehen sie, und die Klassenlehrkraft eines eigenen Kindes
+> sieht sie vollständig. Wer ändert den Text, und bis wann?"
+
+**Brauchbar ist die Antwort, wenn** je Punkt entweder „wird geändert" dasteht oder „bleibt so, und
+dann gilt stattdessen …" — dazu ein Name und ein Termin.
+
+**Daran hängt:** Alle drei sind gebaut, wie der Block sie beschreibt: Der Jahreslauf beendet die
+Verträge ohne Kündigung ([04](soll-prozesse/04-schuljahreswechsel.md)), die Unterschrift im Portal
+ist die einzige, die es gibt, und die Freigabe je Angabe an den Hort steht im Gesundheitsbestand.
+Der dritte Punkt ist der einzige, bei dem der Text etwas zusagt, **was das System nicht halten
+kann** — der lässt sich nicht durch Bauen auflösen.
+
+*Steht in* `soll-prozesse/09-hortvertrag.md` · `schema/anmeldung-schema.sql`
+
 ---
 
 ## Sekretariat — vier Fragen
 
-### 8. Zuordnung der Fremdsysteme — zusammen mit Buchhaltung und Admin
+### 11. Zuordnung der Fremdsysteme — zusammen mit Buchhaltung und Admin
 
 > „Wenn sich bei einem Kind oder einer Familie etwas ändert, muss das teilweise auch in ASV-BW,
 > Optigem oder M365 nachgezogen werden. Wir haben eine Zuordnung erstellt, welche Änderung wohin
@@ -202,7 +264,7 @@ Zuordnung dort zu weit gefasst.
 
 *Steht in* `soll-prozesse/02-datenaenderung.md:32`
 
-### 9. Bescheinigungen beim Abgang
+### 12. Bescheinigungen beim Abgang
 
 > „Wenn ein Kind die Schule verlässt — welche Papiere schreibt ihr routinemäßig? Abgangszeugnis,
 > Schulbescheinigung für die neue Schule, Bestätigung der Abmeldung?"
@@ -214,7 +276,7 @@ oder nur auf Anfrage entsteht.
 
 *Steht in* `soll-prozesse/03-irregulaerer-abgang.md:25`
 
-### 10. Aufgaben des Jahreswechsels
+### 13. Aufgaben des Jahreswechsels
 
 > „Ende Juli zieht der zweite Admin alle Klassen von Hand auf die neue Stufe um, legt die Neuen an
 > und löscht die Abgänger. Was tut ihr in dieser Zeit sonst noch, jedes Jahr wieder?"
@@ -227,7 +289,7 @@ bleibt Zuruf.
 
 *Steht in* `soll-prozesse/04-schuljahreswechsel.md:30`
 
-### 11. Elternfragebogen der Grundschul-Checkliste — zusammen mit der Grundschulleitung
+### 14. Elternfragebogen der Grundschul-Checkliste — zusammen mit der Grundschulleitung
 
 > „Beim Anmeldetag der Grundschule bekommen die Eltern einen Fragebogen auf Papier mit. Was steht
 > darauf — und könnte er künftig vorab im Portal ausgefüllt werden?"
@@ -242,7 +304,7 @@ gebaut.
 
 ## Schulleitung — zwei Fragen
 
-### 12. Unterrichtlicher und außerunterrichtlicher Ausflug — ein Unterschied oder zwei Wörter?
+### 15. Unterrichtlicher und außerunterrichtlicher Ausflug — ein Unterschied oder zwei Wörter?
 
 > „Für die Klassenfahrt gibt es eine mehrseitige Erklärung, die die Eltern unterschreiben —
 > Einverständnis, Vollmacht, Kostenzusage, Belehrung. Für den Unterrichtsgang oder den Wandertag
@@ -262,7 +324,7 @@ aussähe, als hätte jemand vergessen zu fragen.
 
 *Steht in* `soll-prozesse/19-ausfluege-und-fahrten.md` (Kopf, die Tabelle der zwei Arten)
 
-### 13. Geburtsurkunde: wie prüft das Sekretariat künftig?
+### 16. Geburtsurkunde: wie prüft das Sekretariat künftig?
 
 > „Die Geburtsurkunde wird künftig nur noch **eingesehen** und nicht mehr kopiert — das ist
 > entschieden. Offen ist der Ablauf: Wann wird sie vorgelegt, wer sieht sie an, und was wird

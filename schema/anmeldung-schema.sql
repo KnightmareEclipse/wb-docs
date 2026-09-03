@@ -349,8 +349,9 @@ CREATE TABLE emergency_care_types (
 -- CHECK zulässig (querschnitt-schema.sql). Die Geschwisterermäßigung nimmt die
 -- Notfallbetreuung ausdrücklich aus (Betreuungsvertrag), hier ist also auch
 -- kein Satz danebenzustellen. Kein Löschanker: keine Personendaten.
--- Welche Werte der Preisliste unsere sind, klärt fragen.md Frage 9 — das
--- betrifft die Zahlen beim Seed und nicht diese Struktur.
+-- Welche Werte der Preisliste unsere sind, ist vor dem Seed zu klären
+-- (`backlog/` TASK-214: die Spalte mit 8/8/12/16/20 ist anderswo mit „Stadt*"
+-- überschrieben) — das betrifft die Zahlen und nicht diese Struktur.
 CREATE TABLE emergency_care_prices (
     emergency_care_price_id integer GENERATED ALWAYS AS IDENTITY,
     emergency_care_type_id  integer NOT NULL,

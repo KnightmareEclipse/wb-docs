@@ -42,5 +42,5 @@ Aus [M3]: Ein Kind läuft Runden, Sponsoren aus seinem persönlichen Umfeld zeic
 - [ ] #1 Der Sponsor entsteht als Person ohne Familie und ohne Vertragsverhältnis — mit eigener Löschfrist
 - [ ] #2 Der Schreibweg verlangt keine Anmeldung und ist gegen Müll und Fremdeintrag geschützt
 - [ ] #3 Person und Betrag stehen der Buchhaltung als Liste zur Verfügung, samt Abgleich mit dem Eingang
-- [ ] #4 Erst nach den Antworten auf fragen.md Frage 4 und 12
+- [ ] #4 Erst nach den Antworten auf fragen.md Frage 5 und 15
 <!-- AC:END -->
