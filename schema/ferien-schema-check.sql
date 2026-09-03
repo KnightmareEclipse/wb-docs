@@ -118,11 +118,18 @@ INSERT INTO children (child_id, person_id, family_id, birth_date, created_by)
 INSERT INTO contract_text_kinds (code, name, created_by) VALUES
     ('holiday_terms',             'Teilnahmebedingungen',          'system:check'),
     ('holiday_cancellation_day',  'Stornobedingungen Ferientag',   'system:check'),
-    ('holiday_cancellation_week', 'Stornobedingungen Ferienwoche', 'system:check');
+    ('holiday_cancellation_week', 'Stornobedingungen Ferienwoche', 'system:check'),
+    ('care_contract',             'Hortvertrag',                   'system:check');
 
 INSERT INTO contract_texts (contract_text_id, code, valid_from, body, created_by)
     OVERRIDING SYSTEM VALUE
     VALUES (1, 'holiday_terms', DATE '2026-01-01', 'Teilnahmebedingungen', 'system:check');
+-- Die beiden Hortverträge unten tragen ihren eigenen Text:
+-- `ck_contracts_text_kind` (anmeldung-schema.sql) bindet die Sorte an den
+-- Vertragstyp, ein Hortvertrag auf den Teilnahmebedingungen käme nicht durch.
+INSERT INTO contract_texts (contract_text_id, code, valid_from, body, created_by)
+    OVERRIDING SYSTEM VALUE
+    VALUES (5, 'care_contract', DATE '2026-01-01', 'Betreuungsvertrag', 'system:check');
 -- 10: die Stornobedingungen sind ein Wert im System wie die
 -- Teilnahmebedingungen und stehen deshalb als Text mit Gültigkeitstag da, nicht
 -- als Spalte an der Terminart.
@@ -165,13 +172,13 @@ INSERT INTO holiday_modules (holiday_module_id, holiday_session_type_id, code, n
     (3, 2, 'week_full',   'Ferienwoche ganztags', 'system:check'),
     (4, 3, 'closed_full', 'Nur für Schulkinder',  'system:check');
 
-INSERT INTO contracts (contract_id, child_id, contract_type, contract_text_id,
+INSERT INTO contracts (contract_id, child_id, contract_type, contract_text_id, contract_text_code,
                        may_walk_home_alone, admission_date, runs_until, released_at,
                        released_by, created_by) VALUES
     ('88888888-8888-8888-8888-888888888801', '44444444-4444-4444-4444-444444444445',
-     'care', 1, false, DATE '2026-08-01', NULL, now(), 'entra:hortleitung', 'system:check'),
+     'care', 5, 'care_contract', false, DATE '2026-08-01', NULL, now(), 'entra:hortleitung', 'system:check'),
     ('88888888-8888-8888-8888-888888888802', '44444444-4444-4444-4444-444444444446',
-     'care', 1, false, DATE '2019-08-01', DATE '2021-07-31', now(), 'entra:hortleitung',
+     'care', 5, 'care_contract', false, DATE '2019-08-01', DATE '2021-07-31', now(), 'entra:hortleitung',
      'system:check');
 
 INSERT INTO holiday_programmes (holiday_programme_id, name, offering_role_id,

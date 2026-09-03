@@ -200,18 +200,22 @@ INSERT INTO employees (employee_id, person_id, house_id, created_by) VALUES
 
 -- Die Textsorte steht als Wert im System; eine Fassung ohne sie gibt es nicht.
 INSERT INTO contract_text_kinds (code, name, created_by) VALUES
-    ('academy_cancellation_cooking', 'Abmeldebedingungen Kochwerkstatt', 'system:check');
+    ('academy_cancellation_cooking', 'Abmeldebedingungen Kochwerkstatt', 'system:check'),
+    ('care_contract',                'Hortvertrag',                     'system:check');
 
 INSERT INTO contract_texts (contract_text_id, code, valid_from, body, created_by)
     OVERRIDING SYSTEM VALUE VALUES
     (1, 'academy_cancellation_cooking', DATE '2026-01-01',
-     'bis 9 Uhr am Kurstag kostenlos, danach die halbe Kursgebühr', 'system:check');
+     'bis 9 Uhr am Kurstag kostenlos, danach die halbe Kursgebühr', 'system:check'),
+    -- Der Hortvertrag unten trägt seinen eigenen Text: `ck_contracts_text_kind`
+    -- (anmeldung-schema.sql) bindet die Sorte an den Vertragstyp.
+    (2, 'care_contract', DATE '2026-01-01', 'Betreuungsvertrag', 'system:check');
 
-INSERT INTO contracts (contract_id, child_id, contract_type, contract_text_id,
+INSERT INTO contracts (contract_id, child_id, contract_type, contract_text_id, contract_text_code,
                        may_walk_home_alone, admission_date, released_at, released_by,
                        created_by)
     VALUES ('88888888-8888-8888-8888-888888888801',
-            '33333333-3333-3333-3333-333333333305', 'care', 1, false,
+            '33333333-3333-3333-3333-333333333305', 'care', 2, 'care_contract', false,
             DATE '2026-08-01', now(), 'entra:hortleitung', 'system:check');
 
 INSERT INTO academy_categories (academy_category_id, code, name, created_by)

@@ -353,6 +353,10 @@ CREATE TABLE contract_texts (
     CONSTRAINT fk_contract_texts_kind
         FOREIGN KEY (code) REFERENCES contract_text_kinds (code),
     CONSTRAINT uq_contract_texts UNIQUE (code, valid_from),
+    -- Trägt den zusammengesetzten Fremdschlüssel von `contracts`
+    -- (anmeldung-schema.sql): Der Vertrag führt die Sorte seines Textes mit,
+    -- damit ein CHECK sie gegen den Vertragstyp halten kann.
+    CONSTRAINT uq_contract_texts_id_code UNIQUE (contract_text_id, code),
     CONSTRAINT ck_contract_texts_code CHECK (code <> ''),
     CONSTRAINT ck_contract_texts_body CHECK (body <> ''),
     CONSTRAINT ck_contract_texts_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')

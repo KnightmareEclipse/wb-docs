@@ -298,11 +298,13 @@ CREATE TABLE care_module_prices (
 
 -- Herkunft: die Preisliste der Schule, geschärft am 03.09.2026 — eine
 -- Notfallbetreuung „entsteht aus einem Notfall — spontan, für einen einzelnen
--- Tag, abgerechnet je Fall". Vier ihrer fünf Fälle sind dasselbe wie ein
--- Betreuungsmodul, nur je Tag statt je Monat abgerechnet: Frühbetreuung bzw.
--- Modul 1 bis 13:00 für 8 €, Modul 2 für 12 €, Modul 3 für 16 €, Modul 4 für
--- 20 €. Der fünfte — eine halbe Stunde außerhalb der Öffnungszeiten für 20 € —
--- liegt außerhalb jedes Moduls und hat als Monatsbeitrag kein Gegenstück;
+-- Tag, abgerechnet je Fall statt je Monat". **Ein Fall je Modul, nicht je
+-- Betrag:** 09 nennt fünf Beträge, aber „8 € für die Frühbetreuung oder das
+-- Modul bis 13:00" deckt zwei Module — das sind zwei Fälle, die heute gleich
+-- viel kosten, und keine Zahl an zwei Orten. Die Zeilen sind deshalb sechs:
+-- Frühbetreuung und Modul 1 bis 13:00 je 8 €, Modul 2 12 €, Modul 3 16 €,
+-- Modul 4 20 €. Der sechste — eine halbe Stunde außerhalb der Öffnungszeiten
+-- für 20 € — liegt außerhalb jedes Moduls und hat als Monatsbeitrag kein Gegenstück;
 -- deshalb ist `care_module_id` nullable, und deshalb steht diese Werteliste
 -- neben `care_modules` statt darin: Eine Zeile dort stünde in der
 -- Modul-Wochentag-Matrix von `care_module_bookings` und ließe sich als
@@ -905,6 +907,12 @@ CREATE TABLE contracts (
     -- Mutter und Vater verschiedene Texte" (08). Sie steht deshalb hier und
     -- nicht zusätzlich an jeder Unterschrift (querschnitt-schema.sql).
     contract_text_id integer NOT NULL,
+    -- Die Sorte des Textes, hier mitgeführt, damit `ck_contracts_text_kind`
+    -- unten sie gegen den Vertragstyp halten kann;
+    -- `fk_contracts_text` hält sie mit dem Text zusammen (rules.md Abschnitt 1)
+    -- — dieselbe Bauform wie `cleaning_assignments.cleaning_slot_type_id`
+    -- (putzdienst-schema.sql).
+    contract_text_code text NOT NULL,
     -- Vom Sekretariat vor dem Vorlegen geprüft; „Die Vollständigkeit sichert
     -- damit der Vorgang, nicht die Alltagsansicht" (grenzkarte.md, Q1).
     completeness_checked_at timestamptz,
@@ -953,7 +961,19 @@ CREATE TABLE contracts (
         FOREIGN KEY (application_id, child_id)
         REFERENCES applications (application_id, child_id),
     CONSTRAINT fk_contracts_text
-        FOREIGN KEY (contract_text_id) REFERENCES contract_texts (contract_text_id),
+        FOREIGN KEY (contract_text_id, contract_text_code)
+        REFERENCES contract_texts (contract_text_id, code),
+    -- 08: „Der Vertragstext hängt an der Schulart — Grundschule und Realschule
+    -- haben je einen eigenen"; 09 gibt dem Hortvertrag „seinen eigenen
+    -- Vertragstext". Ohne diese Bindung trüge ein Hortvertrag den Schulvertrag
+    -- der Grundschule: die falsche Urkunde und die falsche
+    -- Unterschriftenlage. Der Code ist „die Verankerung im Anwendungscode und
+    -- wird nie umbenannt" (querschnitt-schema.sql) und steht deshalb im CHECK.
+    -- Welcher der beiden Schulverträge gilt, prüft er NICHT: die Schulart steht
+    -- an der Bewerbung und nicht am Vertrag, und ein Constraint dafür bräuchte
+    -- eine dritte Spalte, die nichts weiter trägt.
+    CONSTRAINT ck_contracts_text_kind
+        CHECK ((contract_type = 'care') = (contract_text_code = 'care_contract')),
     CONSTRAINT fk_contracts_document
         FOREIGN KEY (document_id) REFERENCES documents (document_id),
     CONSTRAINT ck_contracts_type CHECK (contract_type IN ('school', 'care')),
@@ -1134,6 +1154,15 @@ CREATE UNIQUE INDEX ix_care_module_agreements_running
 -- Herkunft: grenzkarte.md — „Gebucht wird Modul × Wochentag, nicht das Modul
 -- allein … Die Buchungseinheit ist damit zweidimensional." Löschanker: geht mit
 -- der Anlage. Eine Zeile ist ein Kreuz in der Modul-Wochentag-Matrix.
+-- Bewusst KEINE Bindung der Buchung an die Schulart des Kindes, obwohl
+-- `care_modules` sie mit `school_branch_id` und `restricted_to_grade_level`
+-- führt („nach Mittagsschule allein für Realschule Klasse 5", 09): Der Hort
+-- „nimmt Kinder auf, die weder Grund- noch Realschüler sind" (grenzkarte.md),
+-- und ein externes Hortkind hat weder Schulart noch Klassenstufe — ein
+-- Constraint über beide Spalten wiese es mit ab. Die Beschränkung trägt
+-- deshalb die Anwendung, wie die harte Platzgrenze am Anmeldetag; das
+-- Prüfskript hält die Auslassung mit einer Probe fest, damit sie beim Bau des
+-- Backends nicht untergeht.
 CREATE TABLE care_module_bookings (
     care_module_booking_id   uuid NOT NULL DEFAULT gen_random_uuid(),
     care_module_agreement_id uuid NOT NULL,

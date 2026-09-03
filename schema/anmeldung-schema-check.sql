@@ -100,7 +100,8 @@ BEGIN
         'fk_contracts_application', 'uq_applications_id_child',
         'uq_care_need_levels_code', 'uq_tuition_fees', 'fk_tuition_fees_branch',
         'ck_tuition_fees_amount', 'ck_tuition_fees_rank',
-        'fk_signatures_contract', 'fk_signatures_agreement', 'fk_payments_application'
+        'fk_signatures_contract', 'fk_signatures_agreement', 'fk_payments_application',
+        'ck_contracts_text_kind', 'uq_contract_texts_id_code'
     ]) AS c
     WHERE NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = c);
     IF missing IS NOT NULL THEN
@@ -643,10 +644,10 @@ SELECT pg_temp.expect_reject(
 -- ---------------------------------------------------------------------------
 
 INSERT INTO contracts (contract_id, child_id, contract_type, application_id,
-                       contract_text_id, created_by)
+                       contract_text_id, contract_text_code, created_by)
     VALUES ('88888888-8888-8888-8888-888888888881',
             '44444444-4444-4444-4444-444444444444', 'school',
-            '77777777-7777-7777-7777-777777777772', 1, 'system:check');
+            '77777777-7777-7777-7777-777777777772', 1, 'school_contract_gs', 'system:check');
 
 -- 08: „Zwillinge sind zwei Verträge" — zwei Bewerbungen mit demselben Ziel,
 -- derselben Familie und demselben Vertragstext. Ohne den zusammengesetzten
@@ -655,50 +656,50 @@ INSERT INTO contracts (contract_id, child_id, contract_type, application_id,
 SELECT pg_temp.expect_reject(
     '08 — Schulvertrag am einen Kind, Bewerbung am anderen',
     $q$INSERT INTO contracts (child_id, contract_type, application_id,
-                              contract_text_id, created_by)
+                              contract_text_id, contract_text_code, created_by)
        VALUES ('44444444-4444-4444-4444-444444444444', 'school',
-               '77777777-7777-7777-7777-77777777777a', 1, 'system:check')$q$);
+               '77777777-7777-7777-7777-77777777777a', 1, 'school_contract_gs', 'system:check')$q$);
 
 -- Die Gegenrichtung, die MATCH SIMPLE offenhalten muss: „ein Hortvertrag hängt
 -- am Kind" (09) und trägt keine Bewerbung. MATCH FULL wiese ihn ab.
 SELECT pg_temp.expect_accept(
     '09 — Hortvertrag ohne Bewerbung geht weiter durch',
-    $q$INSERT INTO contracts (contract_id, child_id, contract_type, contract_text_id,
+    $q$INSERT INTO contracts (contract_id, child_id, contract_type, contract_text_id, contract_text_code,
                               may_walk_home_alone, created_by)
        VALUES ('88888888-8888-8888-8888-88888888888f',
-               '44444444-4444-4444-4444-444444444445', 'care', 2, false, 'system:check');
+               '44444444-4444-4444-4444-444444444445', 'care', 2, 'care_contract', false, 'system:check');
        DELETE FROM contracts WHERE contract_id = '88888888-8888-8888-8888-88888888888f'$q$);
 
 -- 08/09: ein Schulvertrag entsteht aus einer Zusage, ein Hortvertrag nie.
 SELECT pg_temp.expect_reject(
     '09 — Hortvertrag mit Bewerbung',
-    $q$INSERT INTO contracts (child_id, contract_type, application_id, contract_text_id,
+    $q$INSERT INTO contracts (child_id, contract_type, application_id, contract_text_id, contract_text_code,
                               may_walk_home_alone, created_by)
        VALUES ('44444444-4444-4444-4444-444444444445', 'care',
-               '77777777-7777-7777-7777-777777777772', 2, false, 'system:check')$q$);
+               '77777777-7777-7777-7777-777777777772', 2, 'care_contract', false, 'system:check')$q$);
 
 SELECT pg_temp.expect_reject(
     '08 — Schulvertrag ohne Bewerbung',
-    $q$INSERT INTO contracts (child_id, contract_type, contract_text_id, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444445', 'school', 1, 'system:check')$q$);
+    $q$INSERT INTO contracts (child_id, contract_type, contract_text_id, contract_text_code, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444445', 'school', 1, 'school_contract_gs', 'system:check')$q$);
 
 -- 08: „Die Fassung friert mit der Zusage ein und nicht erst mit der einzelnen
 -- Unterschrift." Sie steht deshalb am Vertrag und an keiner zweiten Stelle.
 SELECT pg_temp.expect_reject(
     'hebel.md — Vertrag auf eine Fassung, die es nicht gibt',
-    $q$INSERT INTO contracts (child_id, contract_type, contract_text_id,
+    $q$INSERT INTO contracts (child_id, contract_type, contract_text_id, contract_text_code,
                               may_walk_home_alone, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444445', 'care', 99, false, 'system:check')$q$);
+       VALUES ('44444444-4444-4444-4444-444444444445', 'care', 99, 'care_contract', false, 'system:check')$q$);
 
 -- 09: „Der Hortvertrag hängt deshalb immer am Kind statt an einer Bewerbung —
 -- bei internen Kindern wie bei externen."
 SELECT pg_temp.expect_accept(
     '09 — Hortvertrag eines externen Kindes ohne Bewerbung',
-    $q$INSERT INTO contracts (contract_id, child_id, contract_type, contract_text_id,
+    $q$INSERT INTO contracts (contract_id, child_id, contract_type, contract_text_id, contract_text_code,
                               admission_date, may_walk_home_alone, external_school_note,
                               created_by)
        VALUES ('88888888-8888-8888-8888-888888888882',
-               '44444444-4444-4444-4444-444444444445', 'care', 2,
+               '44444444-4444-4444-4444-444444444445', 'care', 2, 'care_contract',
                DATE '2026-09-01', false, 'Grundschule Musterstadt, Jahrgang 3',
                'system:check')$q$);
 
@@ -711,18 +712,18 @@ SELECT pg_temp.expect_reject(
 -- heißt freigegeben und ohne bekanntes Ende.
 SELECT pg_temp.expect_accept(
     '08 — die zurückgetretene Bewerbung hält den zweiten Anlauf nicht auf',
-    $q$INSERT INTO contracts (child_id, contract_type, contract_text_id,
+    $q$INSERT INTO contracts (child_id, contract_type, contract_text_id, contract_text_code,
                               may_walk_home_alone, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444445', 'care', 2, false, 'system:check')$q$);
+       VALUES ('44444444-4444-4444-4444-444444444445', 'care', 2, 'care_contract', false, 'system:check')$q$);
 
 UPDATE contracts SET released_at = now(), released_by = 'entra:hortleitung'
     WHERE contract_id = '88888888-8888-8888-8888-888888888882';
 
 SELECT pg_temp.expect_reject(
     '09 — zweiter laufender Hortvertrag desselben Kindes',
-    $q$INSERT INTO contracts (child_id, contract_type, contract_text_id, released_at,
+    $q$INSERT INTO contracts (child_id, contract_type, contract_text_id, contract_text_code, released_at,
                               released_by, admission_date, may_walk_home_alone, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444445', 'care', 2,
+       VALUES ('44444444-4444-4444-4444-444444444445', 'care', 2, 'care_contract',
                now(), 'entra:hortleitung', DATE '2026-10-01', false, 'system:check')$q$);
 
 -- Derselbe Fall, wie er im Betrieb wirklich aussieht: 09 führt am Hortvertrag
@@ -734,10 +735,10 @@ SELECT pg_temp.expect_accept(
          WHERE contract_id = '88888888-8888-8888-8888-888888888882'$q$);
 SELECT pg_temp.expect_reject(
     '09 — zweiter Hortvertrag mit derselben Laufzeit daneben',
-    $q$INSERT INTO contracts (child_id, contract_type, contract_text_id, released_at,
+    $q$INSERT INTO contracts (child_id, contract_type, contract_text_id, contract_text_code, released_at,
                               released_by, admission_date, runs_until,
                               may_walk_home_alone, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444445', 'care', 2,
+       VALUES ('44444444-4444-4444-4444-444444444445', 'care', 2, 'care_contract',
                now(), 'entra:hortleitung', DATE '2026-10-01', DATE '2027-07-31',
                false, 'system:check')$q$);
 
@@ -746,9 +747,9 @@ SELECT pg_temp.expect_reject(
 -- erst der Jahreslauf am 1. August.
 SELECT pg_temp.expect_accept(
     '04 — Hortvertrag für Klasse 5 neben dem auslaufenden',
-    $q$INSERT INTO contracts (child_id, contract_type, contract_text_id, released_at,
+    $q$INSERT INTO contracts (child_id, contract_type, contract_text_id, contract_text_code, released_at,
                               released_by, admission_date, may_walk_home_alone, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444445', 'care', 2,
+       VALUES ('44444444-4444-4444-4444-444444444445', 'care', 2, 'care_contract',
                now(), 'entra:hortleitung', DATE '2027-08-01', false, 'system:check')$q$);
 
 
@@ -758,18 +759,18 @@ SELECT pg_temp.expect_accept(
 -- desselben Kindes ab.
 SELECT pg_temp.expect_reject(
     '09 — freigegebener Hortvertrag ohne Aufnahmedatum',
-    $q$INSERT INTO contracts (child_id, contract_type, contract_text_id, released_at,
+    $q$INSERT INTO contracts (child_id, contract_type, contract_text_id, contract_text_code, released_at,
                               released_by, may_walk_home_alone, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444444', 'care', 2,
+       VALUES ('44444444-4444-4444-4444-444444444444', 'care', 2, 'care_contract',
                now(), 'entra:hortleitung', false, 'system:check')$q$);
 -- Vor der Freigabe steht es frei: der Antrag aus Schritt 4 kennt den Tag noch
 -- nicht.
 SELECT pg_temp.expect_accept(
     '09 — Hortvertrag vor der Freigabe ohne Aufnahmedatum',
-    $q$INSERT INTO contracts (contract_id, child_id, contract_type, contract_text_id,
+    $q$INSERT INTO contracts (contract_id, child_id, contract_type, contract_text_id, contract_text_code,
                               may_walk_home_alone, created_by)
        VALUES ('88888888-8888-8888-8888-88888888888c',
-               '44444444-4444-4444-4444-444444444444', 'care', 2, false, 'system:check')$q$);
+               '44444444-4444-4444-4444-444444444444', 'care', 2, 'care_contract', false, 'system:check')$q$);
 DELETE FROM contracts WHERE contract_id = '88888888-8888-8888-8888-88888888888c';
 
 -- 09: „Je Kind ein laufender Hortvertrag, nie zwei nebeneinander" — der Fall,
@@ -778,27 +779,27 @@ DELETE FROM contracts WHERE contract_id = '88888888-8888-8888-8888-88888888888c'
 -- dem 1. Oktober bis auf Weiteres. Überlappende Laufzeiten, zwei Beitragslagen,
 -- und die eine Optigem-Aufgabe je Kind trüge danach nur einen der beiden.
 -- `ex_contracts_care_period` rechnet über den Zeitraum und weist ihn ab.
-INSERT INTO contracts (contract_id, child_id, contract_type, contract_text_id, released_at,
+INSERT INTO contracts (contract_id, child_id, contract_type, contract_text_id, contract_text_code, released_at,
                        released_by, admission_date, runs_until, may_walk_home_alone, created_by)
     VALUES ('88888888-8888-8888-8888-88888888888a',
-            '44444444-4444-4444-4444-444444444444', 'care', 2,
+            '44444444-4444-4444-4444-444444444444', 'care', 2, 'care_contract',
             now(), 'entra:hortleitung', DATE '2026-08-01', DATE '2027-07-31',
             false, 'system:check');
 SELECT pg_temp.expect_reject(
     '09 — zweiter Hortvertrag mit anderer Laufzeit, aber überschneidendem Zeitraum',
-    $q$INSERT INTO contracts (child_id, contract_type, contract_text_id, released_at,
+    $q$INSERT INTO contracts (child_id, contract_type, contract_text_id, contract_text_code, released_at,
                               released_by, admission_date, may_walk_home_alone, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444444', 'care', 2,
+       VALUES ('44444444-4444-4444-4444-444444444444', 'care', 2, 'care_contract',
                now(), 'entra:hortleitung', DATE '2026-10-01', false, 'system:check')$q$);
 -- Derselbe Vertrag einen Tag nach dem Ende des ersten ist keine Überschneidung
 -- — es ist der Klasse-5-Fall aus 04 und bleibt zulässig.
 SELECT pg_temp.expect_accept(
     '04 — Hortvertrag, der zum 1. August nach dem Ende des alten aufnimmt',
-    $q$INSERT INTO contracts (contract_id, child_id, contract_type, contract_text_id,
+    $q$INSERT INTO contracts (contract_id, child_id, contract_type, contract_text_id, contract_text_code,
                               released_at, released_by, admission_date,
                               may_walk_home_alone, created_by)
        VALUES ('88888888-8888-8888-8888-88888888888b',
-               '44444444-4444-4444-4444-444444444444', 'care', 2,
+               '44444444-4444-4444-4444-444444444444', 'care', 2, 'care_contract',
                now(), 'entra:hortleitung', DATE '2027-08-01', false, 'system:check')$q$);
 DELETE FROM contracts WHERE contract_id IN ('88888888-8888-8888-8888-88888888888a',
                                             '88888888-8888-8888-8888-88888888888b');
@@ -807,17 +808,17 @@ DELETE FROM contracts WHERE contract_id IN ('88888888-8888-8888-8888-88888888888
 -- — Schul- und Hortvertrag laufen nebeneinander.
 SELECT pg_temp.expect_accept(
     '09 — Schul- und Hortvertrag desselben Kindes nebeneinander',
-    $q$INSERT INTO contracts (child_id, contract_type, contract_text_id,
+    $q$INSERT INTO contracts (child_id, contract_type, contract_text_id, contract_text_code,
                               may_walk_home_alone, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444444', 'care', 2, false, 'system:check')$q$);
+       VALUES ('44444444-4444-4444-4444-444444444444', 'care', 2, 'care_contract', false, 'system:check')$q$);
 
 -- 09: „Je Kind, ob es den Heimweg allein antreten darf (Pflicht, Ja oder Nein)"
 -- — am Hortvertrag ist die Angabe Pflicht, und die Zeile entsteht erst mit dem
 -- vollständig ausgefüllten Antrag (09, Schritt 4).
 SELECT pg_temp.expect_reject(
     '09 — Hortvertrag ohne die Heimweg-Angabe',
-    $q$INSERT INTO contracts (child_id, contract_type, contract_text_id, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444444', 'care', 2, 'system:check')$q$);
+    $q$INSERT INTO contracts (child_id, contract_type, contract_text_id, contract_text_code, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444444', 'care', 2, 'care_contract', 'system:check')$q$);
 
 -- 08: „Vor der Freigabe entsteht kein Dokument."
 INSERT INTO sharepoint_libraries (sharepoint_library_id, code, name, graph_drive_id, created_by)
@@ -860,22 +861,25 @@ SELECT pg_temp.expect_accept(
                'pre_registration', now(), '22222222-2222-2222-2222-222222222222',
                1, 'system:check');
        INSERT INTO contracts (contract_id, child_id, contract_type, application_id,
-                              contract_text_id, released_at, released_by, runs_until,
+                              contract_text_id, contract_text_code, released_at, released_by, runs_until,
                               created_by)
        VALUES ('88888888-8888-8888-8888-888888888883',
                '44444444-4444-4444-4444-444444444444', 'school',
-               '77777777-7777-7777-7777-777777777773', 2,
+               '77777777-7777-7777-7777-777777777773', 1, 'school_contract_gs',
                now(), 'entra:schulleitung', DATE '2033-07-31', 'system:check')$q$);
 
+-- Alle Schulverträge dieses Skripts tragen den Grundschul-Vertragstext:
+-- `ck_contracts_text_kind` bindet die Sorte an den Typ, der Hortvertragstext
+-- kommt an einem Schulvertrag nicht mehr durch.
 -- Beide tragen ihren „31. Juli des Schuljahres, in dem die Schulart endet"
 -- (08) — der alte 2031, der neue 2033. Ein dritter, der bis zum selben Tag
 -- läuft wie einer von beiden, ist derselbe Vertrag zweimal.
 SELECT pg_temp.expect_reject(
     '08 — dritter Schulvertrag mit derselben Laufzeit daneben',
-    $q$INSERT INTO contracts (child_id, contract_type, application_id, contract_text_id,
+    $q$INSERT INTO contracts (child_id, contract_type, application_id, contract_text_id, contract_text_code,
                               released_at, released_by, runs_until, created_by)
        VALUES ('44444444-4444-4444-4444-444444444444', 'school',
-               '77777777-7777-7777-7777-777777777771', 2,
+               '77777777-7777-7777-7777-777777777771', 1, 'school_contract_gs',
                now(), 'entra:schulleitung', DATE '2033-07-31', 'system:check')$q$);
 
 -- Und ohne Laufzeit — „bis auf Weiteres" — genauso, sobald ein zweiter
@@ -883,17 +887,17 @@ SELECT pg_temp.expect_reject(
 SELECT pg_temp.expect_accept(
     '08 — erster Schulvertrag bis auf Weiteres',
     $q$INSERT INTO contracts (contract_id, child_id, contract_type, application_id,
-                              contract_text_id, released_at, released_by, created_by)
+                              contract_text_id, contract_text_code, released_at, released_by, created_by)
        VALUES ('88888888-8888-8888-8888-888888888884',
                '44444444-4444-4444-4444-444444444444', 'school',
-               '77777777-7777-7777-7777-777777777771', 2,
+               '77777777-7777-7777-7777-777777777771', 1, 'school_contract_gs',
                now(), 'entra:schulleitung', 'system:check')$q$);
 SELECT pg_temp.expect_reject(
     '08 — zweiter Schulvertrag bis auf Weiteres daneben',
-    $q$INSERT INTO contracts (child_id, contract_type, application_id, contract_text_id,
+    $q$INSERT INTO contracts (child_id, contract_type, application_id, contract_text_id, contract_text_code,
                               released_at, released_by, created_by)
        VALUES ('44444444-4444-4444-4444-444444444444', 'school',
-               '77777777-7777-7777-7777-777777777771', 2,
+               '77777777-7777-7777-7777-777777777771', 1, 'school_contract_gs',
                now(), 'entra:schulleitung', 'system:check')$q$);
 DELETE FROM contracts WHERE contract_id = '88888888-8888-8888-8888-888888888884';
 
@@ -904,6 +908,34 @@ SELECT pg_temp.expect_reject(
     '09 — Vertragsende ohne Grund',
     $q$UPDATE contracts SET end_date = DATE '2027-07-31'
         WHERE contract_id = '88888888-8888-8888-8888-888888888882'$q$);
+
+-- 08: „Der Vertragstext hängt an der Schulart — Grundschule und Realschule
+-- haben je einen eigenen", 09 gibt dem Hortvertrag „seinen eigenen
+-- Vertragstext". Beide Fassungen stehen hier; der Fremdschlüssel allein ließe
+-- jede an jedem Vertrag zu — erst `ck_contracts_text_kind` bindet sie an den
+-- Typ.
+SELECT pg_temp.expect_reject(
+    '09 — Hortvertrag auf dem Schulvertragstext',
+    $q$INSERT INTO contracts (child_id, contract_type, contract_text_id, contract_text_code,
+                              may_walk_home_alone, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444445', 'care', 1, 'school_contract_gs',
+               false, 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    '08 — Schulvertrag auf dem Betreuungsvertragstext',
+    $q$INSERT INTO contracts (child_id, contract_type, application_id, contract_text_id,
+                              contract_text_code, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444444', 'school',
+               '77777777-7777-7777-7777-777777777771', 2, 'care_contract', 'system:check')$q$);
+
+-- Und die Sorte lässt sich nicht am Text vorbei behaupten: der zusammengesetzte
+-- Fremdschlüssel hält Kennung und Code zusammen.
+SELECT pg_temp.expect_reject(
+    '08 — Vertragstext mit einer Sorte, die nicht zu seiner Kennung gehört',
+    $q$INSERT INTO contracts (child_id, contract_type, contract_text_id, contract_text_code,
+                              may_walk_home_alone, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444445', 'care', 1, 'care_contract',
+               false, 'system:check')$q$);
 
 -- 08: „Nehmen den Platz an oder lehnen ab" — genau eine der beiden Antworten.
 SELECT pg_temp.expect_reject(
@@ -1133,6 +1165,16 @@ SELECT pg_temp.expect_accept(
     '09 — zweites Modul am selben Wochentag',
     $q$INSERT INTO care_module_bookings (care_module_agreement_id, care_module_id, weekday, created_by)
        VALUES ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', 2, 1, 'system:check')$q$);
+
+-- 09: „nach Mittagsschule allein für Realschule Klasse 5" — Modul 3 trägt
+-- `school_branch_id` = 2 und `restricted_to_grade_level` = 5. Die Buchung ist
+-- daran bewusst nicht gebunden: Ein externes Hortkind hat keine Schulart, ein
+-- Constraint träfe es mit. Diese Probe hält die Auslassung fest, damit sie beim
+-- Bau des Backends nicht untergeht — die Beschränkung trägt die Anwendung.
+SELECT pg_temp.expect_accept(
+    '09 — Klasse-5-Modul an ein Kind ohne Schulart gebucht (die Beschränkung trägt die Anwendung)',
+    $q$INSERT INTO care_module_bookings (care_module_agreement_id, care_module_id, weekday, created_by)
+       VALUES ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', 3, 2, 'system:check')$q$);
 
 -- 09: „je Modul also fünf Beträge, einer je Tageszahl".
 INSERT INTO care_module_prices (care_module_id, weekday_count, valid_from,
@@ -1369,11 +1411,11 @@ END $$;
 -- Hortvertrag, dessen Kind nie ein `exit_date` bekommt. Ein Anker allein auf
 -- `children.exit_date` liefe für ihn nie ab, und ausgerechnet die Verträge,
 -- für die diese Tabelle den Typ `care` überhaupt trägt, blieben stehen.
-INSERT INTO contracts (contract_id, child_id, contract_type, contract_text_id,
+INSERT INTO contracts (contract_id, child_id, contract_type, contract_text_id, contract_text_code,
                        may_walk_home_alone, admission_date, released_at, released_by,
                        end_date, end_reason, created_by)
     VALUES ('88888888-8888-8888-8888-88888888888e',
-            '44444444-4444-4444-4444-444444444446', 'care', 2, false,
+            '44444444-4444-4444-4444-444444444446', 'care', 2, 'care_contract', false,
             DATE '2026-09-01', now(), 'entra:hortleitung',
             DATE '2027-01-31', 'ordentlich gekündigt zum Halbjahr', 'system:check');
 DO $$
@@ -1395,10 +1437,10 @@ END $$;
 -- fest und geht ihr voraus." Der Schulvertrag der verbliebenen Bewerbung, damit
 -- die Kette etwas zu halten hat.
 INSERT INTO contracts (contract_id, child_id, contract_type, application_id,
-                       contract_text_id, created_by)
+                       contract_text_id, contract_text_code, created_by)
     VALUES ('88888888-8888-8888-8888-888888888889',
             '44444444-4444-4444-4444-444444444444', 'school',
-            '77777777-7777-7777-7777-777777777771', 1, 'system:check');
+            '77777777-7777-7777-7777-777777777771', 1, 'school_contract_gs', 'system:check');
 SELECT pg_temp.expect_reject(
     '17 — Bewerbung gelöscht, während ihr Vertrag sie noch festhält',
     $q$DELETE FROM applications WHERE application_id = '77777777-7777-7777-7777-777777777771'$q$);
