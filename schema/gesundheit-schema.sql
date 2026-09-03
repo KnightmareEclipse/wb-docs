@@ -6,7 +6,10 @@
 -- `child_health_records` je Kind die vorgeschaltete Frage, ob überhaupt
 -- geantwortet wird, `child_health_answers` dieselbe Frage je Kategorie,
 -- `health_traits` die einzelne Angabe und `health_trait_values` je Feld einen
--- Wert. `measles_proofs` steht daneben, weil der Nachweis kein Merkmal ist.
+-- Wert. Quer dazu liegen die zwei Freigaben: `child_health_releases` je
+-- Instanz, `health_trait_releases` je Angabe und Instanz — sie entscheiden
+-- zusammen mit dem Sichtkreis, wer was sieht. `measles_proofs` steht daneben,
+-- weil der Nachweis kein Merkmal ist.
 --
 -- Setzt stammdaten-schema.sql und querschnitt-schema.sql voraus. Der Satz
 -- entsteht mit dem Schulvertrag (08), bei einem externen Hortkind mit dem
@@ -17,8 +20,11 @@
 -- WARUM EINE ZEILE JE FELD UND NICHT JE MERKMAL. Die Tiefe unterscheidet sich
 -- je Kategorie — die Zeckenentfernung ist ein Ja/Nein, die chronische
 -- Erkrankung trägt Bezeichnung, Handlungshinweis, Attest und Zeitraum —, und
--- die Sichtbarkeit läuft quer dazu: Der Sportunterricht sieht den
--- Handlungshinweis einer Erkrankung, nicht ihre Bezeichnung. Beides zusammen
+-- die Sichtbarkeit läuft quer dazu: Die Küche sieht Bezeichnung und
+-- Handlungshinweis einer Allergie und von der chronischen Erkrankung nichts,
+-- und das Attest derselben Erkrankung sieht die Lehrkraft als Vorliegen, das
+-- Sekretariat im Klartext (`health_field_visibility.presence_only`) — ein
+-- Unterschied, den keine Spaltenliste je Kategorie trägt. Beides zusammen
 -- ist mit festen Spalten nicht darstellbar: Eine Spaltenliste je Kategorie wäre
 -- je neue Frage eine Migration, und Spaltensichtbarkeit ist in Postgres nur
 -- statisch zu vergeben. Als Zeilen fällt beides mit einem Mechanismus —
@@ -144,9 +150,16 @@ CREATE TABLE health_type_fields (
 -- Herkunft: 08, 11 und 15 — die Ausschnitte, die dort je Rolle beschrieben
 -- sind, und der Notfallausschnitt aus dem Gespräch mit der Geschäftsführung.
 -- Kein Löschanker: keine Personendaten.
--- Die Sichten sind ausdrücklich NICHT mehr konzentrisch: Der Sportunterricht
--- sieht den Handlungshinweis einer chronischen Erkrankung, nicht ihre
--- Bezeichnung — ein Ausschnitt, der in „Küche ⊂ Alltag ⊂ voll" nicht vorkommt.
+-- Die Sichten sind ausdrücklich NICHT mehr eine Leiter. In den Feldern sähen
+-- sie noch nach einer aus; was sie auseinanderzieht, ist die Freigabe:
+-- `school` und `care` tragen dieselben Felder und sehen trotzdem Verschiedenes,
+-- weil die Eltern je Instanz entscheiden. Dazu das Attest, das eine Lehrkraft
+-- als Vorliegen sieht und das Sekretariat im Klartext — dieselbe Zeile, zwei
+-- Tiefen. Fünf Zeilen: `full`, `school`, `care`, `kitchen`, `emergency`.
+-- `school` trägt Klassenleitung und Fachunterricht zusammen, seit beide
+-- dasselbe sehen; `care` bleibt trotz derselben Felder eine eigene Zeile, weil
+-- er ein eigenes Freigabeziel ist — Schule und Hort sind zwei Instanzen
+-- desselben Bestands, und die Eltern entscheiden je Instanz.
 -- Welche Rolle welchen Sichtkreis bekommt, steht in `api/gesundheit-api.md`
 -- und wird über GRANTs vergeben; diese Tabelle sagt nur, was ein Sichtkreis
 -- umfasst.
@@ -158,23 +171,46 @@ CREATE TABLE health_visibility_scopes (
     -- für ein Kind vergeben, sondern steht jedem Mitarbeitenden für jedes Kind
     -- offen und wird stattdessen protokolliert (`health_emergency_accesses`).
     is_emergency               boolean NOT NULL DEFAULT false,
+    -- Wahr, wo die Eltern erst freigeben müssen: `school`, `care` und jede
+    -- Anlass-Instanz. Falsch bei `full` — die Eltern und das Sekretariat lesen
+    -- den Bestand, den sie selbst geschrieben haben —, bei `kitchen`, die ihre
+    -- Freigabe von der Liste erbt, auf der das Kind steht, und bei `emergency`,
+    -- der Freigaben ausdrücklich übergeht. Ein Häkchen hier und keine zweite
+    -- Werteliste daneben: die wäre dieselben Dinge ein zweites Mal.
+    needs_release              boolean NOT NULL DEFAULT false,
     is_active                  boolean NOT NULL DEFAULT true,
     created_at                 timestamptz NOT NULL DEFAULT now(),
     created_by                 text NOT NULL,
 
     CONSTRAINT pk_health_visibility_scopes      PRIMARY KEY (health_visibility_scope_id),
     CONSTRAINT uq_health_visibility_scopes_code UNIQUE (code),
+    -- Trägt den zusammengesetzten Fremdschlüssel von `child_health_releases`
+    -- und ist deshalb zusätzlich zum Primärschlüssel nötig.
+    CONSTRAINT uq_health_visibility_scopes_release
+        UNIQUE (health_visibility_scope_id, needs_release),
     CONSTRAINT ck_health_visibility_scopes_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
 -- Herkunft: diese Datei. Kein Löschanker: keine Personendaten.
--- Eine Zeile je sichtbarem Feld. Der Fremdschlüssel geht auf das Paar und nicht
--- auf Kategorie und Feld einzeln: Sichtbar machen lässt sich nur, was die
--- Kategorie überhaupt erhebt.
+-- Eine Zeile je sichtbarem Feld, und mit `presence_only` drei Zustände statt
+-- zweier: Zeile da heißt Wert sichtbar, Zeile fehlt heißt, das Feld gibt es für
+-- diesen Sichtkreis nicht, Zeile mit Häkchen heißt „liegt vor, ist aber nicht
+-- einsehbar". Der Fremdschlüssel geht auf das Paar und nicht auf Kategorie und
+-- Feld einzeln: Sichtbar machen lässt sich nur, was die Kategorie überhaupt
+-- erhebt.
 CREATE TABLE health_field_visibility (
     health_visibility_scope_id integer NOT NULL,
     health_trait_type_id       integer NOT NULL,
     health_field_id            integer NOT NULL,
+    -- Mitgeführt, damit der CHECK unten die Wertart sehen kann;
+    -- `fk_health_field_visibility_kind` hält sie mit ihrer Quelle zusammen.
+    value_kind_code            text NOT NULL,
+    -- „es muss ersichtlich sein, dass Attest vorliegt, Attest selber muss nicht
+    -- zwingend einsehbar sein" (Datenschutzbeauftragter, 02.09.2026). Die Sicht
+    -- liefert dann statt der `document_id` nur, ob eine hinterlegt ist. Als
+    -- Zeile und nicht in der Route: RLS filtert Zeilen und keine Spalten, und
+    -- läge die Regel im Anwendungscode, sähe kein Prüfskript sie.
+    presence_only              boolean NOT NULL DEFAULT false,
     created_at                 timestamptz NOT NULL DEFAULT now(),
     created_by                 text NOT NULL,
 
@@ -186,6 +222,15 @@ CREATE TABLE health_field_visibility (
     CONSTRAINT fk_health_field_visibility_pair
         FOREIGN KEY (health_trait_type_id, health_field_id)
         REFERENCES health_type_fields (health_trait_type_id, health_field_id),
+    CONSTRAINT fk_health_field_visibility_kind
+        FOREIGN KEY (health_field_id, value_kind_code)
+        REFERENCES health_fields (health_field_id, value_kind_code),
+    -- Nur ein Dokumentfeld lässt sich auf sein Vorliegen zusammenstreichen; bei
+    -- jeder anderen Wertart wäre der geleerte Wert die ganze Angabe, und die
+    -- Zeile hieße dasselbe wie keine. — Alternative: das Häkchen ohne Prüfung
+    -- zulassen; Preis: eine Konfiguration, die stillschweigend nichts tut.
+    CONSTRAINT ck_health_field_visibility_presence
+        CHECK (NOT presence_only OR value_kind_code = 'document'),
     CONSTRAINT ck_health_field_visibility_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
@@ -229,7 +274,7 @@ CREATE TABLE child_health_records (
     -- 'Notfallmedikament im Sekretariat'), den die Klassenlehrkraft formuliert
     -- und den alle unterrichtenden Personen sehen"
     -- — die zweite Spalte mit eigenem GRANT neben dem vollen Satz
-    -- (grenzkarte.md, „Zugriff, zweistufig"). Nicht zu verwechseln mit dem
+    -- (grenzkarte.md, „Zugriff, je Angabe"). Nicht zu verwechseln mit dem
     -- Feld „Beachten" an einem einzelnen Merkmal: Das schreiben die Eltern und
     -- es gilt für diese eine Angabe, dieser Satz kommt von der Klassenlehrkraft
     -- und gilt für das Kind.
@@ -280,6 +325,10 @@ CREATE TABLE child_health_answers (
     -- Merkmal kann seine Kategorie nicht von der Antwort abweichen lassen.
     CONSTRAINT uq_child_health_answers_type
         UNIQUE (child_health_answer_id, health_trait_type_id),
+    -- Und den zweiten: Über ihn reicht der Bestandsbezug bis zur Angabe
+    -- durch, an der die Freigabe hängt (`health_trait_releases`).
+    CONSTRAINT uq_child_health_answers_record
+        UNIQUE (child_health_answer_id, child_health_record_id),
     CONSTRAINT ck_child_health_answers_answer
         CHECK (answered_at IS NULL OR declined_at IS NULL),
     CONSTRAINT ck_child_health_answers_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
@@ -309,6 +358,13 @@ CREATE TABLE health_traits (
     -- kann und damit der Index unten `allows_multiple` sieht;
     -- `fk_health_traits_answer` hält beides mit seiner Quelle zusammen.
     health_trait_type_id   integer NOT NULL,
+    -- Ebenso mitgeführt, und aus einem Grund, der zwei Tabellen weiter liegt:
+    -- Eine Freigabe darf es nur geben, wo die vorgeschaltete Frage derselben
+    -- Instanz freigegeben ist, und `health_trait_releases` prüft das mit einem
+    -- zusammengesetzten Fremdschlüssel gegen `child_health_releases`. Dafür muss
+    -- der Bestand hier stehen; `fk_health_traits_record` hält ihn mit seiner
+    -- Quelle zusammen.
+    child_health_record_id uuid NOT NULL,
     allows_multiple        boolean NOT NULL DEFAULT false,
     created_at             timestamptz NOT NULL DEFAULT now(),
     created_by             text NOT NULL,
@@ -318,11 +374,17 @@ CREATE TABLE health_traits (
         FOREIGN KEY (child_health_answer_id, health_trait_type_id)
         REFERENCES child_health_answers (child_health_answer_id, health_trait_type_id)
         ON DELETE CASCADE,
+    CONSTRAINT fk_health_traits_record
+        FOREIGN KEY (child_health_answer_id, child_health_record_id)
+        REFERENCES child_health_answers (child_health_answer_id, child_health_record_id)
+        ON DELETE CASCADE,
     CONSTRAINT fk_health_traits_type
         FOREIGN KEY (health_trait_type_id, allows_multiple)
         REFERENCES health_trait_types (health_trait_type_id, allows_multiple),
     -- Trägt den zusammengesetzten Fremdschlüssel von `health_trait_values`.
     CONSTRAINT uq_health_traits_type UNIQUE (health_trait_id, health_trait_type_id),
+    -- Und den von `health_trait_releases`.
+    CONSTRAINT uq_health_traits_record UNIQUE (health_trait_id, child_health_record_id),
     CONSTRAINT ck_health_traits_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
@@ -413,6 +475,115 @@ CREATE TABLE health_trait_values (
 CREATE INDEX ix_health_trait_values_pair
     ON health_trait_values (health_trait_type_id, health_field_id);
 
+
+-- ---------------------------------------------------------------------------
+-- Freigabe — wem die Angabe überhaupt vorliegt
+-- ---------------------------------------------------------------------------
+-- Die zweite Bedingung neben dem Sichtkreis, und sie liegt in den Daten statt
+-- in der Konfiguration: Der Sichtkreis sagt, welche Felder ein Kreis sehen
+-- *kann*, die Freigabe, welche Angabe ihm überhaupt vorliegt. Schule und Hort
+-- sind dabei zwei Instanzen desselben Bestands und nicht zwei Bestände — der
+-- eine Bestand je Kind bleibt, und die Eltern entscheiden zweistufig: erst je
+-- Instanz überhaupt, dann je Angabe.
+
+-- Herkunft: 09 (Hortvertrag) — „die Eltern geben ihn dafür ausdrücklich frei
+-- und dürfen die Freigabe verweigern" (grenzkarte.md, zum Hortvertrag).
+-- Löschanker: geht mit dem Bestand und damit mit dem Kind (03).
+-- Zwei Zeitpunkte statt eines Häkchens, dieselbe Bauform wie `child_health_records`
+-- und aus demselben Grund: „beim Hort nicht gefragt" darf nicht aussehen wie
+-- „beim Hort abgelehnt".
+CREATE TABLE child_health_releases (
+    child_health_release_id    uuid NOT NULL DEFAULT gen_random_uuid(),
+    child_health_record_id     uuid NOT NULL,
+    health_visibility_scope_id integer NOT NULL,
+    -- Mitgeführt samt CHECK, damit eine Freigabe an einen Sichtkreis, der
+    -- keiner ist, gar nicht erst entsteht — `full`, `kitchen` und `emergency`
+    -- sind keine Freigabeziele.
+    needs_release              boolean NOT NULL DEFAULT true,
+    released_at                timestamptz,
+    declined_at                timestamptz,
+    -- Abgeleitet und gespeichert, weil ein Fremdschlüssel eine Spalte braucht
+    -- und keinen Ausdruck: `health_trait_releases` hängt daran und kann deshalb
+    -- nicht an einer abgelehnten Instanz stehen. Ein Widerruf setzt die
+    -- Einzelfreigaben voraus — er scheitert, solange noch eine hängt, und das
+    -- ist die gewollte Reihenfolge.
+    is_released                boolean NOT NULL GENERATED ALWAYS AS (released_at IS NOT NULL) STORED,
+    created_at                 timestamptz NOT NULL DEFAULT now(),
+    created_by                 text NOT NULL,
+
+    CONSTRAINT pk_child_health_releases PRIMARY KEY (child_health_release_id),
+    CONSTRAINT fk_child_health_releases_record
+        FOREIGN KEY (child_health_record_id)
+        REFERENCES child_health_records (child_health_record_id) ON DELETE CASCADE,
+    CONSTRAINT fk_child_health_releases_scope
+        FOREIGN KEY (health_visibility_scope_id, needs_release)
+        REFERENCES health_visibility_scopes (health_visibility_scope_id, needs_release),
+    CONSTRAINT uq_child_health_releases
+        UNIQUE (child_health_record_id, health_visibility_scope_id),
+    -- Trägt den zusammengesetzten Fremdschlüssel von `health_trait_releases`.
+    CONSTRAINT uq_child_health_releases_state
+        UNIQUE (child_health_record_id, health_visibility_scope_id, is_released),
+    CONSTRAINT ck_child_health_releases_needs CHECK (needs_release),
+    CONSTRAINT ck_child_health_releases_answer
+        CHECK (released_at IS NULL OR declined_at IS NULL),
+    CONSTRAINT ck_child_health_releases_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
+);
+
+-- Herkunft: 08 (Schulvertrag) und 09 (Hortvertrag) — der Bestand wird einmal
+-- erhoben, und „wer ihn schon hat, gibt ihn für den nächsten Anlass nur frei"
+-- (Dateikopf). Löschanker: die Angabe geht mit der letzten verfallenen
+-- Freigabe, spätestens mit dem Kind (03).
+-- Bewusst KEINE Anlass-Spalte daneben: Der Anlass *ist* der Sichtkreis, an den
+-- freigegeben wird — dauerhaft an `school`, befristet an die Instanz einer
+-- Veranstaltung —, und eine zweite Spalte trüge dieselbe Tatsache ein zweites
+-- Mal. Dass eine Angabe zu mehreren Anlässen gehört, ist damit die zweite Zeile
+-- und kein zweites Modell.
+CREATE TABLE health_trait_releases (
+    health_trait_id            uuid NOT NULL,
+    health_visibility_scope_id integer NOT NULL,
+    -- Mitgeführt wie oben: Über ihn und `is_released` greift der
+    -- zusammengesetzte Fremdschlüssel, der eine Einzelfreigabe an einer
+    -- abgelehnten Instanz ausschließt. — Alternative: die Regel in der
+    -- Schreibschicht; Preis: kein Prüfskript sieht sie, und sie ist genau die,
+    -- deren Bruch eine Art.-9-Angabe an eine Stelle trägt, die sie abgelehnt
+    -- bekommen hat.
+    child_health_record_id     uuid NOT NULL,
+    is_released                boolean NOT NULL DEFAULT true,
+    -- Ab hier fällt die Angabe aus jeder Alltagsansicht dieses Sichtkreises,
+    -- bleibt aber stehen: eingeschränkt verarbeitet, lesbar allein zur
+    -- Verteidigung von Rechtsansprüchen (Art. 17 Abs. 3 lit. e, Art. 18 DSGVO).
+    -- Leer heißt „ohne Zweckende" — die Angabe, die der Schule dauerhaft
+    -- vorliegt.
+    purpose_ends_on            date,
+    -- Ab hier ist sie fort. Für eine Anlass-Instanz vier Wochen nach dem Ende
+    -- der Veranstaltung, für den Bestand am Kind drei Monate nach seinem
+    -- Austritt (Datenschutzbeauftragter, 02./03.09.2026). Gerechnet wird der Tag
+    -- beim Freigeben; die zwei Löschankündigungen davor und das Anhalten im
+    -- Einzelfall stehen in soll-prozesse/hebel.md und werden hier nicht
+    -- wiederholt.
+    delete_on                  date,
+    created_at                 timestamptz NOT NULL DEFAULT now(),
+    created_by                 text NOT NULL,
+
+    CONSTRAINT pk_health_trait_releases
+        PRIMARY KEY (health_trait_id, health_visibility_scope_id),
+    CONSTRAINT fk_health_trait_releases_trait
+        FOREIGN KEY (health_trait_id, child_health_record_id)
+        REFERENCES health_traits (health_trait_id, child_health_record_id) ON DELETE CASCADE,
+    CONSTRAINT fk_health_trait_releases_release
+        FOREIGN KEY (child_health_record_id, health_visibility_scope_id, is_released)
+        REFERENCES child_health_releases (child_health_record_id, health_visibility_scope_id,
+                                          is_released) ON DELETE CASCADE,
+    CONSTRAINT ck_health_trait_releases_released CHECK (is_released),
+    CONSTRAINT ck_health_trait_releases_dates
+        CHECK (delete_on IS NULL OR purpose_ends_on IS NULL OR delete_on >= purpose_ends_on),
+    CONSTRAINT ck_health_trait_releases_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
+);
+
+-- Trägt die Frage des Lösch-Laufs: welche Freigaben sind fällig.
+CREATE INDEX ix_health_trait_releases_delete_on
+    ON health_trait_releases (delete_on);
+
 -- Herkunft: das Gespräch mit der Geschäftsführung vom 01.09.2026 — „das sollte
 -- eine Taste sein bei dem Schüler, wodurch jeder Mitarbeiter im Notfall
 -- nachschauen kann". Löschanker: geht mit dem Kind (03).
@@ -426,9 +597,12 @@ CREATE INDEX ix_health_trait_values_pair
 -- Bewusst KEINE Spalte für einen eingetippten Grund: Er wäre im Ernstfall nicht
 -- zu tippen und im Missbrauchsfall nicht wahr.
 -- Die Konstruktion ist am 02.09.2026 bestätigt worden, mit drei Auflagen: Der
--- Mitarbeitende sieht im Notfall **alles**, nicht nur einen Ausschnitt; dass ein
--- ärztliches Attest vorliegt, muss ersichtlich sein, ohne dass das Attest selbst
--- einsehbar wäre; und **jede Betätigung wird der Geschäftsführung gemeldet**,
+-- Mitarbeitende sieht im Notfall **alles**, nicht nur einen Ausschnitt, und ohne
+-- Rücksicht auf Freigaben — sonst blendete eine Hort-Ablehnung genau den
+-- Zugriff, der im Ernstfall zählt; dass ein ärztliches Attest vorliegt, muss
+-- ersichtlich sein, ohne dass das Attest selbst einsehbar wäre
+-- (`health_field_visibility.presence_only`); und **jede Betätigung wird der
+-- Geschäftsführung gemeldet**,
 -- nicht nur protokolliert. Adressat und Takt dieser Meldung sollen anpassbar
 -- bleiben — nach der Anlaufzeit womöglich ein Monats- oder Quartalsbericht
 -- statt einer Meldung je Fall; die Zeile hier trägt beides gleich gut, weil sie
@@ -489,19 +663,17 @@ CREATE TABLE measles_proofs (
 -- ---------------------------------------------------------------------------
 -- Offene Fragen an die Schule
 -- ---------------------------------------------------------------------------
--- [?] Die Aufbewahrungsfrist des Notfallprotokolls (`health_emergency_accesses`).
---     Wer es ansieht, ist seit dem 02.09.2026 beantwortet: die
---     Geschäftsführung, gemeldet je Betätigung. Die Frist nicht.
--- [?] Der Erhebungsanlass — welche Angabe aus welchem Vorgang stammt, mit
---     Zweckende und Löschtermin je Angabe statt „geht mit dem Kind". Er setzt
---     zweierlei voraus, das noch nicht steht: die Domäne der
---     außerunterrichtlichen Veranstaltungen — die zweite, die Nachweisfrist,
---     steht seit dem 02.09.2026: **vier Wochen nach dem Ende der Veranstaltung**
---     für die Gesundheitsangaben, **drei Jahre** für das übrige Anmeldeformular
---     samt Unterschrift, und **drei Monate** für den Gesundheitsbestand am Kind.
---     Je Frist die Löschankündigung und das Anhalten im Einzelfall, die
---     hebel.md gemeinsam beschreibt. Der Bezugstag der drei Monate steht seit
---     dem 03.09.2026: der **Austritt** des Kindes. Ein schulfremdes Kind hat
---     keinen — bei ihm gilt die eigene Frist aus ferien-schema.sql, vier Wochen
---     nach dem letzten gebuchten Termin. Bis die Domäne steht, gilt weiter „die
---     Gesundheitsangaben nach dem letzten bestätigten Ende dieses Kindes" (03).
+-- [?] Die Aufbewahrungsfrist des Notfallprotokolls (`health_emergency_accesses`)
+--     — Adressat: der Datenschutzbeauftragte. Wer es ansieht, ist seit dem
+--     02.09.2026 beantwortet: die Geschäftsführung, gemeldet je Betätigung. Die
+--     Frist nicht.
+--
+-- Der Erhebungsanlass ist keine offene Frage mehr: Er ist der Sichtkreis, an
+-- den freigegeben wird, und Zweckende wie Löschtermin stehen an der Freigabe
+-- (`health_trait_releases`). Was noch fehlt, ist der Anlassgeber — die Domäne
+-- der außerunterrichtlichen Veranstaltungen legt die Instanz an, an die eine
+-- Fahrt freigeben lässt. Bis dahin gibt es die zwei dauerhaften Instanzen
+-- `school` und `care`, und die drei Monate nach dem Austritt des Kindes sind
+-- der einzige gerechnete Löschtermin. Ein schulfremdes Kind hat keinen Austritt
+-- — bei ihm gilt die eigene Frist aus ferien-schema.sql, vier Wochen nach dem
+-- letzten gebuchten Termin.

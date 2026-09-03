@@ -305,8 +305,7 @@ CREATE TABLE addresses (
 -- `persons` plus die Rollentabellen in Stammdaten". Löschanker: keiner eigener
 -- — eine Person verschwindet erst, wenn alle ihre Rollenanker erreicht sind
 -- (00, „ein Sorgeberechtigter, der zugleich Mitarbeitender ist, ist trotzdem
--- eine Person"). Bewusst KEIN Notiz-Freitext und kein Geburtsdatum: Ersteres
--- sammelt Personendaten ohne Zweck, Letzteres steht am Kind (rules.md 7).
+-- eine Person"). Bewusst KEIN Geburtsdatum: Es steht am Kind (rules.md 7).
 CREATE TABLE persons (
     person_id     uuid NOT NULL DEFAULT gen_random_uuid(),
     salutation_id integer,
@@ -334,6 +333,22 @@ CREATE TABLE persons (
     -- 00 (Zugang und Portal): „je Person die letzte Anmeldung: daran sieht das
     -- Sekretariat, welche Familie das Portal überhaupt nutzt".
     last_login_at timestamptz,
+    -- Was sich das Sekretariat merkt und wofür es kein Feld gibt. An `persons`
+    -- und nicht an `children`, weil Kind und Sorgeberechtigter dieselbe
+    -- Zeilensorte sind und zwei Spalten dieselbe Sache zweimal wären.
+    -- Hier gehört NICHT hinein: Gesundheitsangaben — die haben ihren Ort samt
+    -- Sichtkreisen und Freigaben (gesundheit-schema.sql) —, Einschätzungen über
+    -- einen Menschen, Verdacht, und nichts, wofür ein Feld fehlt. Taucht
+    -- dieselbe Sorte Notiz dreimal auf, ist das keine Notiz, sondern eine
+    -- fehlende Spalte. Die Familie liest sie bei der Auskunft nach Art. 15;
+    -- dass das am Eingabefeld steht, ist der wirksamste Schutz und kostet
+    -- nichts (oberflaechen.md).
+    note          text,
+    -- Abgeleitet und gespeichert, weil ein Fremdschlüssel eine Spalte braucht
+    -- und keinen Ausdruck: `employees` zeigt darauf und kann deshalb neben einer
+    -- Notiz nicht bestehen. Eine Notiz an einem Mitarbeitenden wäre ein Stück
+    -- Personalakte, und die führt Weltenbaum nicht (13).
+    has_note      boolean NOT NULL GENERATED ALWAYS AS (note IS NOT NULL) STORED,
     created_at    timestamptz NOT NULL DEFAULT now(),
     created_by    text NOT NULL,
 
@@ -345,6 +360,9 @@ CREATE TABLE persons (
     CONSTRAINT ck_persons_nickname   CHECK (nickname <> ''),
     CONSTRAINT ck_persons_last_name  CHECK (last_name <> ''),
     CONSTRAINT ck_persons_email      CHECK (email <> ''),
+    CONSTRAINT ck_persons_note       CHECK (note <> ''),
+    -- Trägt den zusammengesetzten Fremdschlüssel von `employees`.
+    CONSTRAINT uq_persons_note       UNIQUE (person_id, has_note),
     CONSTRAINT ck_persons_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
@@ -794,10 +812,17 @@ CREATE UNIQUE INDEX ix_sepa_mandates_current
 -- Arbeitstag, sobald er feststeht". Löschanker: `last_working_day` — ab ihm
 -- rechnet der Lösch-Lauf, und ab ihm enden die Rollen von selbst (00, 13).
 -- Bewusst KEINE Spalten für Vertrag, Gehalt, Stundenumfang oder Urlaub: Block
--- 13 grenzt die Personalverwaltung im eigentlichen Sinn ausdrücklich aus.
+-- 13 grenzt die Personalverwaltung im eigentlichen Sinn ausdrücklich aus — und
+-- `has_note` unten hält dieselbe Grenze gegen die Notiz an `persons`.
 CREATE TABLE employees (
     employee_id       uuid NOT NULL DEFAULT gen_random_uuid(),
     person_id         uuid NOT NULL,
+    -- Mitgeführt samt CHECK, und immer falsch: Über den zusammengesetzten
+    -- Fremdschlüssel unten schließt das beides aus — eine Notiz an einer Person,
+    -- die schon Mitarbeitende ist, und einen Mitarbeitendeneintrag für eine
+    -- Person, die eine Notiz trägt. Ein Trigger wäre der andere Weg und kommt in
+    -- diesem Schema an keiner Stelle vor.
+    has_note          boolean NOT NULL DEFAULT false,
     -- Schule oder KITA. Entscheidet die M365-Domain (13) und, ob die Familie
     -- bei Putzdienst (01) und Elternbonus (14) ausgenommen ist.
     house_id          integer NOT NULL,
@@ -824,6 +849,9 @@ CREATE TABLE employees (
 
     CONSTRAINT pk_employees        PRIMARY KEY (employee_id),
     CONSTRAINT fk_employees_person FOREIGN KEY (person_id) REFERENCES persons (person_id),
+    CONSTRAINT fk_employees_note
+        FOREIGN KEY (person_id, has_note) REFERENCES persons (person_id, has_note),
+    CONSTRAINT ck_employees_note   CHECK (NOT has_note),
     CONSTRAINT fk_employees_house  FOREIGN KEY (house_id)  REFERENCES houses (house_id),
     CONSTRAINT uq_employees_person     UNIQUE (person_id),
     CONSTRAINT uq_employees_work_email UNIQUE (work_email),

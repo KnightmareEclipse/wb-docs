@@ -1,13 +1,15 @@
 -- Prüfskript zu gesundheit-schema.sql.
 --
--- Sollstand: 13 Tabellen — die Konfiguration health_trait_types,
+-- Sollstand: 15 Tabellen — die Konfiguration health_trait_types,
 -- health_value_kinds, health_fields, health_type_fields,
 -- health_visibility_scopes, health_field_visibility und
 -- measles_presentation_types; die Antworten child_health_records,
--- child_health_answers, health_traits und health_trait_values; dazu
+-- child_health_answers, health_traits und health_trait_values; die zwei
+-- Freigaben child_health_releases und health_trait_releases; dazu
 -- health_emergency_accesses und measles_proofs. Ein partieller Unique-Index
--- gegen die zweite Zeile einer Kategorie, die nur eine erlaubt, und ein Index
--- auf dem Paar (Kategorie, Feld), über das jede Sicht filtert.
+-- gegen die zweite Zeile einer Kategorie, die nur eine erlaubt, ein Index
+-- auf dem Paar (Kategorie, Feld), über das jede Sicht filtert, und einer auf
+-- dem Löschtermin der Freigabe.
 --
 -- Setzt stammdaten-schema.sql und querschnitt-schema.sql voraus:
 --   psql -v ON_ERROR_STOP=1 -f gesundheit-schema-check.sql
@@ -23,12 +25,13 @@ BEGIN
                       'health_field_visibility', 'measles_presentation_types',
                       'child_health_records', 'child_health_answers',
                       'health_traits', 'health_trait_values',
+                      'child_health_releases', 'health_trait_releases',
                       'health_emergency_accesses', 'measles_proofs']) AS t
     WHERE to_regclass('public.' || t) IS NULL;
     IF missing IS NOT NULL THEN
         RAISE EXCEPTION 'Fehlende Tabellen: %', missing;
     END IF;
-    RAISE NOTICE 'ok: alle 13 Tabellen vorhanden';
+    RAISE NOTICE 'ok: alle 15 Tabellen vorhanden';
 END $$;
 
 DO $$
@@ -41,14 +44,23 @@ BEGIN
         'pk_health_fields', 'uq_health_fields_kind', 'fk_health_fields_kind',
         'pk_health_type_fields', 'fk_health_type_fields_type',
         'fk_health_type_fields_field',
-        'pk_health_visibility_scopes', 'pk_health_field_visibility',
-        'fk_health_field_visibility_pair',
+        'pk_health_visibility_scopes', 'uq_health_visibility_scopes_release',
+        'pk_health_field_visibility', 'fk_health_field_visibility_pair',
+        'fk_health_field_visibility_kind', 'ck_health_field_visibility_presence',
         'pk_child_health_records', 'uq_child_health_records',
         'ck_child_health_records_answer',
         'pk_child_health_answers', 'uq_child_health_answers',
         'uq_child_health_answers_type', 'ck_child_health_answers_answer',
-        'pk_health_traits', 'fk_health_traits_answer', 'fk_health_traits_type',
-        'uq_health_traits_type',
+        'uq_child_health_answers_record',
+        'pk_health_traits', 'fk_health_traits_answer', 'fk_health_traits_record',
+        'fk_health_traits_type', 'uq_health_traits_type', 'uq_health_traits_record',
+        'pk_child_health_releases', 'fk_child_health_releases_record',
+        'fk_child_health_releases_scope', 'uq_child_health_releases',
+        'uq_child_health_releases_state', 'ck_child_health_releases_needs',
+        'ck_child_health_releases_answer',
+        'pk_health_trait_releases', 'fk_health_trait_releases_trait',
+        'fk_health_trait_releases_release', 'ck_health_trait_releases_released',
+        'ck_health_trait_releases_dates',
         'pk_health_trait_values', 'fk_health_trait_values_trait',
         'fk_health_trait_values_pair', 'fk_health_trait_values_kind',
         'fk_health_trait_values_document', 'uq_health_trait_values',
@@ -66,6 +78,9 @@ BEGIN
     END IF;
     IF to_regclass('public.ix_health_trait_values_pair') IS NULL THEN
         RAISE EXCEPTION 'Fehlender Index: ix_health_trait_values_pair';
+    END IF;
+    IF to_regclass('public.ix_health_trait_releases_delete_on') IS NULL THEN
+        RAISE EXCEPTION 'Fehlender Index: ix_health_trait_releases_delete_on';
     END IF;
     RAISE NOTICE 'ok: alle geprüften Constraints und Indizes vorhanden';
 END $$;
@@ -152,14 +167,16 @@ INSERT INTO health_type_fields (health_trait_type_id, health_field_id, created_b
     (4, 1, 'system:check'),
     (5, 3, 'system:check');
 
+-- Fünf Sichtkreise, und `needs_release` sagt, welche Freigabeziele sind:
+-- `school` und `care`, nicht `full`, `kitchen` und `emergency`.
 INSERT INTO health_visibility_scopes (health_visibility_scope_id, code, name,
-                                      is_emergency, created_by)
+                                      is_emergency, needs_release, created_by)
     OVERRIDING SYSTEM VALUE VALUES
-    (1, 'kitchen',   'Küche',            false, 'system:check'),
-    (2, 'care',      'Betreuung',        false, 'system:check'),
-    (3, 'sports',    'Sportunterricht',  false, 'system:check'),
-    (4, 'class_lead', 'Klassenleitung',  false, 'system:check'),
-    (5, 'emergency', 'Notfall',          true,  'system:check');
+    (1, 'kitchen',   'Küche',      false, false, 'system:check'),
+    (2, 'care',      'Betreuung',  false, true,  'system:check'),
+    (3, 'school',    'Schule',     false, true,  'system:check'),
+    (4, 'full',      'Volle Akte', false, false, 'system:check'),
+    (5, 'emergency', 'Notfall',    true,  false, 'system:check');
 
 INSERT INTO measles_presentation_types (measles_presentation_type_id, code, name)
     OVERRIDING SYSTEM VALUE
@@ -175,50 +192,95 @@ INSERT INTO documents (document_id, child_id, document_type_id, sharepoint_libra
             '44444444-4444-4444-4444-444444444441', 1, 1, '01ATT', now(), 'system:check');
 
 -- ---------------------------------------------------------------------------
--- Der Umbau selbst: Sichten, die nicht ineinanderliegen
+-- Der Sichtkreis: welche Felder ein Kreis überhaupt sehen kann
 -- ---------------------------------------------------------------------------
 
--- Der Fall, an dem die alte Leiter zerbrach: Der Sportunterricht sieht den
--- Handlungshinweis einer chronischen Erkrankung, nicht ihre Bezeichnung — die
--- Küche dagegen die Bezeichnung der Allergie. Weder liegt die eine Sicht in der
--- anderen noch beide in einer dritten.
+-- Der grobe Schnitt vom 02.09.2026: Lehrkräfte und Hort sehen alles, die Küche
+-- allein Bezeichnung und Beachten der Allergie.
 SELECT pg_temp.expect_accept(
-    '3a — Sport sieht den Hinweis zur Erkrankung, nicht ihre Bezeichnung',
+    'TASK-197 — Schule und Hort sehen dieselben Felder, das Attest nur als Vorliegen',
     $q$INSERT INTO health_field_visibility (health_visibility_scope_id,
-                                            health_trait_type_id, health_field_id, created_by)
-       VALUES (3, 3, 2, 'system:check'), (3, 1, 2, 'system:check'),
-              (3, 5, 3, 'system:check')$q$);
+                                            health_trait_type_id, health_field_id,
+                                            value_kind_code, presence_only, created_by)
+       VALUES (3, 3, 1, 'text', false, 'system:check'),
+              (3, 3, 2, 'text', false, 'system:check'),
+              (3, 3, 4, 'document', true, 'system:check'),
+              (3, 1, 1, 'text', false, 'system:check'),
+              (3, 1, 2, 'text', false, 'system:check'),
+              (3, 5, 3, 'bool', false, 'system:check'),
+              (2, 3, 1, 'text', false, 'system:check'),
+              (2, 3, 2, 'text', false, 'system:check'),
+              (2, 3, 4, 'document', true, 'system:check'),
+              (2, 1, 1, 'text', false, 'system:check'),
+              (2, 1, 2, 'text', false, 'system:check')$q$);
 
 SELECT pg_temp.expect_accept(
     '11 — die Küche sieht Bezeichnung und Hinweis der Allergie, sonst nichts',
     $q$INSERT INTO health_field_visibility (health_visibility_scope_id,
-                                            health_trait_type_id, health_field_id, created_by)
-       VALUES (1, 1, 1, 'system:check'), (1, 1, 2, 'system:check')$q$);
+                                            health_trait_type_id, health_field_id,
+                                            value_kind_code, created_by)
+       VALUES (1, 1, 1, 'text', 'system:check'), (1, 1, 2, 'text', 'system:check')$q$);
+
+-- TASK-206: „full behält das Attest im Klartext, damit das Sekretariat
+-- abgleichen kann."
+SELECT pg_temp.expect_accept(
+    'TASK-206 — die volle Akte sieht dasselbe Attest im Klartext',
+    $q$INSERT INTO health_field_visibility (health_visibility_scope_id,
+                                            health_trait_type_id, health_field_id,
+                                            value_kind_code, presence_only, created_by)
+       VALUES (4, 3, 4, 'document', false, 'system:check')$q$);
 
 DO $$
 BEGIN
-    IF EXISTS (SELECT 1 FROM health_field_visibility v
-                WHERE v.health_visibility_scope_id = 3
-                  AND (v.health_trait_type_id, v.health_field_id) = (3, 1)) THEN
-        RAISE EXCEPTION 'REGEL NICHT GEBAUT — Sport sieht die Diagnose';
+    IF EXISTS (SELECT 1 FROM health_field_visibility
+                WHERE health_visibility_scope_id = 1 AND health_trait_type_id = 3) THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — die Küche sieht die chronische Erkrankung';
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM health_field_visibility v
-                    WHERE v.health_visibility_scope_id = 1
-                      AND (v.health_trait_type_id, v.health_field_id) = (1, 1))
-       OR EXISTS (SELECT 1 FROM health_field_visibility v
-                   WHERE v.health_visibility_scope_id = 3
-                     AND (v.health_trait_type_id, v.health_field_id) = (1, 1)) THEN
-        RAISE EXCEPTION 'REGEL NICHT GEBAUT — die Sichten liegen doch ineinander';
-    END IF;
-    RAISE NOTICE 'ok: die Sichten überschneiden sich, ohne einander zu enthalten';
+    RAISE NOTICE 'ok: die Küche bleibt auf die Allergie beschränkt';
 END $$;
+
+-- TASK-206: Dasselbe Feld, zwei Tiefen — der eine Kreis bekommt die
+-- `document_id`, der andere nur, DASS eine hinterlegt ist. Das ist der
+-- Unterschied, den eine Leiter nicht trägt.
+DO $$
+DECLARE nur_vorliegen boolean; im_klartext boolean;
+BEGIN
+    SELECT presence_only INTO nur_vorliegen FROM health_field_visibility
+     WHERE health_visibility_scope_id = 3 AND health_trait_type_id = 3
+       AND health_field_id = 4;
+    SELECT NOT presence_only INTO im_klartext FROM health_field_visibility
+     WHERE health_visibility_scope_id = 4 AND health_trait_type_id = 3
+       AND health_field_id = 4;
+    IF NOT nur_vorliegen OR NOT im_klartext THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — das Attest liegt für beide Kreise gleich';
+    END IF;
+    RAISE NOTICE 'ok: dasselbe Attestfeld, zwei Tiefen';
+END $$;
+
+-- TASK-206: Nur ein Dokumentfeld lässt sich auf sein Vorliegen zusammenstreichen
+-- — bei jeder anderen Wertart wäre der geleerte Wert die ganze Angabe.
+SELECT pg_temp.expect_reject(
+    'TASK-206 — Vorliegen-Häkchen an einem Textfeld',
+    $q$INSERT INTO health_field_visibility (health_visibility_scope_id,
+                                            health_trait_type_id, health_field_id,
+                                            value_kind_code, presence_only, created_by)
+       VALUES (1, 1, 2, 'text', true, 'system:check')$q$);
+
+-- Und die Wertart kommt vom Feld, nicht vom Schreibenden.
+SELECT pg_temp.expect_reject(
+    'TASK-206 — Sichtbarkeit mit falscher Wertart eingetragen',
+    $q$INSERT INTO health_field_visibility (health_visibility_scope_id,
+                                            health_trait_type_id, health_field_id,
+                                            value_kind_code, created_by)
+       VALUES (5, 3, 5, 'text', 'system:check')$q$);
 
 -- Sichtbar machen lässt sich nur, was die Kategorie überhaupt erhebt.
 SELECT pg_temp.expect_reject(
     '3a — Sichtbarkeit für ein Feld, das diese Kategorie nicht hat',
     $q$INSERT INTO health_field_visibility (health_visibility_scope_id,
-                                            health_trait_type_id, health_field_id, created_by)
-       VALUES (3, 5, 1, 'system:check')$q$);
+                                            health_trait_type_id, health_field_id,
+                                            value_kind_code, created_by)
+       VALUES (3, 5, 1, 'text', 'system:check')$q$);
 
 -- ---------------------------------------------------------------------------
 -- Die drei Zustände je Kategorie
@@ -289,39 +351,53 @@ INSERT INTO child_health_answers (child_health_answer_id, child_health_record_id
             '55555555-5555-5555-5555-555555555551', 2, now(), 'system:check');
 
 INSERT INTO health_traits (health_trait_id, child_health_answer_id, health_trait_type_id,
-                           allows_multiple, created_by)
+                           child_health_record_id, allows_multiple, created_by)
     VALUES ('66666666-6666-6666-6666-666666666661',
-            '77777777-7777-7777-7777-777777777771', 3, true, 'system:check'),
+            '77777777-7777-7777-7777-777777777771', 3, '55555555-5555-5555-5555-555555555551', true, 'system:check'),
            ('66666666-6666-6666-6666-666666666662',
-            '77777777-7777-7777-7777-777777777772', 5, false, 'system:check');
+            '77777777-7777-7777-7777-777777777772', 5, '55555555-5555-5555-5555-555555555551', false, 'system:check');
 
 -- Ein Merkmal kann seine Kategorie nicht von der Antwort abweichen lassen.
 SELECT pg_temp.expect_reject(
     'rules.md 1 — Merkmal mit anderer Kategorie als seine Antwortzeile',
     $q$INSERT INTO health_traits (child_health_answer_id, health_trait_type_id,
-                                  allows_multiple, created_by)
-       VALUES ('77777777-7777-7777-7777-777777777771', 1, true, 'system:check')$q$);
+                                  child_health_record_id, allows_multiple, created_by)
+       VALUES ('77777777-7777-7777-7777-777777777771', 1,
+               '55555555-5555-5555-5555-555555555551', true, 'system:check')$q$);
+
+-- Und den Bestand ebensowenig: Über ihn hängt die Freigabe, er darf also nicht
+-- von dem der Antwortzeile abweichen.
+SELECT pg_temp.expect_reject(
+    'rules.md 1 — Merkmal mit fremdem Bestandsbezug',
+    $q$INSERT INTO health_traits (child_health_answer_id, health_trait_type_id,
+                                  child_health_record_id, allows_multiple, created_by)
+       VALUES ('77777777-7777-7777-7777-777777777771', 3,
+               '55555555-5555-5555-5555-555555555559', true, 'system:check')$q$);
 
 -- Und nicht die Mehrfach-Erlaubnis einer fremden Kategorie leihen.
 SELECT pg_temp.expect_reject(
     'rules.md 1 — Zeckenerlaubnis mit geliehenem allows_multiple',
     $q$INSERT INTO health_traits (child_health_answer_id, health_trait_type_id,
-                                  allows_multiple, created_by)
-       VALUES ('77777777-7777-7777-7777-777777777772', 5, true, 'system:check')$q$);
+                                  child_health_record_id, allows_multiple, created_by)
+       VALUES ('77777777-7777-7777-7777-777777777772', 5,
+               '55555555-5555-5555-5555-555555555551', true, 'system:check')$q$);
 
 -- Q1: „zwei Notfallmedikamente desselben Kindes sind getrennt zu erlauben".
 SELECT pg_temp.expect_accept(
     'Q1 — zweites Merkmal einer Kategorie, die mehrere erlaubt',
     $q$INSERT INTO health_traits (health_trait_id, child_health_answer_id,
-                                  health_trait_type_id, allows_multiple, created_by)
+                                  health_trait_type_id, child_health_record_id,
+                                  allows_multiple, created_by)
        VALUES ('66666666-6666-6666-6666-666666666663',
-               '77777777-7777-7777-7777-777777777771', 3, true, 'system:check')$q$);
+               '77777777-7777-7777-7777-777777777771', 3,
+               '55555555-5555-5555-5555-555555555551', true, 'system:check')$q$);
 
 SELECT pg_temp.expect_reject(
     '3a — zweite Zeckenerlaubnis desselben Kindes',
     $q$INSERT INTO health_traits (child_health_answer_id, health_trait_type_id,
-                                  allows_multiple, created_by)
-       VALUES ('77777777-7777-7777-7777-777777777772', 5, false, 'system:check')$q$);
+                                  child_health_record_id, allows_multiple, created_by)
+       VALUES ('77777777-7777-7777-7777-777777777772', 5,
+               '55555555-5555-5555-5555-555555555551', false, 'system:check')$q$);
 
 -- Die vier Felder der chronischen Erkrankung, jedes in seiner Wertart.
 SELECT pg_temp.expect_accept(
@@ -426,6 +502,236 @@ SELECT pg_temp.expect_accept(
                daterange(DATE '2026-10-01', NULL), 'system:check')$q$);
 
 -- ---------------------------------------------------------------------------
+-- Die Freigabe: wem die Angabe überhaupt vorliegt
+-- ---------------------------------------------------------------------------
+
+-- Eine Anlass-Instanz neben den beiden dauerhaften: dieselbe Bauform, nur mit
+-- Zweckende und Löschtermin.
+INSERT INTO health_visibility_scopes (health_visibility_scope_id, code, name,
+                                      needs_release, created_by)
+    OVERRIDING SYSTEM VALUE
+    VALUES (6, 'trip_2026_10', 'Klassenfahrt Oktober 2026', true, 'system:check');
+INSERT INTO health_field_visibility (health_visibility_scope_id, health_trait_type_id,
+                                     health_field_id, value_kind_code, created_by)
+    VALUES (6, 3, 1, 'text', 'system:check'), (6, 3, 2, 'text', 'system:check');
+
+-- TASK-205: „erst überhaupt freigeben oder ablehnen" — je Instanz, mit
+-- denselben drei Zuständen wie überall: freigegeben, abgelehnt, nie gefragt.
+SELECT pg_temp.expect_accept(
+    'TASK-205 — die Schule freigegeben, der Hort abgelehnt',
+    $q$INSERT INTO child_health_releases (child_health_record_id,
+                                          health_visibility_scope_id, released_at,
+                                          created_by)
+       VALUES ('55555555-5555-5555-5555-555555555551', 3, now(), 'system:check');
+       INSERT INTO child_health_releases (child_health_record_id,
+                                          health_visibility_scope_id, declined_at,
+                                          created_by)
+       VALUES ('55555555-5555-5555-5555-555555555551', 2, now(), 'system:check')$q$);
+
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM child_health_releases
+                WHERE child_health_record_id = '55555555-5555-5555-5555-555555555551'
+                  AND health_visibility_scope_id = 6) THEN
+        RAISE EXCEPTION 'Testaufbau falsch: die Fahrt sollte ungefragt sein';
+    END IF;
+    RAISE NOTICE 'ok: „beim Hort abgelehnt" ist von „bei der Fahrt nicht gefragt" unterscheidbar';
+END $$;
+
+SELECT pg_temp.expect_reject(
+    'TASK-205 — Bestand zugleich freigegeben und abgelehnt',
+    $q$UPDATE child_health_releases SET declined_at = now()
+        WHERE child_health_record_id = '55555555-5555-5555-5555-555555555551'
+          AND health_visibility_scope_id = 3$q$);
+
+SELECT pg_temp.expect_reject(
+    'TASK-205 — zweite Freigabe an dieselbe Instanz',
+    $q$INSERT INTO child_health_releases (child_health_record_id,
+                                          health_visibility_scope_id, released_at,
+                                          created_by)
+       VALUES ('55555555-5555-5555-5555-555555555551', 3, now(), 'system:check')$q$);
+
+-- „`full`, `kitchen` und `emergency` sind keine Freigabeziele": die Eltern lesen
+-- ihre eigene Akte, die Küche erbt von der Liste, und der Notfall übergeht die
+-- Freigabe ohnehin.
+SELECT pg_temp.expect_reject(
+    'TASK-205 — Freigabe an den Notfallausschnitt',
+    $q$INSERT INTO child_health_releases (child_health_record_id,
+                                          health_visibility_scope_id, released_at,
+                                          created_by)
+       VALUES ('55555555-5555-5555-5555-555555555551', 5, now(), 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    'TASK-205 — Freigabe an die Küche',
+    $q$INSERT INTO child_health_releases (child_health_record_id,
+                                          health_visibility_scope_id, released_at,
+                                          created_by)
+       VALUES ('55555555-5555-5555-5555-555555555551', 1, now(), 'system:check')$q$);
+
+-- Die Einzelfreigabe hängt an der Instanz-Freigabe: an die Schule geht sie, an
+-- den abgelehnten Hort nicht.
+SELECT pg_temp.expect_accept(
+    'TASK-205 — die Erkrankung an die Schule freigegeben',
+    $q$INSERT INTO health_trait_releases (health_trait_id, health_visibility_scope_id,
+                                          child_health_record_id, created_by)
+       VALUES ('66666666-6666-6666-6666-666666666661', 3,
+               '55555555-5555-5555-5555-555555555551', 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    'TASK-205 — Einzelfreigabe an eine abgelehnte Instanz',
+    $q$INSERT INTO health_trait_releases (health_trait_id, health_visibility_scope_id,
+                                          child_health_record_id, created_by)
+       VALUES ('66666666-6666-6666-6666-666666666661', 2,
+               '55555555-5555-5555-5555-555555555551', 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    'TASK-205 — Einzelfreigabe an eine nie gefragte Instanz',
+    $q$INSERT INTO health_trait_releases (health_trait_id, health_visibility_scope_id,
+                                          child_health_record_id, created_by)
+       VALUES ('66666666-6666-6666-6666-666666666661', 6,
+               '55555555-5555-5555-5555-555555555551', 'system:check')$q$);
+
+-- Der Widerruf der Instanz setzt voraus, dass keine Einzelfreigabe mehr hängt —
+-- die gewollte Reihenfolge, damit keine Angabe an einer widerrufenen Instanz
+-- stehen bleibt.
+SELECT pg_temp.expect_reject(
+    'TASK-205 — Widerruf, solange eine Einzelfreigabe daran hängt',
+    $q$UPDATE child_health_releases SET released_at = NULL, declined_at = now()
+        WHERE child_health_record_id = '55555555-5555-5555-5555-555555555551'
+          AND health_visibility_scope_id = 3$q$);
+
+-- „Eine Angabe ohne Freigabe ist für den Sichtkreis unsichtbar": derselbe
+-- Bestand, zwei Sichtkreise mit denselben Feldern, verschiedenes Ergebnis.
+DO $$
+DECLARE fuer_schule int; fuer_hort int;
+BEGIN
+    SELECT count(*) INTO fuer_schule
+    FROM health_trait_values v
+    JOIN health_traits t ON t.health_trait_id = v.health_trait_id
+    JOIN health_trait_releases r ON r.health_trait_id = t.health_trait_id
+                                AND r.health_visibility_scope_id = 3
+    JOIN health_field_visibility f ON f.health_visibility_scope_id = 3
+                                 AND f.health_trait_type_id = v.health_trait_type_id
+                                 AND f.health_field_id = v.health_field_id;
+    SELECT count(*) INTO fuer_hort
+    FROM health_trait_values v
+    JOIN health_traits t ON t.health_trait_id = v.health_trait_id
+    JOIN health_trait_releases r ON r.health_trait_id = t.health_trait_id
+                                AND r.health_visibility_scope_id = 2
+    JOIN health_field_visibility f ON f.health_visibility_scope_id = 2
+                                 AND f.health_trait_type_id = v.health_trait_type_id
+                                 AND f.health_field_id = v.health_field_id;
+    IF fuer_schule = 0 THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — die freigegebene Angabe kommt bei der Schule nicht an';
+    END IF;
+    IF fuer_hort <> 0 THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — der Hort sieht % Werte ohne Freigabe', fuer_hort;
+    END IF;
+    RAISE NOTICE 'ok: dieselben Felder, und trotzdem sieht der Hort ohne Freigabe nichts';
+END $$;
+
+-- „Der Notfallausschnitt ignoriert Freigaben": derselbe Bestand, ohne den Join
+-- auf die Freigabe — sonst blendete eine Hort-Ablehnung genau den Zugriff, der
+-- im Ernstfall zählt.
+INSERT INTO health_field_visibility (health_visibility_scope_id, health_trait_type_id,
+                                     health_field_id, value_kind_code, created_by)
+    VALUES (5, 3, 1, 'text', 'system:check'), (5, 3, 2, 'text', 'system:check');
+DO $$
+DECLARE im_notfall int;
+BEGIN
+    SELECT count(*) INTO im_notfall
+    FROM health_trait_values v
+    JOIN health_field_visibility f ON f.health_visibility_scope_id = 5
+                                 AND f.health_trait_type_id = v.health_trait_type_id
+                                 AND f.health_field_id = v.health_field_id
+    WHERE NOT EXISTS (SELECT 1 FROM health_trait_releases r
+                       WHERE r.health_trait_id = v.health_trait_id
+                         AND r.health_visibility_scope_id = 5);
+    IF im_notfall = 0 THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — der Notfallausschnitt hängt doch an einer Freigabe';
+    END IF;
+    RAISE NOTICE 'ok: der Notfallausschnitt liefert auch, was nie freigegeben wurde';
+END $$;
+
+-- TASK-162: „Zweckende und Löschtermin je Angabe" — und beide an der Freigabe,
+-- weil dieselbe Allergie der Schule dauerhaft und der Fahrt befristet vorliegt.
+INSERT INTO child_health_releases (child_health_record_id, health_visibility_scope_id,
+                                   released_at, created_by)
+    VALUES ('55555555-5555-5555-5555-555555555551', 6, now(), 'system:check');
+SELECT pg_temp.expect_accept(
+    'TASK-162 — dieselbe Angabe, der Fahrt befristet freigegeben',
+    $q$INSERT INTO health_trait_releases (health_trait_id, health_visibility_scope_id,
+                                          child_health_record_id, purpose_ends_on,
+                                          delete_on, created_by)
+       VALUES ('66666666-6666-6666-6666-666666666661', 6,
+               '55555555-5555-5555-5555-555555555551',
+               CURRENT_DATE - 1, CURRENT_DATE + 27, 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    'TASK-162 — Löschtermin vor dem Zweckende',
+    $q$UPDATE health_trait_releases SET delete_on = CURRENT_DATE - 30
+        WHERE health_trait_id = '66666666-6666-6666-6666-666666666661'
+          AND health_visibility_scope_id = 6$q$);
+
+-- „nach dem Zweckende aus der Alltagssicht, und trotzdem da": Die Fahrt sieht
+-- nichts mehr, die Schule unverändert alles, und die Zeile steht.
+DO $$
+DECLARE fuer_fahrt int;
+BEGIN
+    SELECT count(*) INTO fuer_fahrt
+    FROM health_trait_values v
+    JOIN health_trait_releases r ON r.health_trait_id = v.health_trait_id
+                                AND r.health_visibility_scope_id = 6
+    JOIN health_field_visibility f ON f.health_visibility_scope_id = 6
+                                 AND f.health_trait_type_id = v.health_trait_type_id
+                                 AND f.health_field_id = v.health_field_id
+    WHERE r.purpose_ends_on IS NULL OR r.purpose_ends_on >= CURRENT_DATE;
+    IF fuer_fahrt <> 0 THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — die Fahrt sieht nach dem Zweckende noch % Werte', fuer_fahrt;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM health_traits
+                    WHERE health_trait_id = '66666666-6666-6666-6666-666666666661') THEN
+        RAISE EXCEPTION 'ZU VIEL GELÖSCHT — die Angabe ist mit ihrem Zweckende verschwunden';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM health_trait_releases
+                    WHERE health_trait_id = '66666666-6666-6666-6666-666666666661'
+                      AND health_visibility_scope_id = 3) THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — das Zweckende der Fahrt traf die Schule mit';
+    END IF;
+    RAISE NOTICE 'ok: nach dem Zweckende aus der Alltagssicht, und trotzdem da';
+END $$;
+
+SELECT pg_temp.expect_reject(
+    'TASK-205 — dieselbe Angabe zweimal an dieselbe Instanz freigegeben',
+    $q$INSERT INTO health_trait_releases (health_trait_id, health_visibility_scope_id,
+                                          child_health_record_id, created_by)
+       VALUES ('66666666-6666-6666-6666-666666666661', 3,
+               '55555555-5555-5555-5555-555555555551', 'system:check')$q$);
+
+-- „Ein Bestand je Kind bleibt": Die Freigabe trägt keinen Wert, und der Wert
+-- kennt keine Instanz — sonst wären es zwei Bestände statt einer Freigabe.
+DO $$
+DECLARE leftover text;
+BEGIN
+    SELECT string_agg(table_name || '.' || column_name, ', ') INTO leftover
+    FROM information_schema.columns
+    WHERE (table_name = 'health_trait_releases'
+           AND column_name LIKE 'value\_%')
+       OR (table_name IN ('health_trait_values', 'health_traits', 'child_health_answers')
+           AND column_name = 'health_visibility_scope_id');
+    IF leftover IS NOT NULL THEN
+        RAISE EXCEPTION 'Der Bestand hat sich je Instanz geteilt: %', leftover;
+    END IF;
+    -- Und die zwei Termine stehen an der Freigabe, nicht an der Angabe.
+    IF EXISTS (SELECT 1 FROM information_schema.columns
+                WHERE table_name IN ('health_traits', 'health_trait_values')
+                  AND column_name IN ('purpose_ends_on', 'delete_on')) THEN
+        RAISE EXCEPTION 'Zweckende oder Löschtermin stehen an der Angabe statt an der Freigabe';
+    END IF;
+    RAISE NOTICE 'ok: ein Bestand je Kind, und die zwei Termine stehen an der Freigabe';
+END $$;
+
+-- ---------------------------------------------------------------------------
 -- Die Notfalleinsicht
 -- ---------------------------------------------------------------------------
 
@@ -524,6 +830,8 @@ DO $$
 BEGIN
     IF EXISTS (SELECT 1 FROM child_health_records) OR EXISTS (SELECT 1 FROM child_health_answers)
        OR EXISTS (SELECT 1 FROM health_traits) OR EXISTS (SELECT 1 FROM health_trait_values)
+       OR EXISTS (SELECT 1 FROM child_health_releases)
+       OR EXISTS (SELECT 1 FROM health_trait_releases)
        OR EXISTS (SELECT 1 FROM measles_proofs)
        OR EXISTS (SELECT 1 FROM health_emergency_accesses) THEN
         RAISE EXCEPTION 'REGEL NICHT GEBAUT — Gesundheitsdaten überleben ihr Kind';

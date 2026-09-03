@@ -14,6 +14,8 @@
 -- hängt.
 -- Dazu zwei partielle bzw.
 -- unterstützende Indizes (ix_sepa_mandates_current, ix_login_codes_email_created).
+-- `persons.note` trägt, was sich das Sekretariat merkt; `persons.has_note` und
+-- `employees.has_note` halten sie von den Mitarbeitenden fern.
 --
 -- Läuft gegen eine Datenbank, in die stammdaten-schema.sql geladen wurde:
 --   psql -v ON_ERROR_STOP=1 -f stammdaten-schema-check.sql
@@ -946,6 +948,48 @@ BEGIN
     END IF;
     RAISE NOTICE 'ok (erlaubt): 03 — weder Sorgerecht noch Kontakt überlebt seine Familie, der Beruf bleibt';
 END $$;
+
+-- ---------------------------------------------------------------------------
+-- Die Notiz an der Person — und die Grenze, an der sie endet
+-- ---------------------------------------------------------------------------
+-- TASK-220: „Keine Notiz an einer Person mit `employees`-Zeile", weil sie dort
+-- ein Stück Personalakte wäre. Getragen wird das vom Paar
+-- (`persons.has_note`, `employees.has_note`) und nicht von einer Konvention.
+
+INSERT INTO persons (person_id, first_name, last_name, created_by)
+    VALUES ('22222222-2222-2222-2222-222222222229', 'Ohne', 'Konto', 'system:check');
+
+SELECT pg_temp.expect_accept(
+    'TASK-220 — Notiz an einer Person ohne Mitarbeitendeneintrag',
+    $q$UPDATE persons SET note = 'Holt mittwochs die Oma ab'
+        WHERE person_id = '22222222-2222-2222-2222-222222222229'$q$);
+
+SELECT pg_temp.expect_reject(
+    'TASK-220 — leere Notiz',
+    $q$UPDATE persons SET note = ''
+        WHERE person_id = '22222222-2222-2222-2222-222222222229'$q$);
+
+SELECT pg_temp.expect_reject(
+    'TASK-220 — Notiz an einer Person, die Mitarbeitende ist',
+    $q$UPDATE persons SET note = 'kommt oft zu spät'
+        WHERE person_id = '22222222-2222-2222-2222-222222222226'$q$);
+
+-- Und andersherum: Wer eine Notiz trägt, bekommt keinen
+-- Mitarbeitendeneintrag, solange sie steht.
+SELECT pg_temp.expect_reject(
+    'TASK-220 — Mitarbeitendeneintrag für eine Person mit Notiz',
+    $q$INSERT INTO employees (person_id, house_id, created_by)
+       VALUES ('22222222-2222-2222-2222-222222222229',
+               (SELECT house_id FROM houses WHERE code = 'school'), 'system:check')$q$);
+
+SELECT pg_temp.expect_accept(
+    'TASK-220 — die Notiz gestrichen, dann geht der Mitarbeitendeneintrag',
+    $q$UPDATE persons SET note = NULL
+        WHERE person_id = '22222222-2222-2222-2222-222222222229';
+       INSERT INTO employees (person_id, house_id, created_by)
+       VALUES ('22222222-2222-2222-2222-222222222229',
+               (SELECT house_id FROM houses WHERE code = 'school'), 'system:check')$q$);
+
 
 -- 13: „Löschanker: `last_working_day` — ab ihm rechnet der Lösch-Lauf" — die
 -- Person geht deshalb nicht vor ihrem Mitarbeitendeneintrag.
