@@ -170,6 +170,14 @@ CREATE TABLE health_visibility_scopes (
     -- Wahr allein beim Notfallausschnitt: Er wird nicht über die Zuständigkeit
     -- für ein Kind vergeben, sondern steht jedem Mitarbeitenden für jedes Kind
     -- offen und wird stattdessen protokolliert (`health_emergency_accesses`).
+    -- Er läuft deshalb auch nicht über `health_field_visibility`, sondern sieht
+    -- **jedes** Feld jeder Kategorie — „der Mitarbeitende sieht im Notfall
+    -- alles, nicht nur einen Ausschnitt" (02.09.2026). Als Zeilenmenge wäre das
+    -- eine Vollständigkeit, die niemand hält: Ein neues Paar (Kategorie, Feld)
+    -- wäre im Notfall unsichtbar, bis jemand die Zeile nachträgt, und der
+    -- Fehler bliebe still. Die Sicht liefert stattdessen alles und reduziert
+    -- allein die Dokumentfelder auf ihr Vorliegen — die zweite Auflage
+    -- desselben Tages.
     is_emergency               boolean NOT NULL DEFAULT false,
     -- Wahr, wo die Eltern erst freigeben müssen: `school`, `care` und jede
     -- Anlass-Instanz. Falsch bei `full` — die Eltern und das Sekretariat lesen
@@ -188,6 +196,9 @@ CREATE TABLE health_visibility_scopes (
     -- und ist deshalb zusätzlich zum Primärschlüssel nötig.
     CONSTRAINT uq_health_visibility_scopes_release
         UNIQUE (health_visibility_scope_id, needs_release),
+    -- Trägt den zusammengesetzten Fremdschlüssel von `health_field_visibility`.
+    CONSTRAINT uq_health_visibility_scopes_emergency
+        UNIQUE (health_visibility_scope_id, is_emergency),
     CONSTRAINT ck_health_visibility_scopes_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
@@ -205,6 +216,11 @@ CREATE TABLE health_field_visibility (
     -- Mitgeführt, damit der CHECK unten die Wertart sehen kann;
     -- `fk_health_field_visibility_kind` hält sie mit ihrer Quelle zusammen.
     value_kind_code            text NOT NULL,
+    -- Ebenso mitgeführt, und immer falsch: Der Notfallausschnitt wird nicht
+    -- über Zeilen geführt (siehe `health_visibility_scopes.is_emergency`), und
+    -- eine Zeile für ihn wäre die halbe Wahrheit — sie sähe aus wie eine
+    -- Begrenzung, die es nicht gibt.
+    is_emergency               boolean NOT NULL DEFAULT false,
     -- „es muss ersichtlich sein, dass Attest vorliegt, Attest selber muss nicht
     -- zwingend einsehbar sein" (Datenschutzbeauftragter, 02.09.2026). Die Sicht
     -- liefert dann statt der `document_id` nur, ob eine hinterlegt ist. Als
@@ -217,8 +233,8 @@ CREATE TABLE health_field_visibility (
     CONSTRAINT pk_health_field_visibility
         PRIMARY KEY (health_visibility_scope_id, health_trait_type_id, health_field_id),
     CONSTRAINT fk_health_field_visibility_scope
-        FOREIGN KEY (health_visibility_scope_id)
-        REFERENCES health_visibility_scopes (health_visibility_scope_id),
+        FOREIGN KEY (health_visibility_scope_id, is_emergency)
+        REFERENCES health_visibility_scopes (health_visibility_scope_id, is_emergency),
     CONSTRAINT fk_health_field_visibility_pair
         FOREIGN KEY (health_trait_type_id, health_field_id)
         REFERENCES health_type_fields (health_trait_type_id, health_field_id),
@@ -231,6 +247,7 @@ CREATE TABLE health_field_visibility (
     -- zulassen; Preis: eine Konfiguration, die stillschweigend nichts tut.
     CONSTRAINT ck_health_field_visibility_presence
         CHECK (NOT presence_only OR value_kind_code = 'document'),
+    CONSTRAINT ck_health_field_visibility_emergency CHECK (NOT is_emergency),
     CONSTRAINT ck_health_field_visibility_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
@@ -289,6 +306,9 @@ CREATE TABLE child_health_records (
     -- Beantwortet oder ausdrücklich verweigert, nie beides.
     CONSTRAINT ck_child_health_records_answer
         CHECK (answered_at IS NULL OR declined_at IS NULL),
+    -- Ein leerer Hinweis sieht aus wie ein geprüfter, und ihn lesen alle
+    -- unterrichtenden Personen.
+    CONSTRAINT ck_child_health_records_action_note CHECK (action_note <> ''),
     CONSTRAINT ck_child_health_records_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
@@ -311,6 +331,12 @@ CREATE TABLE child_health_answers (
     health_trait_type_id   integer NOT NULL,
     answered_at            timestamptz,
     declined_at            timestamptz,
+    -- Abgeleitet und gespeichert, weil ein Fremdschlüssel eine Spalte braucht
+    -- und keinen Ausdruck: `health_traits` hängt daran und kann deshalb nicht
+    -- unter einer verweigerten Kategorie stehen. Ohne diese Klammer meldete die
+    -- Ansicht „will nicht sagen", während im Bestand genau die Angabe steht,
+    -- die die Familie nicht nennen wollte.
+    is_answered            boolean NOT NULL GENERATED ALWAYS AS (answered_at IS NOT NULL) STORED,
     created_at             timestamptz NOT NULL DEFAULT now(),
     created_by             text NOT NULL,
 
@@ -324,7 +350,7 @@ CREATE TABLE child_health_answers (
     -- Trägt den zusammengesetzten Fremdschlüssel von `health_traits`: Ein
     -- Merkmal kann seine Kategorie nicht von der Antwort abweichen lassen.
     CONSTRAINT uq_child_health_answers_type
-        UNIQUE (child_health_answer_id, health_trait_type_id),
+        UNIQUE (child_health_answer_id, health_trait_type_id, is_answered),
     -- Und den zweiten: Über ihn reicht der Bestandsbezug bis zur Angabe
     -- durch, an der die Freigabe hängt (`health_trait_releases`).
     CONSTRAINT uq_child_health_answers_record
@@ -357,6 +383,12 @@ CREATE TABLE health_traits (
     -- kann und damit der Index unten `allows_multiple` sieht;
     -- `fk_health_traits_answer` hält beides mit seiner Quelle zusammen.
     health_trait_type_id   integer NOT NULL,
+    -- Ebenso mitgeführt, und immer wahr: Derselbe Fremdschlüssel trägt damit,
+    -- dass diese Kategorie beantwortet ist. Eine Kategorie nachträglich auf
+    -- „will nicht sagen" zu setzen scheitert, solange eine Angabe darunter
+    -- steht — die gewollte Reihenfolge, denn die Kategorie wird am Stück
+    -- geschrieben (api/gesundheit-api.md).
+    is_answered            boolean NOT NULL DEFAULT true,
     -- Ebenso mitgeführt, und aus einem Grund, der zwei Tabellen weiter liegt:
     -- Eine Freigabe darf es nur geben, wo die vorgeschaltete Frage derselben
     -- Instanz freigegeben ist, und `health_trait_releases` prüft das mit einem
@@ -370,8 +402,9 @@ CREATE TABLE health_traits (
 
     CONSTRAINT pk_health_traits PRIMARY KEY (health_trait_id),
     CONSTRAINT fk_health_traits_answer
-        FOREIGN KEY (child_health_answer_id, health_trait_type_id)
-        REFERENCES child_health_answers (child_health_answer_id, health_trait_type_id)
+        FOREIGN KEY (child_health_answer_id, health_trait_type_id, is_answered)
+        REFERENCES child_health_answers (child_health_answer_id, health_trait_type_id,
+                                         is_answered)
         ON DELETE CASCADE,
     CONSTRAINT fk_health_traits_record
         FOREIGN KEY (child_health_answer_id, child_health_record_id)
@@ -384,6 +417,7 @@ CREATE TABLE health_traits (
     CONSTRAINT uq_health_traits_type UNIQUE (health_trait_id, health_trait_type_id),
     -- Und den von `health_trait_releases`.
     CONSTRAINT uq_health_traits_record UNIQUE (health_trait_id, child_health_record_id),
+    CONSTRAINT ck_health_traits_answered CHECK (is_answered),
     CONSTRAINT ck_health_traits_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
@@ -440,6 +474,14 @@ CREATE TABLE health_trait_values (
     CONSTRAINT fk_health_trait_values_kind
         FOREIGN KEY (health_field_id, value_kind_code)
         REFERENCES health_fields (health_field_id, value_kind_code),
+    -- Bewusst OHNE Bindung an das Kind des Bestands: Dass das Attest diesem
+    -- Kind gehört, prüft die Route (api/gesundheit-api.md, „die Route prüft,
+    -- dass das Dokument diesem Kind gehört"). Die strenge Fassung hieße,
+    -- `child_id` über drei Ebenen mitzuführen und `documents` um ein UNIQUE zu
+    -- erweitern — eine Änderung in `querschnitt-schema.sql`, wo `child_id`
+    -- zudem leer sein darf und der Fremdschlüssel dann gar nicht prüfte. Das
+    -- ist die benannte Auslassung dieser Datei, wie die letzte Admin-Rolle in
+    -- stammdaten-schema.sql; das Prüfskript hält sie fest.
     CONSTRAINT fk_health_trait_values_document
         FOREIGN KEY (value_document_id) REFERENCES documents (document_id),
     -- Dasselbe Feld genau einmal je Merkmal.

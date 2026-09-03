@@ -52,6 +52,7 @@ BEGIN
         'ck_academy_registrations_coverage', 'ck_academy_registrations_recorded',
         'ck_academy_registrations_retained', 'ck_academy_registrations_declared_by',
         'ck_academy_registrations_recorded_by',
+        'ck_academy_registrations_adult_payment',
         'ck_academy_offerings_surcharge_label',
         'uq_academy_cost_coverage_codes_id_offering',
         'fk_payments_academy_registration', 'fk_sync_tasks_academy_registration'
@@ -553,6 +554,17 @@ SELECT pg_temp.expect_accept(
        VALUES ('66666666-6666-6666-6666-666666666605',
                '55555555-5555-5555-5555-555555555503', true,
                '11111111-1111-1111-1111-111111111203', 4500, 'paid', 1, 'guardian:x')$q$);
+
+-- Das SEPA-Mandat steht am Kind, und über es wird nichts abgebucht, was nicht
+-- dieses Kind betrifft (Betreiber, 03.09.2026).
+SELECT pg_temp.expect_reject(
+    '21 — Seminarbeitrag einer Erwachsenen soll eingezogen werden',
+    $q$INSERT INTO academy_registrations (academy_offering_id, for_adults, person_id,
+                                          amount_cents, payment_mode,
+                                          cancellation_terms_contract_text_id, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555503', true,
+               '11111111-1111-1111-1111-111111111203', 4500, 'direct_debit', 1,
+               'guardian:x')$q$);
 
 SELECT pg_temp.expect_reject(
     '21 — Anmeldung ohne Teilnehmer',

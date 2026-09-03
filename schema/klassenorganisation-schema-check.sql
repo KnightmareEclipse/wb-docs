@@ -50,11 +50,14 @@ DECLARE missing text;
 BEGIN
     SELECT string_agg(c, ', ') INTO missing
     FROM unnest(ARRAY['pk_elective_modules', 'uq_elective_modules_code',
+                      'ck_elective_modules_code', 'ck_elective_modules_name',
                       'pk_elective_groups', 'fk_elective_groups_module',
                       'fk_elective_groups_branch', 'fk_elective_groups_employee',
-                      'uq_elective_groups', 'ck_elective_groups_label',
+                      'uq_elective_groups', 'uq_elective_groups_id_branch_module',
+                      'ck_elective_groups_label',
                       'pk_child_group_memberships', 'fk_child_group_memberships_child',
                       'fk_child_group_memberships_group',
+                      'uq_child_group_memberships_module',
                       'pk_class_teaching_assignments',
                       'fk_class_teaching_assignments_employee',
                       'fk_class_teaching_assignments_class',
@@ -157,7 +160,9 @@ INSERT INTO persons (person_id, first_name, last_name, created_by) VALUES
     ('22222222-2222-2222-2222-222222222232', 'Technik', 'Lehrkraft', 'system:check'),
     ('22222222-2222-2222-2222-222222222233', 'Ohne',    'Zuordnung', 'system:check'),
     ('22222222-2222-2222-2222-222222222241', 'Kind',    'Ausa',      'system:check'),
-    ('22222222-2222-2222-2222-222222222242', 'Kind',    'Ausb',      'system:check');
+    ('22222222-2222-2222-2222-222222222242', 'Kind',    'Ausb',      'system:check'),
+    ('22222222-2222-2222-2222-222222222243', 'Kind',    'Grundschule', 'system:check'),
+    ('22222222-2222-2222-2222-222222222244', 'Kind',    'Ohnevertrag', 'system:check');
 INSERT INTO houses (house_id, code, name, created_by)
     OVERRIDING SYSTEM VALUE VALUES (1, 'SCHULE', 'Schule', 'system:check');
 INSERT INTO employees (employee_id, person_id, house_id, created_by) VALUES
@@ -179,13 +184,29 @@ INSERT INTO children (child_id, person_id, family_id, birth_date, school_branch_
      DATE '2023-08-01', 3, 'system:check'),
     ('44444444-4444-4444-4444-444444444442', '22222222-2222-2222-2222-222222222242',
      '33333333-3333-3333-3333-333333333333', DATE '2012-06-01', 2, 5, 10, 8,
-     DATE '2023-08-01', 4, 'system:check');
+     DATE '2023-08-01', 4, 'system:check'),
+    ('44444444-4444-4444-4444-444444444443', '22222222-2222-2222-2222-222222222243',
+     '33333333-3333-3333-3333-333333333333', DATE '2019-06-01', 1, 1, 4, 1,
+     DATE '2026-08-01', 1, 'system:check');
+-- Ein Kind ohne Einschreibung: kein Vertrag, keine Schulart.
+INSERT INTO children (child_id, person_id, family_id, birth_date, created_by)
+    VALUES ('44444444-4444-4444-4444-444444444444', '22222222-2222-2222-2222-222222222244',
+            '33333333-3333-3333-3333-333333333333', DATE '2019-07-01', 'system:check');
 
 INSERT INTO elective_modules (elective_module_id, code, name, created_by)
     OVERRIDING SYSTEM VALUE VALUES
     (1, 'technik',      'Technik',     'system:check'),
     (2, 'aes',          'AES',         'system:check'),
     (3, 'franzoesisch', 'Französisch', 'system:check');
+
+SELECT pg_temp.expect_reject(
+    'TASK-161 — Wahlmodul ohne Code',
+    $q$INSERT INTO elective_modules (code, name, created_by)
+       VALUES ('', 'Namenlos', 'system:check')$q$);
+SELECT pg_temp.expect_reject(
+    'TASK-161 — Wahlmodul ohne Namen',
+    $q$INSERT INTO elective_modules (code, name, created_by)
+       VALUES ('leer', '', 'system:check')$q$);
 
 -- ---------------------------------------------------------------------------
 -- Die zweite Achse: welche Kinder jemand sieht
@@ -219,6 +240,13 @@ SELECT pg_temp.expect_accept(
        (2, 'Technik 8 · B', 1, 2, 2023, '88888888-8888-8888-8888-888888888881',
         'system:check')$q$);
 
+-- Ein zweites Modul, damit „ein Kind in zweien" auch zwei Wahlen sind.
+INSERT INTO elective_groups (elective_group_id, label, elective_module_id,
+                             school_branch_id, start_school_year, employee_id, created_by)
+    OVERRIDING SYSTEM VALUE
+    VALUES (3, 'AES 8 · A', 2, 2, 2023, '88888888-8888-8888-8888-888888888882',
+            'system:check');
+
 SELECT pg_temp.expect_reject(
     'TASK-161 — zweite Gruppe unter demselben Namen',
     $q$INSERT INTO elective_groups (label, elective_module_id, school_branch_id,
@@ -232,18 +260,58 @@ SELECT pg_temp.expect_reject(
                                     start_school_year, employee_id, created_by)
        VALUES ('', 1, 2, 2023, '88888888-8888-8888-8888-888888888882', 'system:check')$q$);
 
--- „heute genau eine Gruppe je Kind, morgen zwei, ohne Umstellung".
+-- „heute genau eine Gruppe je Kind, morgen zwei, ohne Umstellung" — und zwei
+-- heißt zwei *Module*, nicht zwei Gruppen desselben.
 SELECT pg_temp.expect_accept(
-    'TASK-161 — ein Kind in einer Gruppe und ein Kind in zweien',
-    $q$INSERT INTO child_group_memberships (child_id, elective_group_id, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444441', 1, 'system:check'),
-              ('44444444-4444-4444-4444-444444444442', 1, 'system:check'),
-              ('44444444-4444-4444-4444-444444444442', 2, 'system:check')$q$);
+    'TASK-161 — ein Kind in einer Gruppe und ein Kind in zwei Modulen',
+    $q$INSERT INTO child_group_memberships (child_id, elective_group_id,
+                                            school_branch_id, elective_module_id, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444441', 1, 2, 1, 'system:check'),
+              ('44444444-4444-4444-4444-444444444442', 2, 2, 1, 'system:check'),
+              ('44444444-4444-4444-4444-444444444442', 3, 2, 2, 'system:check')$q$);
 
 SELECT pg_temp.expect_reject(
     'TASK-161 — dasselbe Kind zweimal in derselben Gruppe',
-    $q$INSERT INTO child_group_memberships (child_id, elective_group_id, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444441', 1, 'system:check')$q$);
+    $q$INSERT INTO child_group_memberships (child_id, elective_group_id,
+                                            school_branch_id, elective_module_id, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444441', 1, 2, 1, 'system:check')$q$);
+
+-- 15: „Technik, AES und Französisch werden einmal gewählt" — die zweite Gruppe
+-- desselben Moduls ist ein Doppeleintrag und keine zweite Wahl.
+SELECT pg_temp.expect_reject(
+    'TASK-161 — zweite Gruppe desselben Moduls für dasselbe Kind',
+    $q$INSERT INTO child_group_memberships (child_id, elective_group_id,
+                                            school_branch_id, elective_module_id, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444441', 2, 2, 1, 'system:check')$q$);
+
+-- Der Fall, für den die Gruppe überhaupt da ist: Sie hält den Kreis eng. Ein
+-- Grundschulkind in einer Realschulgruppe hieße, dass deren Lehrkraft ein Kind
+-- sieht, das sie nie unterrichtet.
+SELECT pg_temp.expect_reject(
+    'TASK-161 — Grundschulkind in einer Realschulgruppe',
+    $q$INSERT INTO child_group_memberships (child_id, elective_group_id,
+                                            school_branch_id, elective_module_id, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444443', 1, 1, 1, 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    'TASK-161 — Realschulgruppe mit geliehener Schulart eingetragen',
+    $q$INSERT INTO child_group_memberships (child_id, elective_group_id,
+                                            school_branch_id, elective_module_id, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444443', 1, 2, 1, 'system:check')$q$);
+
+-- Erst die Einschreibung bringt die Schulart mit; ohne sie gibt es keine Gruppe.
+SELECT pg_temp.expect_reject(
+    'TASK-161 — Wahlmodulgruppe für ein Kind ohne Einschreibung',
+    $q$INSERT INTO child_group_memberships (child_id, elective_group_id,
+                                            school_branch_id, elective_module_id, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444444', 1, 2, 1, 'system:check')$q$);
+
+-- Und das Modul kommt von der Gruppe, nicht vom Schreibenden.
+SELECT pg_temp.expect_reject(
+    'TASK-161 — Mitgliedschaft mit fremdem Modul eingetragen',
+    $q$INSERT INTO child_group_memberships (child_id, elective_group_id,
+                                            school_branch_id, elective_module_id, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444441', 3, 2, 1, 'system:check')$q$);
 
 -- „Listen entstehen je Zuordnung, nicht je Lehrkraft": Die Technik-Lehrkraft
 -- unterrichtet keine Klasse und sieht trotzdem ein Kind aus jeder der beiden —
@@ -255,7 +323,7 @@ BEGIN
     FROM children c
     JOIN class_teaching_assignments a ON a.class_id = c.class_id
     WHERE a.employee_id = '88888888-8888-8888-8888-888888888882';
-    SELECT count(*) INTO aus_gruppe
+    SELECT count(DISTINCT m.child_id) INTO aus_gruppe
     FROM child_group_memberships m
     JOIN elective_groups g ON g.elective_group_id = m.elective_group_id
     WHERE g.employee_id = '88888888-8888-8888-8888-888888888882';

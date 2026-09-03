@@ -385,6 +385,11 @@ CREATE TABLE academy_registrations (
     -- mit SEPA-Mandat, online zahlt die ohne, und berechnet wird, wo ein
     -- Kostenübernahme-Code an die Stelle der Zahlung tritt. Der Zahlweg folgt
     -- dem Mandat und nicht einer Wahl der Eltern.
+    -- **Im Erwachsenen-Zweig gibt es keinen Einzug** (Betreiber, 03.09.2026):
+    -- Das Mandat steht am Kind (`sepa_mandates`, stammdaten-schema.sql), und
+    -- über es wird nichts abgebucht, was nicht dieses Kind betrifft — auch dann
+    -- nicht, wenn die Teilnehmerin daneben ein Kind an der Schule hat. Sie zahlt
+    -- online oder über einen Kostenübernahme-Code.
     payment_mode            text NOT NULL,
     academy_cost_coverage_code_id uuid,
     -- Die Fassung der Abmeldebedingungen, die beim Absenden galt — „sichtbar,
@@ -428,6 +433,10 @@ CREATE TABLE academy_registrations (
                OR (NOT for_adults AND child_id IS NOT NULL AND person_id IS NULL)),
     CONSTRAINT ck_academy_registrations_payment_mode
         CHECK (payment_mode IN ('direct_debit', 'paid', 'invoiced')),
+    -- Der Einzug bleibt dem Kinder-Zweig: Ein Mandat des Kindes deckt den
+    -- Seminarbeitrag seiner Mutter nicht.
+    CONSTRAINT ck_academy_registrations_adult_payment
+        CHECK (NOT for_adults OR payment_mode <> 'direct_debit'),
     -- Ein Code tritt an die Stelle der Zahlung und nur dort.
     CONSTRAINT ck_academy_registrations_coverage
         CHECK ((payment_mode = 'invoiced') = (academy_cost_coverage_code_id IS NOT NULL)),

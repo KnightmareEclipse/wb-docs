@@ -45,8 +45,11 @@ BEGIN
         'pk_health_type_fields', 'fk_health_type_fields_type',
         'fk_health_type_fields_field',
         'pk_health_visibility_scopes', 'uq_health_visibility_scopes_release',
+        'uq_health_visibility_scopes_emergency',
         'pk_health_field_visibility', 'fk_health_field_visibility_pair',
         'fk_health_field_visibility_kind', 'ck_health_field_visibility_presence',
+        'ck_health_field_visibility_emergency',
+        'ck_child_health_records_action_note', 'ck_health_traits_answered',
         'pk_child_health_records', 'uq_child_health_records',
         'ck_child_health_records_answer',
         'pk_child_health_answers', 'uq_child_health_answers',
@@ -296,6 +299,11 @@ SELECT pg_temp.expect_reject(
         WHERE child_health_record_id = '55555555-5555-5555-5555-555555555551'$q$);
 
 SELECT pg_temp.expect_reject(
+    'grenzkarte.md — leerer Handlungshinweis',
+    $q$UPDATE child_health_records SET action_note = ''
+        WHERE child_health_record_id = '55555555-5555-5555-5555-555555555551'$q$);
+
+SELECT pg_temp.expect_reject(
     '09 — zweiter Gesundheitsbestand desselben Kindes',
     $q$INSERT INTO child_health_records (child_id, declined_at, created_by)
        VALUES ('44444444-4444-4444-4444-444444444441', now(), 'system:check')$q$);
@@ -381,6 +389,23 @@ SELECT pg_temp.expect_reject(
                                   child_health_record_id, allows_multiple, created_by)
        VALUES ('77777777-7777-7777-7777-777777777772', 5,
                '55555555-5555-5555-5555-555555555551', true, 'system:check')$q$);
+
+-- 08: „will nicht sagen" ist keine Entwarnung — und darf erst recht nicht über
+-- einer Angabe stehen, die die Familie gerade nicht nennen wollte.
+SELECT pg_temp.expect_reject(
+    '08 — Angabe unter einer verweigerten Kategorie',
+    $q$INSERT INTO health_traits (child_health_answer_id, health_trait_type_id,
+                                  child_health_record_id, allows_multiple, created_by)
+       SELECT child_health_answer_id, 4, '55555555-5555-5555-5555-555555555551',
+              false, 'system:check'
+         FROM child_health_answers
+        WHERE child_health_record_id = '55555555-5555-5555-5555-555555555551'
+          AND health_trait_type_id = 4$q$);
+
+SELECT pg_temp.expect_reject(
+    '08 — Kategorie nachträglich verweigert, obwohl eine Angabe darunter steht',
+    $q$UPDATE child_health_answers SET answered_at = NULL, declined_at = now()
+        WHERE child_health_answer_id = '77777777-7777-7777-7777-777777777771'$q$);
 
 -- Q1: „zwei Notfallmedikamente desselben Kindes sind getrennt zu erlauben".
 SELECT pg_temp.expect_accept(
@@ -500,6 +525,35 @@ SELECT pg_temp.expect_accept(
                                         created_by)
        VALUES ('66666666-6666-6666-6666-666666666663', 3, 5, 'period',
                daterange(DATE '2026-10-01', NULL), 'system:check')$q$);
+
+-- ---------------------------------------------------------------------------
+-- Die benannte Auslassung: das Attest eines fremden Kindes
+-- ---------------------------------------------------------------------------
+-- „Die Route prüft, dass das Dokument diesem Kind gehört" (api/gesundheit-api.md).
+-- Die Datenbank prüft es nicht: Der Weg dorthin führte über drei mitgeführte
+-- Spalten und ein UNIQUE in `querschnitt-schema.sql`, wo `documents.child_id`
+-- zudem leer sein darf und der Fremdschlüssel dann gar nichts prüfte. Dieselbe
+-- Bauform wie bei der letzten Admin-Rolle (stammdaten-schema-check.sql): Die
+-- Gegenprobe hält die Auslassung fest, statt sie zu verschweigen.
+INSERT INTO persons (person_id, first_name, last_name, created_by)
+    VALUES ('22222222-2222-2222-2222-222222222229', 'Fremdes', 'Kind', 'system:check');
+INSERT INTO children (child_id, person_id, family_id, birth_date, created_by)
+    VALUES ('44444444-4444-4444-4444-444444444449',
+            '22222222-2222-2222-2222-222222222229',
+            '33333333-3333-3333-3333-333333333333', DATE '2019-03-01', 'system:check');
+INSERT INTO documents (document_id, child_id, document_type_id, sharepoint_library_id,
+                       graph_item_id, filed_at, created_by)
+    VALUES ('99999999-9999-9999-9999-999999999999',
+            '44444444-4444-4444-4444-444444444449', 1, 1, '01FREMD', now(), 'system:check');
+
+SELECT pg_temp.expect_accept(
+    'Q2 — Attest eines fremden Kindes (die Sperre trägt die Route)',
+    $q$INSERT INTO health_trait_values (health_trait_id, health_trait_type_id,
+                                        health_field_id, value_kind_code,
+                                        value_document_id, created_by)
+       VALUES ('66666666-6666-6666-6666-666666666663', 3, 4, 'document',
+               '99999999-9999-9999-9999-999999999999', 'system:check')$q$);
+
 
 -- ---------------------------------------------------------------------------
 -- Die Freigabe: wem die Angabe überhaupt vorliegt
@@ -630,27 +684,40 @@ BEGIN
     RAISE NOTICE 'ok: dieselben Felder, und trotzdem sieht der Hort ohne Freigabe nichts';
 END $$;
 
--- „Der Notfallausschnitt ignoriert Freigaben": derselbe Bestand, ohne den Join
--- auf die Freigabe — sonst blendete eine Hort-Ablehnung genau den Zugriff, der
--- im Ernstfall zählt.
-INSERT INTO health_field_visibility (health_visibility_scope_id, health_trait_type_id,
-                                     health_field_id, value_kind_code, created_by)
-    VALUES (5, 3, 1, 'text', 'system:check'), (5, 3, 2, 'text', 'system:check');
+-- „Der Mitarbeitende sieht im Notfall alles, nicht nur einen Ausschnitt":
+-- Der Notfallkreis läuft weder über die Feldmatrix noch über die Freigabe. Eine
+-- Zeile in der Matrix wäre eine Begrenzung, die es nicht gibt — und eine
+-- Vollständigkeit, die niemand hält, sobald ein Paar dazukommt.
+SELECT pg_temp.expect_reject(
+    'TASK-206 — Sichtbarkeitszeile für den Notfallausschnitt',
+    $q$INSERT INTO health_field_visibility (health_visibility_scope_id,
+                                            health_trait_type_id, health_field_id,
+                                            value_kind_code, is_emergency, created_by)
+       VALUES (5, 3, 1, 'text', true, 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    'TASK-206 — Sichtbarkeitszeile für den Notfallausschnitt mit geliehenem Häkchen',
+    $q$INSERT INTO health_field_visibility (health_visibility_scope_id,
+                                            health_trait_type_id, health_field_id,
+                                            value_kind_code, is_emergency, created_by)
+       VALUES (5, 3, 1, 'text', false, 'system:check')$q$);
+
 DO $$
 DECLARE im_notfall int;
 BEGIN
+    IF EXISTS (SELECT 1 FROM health_field_visibility WHERE health_visibility_scope_id = 5) THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — der Notfallausschnitt steht doch in der Matrix';
+    END IF;
+    -- Die Sicht zählt alle Werte des Kindes, ohne Matrix und ohne Freigabe. Die
+    -- Zeckenerlaubnis ist an niemanden freigegeben und muss trotzdem dabei sein.
     SELECT count(*) INTO im_notfall
     FROM health_trait_values v
-    JOIN health_field_visibility f ON f.health_visibility_scope_id = 5
-                                 AND f.health_trait_type_id = v.health_trait_type_id
-                                 AND f.health_field_id = v.health_field_id
     WHERE NOT EXISTS (SELECT 1 FROM health_trait_releases r
-                       WHERE r.health_trait_id = v.health_trait_id
-                         AND r.health_visibility_scope_id = 5);
+                       WHERE r.health_trait_id = v.health_trait_id);
     IF im_notfall = 0 THEN
         RAISE EXCEPTION 'REGEL NICHT GEBAUT — der Notfallausschnitt hängt doch an einer Freigabe';
     END IF;
-    RAISE NOTICE 'ok: der Notfallausschnitt liefert auch, was nie freigegeben wurde';
+    RAISE NOTICE 'ok: der Notfallausschnitt steht in keiner Zeile und sieht trotzdem alles';
 END $$;
 
 -- TASK-162: „Zweckende und Löschtermin je Angabe" — und beide an der Freigabe,

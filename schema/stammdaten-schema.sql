@@ -566,6 +566,10 @@ CREATE TABLE children (
     CONSTRAINT fk_children_class
         FOREIGN KEY (class_id, school_branch_id) REFERENCES classes (class_id, school_branch_id),
     CONSTRAINT uq_children_person       UNIQUE (person_id),
+    -- Trägt den zusammengesetzten Fremdschlüssel von `child_group_memberships`
+    -- (klassenorganisation-schema.sql): Ein Kind kommt nur in eine Gruppe seiner
+    -- eigenen Schulart.
+    CONSTRAINT uq_children_id_branch    UNIQUE (child_id, school_branch_id),
     CONSTRAINT uq_children_school_email UNIQUE (school_email),
     -- 04: Schulart und Stufe entstehen mit der Einschreibung und sind ab ihr
     -- Pflicht; davor trägt das Ziel die Bewerbung.

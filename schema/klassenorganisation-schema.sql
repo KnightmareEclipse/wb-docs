@@ -45,6 +45,8 @@ CREATE TABLE elective_modules (
 
     CONSTRAINT pk_elective_modules      PRIMARY KEY (elective_module_id),
     CONSTRAINT uq_elective_modules_code UNIQUE (code),
+    CONSTRAINT ck_elective_modules_code CHECK (code <> ''),
+    CONSTRAINT ck_elective_modules_name CHECK (name <> ''),
     CONSTRAINT ck_elective_modules_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
@@ -98,6 +100,9 @@ CREATE TABLE elective_groups (
     -- erlaubt — nur nicht zweimal unter demselben Namen.
     CONSTRAINT uq_elective_groups
         UNIQUE (elective_module_id, school_branch_id, start_school_year, label),
+    -- Trägt den zusammengesetzten Fremdschlüssel von `child_group_memberships`.
+    CONSTRAINT uq_elective_groups_id_branch_module
+        UNIQUE (elective_group_id, school_branch_id, elective_module_id),
     CONSTRAINT ck_elective_groups_label CHECK (label <> ''),
     CONSTRAINT ck_elective_groups_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
@@ -115,17 +120,39 @@ CREATE TABLE elective_groups (
 -- Für die Pflege ändert das nichts: Man wählt bei der Anmeldung eine Gruppe, ob
 -- daraus eine Spalte oder eine Zeile wird, merkt niemand.
 CREATE TABLE child_group_memberships (
-    child_id          uuid NOT NULL,
-    elective_group_id integer NOT NULL,
-    created_at        timestamptz NOT NULL DEFAULT now(),
-    created_by        text NOT NULL,
+    child_id           uuid NOT NULL,
+    elective_group_id  integer NOT NULL,
+    -- Beide mitgeführt, und beide tragen eine Regel, die die Zuordnung allein
+    -- nicht hält (rules.md Abschnitt 1). Die Schulart bindet Kind und Gruppe
+    -- aneinander: Ohne sie käme ein Grundschulkind in eine Realschulgruppe, und
+    -- deren Lehrkraft sähe ein Kind, das sie nie unterrichtet — genau der Kreis,
+    -- den diese Datei eng halten soll. Sie schließt zugleich ein Kind ohne
+    -- Einschreibung aus, denn erst die bringt die Schulart mit.
+    school_branch_id   integer NOT NULL,
+    -- Das Modul trägt die Einmalwahl: „Technik, AES und Französisch werden
+    -- einmal gewählt und bis zum Abgang behalten" (15) — zwei Gruppen desselben
+    -- Moduls sind ein Doppeleintrag, zwei Module nebeneinander sind es nicht.
+    elective_module_id integer NOT NULL,
+    created_at         timestamptz NOT NULL DEFAULT now(),
+    created_by         text NOT NULL,
 
     CONSTRAINT pk_child_group_memberships PRIMARY KEY (child_id, elective_group_id),
+    -- Wechselt ein Kind die Schulart (04, Grundschule → eigene Realschule),
+    -- scheitert der Jahreslauf hier, solange eine Mitgliedschaft steht: Sie geht
+    -- mit der alten Schulart und muss vorher fallen — dieselbe Handreichung wie
+    -- bei der Klassenzuordnung, die derselbe Lauf leert.
     CONSTRAINT fk_child_group_memberships_child
-        FOREIGN KEY (child_id) REFERENCES children (child_id) ON DELETE CASCADE,
+        FOREIGN KEY (child_id, school_branch_id)
+        REFERENCES children (child_id, school_branch_id) ON DELETE CASCADE,
     CONSTRAINT fk_child_group_memberships_group
-        FOREIGN KEY (elective_group_id) REFERENCES elective_groups (elective_group_id)
+        FOREIGN KEY (elective_group_id, school_branch_id, elective_module_id)
+        REFERENCES elective_groups (elective_group_id, school_branch_id, elective_module_id)
         ON DELETE CASCADE,
+    -- Die Kohorte prüft hier bewusst nichts: Sie steht an der Gruppe, „damit
+    -- beim Eintragen die richtigen Gruppen zur Auswahl stehen" (15) — also in
+    -- der Auswahl und nicht als Constraint. Ein Wiederholer bliebe sonst ohne
+    -- Gruppe, obwohl er dasselbe Modul weiter besucht.
+    CONSTRAINT uq_child_group_memberships_module UNIQUE (child_id, elective_module_id),
     CONSTRAINT ck_child_group_memberships_created_by
         CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
