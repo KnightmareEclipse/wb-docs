@@ -298,14 +298,9 @@ CREATE INDEX ix_class_representatives_year
 -- ---------------------------------------------------------------------------
 -- Offene Fragen an die Schule
 -- ---------------------------------------------------------------------------
--- [?] Bestätigt die Schule, dass die Schulleitung je Schulart die
---     Unterrichtsverteilung, das Unterrichtsende und die Wahlmodulgruppen
---     pflegt? — Adressat: die Schulleitung. Block 15 trägt die Annahme bereits
---     als Satz, bestätigt ist sie nicht (TASK-161). Am Schema hängt daran
---     nichts: Die Antwort entscheidet allein, wer die Routen dieses Durchgangs
---     aufrufen darf.
---
--- Zur Elternvertretung keine. Bewusst KEINE zweite Tabelle für ein Gremium über der Klasse: „Und kein
+-- Keine. Wer die Wahlmodulgruppe pflegt, steht seit dem 03.09.2026 fest:
+-- Klassenlehrkraft, Sekretariat und Schulleitung (15). Am Schema hängt daran
+-- ohnehin nichts, die Antwort entscheidet allein den GRANT. Bewusst KEINE zweite Tabelle für ein Gremium über der Klasse: „Und kein
 -- Gremium über der Klassenvertretung: Gesamtelternbeirat, Vorsitz,
 -- Schulkonferenz gibt es bisher nicht, und ihre Besetzung im System zu führen
 -- wäre auch dann nicht das, was die Schule braucht" (16). Geführt wird die

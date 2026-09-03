@@ -529,12 +529,14 @@ SELECT pg_temp.expect_accept(
 -- ---------------------------------------------------------------------------
 -- Die benannte Auslassung: das Attest eines fremden Kindes
 -- ---------------------------------------------------------------------------
--- „Die Route prüft, dass das Dokument diesem Kind gehört" (api/gesundheit-api.md).
--- Die Datenbank prüft es nicht: Der Weg dorthin führte über drei mitgeführte
--- Spalten und ein UNIQUE in `querschnitt-schema.sql`, wo `documents.child_id`
--- zudem leer sein darf und der Fremdschlüssel dann gar nichts prüfte. Dieselbe
--- Bauform wie bei der letzten Admin-Rolle (stammdaten-schema-check.sql): Die
--- Gegenprobe hält die Auslassung fest, statt sie zu verschweigen.
+-- Der Vorgang gibt es nicht: Ein Attest entsteht bei der Anmeldung und immer zum
+-- eigenen Kind. Bleibt die Fehleingabe, und „die Route prüft, dass das Dokument
+-- diesem Kind gehört" (api/gesundheit-api.md). Die Datenbank prüft es nicht: Der
+-- Weg dorthin führte über drei mitgeführte Spalten und ein UNIQUE in
+-- `querschnitt-schema.sql`, wo `documents.child_id` zudem leer sein darf und der
+-- Fremdschlüssel dann gar nichts prüfte. Dieselbe Bauform wie bei der letzten
+-- Admin-Rolle (stammdaten-schema-check.sql): Die Gegenprobe hält die Auslassung
+-- fest, statt sie zu verschweigen.
 INSERT INTO persons (person_id, first_name, last_name, created_by)
     VALUES ('22222222-2222-2222-2222-222222222229', 'Fremdes', 'Kind', 'system:check');
 INSERT INTO children (child_id, person_id, family_id, birth_date, created_by)

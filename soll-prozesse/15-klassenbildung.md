@@ -21,9 +21,11 @@ eines Namens, den es dreimal gab.
 ## Beteiligte
 
 - Die **Schulleitung ihrer Schulform** ([Rollen](hebel.md#rollen)) legt Klassen an, benennt die
-  Klassenlehrkraft, setzt die Kinder und pflegt Unterrichtsverteilung, Unterrichtsende und
-  Wahlmodulgruppen; das Sekretariat darf dasselbe
-  ([Standardantwort](hebel.md#standardantworten)).
+  Klassenlehrkraft, setzt die Kinder und pflegt Unterrichtsverteilung und Unterrichtsende; das
+  Sekretariat darf dasselbe ([Standardantwort](hebel.md#standardantworten)).
+- Die **Wahlmodulgruppen pflegen zusätzlich die Klassenlehrkräfte** — sie wissen, wer was gewählt
+  hat, und ein Umweg über die Schulleitung für eine Zuordnung, die im Raum entsteht, kostet mehr,
+  als er schützt. Sekretariat und Schulleitung dürfen es weiterhin auch.
 - **Lehrkräfte** rufen ihre Klassenliste ab, wo sie in [06](06-anmeldetag.md) und
   [07](07-aufnahmeentscheidung.md) noch Papier bekommen — im System arbeiten sie schon, seit sie
   Mitarbeitsstunden bestätigen ([14](14-elternbonus.md)).

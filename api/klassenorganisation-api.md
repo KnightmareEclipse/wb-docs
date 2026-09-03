@@ -116,8 +116,7 @@ Kein Eingriff, das Schema führt `wb-backend`:
 
 ## Offene Fragen
 
-**Eine, und sie gehört nicht der Elternvertretung.** Block 16 lässt nichts offen. Das Schema trägt
-seit der zweiten Achse eine `[?]`: wer die Unterrichtsverteilung und die Wahlmodulgruppen pflegt —
-angenommen ist die Schulleitung je Schulart, ungeprüft
-(`schema/klassenorganisation-schema.sql`). An ihr hängt, wer die Routen dieses Durchgangs aufrufen
-darf.
+**Keine.** Block 16 lässt nichts offen, und das Schema trägt keine `[?]` mehr: Wer die
+Wahlmodulgruppe pflegt, steht seit dem 03.09.2026 — Klassenlehrkraft, Sekretariat und Schulleitung
+([15](../soll-prozesse/15-klassenbildung.md)). Daran hängt der GRANT des Durchgangs, der die vier
+neuen Tabellen bedient.

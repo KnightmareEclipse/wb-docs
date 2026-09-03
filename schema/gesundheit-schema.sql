@@ -474,14 +474,17 @@ CREATE TABLE health_trait_values (
     CONSTRAINT fk_health_trait_values_kind
         FOREIGN KEY (health_field_id, value_kind_code)
         REFERENCES health_fields (health_field_id, value_kind_code),
-    -- Bewusst OHNE Bindung an das Kind des Bestands: Dass das Attest diesem
-    -- Kind gehört, prüft die Route (api/gesundheit-api.md, „die Route prüft,
-    -- dass das Dokument diesem Kind gehört"). Die strenge Fassung hieße,
-    -- `child_id` über drei Ebenen mitzuführen und `documents` um ein UNIQUE zu
-    -- erweitern — eine Änderung in `querschnitt-schema.sql`, wo `child_id`
-    -- zudem leer sein darf und der Fremdschlüssel dann gar nicht prüfte. Das
-    -- ist die benannte Auslassung dieser Datei, wie die letzte Admin-Rolle in
-    -- stammdaten-schema.sql; das Prüfskript hält sie fest.
+    -- Bewusst OHNE Bindung an das Kind des Bestands. Ein Attest entsteht bei der
+    -- Anmeldung zu Schule oder Hort und immer zu dem Kind, um das es geht — ein
+    -- fremdes Attest wird gar nicht erst eingesammelt (Betreiber, 03.09.2026).
+    -- Bleibt die Fehleingabe, und die prüft die Route (api/gesundheit-api.md,
+    -- „die Route prüft, dass das Dokument diesem Kind gehört"): Sie legt
+    -- Dokument und Wert im selben Zug an und kennt das Kind dabei. Die strenge
+    -- Fassung hieße, `child_id` über drei Ebenen mitzuführen und `documents` um
+    -- ein UNIQUE zu erweitern — eine Änderung in `querschnitt-schema.sql`, wo
+    -- `child_id` zudem leer sein darf und der Fremdschlüssel dann gar nicht
+    -- prüfte. Das ist die benannte Auslassung dieser Datei, wie die letzte
+    -- Admin-Rolle in stammdaten-schema.sql; das Prüfskript hält sie fest.
     CONSTRAINT fk_health_trait_values_document
         FOREIGN KEY (value_document_id) REFERENCES documents (document_id),
     -- Dasselbe Feld genau einmal je Merkmal.
