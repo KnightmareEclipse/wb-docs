@@ -333,11 +333,11 @@ die Akte legt Weltenbaum selbst an.
 
 Kein eigener Vorgang. Gesundheitsangaben und Fotoeinverständnis hängen am Kind und verschwinden mit
 ihm im Lösch-Lauf (17); die Unterschriftsbilder sind schon mit der Gegenzeichnung weg. **Vertrag und
-Mandat nicht:** Wie lange Vertrags- und Zahlungsdaten aufzubewahren sind, steht als offene Frage in
-[03](03-irregulaerer-abgang.md) und gehört zum Lösch-Lauf — bis sie beantwortet ist, wird hier
-nichts gelöscht. Für die Gesundheitsangaben sagt der Betreuungsvertrag „nach Austritt gelöscht" zu,
-und diese Zusage bindet auch die Schulseite. Die Schülerakte entsteht hier und folgt derselben
-offenen Frist, denn der Vertrag liegt darin.
+Mandat nicht:** Sie tragen die Fristen aus [03](03-irregulaerer-abgang.md) — der Vertrag **fünf
+Jahre nach dem Austritt**, das SEPA-Mandat **zwei** — und gehören zum Lösch-Lauf (17). Dieselben
+fünf Jahre trägt ein Vertrag, dessen Kind nie kommt, und ein ersetzter. Für die Gesundheitsangaben
+sagt der Betreuungsvertrag „nach Austritt gelöscht" zu, und diese Zusage bindet auch die
+Schulseite. Die Schülerakte entsteht hier und folgt der Frist des Vertrags, denn er liegt darin.
 
 Endet die Bewerbung durch einen Rücktritt vor der Freigabe, endet die
 [laufende Verbindung](hebel.md#laufende-verbindung) und mit ihr der Zugang, sofern kein

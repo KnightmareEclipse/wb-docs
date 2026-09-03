@@ -876,9 +876,9 @@ CREATE TABLE application_offers (
 -- Ursprungsfassung und Update laufen gemeinsam ab dem Austritt, weil der alte
 -- Vertrag belegt, was bis zur Ersetzung galt. Ein Vertrag, dessen Kind nie
 -- kommt, fällt nicht heraus — der Rücktritt vor dem ersten Schultag trägt
--- dieselben fünf Jahre, gerechnet ab dem vereinbarten ersten Schultag: „da wir
--- eine Kündigung vor Schulbeginn vertraglich ausschließen, gibt es auf jeden
--- Fall einen Vorgang" und meist auch eine Zahlung. Bewusst KEINE
+-- dieselben fünf Jahre, gerechnet ab dem vereinbarten ersten Schultag:
+-- „Dieselben fünf Jahre trägt ein Vertrag, dessen Kind nie kommt, und ein
+-- ersetzter" (03). Bewusst KEINE
 -- Spalte für die Kündigungsart: „Das System unterscheidet die Kündigungsarten
 -- nicht, es kennt ein Enddatum und einen Grund in einem Satz" (09).
 CREATE TABLE contracts (
@@ -1151,11 +1151,11 @@ CREATE TABLE care_module_bookings (
 -- Notfallbetreuung und Brückentage
 -- ---------------------------------------------------------------------------
 
--- Herkunft: die Schärfung vom 03.09.2026 — „Gebraucht wird eine Tagesbuchung:
--- Kind, Datum, Art des Falls, der Betrag als das, was an diesem Tag galt."
+-- Herkunft: 09 (Hortvertrag) — „Die Notfallbetreuung entsteht aus einem Notfall
+-- — spontan, für einen einzelnen Tag, abgerechnet je Fall statt je Monat."
 -- Sie hängt am Kind und nicht am Vertrag: Die Notfallbetreuung steht
--- Hortkindern wie Nicht-Hortkindern offen, und ein Kind ohne Betreuungsvertrag
--- hat keine Modulanlage, an der sie hinge. Löschanker: dieselbe offene
+-- Hortkindern wie Nicht-Hortkindern offen, und „ein Modul hinge an einer
+-- Modulanlage, die ein Kind ohne Betreuungsvertrag nicht hat" (09). Löschanker: dieselbe offene
 -- Aufbewahrungsfrage wie Vertrag und Modulanlage (17) — die Zeile ist ein
 -- Abrechnungsposten, und sie hält das Kind fest, statt mit ihm zu gehen.
 -- Bewusst KEINE Spalte für das Mittagessen: Es folgt dem Modul des Falls
@@ -1218,9 +1218,9 @@ CREATE TABLE emergency_care_bookings (
         CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
--- Herkunft: die Beschreibung vom 03.09.2026 — vor manchen Ferien endet der
--- Unterricht mitten in der Woche, und für die freien Tage davor fragt der Hort
--- ab, „wer sein Kind trotzdem bringt und wer nicht". Eine Zeile ist die Abfrage
+-- Herkunft: 09 (Hortvertrag) — „Vor manchen Ferien endet der Unterricht mitten
+-- in der Woche … Für diese Brückentage fragt der Hort ab, wer sein Kind
+-- trotzdem bringt — eine Abfrage je Tag, eine Antwort je Kind." Eine Zeile ist die Abfrage
 -- eines Tages; angestoßen wird sie vom Hort, nie von selbst. Kein Löschanker:
 -- keine Personendaten — die Antworten daneben tragen sie und gehen mit ihr.
 -- Der Brückentag wird nicht gesondert berechnet: Das gebuchte Modul des Kindes
@@ -1246,11 +1246,11 @@ CREATE TABLE care_bridge_days (
     CONSTRAINT ck_care_bridge_days_created_by CHECK (created_by ~ '^(entra:|system:)')
 );
 
--- Herkunft: dieselbe Beschreibung — „eine Abfrage je Tag, eine Antwort je Kind".
+-- Herkunft: 09 (Hortvertrag), dieselbe Stelle — „eine Antwort je Kind".
 -- Löschanker: geht mit der Abfrage, und die gehört zum Lösch-Lauf (17).
 -- Eine fehlende Zeile ist keine Antwort und heißt „kommt nicht": „Wer nicht
--- antwortet, bringt sein Kind nicht — die stille Antwort muss die sichere
--- sein." Deshalb steht hier kein Vorgabewert und keine Zeile auf Vorrat je
+-- antwortet, bringt sein Kind nicht: Die stille Antwort ist die sichere" (09).
+-- Deshalb steht hier kein Vorgabewert und keine Zeile auf Vorrat je
 -- Kind; erwartet wird allein, wer `attending = true` eingetragen hat. Eine
 -- ausdrückliche Absage ist trotzdem etwas anderes als Schweigen — der Hort
 -- sieht daran, wen er gefragt bekommen hat und wer noch offen ist.

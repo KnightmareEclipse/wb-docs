@@ -964,8 +964,9 @@ SELECT pg_temp.expect_reject(
        VALUES ('88888888-8888-8888-8888-888888888881',
                '22222222-2222-2222-2222-222222222223', now(), 'handwritten', 'system:check')$q$);
 
--- 08: „eine Zeile ohne Bild heißt ‚unterschrieben, Bild abgeräumt' — ‚hat nicht
--- unterschrieben' sagt die fehlende Zeile."
+-- grenzkarte.md, „Signatur": „Eine Zeile ohne Bild heißt deshalb
+-- ‚unterschrieben, Bild abgeräumt' — ‚hat nicht unterschrieben' sagt die
+-- fehlende Zeile."
 SELECT pg_temp.expect_accept(
     'Q2 — Signatur ohne Bild nach Abschluss des Vorgangs',
     $q$INSERT INTO signatures (contract_id, person_id, signed_at, created_by)
@@ -987,10 +988,10 @@ SELECT pg_temp.expect_reject(
                '99999999-9999-9999-9999-999999999991',
                '22222222-2222-2222-2222-222222222223', now(), 'system:check')$q$);
 
--- hebel.md, „Geld im System": „das Schulgeld je Schulform — Grundschule und
--- Realschule kosten verschieden", je Wert ein Gültigkeitstag. Dazu der
--- Geschwisterrang aus der Preisliste der Schule: 145 / 125 / 105 / 0 € in der
--- Grundschule, 150 / 130 / 110 / 0 € in der Realschule.
+-- hebel.md, „Geld im System": „Das Schulgeld hängt an Schulart und
+-- Geschwisterrang — 145 / 125 / 105 € in der Grundschule, 150 / 130 / 110 € in
+-- der Realschule, ab dem vierten Kind beitragsfrei, gezählt über beide Schulen
+-- zusammen (08)"; je Wert ein Gültigkeitstag.
 SELECT pg_temp.expect_accept(
     'hebel.md — Schulgeld je Schulform und Geschwisterrang',
     $q$INSERT INTO tuition_fees (school_branch_id, sibling_rank, valid_from,
@@ -1082,9 +1083,10 @@ SELECT pg_temp.expect_accept(
        VALUES ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2',
                '88888888-8888-8888-8888-888888888882', 'system:check')$q$);
 
--- 09: „Eine Anpassung … unterschreiben die neue Modulanlage — der Vertrag
--- darunter bleibt stehen." Dieselbe Person unterschreibt also zweimal am selben
--- Vertrag: einmal ihn, einmal seine Anlage.
+-- 09: „Die Modulbuchung ist eine Anlage des Vertrags, und genau sie wird bei
+-- einer Anpassung neu unterschrieben und neu freigegeben; der Vertrag darunter
+-- bleibt stehen." Dieselbe Person unterschreibt also zweimal am selben Vertrag:
+-- einmal ihn, einmal seine Anlage.
 SELECT pg_temp.expect_accept(
     '09 — Unterschrift unter der Modulanlage neben der unter dem Vertrag',
     $q$INSERT INTO signatures (contract_id, care_module_agreement_id, person_id,
@@ -1173,9 +1175,9 @@ END $$;
 -- Gegenproben — Notfallbetreuung und Brückentage
 -- ---------------------------------------------------------------------------
 
--- „Ein Feld für den Weg braucht es nicht: `created_by` trägt schon `guardian:`
--- oder `entra:`." Die Gegenprobe dazu ist das Fehlen — eine Spalte, die es
--- nicht gibt, hat keinen anderen Anker.
+-- 09: „Ein Feld für den Weg gibt es nicht — er steht am Urheber der Zeile."
+-- Die Gegenprobe dazu ist das Fehlen — eine Spalte, die es nicht gibt, hat
+-- keinen anderen Anker.
 DO $$
 DECLARE unexpected text;
 BEGIN
@@ -1190,18 +1192,19 @@ BEGIN
     RAISE NOTICE 'ok: kein Feld für den Weg und keines für das Essen';
 END $$;
 
--- „Der Fallpreis hängt an einem Modul oder steht allein."
+-- 09: „20 € für eine halbe Stunde außerhalb der Öffnungszeiten, die als einzige
+-- zu keinem Modul gehört, weil es sie als Monatsbeitrag nicht gibt."
 INSERT INTO emergency_care_prices (emergency_care_type_id, valid_from, amount_cents, created_by)
     VALUES (1, DATE '2026-09-03',  800, 'system:check'),
            (2, DATE '2026-09-03', 1600, 'system:check');
 SELECT pg_temp.expect_accept(
-    '214 — Fallpreis ohne Modul: die halbe Stunde außerhalb der Öffnungszeiten',
+    '09 — Fallpreis ohne Modul: die halbe Stunde außerhalb der Öffnungszeiten',
     $q$INSERT INTO emergency_care_prices (emergency_care_type_id, valid_from,
                                           amount_cents, created_by)
        VALUES (3, DATE '2026-09-03', 2000, 'system:check')$q$);
 
 SELECT pg_temp.expect_reject(
-    '214 — derselbe Fallpreis zweimal zum selben Gültigkeitstag',
+    '09 — derselbe Fallpreis zweimal zum selben Gültigkeitstag',
     $q$INSERT INTO emergency_care_prices (emergency_care_type_id, valid_from,
                                           amount_cents, created_by)
        VALUES (1, DATE '2026-09-03', 900, 'system:check')$q$);
@@ -1210,7 +1213,7 @@ SELECT pg_temp.expect_reject(
 -- mit OVERRIDING SYSTEM VALUE und rücken die Identity nicht vor — ohne sie
 -- fiele die Ablehnung auf den Primärschlüssel und nicht auf die Regel.
 SELECT pg_temp.expect_reject(
-    '214 — zweiter Fall am selben Betreuungsmodul',
+    '09 — zweiter Fall am selben Betreuungsmodul',
     $q$INSERT INTO emergency_care_types (emergency_care_type_id, code, name,
                                          care_module_id, created_by)
        OVERRIDING SYSTEM VALUE
@@ -1218,15 +1221,17 @@ SELECT pg_temp.expect_reject(
                'system:check')$q$);
 
 SELECT pg_temp.expect_accept(
-    '214 — zweiter Fall ohne Modul, weil außerhalb der Öffnungszeiten keines liegt',
+    '09 — zweiter Fall ohne Modul, weil außerhalb der Öffnungszeiten keines liegt',
     $q$INSERT INTO emergency_care_types (emergency_care_type_id, code, name,
                                          care_module_id, created_by)
        OVERRIDING SYSTEM VALUE
        VALUES (5, 'emergency_after_hours_2', 'Zweite halbe Stunde außerhalb', NULL,
                'system:check')$q$);
 
--- „Ein Kind ohne Betreuungsvertrag kann gebucht werden." Kind …4446 hat in
--- diesem Skript keinen — die Gegenprobe belegt zuerst das und dann die Buchung.
+-- 09: „Sie steht Hortkindern wie Nicht-Hortkindern offen und passt deshalb in
+-- kein Betreuungsmodul: Ein Modul hinge an einer Modulanlage, die ein Kind ohne
+-- Betreuungsvertrag nicht hat." Kind …4446 hat in diesem Skript keinen — die
+-- Gegenprobe belegt zuerst das und dann die Buchung.
 DO $$
 BEGIN
     IF EXISTS (SELECT 1 FROM contracts
@@ -1236,23 +1241,23 @@ BEGIN
     RAISE NOTICE 'ok: das Kind der nächsten Gegenprobe hat keinen Vertrag';
 END $$;
 SELECT pg_temp.expect_accept(
-    '214 — Notfallbetreuung für ein Kind ohne Betreuungsvertrag',
+    '09 — Notfallbetreuung für ein Kind ohne Betreuungsvertrag',
     $q$INSERT INTO emergency_care_bookings (child_id, care_date, emergency_care_type_id,
                                             amount_cents, booked_at, created_by)
        VALUES ('44444444-4444-4444-4444-444444444446', DATE '2026-09-10', 1, 800,
                now(), 'guardian:22222222-2222-2222-2222-222222222222')$q$);
 
--- „Buchung und Vollzug sind zwei Zeitpunkte: ein unangekündigtes Kind hat nur
--- den zweiten, eine erledigte Buchung nur den ersten."
+-- 09: „Buchung und Vollzug sind zwei Zeitpunkte … Genau das ist der
+-- Papierfall: Wer unangekündigt kommt, hat keine Buchung, nur den Vollzug."
 SELECT pg_temp.expect_accept(
-    '214 — unangekündigtes Kind: nur der Vollzug, vom Hort eingetragen',
+    '09 — unangekündigtes Kind: nur der Vollzug, vom Hort eingetragen',
     $q$INSERT INTO emergency_care_bookings (child_id, care_date, emergency_care_type_id,
                                             amount_cents, attended_at, attended_by, created_by)
        VALUES ('44444444-4444-4444-4444-444444444444', DATE '2026-09-10', 1, 800,
                now(), 'entra:hort', 'entra:hort')$q$);
 
 SELECT pg_temp.expect_accept(
-    '214 — angekündigt und wahrgenommen: beide Zeitpunkte',
+    '09 — angekündigt und wahrgenommen: beide Zeitpunkte',
     $q$INSERT INTO emergency_care_bookings (child_id, care_date, emergency_care_type_id,
                                             amount_cents, booked_at, attended_at,
                                             attended_by, created_by)
@@ -1260,21 +1265,21 @@ SELECT pg_temp.expect_accept(
                now(), now(), 'entra:hort', 'entra:hort')$q$);
 
 SELECT pg_temp.expect_reject(
-    '214 — weder Buchung noch Vollzug',
+    '09 — weder Buchung noch Vollzug',
     $q$INSERT INTO emergency_care_bookings (child_id, care_date, emergency_care_type_id,
                                             amount_cents, created_by)
        VALUES ('44444444-4444-4444-4444-444444444444', DATE '2026-09-11', 1, 800,
                'entra:hort')$q$);
 
 SELECT pg_temp.expect_reject(
-    '214 — Vollzug ohne die Stelle, die ihn feststellt',
+    '09 — Vollzug ohne die Stelle, die ihn feststellt',
     $q$INSERT INTO emergency_care_bookings (child_id, care_date, emergency_care_type_id,
                                             amount_cents, attended_at, created_by)
        VALUES ('44444444-4444-4444-4444-444444444444', DATE '2026-09-11', 1, 800,
                now(), 'entra:hort')$q$);
 
 SELECT pg_temp.expect_reject(
-    '214 — Eltern haken den Vollzug ab',
+    '09 — Eltern haken den Vollzug ab',
     $q$INSERT INTO emergency_care_bookings (child_id, care_date, emergency_care_type_id,
                                             amount_cents, attended_at, attended_by, created_by)
        VALUES ('44444444-4444-4444-4444-444444444444', DATE '2026-09-11', 1, 800,
@@ -1282,22 +1287,21 @@ SELECT pg_temp.expect_reject(
                'guardian:22222222-2222-2222-2222-222222222222')$q$);
 
 SELECT pg_temp.expect_reject(
-    '214 — derselbe Fall zweimal am selben Tag für dasselbe Kind',
+    '09 — derselbe Fall zweimal am selben Tag für dasselbe Kind',
     $q$INSERT INTO emergency_care_bookings (child_id, care_date, emergency_care_type_id,
                                             amount_cents, booked_at, created_by)
        VALUES ('44444444-4444-4444-4444-444444444444', DATE '2026-09-10', 1, 800,
                now(), 'entra:hort')$q$);
 
 SELECT pg_temp.expect_accept(
-    '214 — zweiter Fall anderer Art am selben Tag: erst Modul, dann die halbe Stunde danach',
+    '09 — zweiter Fall anderer Art am selben Tag: erst Modul, dann die halbe Stunde danach',
     $q$INSERT INTO emergency_care_bookings (child_id, care_date, emergency_care_type_id,
                                             amount_cents, booked_at, created_by)
        VALUES ('44444444-4444-4444-4444-444444444444', DATE '2026-09-10', 3, 2000,
                now(), 'entra:hort')$q$);
 
--- 216: „care_modules trägt ein Häkchen für die Hausaufgabenbetreuung; die Liste
--- ist ein Filter darüber und kein Datum am Kind." Und: „Die Gruppeneinteilung
--- steht nicht in der Datenbank."
+-- 09: „Das Modul trägt deshalb ein Häkchen daneben, und die Liste ist der
+-- Filter darüber." Und: „Die Gruppeneinteilung bleibt draußen."
 DO $$
 DECLARE unexpected text;
 BEGIN
@@ -1322,11 +1326,11 @@ BEGIN
     RAISE NOTICE 'ok: die Hausaufgabenbetreuung ist ein Häkchen am Modul und keine Gruppenliste';
 END $$;
 
--- 217: „eine Abfrage je Tag, eine Antwort je Kind".
+-- 09: „eine Abfrage je Tag, eine Antwort je Kind".
 INSERT INTO care_bridge_days (care_bridge_day_id, care_date, created_by)
     VALUES ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1', DATE '2026-10-29', 'entra:hort');
 SELECT pg_temp.expect_reject(
-    '217 — zweite Abfrage für denselben Tag',
+    '09 — zweite Abfrage für denselben Tag',
     $q$INSERT INTO care_bridge_days (care_date, created_by)
        VALUES (DATE '2026-10-29', 'entra:hort')$q$);
 
@@ -1338,13 +1342,13 @@ INSERT INTO care_bridge_day_responses (care_bridge_day_id, child_id, attending, 
             '44444444-4444-4444-4444-444444444445', false,
             'guardian:22222222-2222-2222-2222-222222222222');
 SELECT pg_temp.expect_reject(
-    '217 — zweite Antwort desselben Kindes zur selben Abfrage',
+    '09 — zweite Antwort desselben Kindes zur selben Abfrage',
     $q$INSERT INTO care_bridge_day_responses (care_bridge_day_id, child_id, attending, created_by)
        VALUES ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1',
                '44444444-4444-4444-4444-444444444444', false, 'entra:hort')$q$);
 
--- „Wer nicht antwortet, bringt sein Kind nicht: Die stille Antwort muss die
--- sichere sein." Kind …4446 hat nicht geantwortet und steht deshalb weder unter
+-- 09: „Wer nicht antwortet, bringt sein Kind nicht: Die stille Antwort ist die
+-- sichere." Kind …4446 hat nicht geantwortet und steht deshalb weder unter
 -- den Erwarteten noch unter den Abgesagten — die Liste zählt allein `true`.
 DO $$
 DECLARE expected uuid[];
