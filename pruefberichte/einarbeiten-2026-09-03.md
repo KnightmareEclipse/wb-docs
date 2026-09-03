@@ -188,7 +188,7 @@ eine Bedingung daran**: drei Monate nach dem Schulwechsel muss die Rückzahlung 
 
 **A11. Akademie-Struktur steht** → TASK-176 bis TASK-180
 Zwei Zweige unter einem Dach: **Seminarangebote für Erwachsene** und **Kursangebote für Kinder und
-Jugendliche**. Kategorien darunter werden später benannt. Für die Eltern soll das Wort womöglich
+Jugendliche**. Kategorien darunter werden später benannt — **zum Start gibt es keine**, die Werteliste entsteht erst mit ihnen (03.09.2026). Für die Eltern soll das Wort womöglich
 „Kursangebote/AGs" heißen statt „Akademie". **Der Erwachsenen-Zweig ist neu und nicht gebaut** —
 siehe B1.
 
@@ -263,15 +263,6 @@ was sonst rot markiert ist. **Die roten Stellen fehlen hier** — siehe den Vorb
 ---
 
 ## E — Funde beim Abgleich
-
-**E2. Die Notfallbetreuungspreise sind aus der Tabelle nicht eindeutig lesbar.**
-In `26_Preisanpassungen Hort ab SJ26-27.xlsx` stehen für die Notfallbetreuung die Werte 8 / 8 / 12 /
-16 / 20 in der Spalte, die anderswo mit „Stadt*" überschrieben ist — also der Vergleichsspalte, nicht
-der eigenen. Daneben stehen in der ersten Spalte „20 € pro Fall" (Nachmittag bis 17 Uhr), „8 € pro
-Fall" (eine Stunde innerhalb der Öffnungszeiten) und „20 € pro Fall" (halbe Stunde außerhalb).
-Bevor das in `care_module_prices` landet, ist die Zuordnung zu bestätigen (`fragen.md` Frage 16) —
-sonst steht ein Fremdpreis in unserer Liste. Unabhängig davon passt „pro Fall" nicht in
-`care_module_prices`: Sie kennt nur einen Monatsbeitrag je Zahl der Wochentage.
 
 **E4. Rest: die Frist für den Mitarbeitenden-Eintrag (DS10).**
 Beantwortet ist nur, was mit seinem Namen an den Nachweisen geschieht; die Frist des Eintrags selbst

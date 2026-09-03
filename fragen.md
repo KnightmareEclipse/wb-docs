@@ -1,6 +1,6 @@
 # Fragen an die Schule — was wen zu fragen ist
 
-Fünfzehn Fragen, die Weltenbaum nicht selbst beantworten kann, sortiert nach dem Gespräch, in
+Dreizehn Fragen, die Weltenbaum nicht selbst beantworten kann, sortiert nach dem Gespräch, in
 das sie gehören. **Sie stehen nur hier** — das Arbeitspapier in `pruefberichte/` trägt, was die
 Mails gesagt haben und was wir daraus bauen, aber keine Frage mehr. Je Frage steht hier ihr **Wortlaut**, das **Kriterium**, an dem du erkennst, dass die
 Antwort reicht, und **woran sie hängt**.
@@ -113,7 +113,7 @@ Lösch-Lauf sie überhaupt nicht — danach ist es eine `WHERE`-Bedingung und ke
 
 ---
 
-## Geschäftsführung — sechs Fragen
+## Geschäftsführung — vier Fragen
 
 Die Vertragstexte stehen hier nicht mehr: Sie werden künftig anhand dessen nachgezogen, **was im
 Portal gebaut wird** — sie gehen keinem Ablauf mehr voraus und blockieren keine Domäne. Was daran zu
@@ -122,23 +122,7 @@ tun bleibt, ist eine Aufgabe und keine Frage: `backlog/`, TASK-042.
 **Die ersten beiden sind Nachfragen, keine Entscheidungen** — sie standen schon in der letzten Mail
 und blieben ohne Antwort. Eine davon hat eine Frist.
 
-### 4. Akademie: die Kategorien und wer freigibt
-
-> „Zwei Dinge fehlen mir noch zur Akademie. Welche **Kategorien** gibt es zum Start? Und: Anlegen
-> darf jede und jeder Mitarbeitende, freigegeben werden muss trotzdem jedes Angebot, bevor es
-> draußen steht — **welche Stelle gibt frei**? Du für jedes Angebot, oder die Leitung der Stelle, an
-> der die anbietende Person hängt?"
-
-**Brauchbar ist die Antwort, wenn** die Kategorien als Liste dastehen und die freigebende Stelle
-benannt ist.
-
-**Daran hängt:** Die Kategorie ist eine Werteliste und kostet nichts — sie darf auch später wachsen.
-Die Freigabe dagegen entscheidet, wo der Wartezustand jedes Angebots sitzt: bei der
-Geschäftsführung ein Nadelöhr, bei der jeweiligen Leitung ein kurzer Weg, aber mehrere Maßstäbe.
-
-*Steht in* `soll-prozesse/21-akademie.md:52` · `soll-prozesse/21-akademie.md:90`
-
-### 5. Stripe-Konto und Auftragsverarbeitungsvertrag
+### 4. Stripe-Konto und Auftragsverarbeitungsvertrag
 
 > „Ein Punkt aus der letzten Mail ist ohne Antwort geblieben: das **Stripe-Konto samt
 > Auftragsverarbeitungsvertrag**. Ohne es kann im September niemand online freikaufen; wir hatten den
@@ -154,7 +138,7 @@ Bedingungen keine Verschlüsselung der Festplatten fordern (TASK-087).
 
 *Steht in* `verarbeitungsverzeichnis.md` · `backlog/` TASK-034
 
-### 6. Zieht der Mailversand mit meinCLEMENS mit?
+### 5. Zieht der Mailversand mit meinCLEMENS mit?
 
 > „Die Domain **meinclemens.schule** ist beauftragt. Soll die Absenderadresse künftig auch von dort
 > kommen — und wie soll das Postfach heißen, aus dem die Mails gehen? Beides ist von außen sichtbar
@@ -168,7 +152,7 @@ Der Name der Domain selbst ist entschieden (03.09.2026) und nicht mehr Teil der 
 
 *Steht in* `zugang.md` · `host.md`
 
-### 7. AGFEO: Anlagentyp und der Weg hinein
+### 6. AGFEO: Anlagentyp und der Weg hinein
 
 > „Für die Telefonanlage brauchen wir den **Anlagentyp** und die verwendete Datenbank. Vorab eine
 > Gegenfrage von uns: Das Dashboard bindet ODBC- und LDAP-Quellen ein — soll eine Telefonanlage
@@ -182,23 +166,7 @@ Zugriffs machen wir, sie gehört nicht in die Antwort.
 
 *Steht in* `backlog/` TASK-189
 
-### 8. Notfallbetreuung: welche Preise sind unsere?
-
-> „In der Hort-Preisliste stehen für die **Notfallbetreuung** die Werte 8 / 8 / 12 / 16 / 20 in
-> derselben Spalte, die anderswo mit ‚Stadt*' überschrieben ist — also in der Vergleichsspalte.
-> Daneben steht in der ersten Spalte ‚20 € pro Fall' für den Nachmittag bis 17 Uhr, ‚8 € pro Fall'
-> für eine Stunde innerhalb der Öffnungszeiten und ‚20 € pro Fall' für eine halbe Stunde außerhalb.
-> Welche Werte sind unsere?"
-
-**Brauchbar ist die Antwort, wenn** je Fall ein Betrag zugeordnet ist.
-
-**Daran hängt:** Die Notfallbetreuung passt ohnehin nicht in die Preistabelle der Betreuungsmodule —
-die kennt nur einen Monatsbeitrag je Zahl der Wochentage, „pro Fall" hat dort keinen Platz. Ohne die
-Zuordnung stünde außerdem ein Fremdpreis in unserer Liste.
-
-*Steht in* `schema/anmeldung-schema.sql` · `backlog/` TASK-050
-
-### 9. Wie erfahren wir, wer Alumni werden will?
+### 7. Wie erfahren wir, wer Alumni werden will?
 
 > „Für den Alumni-Verteiler brauchen wir eine Einwilligung: Name und Mailadresse dürfen bleiben, bis
 > widersprochen wird. Offen ist, **wann und wie wir fragen** — beim Abgang im Portal, mit den letzten
@@ -218,7 +186,7 @@ muss bis dahin erreichbar sein — die Adresse fällt aber drei Monate nach dem 
 
 ## Sekretariat — vier Fragen
 
-### 10. Zuordnung der Fremdsysteme — zusammen mit Buchhaltung und Admin
+### 8. Zuordnung der Fremdsysteme — zusammen mit Buchhaltung und Admin
 
 > „Wenn sich bei einem Kind oder einer Familie etwas ändert, muss das teilweise auch in ASV-BW,
 > Optigem oder M365 nachgezogen werden. Wir haben eine Zuordnung erstellt, welche Änderung wohin
@@ -234,7 +202,7 @@ Zuordnung dort zu weit gefasst.
 
 *Steht in* `soll-prozesse/02-datenaenderung.md:32`
 
-### 11. Bescheinigungen beim Abgang
+### 9. Bescheinigungen beim Abgang
 
 > „Wenn ein Kind die Schule verlässt — welche Papiere schreibt ihr routinemäßig? Abgangszeugnis,
 > Schulbescheinigung für die neue Schule, Bestätigung der Abmeldung?"
@@ -246,7 +214,7 @@ oder nur auf Anfrage entsteht.
 
 *Steht in* `soll-prozesse/03-irregulaerer-abgang.md:25`
 
-### 12. Aufgaben des Jahreswechsels
+### 10. Aufgaben des Jahreswechsels
 
 > „Ende Juli zieht der zweite Admin alle Klassen von Hand auf die neue Stufe um, legt die Neuen an
 > und löscht die Abgänger. Was tut ihr in dieser Zeit sonst noch, jedes Jahr wieder?"
@@ -259,7 +227,7 @@ bleibt Zuruf.
 
 *Steht in* `soll-prozesse/04-schuljahreswechsel.md:30`
 
-### 13. Elternfragebogen der Grundschul-Checkliste — zusammen mit der Grundschulleitung
+### 11. Elternfragebogen der Grundschul-Checkliste — zusammen mit der Grundschulleitung
 
 > „Beim Anmeldetag der Grundschule bekommen die Eltern einen Fragebogen auf Papier mit. Was steht
 > darauf — und könnte er künftig vorab im Portal ausgefüllt werden?"
@@ -274,7 +242,7 @@ gebaut.
 
 ## Schulleitung — zwei Fragen
 
-### 14. Unterrichtlicher und außerunterrichtlicher Ausflug — ein Unterschied oder zwei Wörter?
+### 12. Unterrichtlicher und außerunterrichtlicher Ausflug — ein Unterschied oder zwei Wörter?
 
 > „Für die Klassenfahrt gibt es eine mehrseitige Erklärung, die die Eltern unterschreiben —
 > Einverständnis, Vollmacht, Kostenzusage, Belehrung. Für den Unterrichtsgang oder den Wandertag
@@ -294,7 +262,7 @@ aussähe, als hätte jemand vergessen zu fragen.
 
 *Steht in* `soll-prozesse/19-ausfluege-und-fahrten.md` (Kopf, die Tabelle der zwei Arten)
 
-### 15. Geburtsurkunde: wie prüft das Sekretariat künftig?
+### 13. Geburtsurkunde: wie prüft das Sekretariat künftig?
 
 > „Die Geburtsurkunde wird künftig nur noch **eingesehen** und nicht mehr kopiert — das ist
 > entschieden. Offen ist der Ablauf: Wann wird sie vorgelegt, wer sieht sie an, und was wird

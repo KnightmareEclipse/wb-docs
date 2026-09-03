@@ -4,7 +4,7 @@ title: Notfallbetreuung als buchbarer Vorgang
 status: To Do
 assignee: []
 created_date: '2026-09-03 16:38'
-updated_date: '2026-09-03 17:00'
+updated_date: '2026-09-03 17:56'
 labels:
   - schema
   - anmeldung
@@ -35,16 +35,31 @@ Berührt die Mensa: Wer über Mittag da ist, isst, und das Tagesessen kostet 5,9
 
 `[?]` **Der Nachweis auf dem Telefonweg ist offen.** Wer im Portal klickt, hat selbst gebucht — `created_by` trägt `guardian:`, und mehr braucht es nicht. Wer anruft, hat nichts Schriftliches: Weigert sich eine Familie später zu zahlen, weil ihr Kind an dem Tag angeblich nicht da war, steht Aussage gegen Aussage. Drei Stufen wären denkbar, entschieden ist keine — eine Bestätigung an die Familie, eine gezeichnete Tagesliste nach der Bauform des Putzdienstes (01), oder gar nichts, weil der Fall in der Praxis nicht vorkommt. **Vor dem Bau mit der Geschäftsführung zu klären**, zusammen mit der Frage, ob eine Notfallbetreuung überhaupt abgelehnt werden darf und ob eine gebuchte, aber nicht wahrgenommene berechnet wird.
 
+**Die Preise stehen seit dem 03.09.2026**, und sie hängen an denselben Modulen wie die Monatsbeiträge — der Fall ist also ein Modul, nur je Tag statt je Monat abgerechnet:
+
+| Fall | je Fall |
+|---|---|
+| Frühbetreuung oder Modul 1 (bis 13:00) | 8 € |
+| Modul 2 (Schulende bis 14:30) | 12 € zuzüglich Essen |
+| Modul 3 (Schulende bis 15:30) | 16 € einschließlich Mittagessen |
+| Modul 4 (Schulende bis 17:00) | 20 € |
+| eine halbe Stunde außerhalb der Öffnungszeiten | 20 € |
+
+Damit ist auch der Fund E2 erledigt: Die Spalte mit 8/8/12/16/20 war doch unsere und nicht die der Stadt.
+
+**Zwei Dinge daran sind bemerkenswert und gehören als Kommentar ans Schema.** Erstens ist der letzte Fall **an kein Modul gebunden** — eine halbe Stunde außerhalb der Öffnungszeiten gibt es als Monatsbeitrag nicht. Der Fallpreis hängt also an einem Modul **oder** steht allein, und beides muss die Preistabelle hergeben. Zweitens ist das Essen **uneinheitlich behandelt**: Bei Modul 3 steckt es im Fallpreis, bei Modul 2 kommt es obendrauf. Das ist so gewollt und keine Schlamperei — wer es später „harmonisiert", ändert einen Preis.
+
 **Hängt an fragen.md Frage 9:** Welche Werte der Preisliste unsere sind, ist nicht eindeutig lesbar — die Spalte mit 8/8/12/16/20 ist anderswo mit "Stadt*" überschrieben. Vor dem Seed zu klären, nicht vor dem Bau.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [ ] #1 Die Notfallbetreuung ist eine Tagesbuchung mit Preis je Fall, kein weiteres Betreuungsmodul
-- [ ] #2 Ein Kind ohne Betreuungsvertrag kann gebucht werden — als Gegenprobe
-- [ ] #3 Beide Eingänge schreiben dieselbe Zeile; der Weg ist an created_by ablesbar und braucht kein Feld
-- [ ] #4 Buchung und Vollzug sind zwei Zeitpunkte: ein unangekündigtes Kind hat nur den zweiten, eine erledigte Buchung nur den ersten
-- [ ] #5 Der Hort sieht die Buchungen des Tages als frisch erzeugte Liste
-- [ ] #6 Das Mittagessen hängt an dem Tag, an dem es anfällt, und steckt nicht im Fallpreis
-- [ ] #7 Entschieden mit der Geschäftsführung: Nachweis auf dem Telefonweg, Ablehnung einer Buchung, Berechnung einer nicht wahrgenommenen
+- [ ] #2 Der Fallpreis hängt an einem Modul oder steht allein — die halbe Stunde außerhalb der Öffnungszeiten hat kein Modul
+- [ ] #3 Das Essen steckt bei Modul 3 im Fallpreis und bei Modul 2 nicht; der Kommentar sagt, dass das gewollt ist
+- [ ] #4 Ein Kind ohne Betreuungsvertrag kann gebucht werden — als Gegenprobe
+- [ ] #5 Beide Eingänge schreiben dieselbe Zeile; der Weg ist an created_by ablesbar und braucht kein Feld
+- [ ] #6 Buchung und Vollzug sind zwei Zeitpunkte: ein unangekündigtes Kind hat nur den zweiten, eine erledigte Buchung nur den ersten
+- [ ] #7 Der Hort sieht die Buchungen des Tages als frisch erzeugte Liste
+- [ ] #8 Entschieden mit der Geschäftsführung: Nachweis auf dem Telefonweg, Ablehnung einer Buchung, Berechnung einer nicht wahrgenommenen
 <!-- AC:END -->
