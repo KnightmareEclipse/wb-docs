@@ -20,6 +20,19 @@ niemand muss wissen, was die anderen gerade tun.
 
 Fehlt deine Nummer in der Tabelle, frag mich; rate nicht.
 
+## Was du damit tust
+
+**Das Ticket ist die Aufgabe** — es trägt, was gilt, warum, und woran du merkst, dass es fertig ist.
+Lies es zuerst, nicht die Tabelle oben; die sagt nur, welche dir gehören.
+
+**Wie du vorgehst, steht in `CLAUDE.md` unter „Arbeitsgänge"** — für ein Schema
+`prompts/schema-bauen.md`, für eine API `prompts/api-planen.md`, für einen Soll-Block
+`prompts/block-fuellen.md`. Der Prüflauf danach gehört ausdrücklich einer anderen Sitzung: Wer
+gebaut hat, prüft nicht.
+
+Arbeite die Tickets deines Strangs in ihrer Reihenfolge ab; wo eine Abhängigkeit besteht, steht sie
+im Ticket. Ist der letzte durch, sag es und hör auf — such dir keinen neuen Strang.
+
 ## Wenn deine Arbeit an eine fremde Datei stößt
 
 Das kommt vor, und es ist kein Fehler: Ein Löschanker in einer fremden `.sql`, ein Satz in einem
