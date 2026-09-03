@@ -4,6 +4,7 @@ title: 'Die Blöcke 08, 09 und 15 auf das neue Gesundheitsmodell nachziehen'
 status: To Do
 assignee: []
 created_date: '2026-09-01 17:19'
+updated_date: '2026-09-03 16:39'
 labels:
   - wb-docs
   - gesundheit
@@ -23,16 +24,23 @@ ordinal: 164000
 <!-- SECTION:DESCRIPTION:BEGIN -->
 Der Schema-Umbau der Domäne 9 ist gefahren, die Blöcke behaupten noch den alten Ablauf: Pflicht auf alle Kategorien, drei ineinanderliegende Sichtstufen, kein Notfallweg. Der Block schlägt alles (CLAUDE.md-Rangfolge) — solange er das Alte sagt, ist das Schema unbegründet.
 
-Drei Änderungen, je Block dieselben: die Angaben sind je Kategorie freiwillig und in der Tiefe wählbar; sichtbar wird je Angabe an einen Sichtkreis statt je Stufe; und die Notfalleinsicht steht jedem Mitarbeitenden für jedes Kind offen, protokolliert statt genehmigt. In 09 kommt dazu, dass die Eltern die Weitergabe an den Hort ausdrücklich freigeben und verweigern dürfen.
+Nachzuziehen sind inzwischen **fünf** Dinge, nicht drei; die letzten beiden kamen am 02./03.09.2026 dazu:
 
-Grund und Modell stehen in schema/gesundheit-schema.sql (Dateikopf, „Warum eine Zeile je Feld und nicht je Merkmal") und in grenzkarte.md („Zugriff, je Angabe"). Entschieden am 01.09.2026 mit der Geschäftsführung.
+- Die Angaben sind je Kategorie **freiwillig und in der Tiefe wählbar**.
+- Sichtbar wird je Angabe an einen **Sichtkreis** statt je Stufe — und der Schnitt ist grob: Lehrkräfte und Hort sehen alles, allein die Küche ist auf Allergie und Lebensmittelunverträglichkeit reduziert.
+- Die **Notfalleinsicht** steht jedem Mitarbeitenden für jedes Kind offen, protokolliert statt genehmigt; die Meldung an die Geschäftsführung geht unmittelbar beim Auslösen heraus, und das Protokoll geht mit dem Kind.
+- **"Für ihre Kinder" heißt: wer das Kind unterrichtet** — Klassenleitung, Unterricht in seiner Klasse, oder seine Wahlmodulgruppe (TASK-161). Die Klasse bleibt dabei die Einheit, auch wo der Förderunterricht feiner wäre; die Begründung steht dort.
+- Die **Freigabe je Angabe und Instanz** (TASK-205): Schule und Hort sind zwei Instanzen desselben Bestands, die Eltern geben je Instanz erst überhaupt und dann je Angabe frei — in einer Handlung für alles oder einzeln. In 09 ersetzt das die bisherige Fassung der Freigabe an den Hort samt Ablehnungsrecht.
+
+Grund und Modell stehen in schema/gesundheit-schema.sql (Dateikopf) und in grenzkarte.md ("Zugriff, je Angabe").
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 08 Z2 beschreibt die Freiwilligkeit je Kategorie und den Unterschied zwischen „nichts vorhanden" und „nicht beantwortet"
-- [ ] #2 09 Z3 beschreibt die Freigabe an den Hort samt Ablehnungsrecht
+- [ ] #1 08 Z2 beschreibt die Freiwilligkeit je Kategorie und den Unterschied zwischen 'nichts vorhanden' und 'nicht beantwortet'
+- [ ] #2 09 Z3 beschreibt die Freigabe an den Hort als Instanz-Freigabe je Angabe, samt Ablehnungsrecht und Sammelfreigabe
 - [ ] #3 15 beschreibt die Einsicht der Klassenlehrkraft als Sichtkreis, nicht als oberste Stufe
-- [ ] #4 Keine der drei Dateien nennt noch „Alltagsangaben" als Stufe oder die drei konzentrischen Sichten
+- [ ] #4 Keine der drei Dateien nennt noch 'Alltagsangaben' als Stufe oder die drei konzentrischen Sichten
 - [ ] #5 Die Notfalleinsicht steht in genau einem Block und wird von den anderen nur genannt
+- [ ] #6 Wo ein Block 'die Lehrkräfte' sagt, steht jetzt, welche — die zweite Achse wird genannt, nicht wiederholt
 <!-- AC:END -->

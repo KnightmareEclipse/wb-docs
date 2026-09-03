@@ -4,14 +4,13 @@ title: Die Sichtkreise in der Datenbank durchsetzen statt in drei Views
 status: To Do
 assignee: []
 created_date: '2026-09-01 17:19'
-updated_date: '2026-09-02 00:40'
+updated_date: '2026-09-03 16:39'
 labels:
   - wb-backend
   - gesundheit
   - dsgvo
 dependencies:
-  - TASK-153
-  - TASK-155
+  - TASK-161
 references:
   - wb-backend/tests/test_privileges.py
   - api/gesundheit-api.md
@@ -24,20 +23,25 @@ ordinal: 169000
 <!-- SECTION:DESCRIPTION:BEGIN -->
 Heute tragen drei Rollen und zwei Views den Zuschnitt: backend_health, backend_health_everyday auf everyday_health_traits, backend_kitchen auf kitchen_health_traits. Das trug drei ineinanderliegende Stufen; bei überschneidenden Sichtkreisen wäre jeder weitere Zuschnitt eine weitere View und damit eine Migration.
 
-Stattdessen eine Regel über Daten: eine Policy, die health_trait_values gegen health_field_visibility und den Sichtkreis der aufrufenden Rolle filtert. Ein neuer Sichtkreis ist dann eine Zeile, kein Schema-Eingriff.
+Stattdessen eine Regel über Daten: **eine Policy**, die `health_trait_values` filtert. Sie prüft seit den Beschlüssen vom 02./03.09.2026 **drei Dinge** statt eines, und alle drei sind Zeilen:
 
-Die zweite Achse — von welchen Kindern jemand liest — hängt an den Unterrichtsgruppen und ist nicht Teil dieses Tickets; bis dahin bleibt es bei der heutigen Zuständigkeit über Klasse, Betreuungsvertrag und Familie.
+1. **Trägt der Sichtkreis das Feld?** — `health_field_visibility`, samt `presence_only` für das Attest (TASK-206).
+2. **Ist die Angabe dieser Instanz freigegeben?** — die Freigabe je Angabe und Instanz (TASK-205). Der Notfallausschnitt übergeht diese Bedingung ausdrücklich, die Küche erbt die Freigabe der Liste, auf der sie steht.
+3. **Ist die aufrufende Person für dieses Kind zuständig?** — die zweite Achse (TASK-161): Klassenleitung, Unterricht in seiner Klasse, oder eine Wahlmodulgruppe, in der es Mitglied ist.
 
-Grund und Modell stehen in schema/gesundheit-schema.sql (Dateikopf, „Warum eine Zeile je Feld und nicht je Merkmal") und in grenzkarte.md („Zugriff, je Angabe"). Entschieden am 01.09.2026 mit der Geschäftsführung.
+Drei Bedingungen, eine Policy. Ein neuer Sichtkreis bleibt eine Zeile, ein neues Feld ebenso, und eine neue Zuständigkeit ist eine Zeile in der zweiten Achse — kein Schema-Eingriff.
+
+**Reihenfolge:** TASK-161 zuerst, sonst hat Bedingung 3 nichts zum Prüfen. TASK-205 und TASK-206 gehören in denselben Durchgang wie diese Policy, weil sie dieselben Tabellen und dieselben Kommentare anfassen.
+
+Grund und Modell stehen in schema/gesundheit-schema.sql (Dateikopf) und in grenzkarte.md ("Zugriff, je Angabe").
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Eine Policy statt einer View je Ausschnitt; everyday_health_traits und kitchen_health_traits sind fort
-- [ ] #2 Ein neuer Sichtkreis ist nachweislich eine Datenzeile: der Nachweis steht als Test, nicht als Behauptung
-- [ ] #3 Ein Test zeigt, dass Sport den Hinweis zur chronischen Erkrankung sieht und ihre Bezeichnung nicht
-- [ ] #4 Die Küche sieht weiterhin ausschließlich Unverträglichkeit und Allergie
-- [ ] #5 test_privileges.py läuft mit den geänderten Rollen durch
+- [ ] #1 Eine Policy statt drei Views; die drei abgeleiteten Sichten sind fort oder als abgeleitet begründet
+- [ ] #2 Alle drei Bedingungen greifen: Feld im Sichtkreis, Angabe freigegeben, Kind in der Zuständigkeit
+- [ ] #3 Der Notfallausschnitt übergeht die Freigabe — als Gegenprobe
+- [ ] #4 Ein neuer Sichtkreis ist eine Zeile und keine Migration — als Gegenprobe
 <!-- AC:END -->
 
 ## Implementation Notes
