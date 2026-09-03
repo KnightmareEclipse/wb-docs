@@ -58,8 +58,8 @@ Papier auf das zusammengeschmolzen, was die Quellen gesagt haben und was noch ei
 Attest-Teil von DS5 und der Vorgang B9. Das Modell dazu steht in **TASK-205** — ein Bestand je Kind,
 die Freigabe je Angabe und Instanz: Schule und Hort sind zwei Instanzen derselben Angabe, nicht zwei
 Bestände — und in **TASK-206** (`presence_only`: der Sichtkreis sieht, *dass* ein Attest vorliegt,
-ohne die Datei). Beide sind Vorschläge und noch nicht bestätigt — zur Bestätigung stehen sie als
-Frage 5 in `fragen.md`.
+ohne die Datei). Beide sind Vorschläge und noch nicht bestätigt; im Vorspann des Datenschutzgesprächs in
+`fragen.md` stehen sie als Mitteilung und nicht als Frage.
 Vier Festlegungen, die dabei mitentschieden wurden und nirgends sonst stehen: `care` bleibt ein
 eigener Sichtkreis, weil es ein eigenes Freigabeziel ist (aus sechs Sichtkreisen werden fünf, nicht
 vier); die zwei Termine aus TASK-162 gehören an die Freigabe und nicht an die Angabe; der
@@ -140,7 +140,7 @@ nein. Vergeben wird sie vom **Personalwesen und vom Admin** (03.09.2026) → TAS
 **A4. meinCLEMENS wird nach außen sichtbar** → TASK-188
 Der Name soll in der Portaladresse und im Mailabsender auftauchen. Zwei Rückfragen hängen daran,
 die den Ticketumfang verdoppeln: ob der Mailversand mitwandert und ob die Domain
-`meinCLEMENS.schule` heißen soll (`fragen.md` Frage 10).
+`meinCLEMENS.schule` heißen soll (`fragen.md` Frage 6).
 
 **A6. Bildungskarte, wer sie sieht: hinfällig** → TASK-170
 In [M2] stand ein vorläufiges „A" (dauerhaft am Kind, für Lehrkräfte sichtbar). **DS12 aus der
@@ -176,7 +176,7 @@ Cyber-Versicherung hat am 03.09.2026 geantwortet:** Ihre Bedingungen fordern kei
 der Festplatten, empfehlen sie aber „dringend zum Schutz vor physischem Diebstahl" — genau das
 Risiko, das bei Hetzner liegt und vom AV-Vertrag getragen wird. Der Verzicht bleibt, jetzt mit
 schriftlichem Beleg (`host.md`, TASK-087 ist zu). **Offen bleibt das Stripe-Konto samt AVV, Frist
-14.09.** — ohne es kann im September niemand online freikaufen; als Frage 9 in `fragen.md`.
+14.09.** — ohne es kann im September niemand online freikaufen; als Frage 5 in `fragen.md`.
 
 **D3. Drei Punkte klärt Jürgen selbst am Montag** · [M4]
 Die vier Voranmeldefelder mit der Schulleitung (DS3), der Prüfprozess zur Geburtsurkunde (DS13) und
@@ -190,8 +190,8 @@ was sonst rot markiert ist. **Die roten Stellen fehlen hier** — siehe den Vorb
 Beantwortet ist nur, was mit seinem Namen an den Nachweisen geschieht; die Frist des Eintrags selbst
 fehlt weiter. Beim nächsten Kontakt nachziehen, nicht als beantwortet abhaken. Die zweite offene
 Hälfte — ob der Hort eine eigene Einwilligung braucht — ist mit dem Freigabemodell aus TASK-205
-beantwortet, und zwar strenger als verlangt; sie geht als Frage 5 in `fragen.md` zur Bestätigung
-zurück.
+beantwortet, und zwar strenger als verlangt; sie steht im Vorspann des Datenschutzgesprächs in `fragen.md` als
+Mitteilung.
 
 **An dieser Frist hängt mehr als der Mitarbeitendeneintrag.** DS9f zählt die Rechnungsfreigabe neben
 Putzdienst, Elternmitarbeit und Mensa auf, aber sie kennt kein Kind: Ihre Belege stehen zehn Jahre

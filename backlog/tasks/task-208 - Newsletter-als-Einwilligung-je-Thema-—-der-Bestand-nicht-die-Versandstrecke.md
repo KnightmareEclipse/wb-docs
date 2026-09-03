@@ -39,9 +39,9 @@ Drei Regeln, die später teuer sind und deshalb jetzt festgehalten werden:
 
 Der Widerspruch löscht nicht, er setzt einen Zeitpunkt. Sonst ist später nicht belegbar, dass ab diesem Tag nichts mehr geschrieben wurde — und eine gelöschte Zeile ist wieder eine Adresse, die beim nächsten Import zurückkehrt.
 
-**Die Absenderadresse steht je Anlass**, nicht global: Vorgangsmails, Hortsachen und Newsletter dürfen verschiedene tragen. Welche es gibt, hängt an der Domainfrage (fragen.md, Frage 10) und wird in TASK-188 entschieden; hier ist es eine Spalte an der Mail.
+**Die Absenderadresse steht je Anlass**, nicht global: Vorgangsmails, Hortsachen und Newsletter dürfen verschiedene tragen. Welche es gibt, hängt an der Domainfrage (fragen.md, Frage 6) und wird in TASK-188 entschieden; hier ist es eine Spalte an der Mail.
 
-Offen und nicht Teil dieses Tickets: **wie die Schule erfährt, wer Alumni werden will** — Frage 18 in fragen.md.
+Offen und nicht Teil dieses Tickets: **wie die Schule erfährt, wer Alumni werden will** — Frage 8 in fragen.md.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria

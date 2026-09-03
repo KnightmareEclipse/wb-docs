@@ -52,7 +52,7 @@ Damit ist auch der Fund E2 erledigt: Die Spalte mit 8/8/12/16/20 war doch unsere
 
 **Ein Fall hängt an keinem Modul**, und das gehört als Kommentar ans Schema: Die halbe Stunde außerhalb der Öffnungszeiten liegt außerhalb jedes Moduls, es gibt sie als Monatsbeitrag nicht. Der Fallpreis hängt also an einem Modul **oder** steht allein, und beides muss die Preistabelle hergeben.
 
-**Hängt an fragen.md Frage 9:** Welche Werte der Preisliste unsere sind, ist nicht eindeutig lesbar — die Spalte mit 8/8/12/16/20 ist anderswo mit "Stadt*" überschrieben. Vor dem Seed zu klären, nicht vor dem Bau.
+**Vor dem Seed zu klären, und nur hier festgehalten:** Welche Werte der Preisliste unsere sind, ist nicht eindeutig lesbar — die Spalte mit 8/8/12/16/20 ist anderswo mit "Stadt*" überschrieben. Vor dem Seed zu klären, nicht vor dem Bau.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria

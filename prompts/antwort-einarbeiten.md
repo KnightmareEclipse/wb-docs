@@ -55,7 +55,8 @@ und Farbe, und beides ist beim Speichern weg. Verlass dich auf die Kopfblöcke.
 ## Zweitens: in jeder Runde die Sätze zuordnen
 
 **Rate die Zuordnung nicht — prüfe sie.** Meine Hälfte ist nicht verloren: Der Wortlaut meiner
-Fragen steht in `fragen.md`, Fragen 9–12 sind die der Geschäftsführung. Was im Thread steht und
+Fragen steht in `fragen.md`; ihre stehen im Abschnitt der Geschäftsführung — die
+Nummern wandern beim Streichen, der Abschnitt nicht. Was im Thread steht und
 dort **nicht** wiederzufinden ist, ist ihre Antwort oder eine Ergänzung von mir. Wo Zitatzeichen
 und Abgleich streiten, gewinnt der Abgleich.
 
@@ -64,7 +65,7 @@ beider. Die legst du mir **zuerst und vollständig** vor, bevor du einen einzige
 Stelle, die du nicht zuordnen kannst, kommt als eigener Punkt hinein, mit der Frage, wem sie
 gehört — geraten wird nicht.
 
-**Antworten müssen nicht zu Fragen 9–12 gehören.** Wer schreibt, schreibt auch zu anderem. Was eine
+**Antworten müssen nicht zu den Fragen dieses Abschnitts gehören.** Wer schreibt, schreibt auch zu anderem. Was eine
 Frage aus einem anderen Gespräch trifft, wird dort eingeordnet, nicht verworfen.
 
 ## Drittens: die Runden gegeneinander halten
