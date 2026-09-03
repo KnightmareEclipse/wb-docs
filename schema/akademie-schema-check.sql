@@ -5,10 +5,9 @@
 -- academy_cost_coverage_codes und academy_registrations. Dazu zwei partielle
 -- Unique-Indizes über die nicht abgemeldeten Anmeldungen (je einer für den
 -- Kinder- und den Erwachsenen-Zweig), ein Lese-Index auf die Teilnehmerliste
--- und der eine Trigger, der Platzzahl und fremde Kinder abweist. Die
--- Fremdschlüssel von Q3 und Q5 auf diese Domäne fehlen noch, weil ihre Spalten
--- in querschnitt-schema.sql noch nicht stehen; hier wird deshalb geprüft, dass
--- sie fehlen und nicht heimlich zweimal gebaut wurden.
+-- und der eine Trigger, der Platzzahl und fremde Kinder abweist. Dazu die
+-- Fremdschlüssel von Q3 und Q5 auf diese Domäne: die Zahlung der Familie ohne
+-- SEPA-Mandat und die Aufgabe bei der Buchhaltung, beide mit Cascade.
 --
 -- Setzt stammdaten-schema.sql, querschnitt-schema.sql und anmeldung-schema.sql
 -- voraus:
@@ -52,7 +51,9 @@ BEGIN
         'ck_academy_registrations_participant', 'ck_academy_registrations_payment_mode',
         'ck_academy_registrations_coverage', 'ck_academy_registrations_recorded',
         'ck_academy_registrations_retained', 'ck_academy_registrations_declared_by',
-        'ck_academy_registrations_recorded_by'
+        'ck_academy_registrations_recorded_by',
+        'ck_academy_offerings_surcharge_label',
+        'fk_payments_academy_registration', 'fk_sync_tasks_academy_registration'
     ]) AS c
     WHERE NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = c);
     IF missing IS NOT NULL THEN
@@ -61,7 +62,8 @@ BEGIN
     SELECT string_agg(i, ', ') INTO missing
     FROM unnest(ARRAY['ix_academy_registrations_active_child',
                       'ix_academy_registrations_active_person',
-                      'ix_academy_registrations_offering']) AS i
+                      'ix_academy_registrations_offering',
+                      'ix_sync_tasks_open_academy']) AS i
     WHERE to_regclass('public.' || i) IS NULL;
     IF missing IS NOT NULL THEN
         RAISE EXCEPTION 'Fehlende Indizes: %', missing;
@@ -90,9 +92,9 @@ BEGIN
     RAISE NOTICE 'ok (abgewiesen): 21 — weder Angebotsart noch Terminliste';
 END $$;
 
--- Q3/Q5: die beiden Bezüge stehen noch aus und gehören nach
--- querschnitt-schema.sql — nicht in eine zweite Zahlungs- oder Aufgabentabelle
--- hier (grenzkarte.md, Q3).
+-- Q3/Q5: beide Bezüge stehen als Spalte an `payments` und `sync_tasks`
+-- (querschnitt-schema.sql) — nicht in einer zweiten Zahlungs- oder
+-- Aufgabentabelle hier (grenzkarte.md, Q3).
 DO $$
 BEGIN
     IF to_regclass('public.academy_payments') IS NOT NULL
@@ -253,23 +255,45 @@ SELECT pg_temp.expect_reject(
                'academy_cancellation_cooking', TIME '09:00',
                TIMESTAMPTZ '2027-01-01 08:00+01', 'entra:lehrkraft')$q$);
 
+-- 21: Ein Zusatzbetrag ohne Etikett stünde in der Ausschreibung, ohne dass
+-- jemand ihn erklären könnte — und ein Etikett ohne Betrag benennt nichts.
+SELECT pg_temp.expect_reject(
+    '21 — Zusatzbetrag ohne Etikett',
+    $q$INSERT INTO academy_offerings (academy_category_id, title, starts_on, ends_on,
+                                      places, amount_cents, surcharge_cents,
+                                      cancellation_terms_code, registration_opens_at,
+                                      created_by)
+       VALUES (1, 'Chor', DATE '2027-02-01', DATE '2027-07-31', 12, 3000, 500,
+               'academy_cancellation_cooking', TIMESTAMPTZ '2027-01-01 08:00+01',
+               'entra:lehrkraft')$q$);
+
+SELECT pg_temp.expect_reject(
+    '21 — Etikett ohne Zusatzbetrag',
+    $q$INSERT INTO academy_offerings (academy_category_id, title, starts_on, ends_on,
+                                      places, amount_cents, surcharge_label,
+                                      cancellation_terms_code, registration_opens_at,
+                                      created_by)
+       VALUES (1, 'Chor', DATE '2027-02-01', DATE '2027-07-31', 12, 3000, 'Noten',
+               'academy_cancellation_cooking', TIMESTAMPTZ '2027-01-01 08:00+01',
+               'entra:lehrkraft')$q$);
+
 -- Das Angebot, an dem die Anmeldungen hängen: drei Plätze, fremde Kinder nicht
 -- zugelassen („Der Chor ist für die eigenen Kinder"), Absagefrist null Tage und
--- 9 Uhr, dazu der zweite Betrag und das enthaltene Mittagessen.
+-- 9 Uhr, dazu der Zusatzbetrag samt Etikett und das enthaltene Mittagessen.
 SELECT pg_temp.expect_accept(
-    '21 — Angebot mit Kategorie, Absagefrist, zweitem Betrag und Mittagessen',
+    '21 — Angebot mit Kategorie, Absagefrist, Zusatzbetrag und Mittagessen',
     $q$INSERT INTO academy_offerings (academy_offering_id, academy_category_id, title,
                                       description, starts_on, ends_on, schedule_text,
                                       allows_external_children, places, amount_cents,
-                                      food_amount_cents, includes_lunch,
+                                      surcharge_cents, surcharge_label, includes_lunch,
                                       cancellation_deadline_days, cancellation_deadline_time,
                                       cancellation_terms_code, registration_opens_at,
                                       created_by)
        VALUES ('55555555-5555-5555-5555-555555555501', 1, 'Kochwerkstatt',
                'Wir backen Brot', DATE '2027-04-10', DATE '2027-04-10',
-               'samstags 10–14 Uhr', false, 3, 3000, 500, true, 0, TIME '09:00',
-               'academy_cancellation_cooking', TIMESTAMPTZ '2027-01-01 08:00+01',
-               'entra:hauswirtschaftsleitung')$q$);
+               'samstags 10–14 Uhr', false, 3, 3000, 500, 'Lebensmittel', true, 0,
+               TIME '09:00', 'academy_cancellation_cooking',
+               TIMESTAMPTZ '2027-01-01 08:00+01', 'entra:hauswirtschaftsleitung')$q$);
 
 -- „Die Kochwerkstatt ist für alle" — dasselbe Häkchen, anderer Wert; ein Platz.
 INSERT INTO academy_offerings (academy_offering_id, academy_category_id, title,
@@ -291,8 +315,8 @@ INSERT INTO academy_offerings (academy_offering_id, academy_category_id, for_adu
             'entra:hauswirtschaftsleitung');
 
 SELECT pg_temp.expect_reject(
-    '21 — negativer Lebensmittelbetrag',
-    $q$UPDATE academy_offerings SET food_amount_cents = -100
+    '21 — negativer Zusatzbetrag',
+    $q$UPDATE academy_offerings SET surcharge_cents = -100, surcharge_label = 'Material'
         WHERE academy_offering_id = '55555555-5555-5555-5555-555555555502'$q$);
 
 -- 21: „Sie ist ein Ja oder ein Zurück mit einem Satz" — und beides zugleich ist
@@ -619,6 +643,73 @@ BEGIN
         RAISE EXCEPTION 'REGEL NICHT GEBAUT — die Teilnehmerliste zählt die Abgemeldeten mit';
     END IF;
     RAISE NOTICE 'ok: 21 — die Teilnehmerliste trägt die drei belegten Plätze';
+END $$;
+
+-- ---------------------------------------------------------------------------
+-- Gegenproben — Q3 und Q5
+-- ---------------------------------------------------------------------------
+
+-- Q3, grenzkarte.md: „Ein fünfter Anlass folgt demselben Muster: die
+-- Akademie-Anmeldung einer Familie ohne SEPA-Mandat."
+SELECT pg_temp.expect_accept(
+    'Q3 — Zahlung auf die Akademie-Anmeldung',
+    $q$INSERT INTO payments (academy_registration_id, amount_cents, status, confirmed_at,
+                             created_by)
+       VALUES ('66666666-6666-6666-6666-666666666605', 4500, 'confirmed', now(),
+               'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    'Q3 — Zahlung mit zwei Anlässen',
+    $q$INSERT INTO payments (academy_registration_id, application_id, amount_cents,
+                             created_by)
+       VALUES ('66666666-6666-6666-6666-666666666605',
+               '99999999-9999-9999-9999-999999999999', 4500, 'system:check')$q$);
+
+-- Q5, 21: „je Anmeldung eine Aufgabe bei der Buchhaltung mit dem einzuziehenden
+-- oder zu berechnenden Betrag" — je Anmeldung eine, nicht je Familie.
+INSERT INTO roles (role_id, code, name, created_by) OVERRIDING SYSTEM VALUE
+    VALUES (1, 'accounting', 'Buchhaltung', 'system:check');
+INSERT INTO sync_targets (sync_target_id, code, name, role_id, created_by)
+    OVERRIDING SYSTEM VALUE
+    VALUES (1, 'optigem', 'Optigem', 1, 'system:check');
+INSERT INTO sync_tasks (sync_target_id, academy_registration_id, task_text, created_by)
+    VALUES (1, '66666666-6666-6666-6666-666666666601', 'Beitrag einziehen', 'system:check');
+
+SELECT pg_temp.expect_accept(
+    '21 — zweite Aufgabe zu einer anderen Anmeldung',
+    $q$INSERT INTO sync_tasks (sync_target_id, academy_registration_id, task_text,
+                               created_by)
+       VALUES (1, '66666666-6666-6666-6666-666666666602', 'Beitrag berechnen',
+               'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    'hebel.md — zweite offene Aufgabe derselben Art zu derselben Anmeldung',
+    $q$INSERT INTO sync_tasks (sync_target_id, academy_registration_id, task_text,
+                               created_by)
+       VALUES (1, '66666666-6666-6666-6666-666666666601', 'Beitrag einziehen',
+               'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    'Q5 — Aufgabe mit zwei Bezügen',
+    $q$INSERT INTO sync_tasks (sync_target_id, academy_registration_id, child_id,
+                               task_text, created_by)
+       VALUES (1, '66666666-6666-6666-6666-666666666603',
+               '33333333-3333-3333-3333-333333333303', 'Beitrag einziehen',
+               'system:check')$q$);
+
+-- Q3: „geht mit dem Vorgang, an dem die Zahlung hängt" — die Anmeldung nimmt
+-- sie mit, statt von ihr festgehalten zu werden.
+SELECT pg_temp.expect_accept(
+    'Q3 — die Zahlung geht mit ihrer Akademie-Anmeldung',
+    $q$DELETE FROM academy_registrations
+        WHERE academy_registration_id = '66666666-6666-6666-6666-666666666605'$q$);
+
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM payments) THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — die Zahlung überlebt ihren Vorgang';
+    END IF;
+    RAISE NOTICE 'ok (erlaubt): Q3 — keine Zahlung überlebt ihren Vorgang';
 END $$;
 
 DO $$ BEGIN RAISE NOTICE 'akademie-schema-check: alle Gegenproben bestanden'; END $$;

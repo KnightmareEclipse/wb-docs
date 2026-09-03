@@ -118,7 +118,7 @@ Dazu die zwei Angaben, die das Angebot zuschneiden:
   zu viel, und daran ändert der Zufall zweier gleichzeitiger Anmeldungen nichts.
 
 Je **Anmeldung** das Kind — im Erwachsenen-Zweig die teilnehmende Person —, das Angebot, der Betrag
-als das, was beim Absenden galt, der **Zahlweg** —
+als das, was beim Absenden galt (Gebühr und Zusatzbetrag zusammen), der **Zahlweg** —
 eingezogen, online bezahlt oder berechnet, dazu in einem Satz, an wen — und, bei einer Abmeldung,
 der Tag der Erklärung, wer sie abgegeben hat, der Tag des Eintrags und der berechnete Betrag; die
 Anmeldung bleibt stehen und gilt als abgemeldet, sie verschwindet nicht.
@@ -157,6 +157,13 @@ wie die erste: Wer den Kurs führt, kennt seinen Einkauf. Was die Lebensmittel e
 kosten, weiß niemand ein Jahr im Voraus, und deshalb steht der Betrag am einzelnen Angebot statt in
 einer Preisliste. **Die Freigabe ist die Gegenprobe dazu:** Anlegen darf jede und jeder
 Mitarbeitende, aber kein Betrag steht draußen, den nicht eine zweite Stelle gesehen hat.
+
+**Daneben steht ein Zusatzbetrag** für das, was an diesem einen Angebot anfällt und nicht die
+Gebühr ist — die Lebensmittel der Kochwerkstatt, anderswo Material, Eintritt oder Fahrt. Er ist
+meistens null, und wo er steht, sagt er in einem Wort, wofür er ist; die Eltern zahlen die Summe
+aus beidem, nicht zwei Beträge nacheinander. Getrennt geführt wird er, weil ihn oft eine andere
+Stelle kennt als die, die die Gebühr setzt: Bei der Kochwerkstatt weiß es die
+Hauswirtschaftsleitung.
 
 Sonst keine: Wer sich anmeldet und zur Zielgruppe gehört, ist dabei, solange ein Platz frei ist. Es
 gibt keine Auswahl, keine Warteliste und kein Nachrücken — ist ein Angebot voll, ist es voll. Ein

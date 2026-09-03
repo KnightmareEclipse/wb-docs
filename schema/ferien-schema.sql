@@ -141,8 +141,8 @@ CREATE TABLE holiday_modules (
 -- Bewusst KEIN Aufschlag je Termin daneben: „Alle Beträge stehen fest und
 -- gelten für jeden Termin gleich — was ein einzelner Tag im Einkauf kostet,
 -- spielt in der Betreuung keine Rolle" (10). Den einen Betrag, den nicht die
--- Geschäftsführung setzt, trägt das Akademie-Angebot
--- (`akademie-schema.sql`, `food_amount_cents`).
+-- Geschäftsführung setzt, trägt das Akademie-Angebot als Zusatzbetrag
+-- (`akademie-schema.sql`, `surcharge_cents`).
 -- Kein Löschanker. Eigene Tabelle statt
 -- einer Spalte am Modul, weil der Betrag ein Wert im System ist und einen
 -- Gültigkeitstag trägt (hebel.md) — samt dessen Regel: „ein noch nicht gültiger

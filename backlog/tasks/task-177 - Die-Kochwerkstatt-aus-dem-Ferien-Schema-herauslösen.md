@@ -42,5 +42,5 @@ Danach ziehen die Kommentare in ferien-schema.sql, der Sollstand im Kopf von fer
 - [x] #2 holiday_session_surcharges ist weg, und der Aufschlag steht als zweiter Betrag am Akademie-Angebot — TASK-176 trägt ihn, bevor diese Tabelle fällt
 - [x] #3 includes_lunch ist vom Ferienmodul weg und steht als Option am Akademie-Angebot
 - [x] #4 Die Terminart Kochwerkstatt samt Modulen und Stornotext ist aus Schema, Prüfskript und Seed verschwunden
-- [x] #5 Der Sollstand im Kopf des Prüfskripts stimmt wieder, alle Prüfskripte laufen grün gegen die vollständige Datenbank — außer querschnitt-schema-check.sql, das die neue Akademie-Domäne in seiner Lösch-Reihenfolge vermisst (Sitzung 6)
+- [x] #5 Der Sollstand im Kopf des Prüfskripts stimmt wieder, alle vierzehn Prüfskripte laufen grün gegen die vollständige Datenbank
 <!-- AC:END -->

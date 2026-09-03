@@ -1,7 +1,7 @@
 ---
 id: TASK-176
 title: Schema für die Akademie bauen
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-01 19:09'
 updated_date: '2026-09-03 21:30'
@@ -41,11 +41,11 @@ Nach prompts/schema-bauen.md, danach schema-pruefen.md in einer frischen Session
 - [x] #2 Die Verantwortlichen sind eine oder mehrere Personen am Angebot, dynamisch setzbar — keine Rolle
 - [x] #3 Der Zielgruppen-Zuschnitt ist der aus dem Elternbonus, keine zweite Bauform
 - [x] #4 Die Platzzahl ist hart — das Prüfskript weist die Anmeldung über die Platzzahl hinaus ab
-- [ ] #5 Die Anmeldung ohne SEPA-Mandat hängt als fünfte Vorgangs-Spalte an payments, die mit Mandat erzeugt keine Zahlung — offen: die Spalte steht in querschnitt-schema.sql (Sitzung 6), der Fremdschlüssel wartet am Fuß von akademie-schema.sql
+- [x] #5 Die Anmeldung ohne SEPA-Mandat hängt als fünfte Vorgangs-Spalte an payments, die mit Mandat erzeugt keine Zahlung
 - [x] #6 Ein Angebot, das fremde Kinder nicht zulässt, weist die Anmeldung eines fremden Kindes ab — mit Gegenprobe
 - [x] #7 Der Kostenübernahme-Code folgt der Form aus ferien-schema.sql
 - [x] #8 Das Angebot trägt die Option 'Mittagessen enthalten' mit der Bedeutung aus ferien-schema.sql
-- [x] #9 Das Angebot trägt neben dem Betrag einen zweiten, den die Hauswirtschaftsleitung setzt (Lebensmittel)
+- [x] #9 Das Angebot trägt neben dem Betrag einen zweiten — allgemein gehalten als Zusatzbetrag samt Etikett (Betreiber, 03.09.2026), die Lebensmittel der Kochwerkstatt sind sein erster Fall
 - [x] #10 Die Absagefrist steht je Angebot als Tageszahl UND Uhrzeit; die Konvention für die leere Uhrzeit steht als Spaltenkommentar
 - [x] #11 Der Stornotext bleibt als Verweis auf contract_texts daneben
 - [x] #12 Die Abmeldung folgt der Bauform aus holiday_bookings: zwei Schritte und ein einbehaltener Betrag

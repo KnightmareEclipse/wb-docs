@@ -233,7 +233,7 @@ Kein Eingriff, das Schema führt `wb-backend`:
 | `ck_payments_single_cause` lässt **höchstens** einen Anlass zu | Der Ausnahmefall ist gebaut, nicht geduldet: die Rückrufroute legt Zahlung und Aufgabe `payment_without_cause` zusammen an — ganz oder gar nicht |
 | `uq_payments_payment_reference` ist ein schlichtes UNIQUE | Es greift nur für belegte Werte; eine von Hand bestätigte Zahlung trägt keine Referenz und ist deshalb **nicht** idempotenzgeschützt — siehe `[A!]` unten |
 | `sync_tasks.completed_by` hat einen CHECK ohne `NULL`-Ausnahme (`ck_sync_tasks_completed_by`) | Der CHECK ist bei `NULL` unbekannt und damit erfüllt; die Route setzt ihn zusammen mit `completed_at` und `outcome` oder gar nicht |
-| `sync_tasks` hat acht Bezüge und acht partielle Unique-Indizes | `PUT /tasks/{id}` braucht davon keinen — die Eindeutigkeit gilt dem Anlegen, und das ist Seiteneffekt anderer Routen |
+| `sync_tasks` hat neun Bezüge und neun partielle Unique-Indizes | `PUT /tasks/{id}` braucht davon keinen — die Eindeutigkeit gilt dem Anlegen, und das ist Seiteneffekt anderer Routen |
 | `configured_values.value` ist ein `integer` für Beträge **und** Stückzahlen | `POST /configured-values` kennt die Einheit nicht; welche gilt, sagt der Code. Die Route prüft den Code gegen die bekannte Liste, sonst entstünde ein Wert, den niemand liest |
 | `contract_texts` hat kein Gültigkeits-Ende und keinen Freigabevermerk | Beides folgt aus der nächsten Fassung; `GET /contract-texts` rechnet es aus, statt es zu speichern |
 | `change_log.proof_seen_at` hängt an der Änderung, nicht an der Zeile | Gesetzt wird er von den Rechtelage-Routen in [`stammdaten-api.md`](stammdaten-api.md); diese Datei liest ihn nur |

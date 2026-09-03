@@ -101,14 +101,17 @@ CREATE TABLE academy_offerings (
     -- gehört diesem einen Angebot und lebt nicht länger als es; was beim
     -- Absenden galt, hält die Anmeldung fest.
     amount_cents        integer NOT NULL,
-    -- Der zweite Betrag, den die Hauswirtschaftsleitung setzt: „Die Lebensmittel
-    -- kauft sie je Termin ein, und was sie kosten, weiß niemand ein Jahr im
-    -- Voraus" (10). Er ist der Nachfolger des Ferienaufschlags und wird zum
-    -- Betrag addiert, nicht daneben berechnet.
-    -- [A] Der Teilnehmer zahlt die Summe aus beiden. — Alternative: den
-    -- Lebensmittelbetrag getrennt ausweisen und berechnen; Preis: eine zweite
-    -- Forderung je Anmeldung, und 21 kennt nur einen Betrag je Angebot.
-    food_amount_cents   integer NOT NULL DEFAULT 0,
+    -- Der Zusatzbetrag: was an diesem einen Angebot neben der Gebühr anfällt
+    -- und niemand ein Jahr im Voraus weiß — bei der Kochwerkstatt die
+    -- Lebensmittel, die „die Hauswirtschaftsleitung je Termin einkauft" (10),
+    -- anderswo Material, Eintritt oder Fahrt. Er ist der Nachfolger des
+    -- Ferienaufschlags, wird zur Gebühr addiert statt daneben berechnet, und
+    -- ist meistens null. Sein Etikett sagt, wofür er ist: Ein zweiter Betrag
+    -- ohne Namen stünde in der Ausschreibung, ohne dass jemand ihn erklären
+    -- könnte. Deshalb ist es Pflicht, sobald er nicht null ist — und bleibt
+    -- leer, wo es ihn nicht gibt.
+    surcharge_cents     integer NOT NULL DEFAULT 0,
+    surcharge_label     text,
     -- Im Preis enthalten und nie gesondert berechnet; wo es gesetzt ist, steht
     -- das Kind an diesem Tag auf der Mensaliste (11) — dieselbe Bedeutung wie
     -- vormals am Ferienmodul.
@@ -125,9 +128,6 @@ CREATE TABLE academy_offerings (
     -- 0 Uhr** — der ganze Fristtag ist dann gesperrt; leere Tageszahl heißt
     -- „keine Sperre". Den Eltern wird nie der Abstand gezeigt, sondern der
     -- daraus gerechnete Termin.
-    -- [A] Die leere Uhrzeit heißt 0 Uhr. — Alternative: Tagesende; Preis: „bis
-    -- 3 Tage davor" ließe dann bis zur letzten Minute des dritten Tages
-    -- abmelden, also einen Tag länger als im Ferienprogramm.
     cancellation_deadline_days smallint,
     cancellation_deadline_time time,
     -- Der Code des Textes, unter dem die Abmeldebedingungen dieses Angebots in
@@ -170,7 +170,10 @@ CREATE TABLE academy_offerings (
         CHECK (registration_closes_at IS NULL OR registration_closes_at > registration_opens_at),
     CONSTRAINT ck_academy_offerings_places  CHECK (places > 0),
     CONSTRAINT ck_academy_offerings_amount  CHECK (amount_cents >= 0),
-    CONSTRAINT ck_academy_offerings_food    CHECK (food_amount_cents >= 0),
+    CONSTRAINT ck_academy_offerings_surcharge CHECK (surcharge_cents >= 0),
+    CONSTRAINT ck_academy_offerings_surcharge_label
+        CHECK ((surcharge_cents > 0) = (surcharge_label IS NOT NULL)
+               AND surcharge_label <> ''),
     -- Eine Uhrzeit ohne Tageszahl beschriebe eine Frist, die es nicht gibt.
     CONSTRAINT ck_academy_offerings_deadline
         CHECK (cancellation_deadline_time IS NULL OR cancellation_deadline_days IS NOT NULL),
@@ -346,7 +349,7 @@ CREATE TABLE academy_registrations (
     -- Genau eine der beiden Spalten steht, und welche, sagt der Zweig.
     child_id                uuid,
     person_id               uuid,
-    -- Was beim Absenden galt — Betrag plus Lebensmittelbetrag; „eine spätere
+    -- Was beim Absenden galt — Gebühr plus Zusatzbetrag; „eine spätere
     -- Änderung rechnet nichts rückwirkend um" (hebel.md).
     amount_cents            integer NOT NULL,
     -- „Eingezogen, online bezahlt oder berechnet": eingezogen wird die Familie
@@ -357,10 +360,6 @@ CREATE TABLE academy_registrations (
     academy_cost_coverage_code_id uuid,
     -- Die Fassung der Abmeldebedingungen, die beim Absenden galt — „sichtbar,
     -- bevor angemeldet wird"; eine Unterschrift entsteht daraus nicht.
-    -- [A] Die Anmeldung hält die Fassung fest, wie die Ferienbuchung ihre
-    -- Teilnahmebedingungen. — Alternative: nur der Code am Angebot; Preis: nach
-    -- der ersten Änderung ist nicht mehr lesbar, was beim Absenden galt, und
-    -- genau daran hängt der einbehaltene Betrag.
     cancellation_terms_contract_text_id integer NOT NULL,
     -- Die Abmeldung in zwei Schritten: die Eltern erklären, die anbietende
     -- Stelle trägt ein und entscheidet über den Betrag — dieselbe Bauform wie
@@ -497,12 +496,22 @@ CREATE TRIGGER trg_academy_registrations_admission
 -- ---------------------------------------------------------------------------
 -- Fremdschlüssel von Q3 und Q5 auf diese Domäne
 -- ---------------------------------------------------------------------------
--- Beide fehlen noch, und die Lücke ist benannt statt still: Q3 braucht die
--- fünfte Vorgangs-Spalte `payments.academy_registration_id` samt ihrem Summanden
--- in `ck_payments_single_cause` (grenzkarte.md, Q3: „Ein fünfter Anlass folgt
--- demselben Muster: die Akademie-Anmeldung einer Familie ohne SEPA-Mandat"),
--- Q5 den neunten Bezug `sync_tasks.academy_registration_id` samt seinem
--- Summanden und seinem partiellen Index, weil „je Anmeldung eine Aufgabe bei
--- der Buchhaltung" entsteht (21). Beide Spalten stehen in
--- querschnitt-schema.sql; sobald sie dort stehen, kommen die beiden
--- `ALTER TABLE`-Zeilen hierher — wie in ferien-schema.sql.
+-- Q5 zeigt auf die Anmeldung, weil „je Anmeldung eine Aufgabe bei der
+-- Buchhaltung" entsteht (21) und mehrere davon gleichzeitig zu derselben
+-- Familie offen stehen. Mit Cascade wie die übrigen Bezüge der Aufgabe.
+ALTER TABLE sync_tasks
+    ADD CONSTRAINT fk_sync_tasks_academy_registration
+        FOREIGN KEY (academy_registration_id)
+        REFERENCES academy_registrations (academy_registration_id)
+        ON DELETE CASCADE;
+
+-- Q3 zeigt auf die Anmeldung; die Spalte steht in querschnitt-schema.sql. Sie
+-- entsteht nur ohne SEPA-Mandat: „Das Geld folgt dem Mandat" (21) — mit Mandat
+-- wird eingezogen, und der Zahlweg an der Anmeldung sagt, welcher Weg es war.
+-- Mit Cascade: „Löschanker: geht mit dem Vorgang, an dem die Zahlung hängt"
+-- (querschnitt-schema.sql) — sonst hielte die Zahlung die Anmeldung fest.
+ALTER TABLE payments
+    ADD CONSTRAINT fk_payments_academy_registration
+        FOREIGN KEY (academy_registration_id)
+        REFERENCES academy_registrations (academy_registration_id)
+        ON DELETE CASCADE;

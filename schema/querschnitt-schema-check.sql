@@ -8,8 +8,8 @@
 -- Die vertragsgebundenen Gegenproben zu `signatures` stehen in
 -- anmeldung-schema-check.sql, weil ihr Fremdschlüssel dort entsteht; die
 -- Unterschrift unter dem SEPA-Mandat steht hier, sie kennt keinen Vertrag.
--- Dazu dreizehn partielle Unique-Indizes (drei für signatures, zwei für
--- consents, acht für sync_tasks) und zwei Lese-Indizes, auf outbound_emails und
+-- Dazu vierzehn partielle Unique-Indizes (drei für signatures, zwei für
+-- consents, neun für sync_tasks) und zwei Lese-Indizes, auf outbound_emails und
 -- auf change_log. `payments` trägt außerdem ein UNIQUE auf der Zahlungsreferenz;
 -- seine Gegenprobe steht in putzdienst-schema-check.sql, weil sie wie die
 -- übrigen Q3-Proben einen echten Anlass braucht.
@@ -86,6 +86,7 @@ BEGIN
         'ix_sync_tasks_open_person', 'ix_sync_tasks_open_child',
         'ix_sync_tasks_open_family', 'ix_sync_tasks_open_year',
         'ix_sync_tasks_open_period', 'ix_sync_tasks_open_booking',
+        'ix_sync_tasks_open_academy',
         'ix_sync_tasks_open_slot', 'ix_sync_tasks_open_payment', 'ix_change_log_row',
         'ix_signatures_contract', 'ix_signatures_agreement', 'ix_signatures_mandate',
         'ix_outbound_emails_undeliverable'
@@ -933,6 +934,13 @@ INSERT INTO loeschlauf (platz, tabelle, im_lauf) VALUES
     -- Direkt hinter der Buchung, die ihn mit NO ACTION festhält: er trägt eine
     -- Mailadresse und gehört keinem Kind.
     ( 6, 'holiday_cost_coverage_codes', true),
+    -- Die Akademie-Anmeldung steht neben der Ferienbuchung: dieselbe eigene
+    -- Frist, und sie hält Kind **und** Person fest. Die des Erwachsenen-Zweigs
+    -- gehört keinem Kind und geht trotzdem hier, sonst bliebe der Lauf in
+    -- Stufe 6 an ihr stehen. Dahinter ihr eingelöster Code, wie im
+    -- Ferienprogramm.
+    ( 6, 'academy_registrations', true),
+    ( 7, 'academy_cost_coverage_codes', true),
     ( 7, 'meal_subscriptions', true),
     ( 8, 'health_trait_values', true), ( 8, 'consents',           true),
     ( 9, 'documents',          true),

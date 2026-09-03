@@ -63,6 +63,12 @@
 --      Zeile dieser Stufe, die keinem Kind gehört — der nicht eingelöste Code
 --      geht deshalb nicht mit diesem Lauf, sondern nach seiner eigenen Frist
 --      (ferien-schema.sql).
+--      Neben der Ferienbuchung steht `academy_registrations` mit demselben
+--      Abstand zu ihrem Anker, und dahinter ihr eingelöster
+--      `academy_cost_coverage_codes` (akademie-schema.sql). Die Anmeldung des
+--      Erwachsenen-Zweigs gehört keinem Kind, sondern hält ihre Person fest;
+--      auch sie geht hier und nicht erst in Stufe 6 — sonst bliebe der Lauf
+--      dort an ihr stehen.
 --   2. `children`. Von hier gehen Zustimmung, Unterschrift, Gesundheitssatz
 --      (seine Merkmale sind in Stufe 1 schon fort), Masernnachweis,
 --      Essensprofil, Nachzieh-Aufgabe und Änderungsspur per Cascade mit — ohne
@@ -595,13 +601,19 @@ CREATE UNIQUE INDEX ix_consents_person_purpose
 -- gefordert wird".
 CREATE TABLE payments (
     payment_id     uuid NOT NULL DEFAULT gen_random_uuid(),
-    -- Vier nullable Vorgangs-Spalten für drei Anlässe: der Putzdienst trägt
+    -- Fünf nullable Vorgangs-Spalten für vier Anlässe: der Putzdienst trägt
     -- zwei. Der Fremdschlüssel trägt die Unterscheidung — ein Typ-Feld plus
     -- untypisierte ID gäbe die referenzielle Integrität auf.
     cleaning_buyout_id      uuid,
     cleaning_slot_buyout_id uuid,
     application_id          uuid,
     holiday_booking_id      uuid,
+    -- Der fünfte Anlass: die Akademie-Anmeldung einer Familie **ohne**
+    -- SEPA-Mandat (21). Die mit Mandat erzeugt keine Zahlung, sondern wird
+    -- eingezogen wie das Schulgeld — und der Erwachsenen-Zweig hat nie eines.
+    -- Der Fremdschlüssel wird in akademie-schema.sql nachgetragen, weil die
+    -- Tabelle hier noch nicht existiert.
+    academy_registration_id uuid,
     -- Der Betrag, der zur Zahlung galt, und nicht der heutige: Freikauf und
     -- Bearbeitungsgebühr folgen aus `configured_values` („cleaning_buyout_cents",
     -- „application_fee_cents") zu ihrem Gültigkeitstag, und „eine spätere
@@ -611,7 +623,9 @@ CREATE TABLE payments (
     -- eine Zahlungszeile, auch wo der Vorgang dahinter aus mehreren Zeilen
     -- besteht (api/gemeinsam.md), und dann ist dieser Betrag die Summe und
     -- gleicht dem keiner einzelnen Zeile — beim Jahres-Freikauf des Putzdiensts
-    -- wie bei der Ferienbuchung über mehrere Kinder (api/ferien-api.md).
+    -- wie bei der Ferienbuchung über mehrere Kinder (api/ferien-api.md). Bei
+    -- der Akademie-Anmeldung ist er die Summe aus Betrag und Zusatzbetrag des
+    -- Angebots (akademie-schema.sql).
     amount_cents   integer NOT NULL,
     -- Offen oder bestätigt, zahlungswegneutral: neben Stripe bleibt die
     -- manuelle Bestätigung durch die Buchhaltung für Überweisung und Bargeld.
@@ -649,7 +663,8 @@ CREATE TABLE payments (
         (cleaning_buyout_id      IS NOT NULL)::int
       + (cleaning_slot_buyout_id IS NOT NULL)::int
       + (application_id          IS NOT NULL)::int
-      + (holiday_booking_id      IS NOT NULL)::int <= 1),
+      + (holiday_booking_id      IS NOT NULL)::int
+      + (academy_registration_id IS NOT NULL)::int <= 1),
     CONSTRAINT ck_payments_status CHECK (status IN ('open', 'confirmed')),
     -- Bestätigt heißt: mit Zeitpunkt. „Der Vorgang entsteht mit der bestätigten
     -- Zahlung und nicht mit der Rückkehr aus der Bezahlung" (hebel.md).
@@ -672,10 +687,10 @@ CREATE TABLE payments (
 CREATE TABLE sync_tasks (
     sync_task_id   uuid NOT NULL DEFAULT gen_random_uuid(),
     sync_target_id integer NOT NULL,
-    -- Genau einer der acht Bezüge: die Person (02), das Kind (03, 08), die
+    -- Genau einer der neun Bezüge: die Person (02), das Kind (03, 08), die
     -- Familie (01), das Schuljahr (04), ein Zeitraum (01, Monatslauf der
-    -- Strafen; als Erster des Monats), die einzelne Ferienbuchung (10) oder der
-    -- einzelne Putztermin (01).
+    -- Strafen; als Erster des Monats), die einzelne Ferienbuchung (10), die
+    -- einzelne Akademie-Anmeldung (21) oder der einzelne Putztermin (01).
     person_id        uuid,
     child_id         uuid,
     family_id        uuid,
@@ -687,6 +702,13 @@ CREATE TABLE sync_tasks (
     -- Buchung und nicht das Kind. Der Fremdschlüssel wird in ferien-schema.sql
     -- nachgetragen, weil die Tabelle hier noch nicht existiert.
     holiday_booking_id uuid,
+    -- 21: „je Anmeldung eine Aufgabe bei der Buchhaltung mit dem einzuziehenden
+    -- oder zu berechnenden Betrag; für online Bezahltes entsteht keine." Der
+    -- Bezug ist die Anmeldung und nicht die Familie, aus demselben Grund wie
+    -- bei der Ferienbuchung: Zwei Anmeldungen derselben Familie sind zwei
+    -- Einzüge. Der Fremdschlüssel wird in akademie-schema.sql nachgetragen,
+    -- weil die Tabelle hier noch nicht existiert.
+    academy_registration_id uuid,
     -- 01: „Bei den manuellen Schritten entsteht statt einer eigenen Erinnerung
     -- je eine offene Aufgabe bei der zuständigen Person, sobald sie dran ist —
     -- Zuteilung freigeben, Anwesenheit eintragen, Anwesenheitsliste ausdrucken
@@ -740,6 +762,7 @@ CREATE TABLE sync_tasks (
       + (school_year      IS NOT NULL)::int
       + (reference_period IS NOT NULL)::int
       + (holiday_booking_id IS NOT NULL)::int
+      + (academy_registration_id IS NOT NULL)::int
       + (cleaning_slot_id  IS NOT NULL)::int
       + (payment_id        IS NOT NULL)::int = 1),
     CONSTRAINT ck_sync_tasks_outcome CHECK (outcome IN ('done', 'nothing_to_do')),
@@ -753,7 +776,7 @@ CREATE TABLE sync_tasks (
     CONSTRAINT ck_sync_tasks_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
--- „Je Aufgabenart und Bezug gibt es höchstens eine offene Aufgabe" — acht
+-- „Je Aufgabenart und Bezug gibt es höchstens eine offene Aufgabe" — neun
 -- Indizes, weil ein NULL im Bezug sonst jede Zeile für sich einzigartig machte.
 CREATE UNIQUE INDEX ix_sync_tasks_open_person ON sync_tasks (sync_target_id, person_id)
     WHERE completed_at IS NULL AND person_id IS NOT NULL;
@@ -767,6 +790,8 @@ CREATE UNIQUE INDEX ix_sync_tasks_open_period ON sync_tasks (sync_target_id, ref
     WHERE completed_at IS NULL AND reference_period IS NOT NULL;
 CREATE UNIQUE INDEX ix_sync_tasks_open_booking ON sync_tasks (sync_target_id, holiday_booking_id)
     WHERE completed_at IS NULL AND holiday_booking_id IS NOT NULL;
+CREATE UNIQUE INDEX ix_sync_tasks_open_academy ON sync_tasks (sync_target_id, academy_registration_id)
+    WHERE completed_at IS NULL AND academy_registration_id IS NOT NULL;
 CREATE UNIQUE INDEX ix_sync_tasks_open_slot ON sync_tasks (sync_target_id, cleaning_slot_id)
     WHERE completed_at IS NULL AND cleaning_slot_id IS NOT NULL;
 CREATE UNIQUE INDEX ix_sync_tasks_open_payment ON sync_tasks (sync_target_id, payment_id)
