@@ -4,12 +4,13 @@ title: 'Die Blöcke 08, 09 und 15 auf das neue Gesundheitsmodell nachziehen'
 status: To Do
 assignee: []
 created_date: '2026-09-01 17:19'
-updated_date: '2026-09-03 16:39'
+updated_date: '2026-09-03 18:18'
 labels:
   - wb-docs
   - gesundheit
   - dsgvo
-dependencies: []
+dependencies:
+  - TASK-205
 references:
   - soll-prozesse/08-schulvertrag.md
   - soll-prozesse/09-hortvertrag.md

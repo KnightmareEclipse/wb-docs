@@ -4,13 +4,13 @@ title: 'Die Sichtkreise von sechs auf fünf zurückbauen, sports fällt weg'
 status: To Do
 assignee: []
 created_date: '2026-09-02 07:55'
-updated_date: '2026-09-03 16:39'
+updated_date: '2026-09-03 18:18'
 labels:
   - entscheidung
   - gesundheit
   - dsgvo
 dependencies:
-  - TASK-152
+  - TASK-205
 references:
   - api/gesundheit-api.md
   - fragen.md
