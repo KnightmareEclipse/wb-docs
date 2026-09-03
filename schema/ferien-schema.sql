@@ -1,4 +1,4 @@
--- Ferienprogramm und Kochwerkstatt (Domäne 3) — zwei Angebote, ein Ablauf.
+-- Ferienprogramm (Domäne 3) — Betreuung in den Ferien, gebucht je Tag.
 -- Lesepfad: `holiday_session_types` ist die Terminart und trägt als Wert im
 -- System ihre Module samt Beträgen. Ein `holiday_programme` bündelt Termine
 -- (`holiday_sessions`) mit ihren Tagen; gebucht wird je Kind, Termin und Modul
@@ -18,9 +18,8 @@
 -- (sechs Monate, unten) — die Gesundheitsangabe wird für den Tag gebraucht, die
 -- Buchung als Nachweis darüber hinaus. Löschankündigung und Anhalten im
 -- Einzelfall stehen als gemeinsamer Hebel in hebel.md; die Stellen sind hier
--- Hortleitung und Geschäftsführung, beim Kurs die Verantwortlichen des Angebots
--- und die Geschäftsführung — nie nur eine, damit die Ankündigung nicht an einem
--- Urlaub scheitert.
+-- Hortleitung und Geschäftsführung — nie nur eine, damit die Ankündigung nicht
+-- an einem Urlaub scheitert.
 -- Bewusst KEINE Warteliste und kein Nachrücken: „Ist ein Termin zu,
 -- ist er zu."
 
@@ -43,23 +42,18 @@ CREATE TABLE holiday_session_types (
     -- zeigt (rules.md Abschnitt 3).
     is_active                boolean NOT NULL DEFAULT true,
     -- 10, Schritt 3: „Geprüft wird nur eines: ob die Terminart fremden Kindern
-    -- offensteht; das Alter nicht." Die Öffnung der Kochwerkstatt ist dieses
-    -- Häkchen. Die Prüfung selbst leistet die Anwendung — „bekannt ist dabei ein
-    -- Kind, das eingeschrieben ist (08) oder einen laufenden Hortvertrag hat
-    -- (09)", und das steht in zwei anderen Tabellen; ein CHECK sieht nur seine
-    -- eigene Zeile, und Trigger gibt es in diesem Schema nirgends (wie bei der
-    -- Platzgrenze in 06).
+    -- offensteht; das Alter nicht." Die Prüfung selbst leistet die Anwendung —
+    -- „bekannt ist dabei ein Kind, das eingeschrieben ist (08) oder einen
+    -- laufenden Hortvertrag hat (09)", und das steht in zwei anderen Tabellen;
+    -- ein CHECK sieht nur seine eigene Zeile, und Trigger gibt es in diesem
+    -- Schema nirgends (wie bei der Platzgrenze in 06). Am Akademie-Angebot,
+    -- das dasselbe Häkchen je Angebot trägt, weist ihn ein Trigger ab
+    -- (`akademie-schema.sql`) — dort ist die Platzzahl ohnehin hart.
     -- Beide Terminarten stehen heute auf wahr: „Derzeit Ferientag und
-    -- Ferienwoche … sowie Kochwerkstatt; alle drei stehen fremden Kindern
-    -- offen, das Häkchen dafür ist heute überall gesetzt" (10). Das Häkchen
-    -- unterscheidet damit vorerst nichts — es bleibt, weil der Block die
-    -- Prüfung ausdrücklich benennt und weil eine geschlossene Terminart hier
-    -- und nirgends sonst markiert würde. Auch die Kochwerkstatt steht offen:
-    -- „ein einzelner Termin, gedacht für 8 bis 13, und wie das Ferienprogramm
-    -- offen für alle Kinder" (10). Der Preis steht im selben Block: Eine
-    -- Allergie bei einem fremden Kind steht nur im Freitext — gerade dort, wo
-    -- gekocht wird; getragen wird das von `holiday_care_notes` bei der Stelle,
-    -- die den Termin führt, und nicht von einer Auswertung.
+    -- Ferienwoche … Beide stehen fremden Kindern offen, das Häkchen dafür ist
+    -- heute überall gesetzt" (10). Das Häkchen unterscheidet damit vorerst
+    -- nichts — es bleibt, weil der Block die Prüfung ausdrücklich benennt und
+    -- weil eine geschlossene Terminart hier und nirgends sonst markiert würde.
     allows_external_children boolean NOT NULL DEFAULT true,
     -- Der Code des Textes, unter dem die Stornobedingungen dieser Terminart in
     -- `contract_texts` (querschnitt-schema.sql) stehen — nicht der Text selbst:
@@ -79,9 +73,10 @@ CREATE TABLE holiday_session_types (
     -- Die Sperre der Eltern als Zahl und nicht als `if` über die drei bekannten
     -- `code`-Werte: „bis 3 Tage davor … ab 3 Tagen ist ein Storno nicht mehr
     -- möglich" (10, „Fristen und Termine"), gezählt zum **ersten Tag des
-    -- Programms** und nicht zum gebuchten Tag. Leer heißt „keine Sperre" — die
-    -- Kochwerkstatt trägt leer, ihre Frist läuft zu 9 Uhr am Kurstag und ist
-    -- damit ein Text und keine Maschinenregel. Der Text daneben
+    -- Programms** und nicht zum gebuchten Tag. Leer heißt „keine Sperre".
+    -- Eine Uhrzeit trägt sie nicht: Die Frist des Ferienprogramms endet mit dem
+    -- Tag, und wo eine Uhrzeit dazugehört, steht sie am Akademie-Angebot
+    -- (`akademie-schema.sql`). Der Text daneben
     -- (`cancellation_terms_code`) sagt einem Menschen, was ein Storno kostet;
     -- diese Zahl sagt der Route, ab wann sie ihn nicht mehr entgegennimmt, und
     -- ohne sie hinge die Regel an `code`-Werten im Anwendungscode, wo kein
@@ -104,6 +99,10 @@ CREATE TABLE holiday_session_types (
 -- Betrag; dort hängen sie an einem Vertrag, hier an einem Termin." Kein
 -- Löschanker. Bewusst KEINE gemeinsame Tabelle mit `care_modules`: dort ist die
 -- Buchungseinheit Modul × Wochentag über ein Schuljahr, hier Modul × Termin.
+-- Bewusst KEIN Kennzeichen für ein enthaltenes Mittagessen: „Ein Mittagessen
+-- trägt keines von beiden — wer im Ferienprogramm betreut wird, isst nicht auf
+-- Rechnung der Schule" (10); wo eines im Preis steckt, ist es ein
+-- Akademie-Angebot (`akademie-schema.sql`).
 CREATE TABLE holiday_modules (
     holiday_module_id       integer GENERATED ALWAYS AS IDENTITY,
     holiday_session_type_id integer NOT NULL,
@@ -115,10 +114,6 @@ CREATE TABLE holiday_modules (
     is_active                boolean NOT NULL DEFAULT true,
     starts_at_time          time,
     ends_at_time            time,
-    -- Im Preis enthalten und nie gesondert berechnet; wo es gesetzt ist, steht
-    -- das Kind an diesem Tag auf der Mensaliste (11). Die Ferienmodule tragen
-    -- keines, die Kochwerkstatt kann eines tragen.
-    includes_lunch          boolean NOT NULL DEFAULT false,
     created_at              timestamptz NOT NULL DEFAULT now(),
     created_by              text NOT NULL,
 
@@ -139,16 +134,15 @@ CREATE TABLE holiday_modules (
 -- je Modul und ist keine Regel, die multipliziert."
 -- Die Beträge liegen vor (10, hebel.md): 22 € je Tag für die Betreuung bis
 -- 14 Uhr und 28 € bis 16 Uhr, im Sommer — wo nur die ganze Woche buchbar ist —
--- 110 € und 140 € je Woche, dazu 30 € Kursgebühr für die Kochwerkstatt. Dass
--- die Woche derzeit genau das Fünffache des Tages kostet, ist eine Zahl und
--- keine Regel: Der Betrag steht je Modul und mit eigenem Gültigkeitstag, also
--- kann die Schule sie jederzeit entkoppeln, ohne dass etwas umgebaut wird.
--- Der zweite Betrag der Kochwerkstatt steht bewusst NICHT hier: „Die
--- Lebensmittel kauft die Hauswirtschaftsleitung je Termin ein, und was sie
--- kosten, weiß niemand ein Jahr im Voraus" (10). Er ist deshalb kein Preis mit
--- Gültigkeitstag, sondern der Aufschlag je Termin und Modul in
--- `holiday_session_surcharges` — genau dafür gibt es sie, und er ist der eine
--- Betrag dieser Domäne, den nicht die Geschäftsführung setzt (hebel.md).
+-- 110 € und 140 € je Woche. Dass die Woche derzeit genau das Fünffache des
+-- Tages kostet, ist eine Zahl und keine Regel: Der Betrag steht je Modul und
+-- mit eigenem Gültigkeitstag, also kann die Schule sie jederzeit entkoppeln,
+-- ohne dass etwas umgebaut wird.
+-- Bewusst KEIN Aufschlag je Termin daneben: „Alle Beträge stehen fest und
+-- gelten für jeden Termin gleich — was ein einzelner Tag im Einkauf kostet,
+-- spielt in der Betreuung keine Rolle" (10). Den einen Betrag, den nicht die
+-- Geschäftsführung setzt, trägt das Akademie-Angebot
+-- (`akademie-schema.sql`, `food_amount_cents`).
 -- Kein Löschanker. Eigene Tabelle statt
 -- einer Spalte am Modul, weil der Betrag ein Wert im System ist und einen
 -- Gültigkeitstag trägt (hebel.md) — samt dessen Regel: „ein noch nicht gültiger
@@ -177,13 +171,12 @@ CREATE TABLE holiday_module_prices (
 
 -- Herkunft: 10 (Ferienprogramm) — „Die anbietende Stelle legt ein Programm an:
 -- Name, Anmeldefenster und seine Termine." Löschanker: keiner, keine
--- Personendaten. Die anbietende Stelle steht als Rolle daran, weil sie „je
--- Programm" verschieden ist — Hortleitung oder Hauswirtschaftsleitung.
+-- Personendaten. Die anbietende Stelle ist heute immer die Hortleitung (10);
+-- sie steht als Wert am Programm und nicht als Regel im Code.
 CREATE TABLE holiday_programmes (
     holiday_programme_id  integer GENERATED ALWAYS AS IDENTITY,
     name                  text NOT NULL,
-    -- Hortleitung oder Hauswirtschaftsleitung; „eine neue Rolle entsteht dafür
-    -- nicht".
+    -- Die Hortleitung; „eine neue Rolle entsteht dafür nicht".
     offering_role_id      integer NOT NULL,
     registration_opens_at timestamptz NOT NULL,
     -- Das gesetzte Datum; jederzeit vorziehbar oder verschiebbar wie das
@@ -263,29 +256,6 @@ CREATE TABLE holiday_session_days (
     CONSTRAINT ck_holiday_session_days_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
--- Herkunft: 10 (Ferienprogramm) — „der Aufschlag je Modul dieses Termins
--- einzeln, meist null: Der Vormittag kocht etwas anderes als der Nachmittag …
--- der einzige Betrag in diesem Block, den nicht die Geschäftsführung setzt".
--- Löschanker: keiner. Bewusst KEIN Gültigkeitstag: der Aufschlag gehört einem
--- einzelnen Termin und lebt nicht länger als er.
-CREATE TABLE holiday_session_surcharges (
-    holiday_session_surcharge_id uuid NOT NULL DEFAULT gen_random_uuid(),
-    holiday_session_id           uuid NOT NULL,
-    holiday_module_id            integer NOT NULL,
-    surcharge_cents              integer NOT NULL DEFAULT 0,
-    created_at                   timestamptz NOT NULL DEFAULT now(),
-    created_by                   text NOT NULL,
-
-    CONSTRAINT pk_holiday_session_surcharges PRIMARY KEY (holiday_session_surcharge_id),
-    CONSTRAINT fk_holiday_session_surcharges_session
-        FOREIGN KEY (holiday_session_id) REFERENCES holiday_sessions (holiday_session_id) ON DELETE CASCADE,
-    CONSTRAINT fk_holiday_session_surcharges_module
-        FOREIGN KEY (holiday_module_id) REFERENCES holiday_modules (holiday_module_id),
-    CONSTRAINT uq_holiday_session_surcharges UNIQUE (holiday_session_id, holiday_module_id),
-    CONSTRAINT ck_holiday_session_surcharges_amount CHECK (surcharge_cents >= 0),
-    CONSTRAINT ck_holiday_session_surcharges_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
-);
-
 
 -- ---------------------------------------------------------------------------
 -- Kostenübernahme und Buchung
@@ -361,7 +331,7 @@ CREATE TABLE holiday_bookings (
     -- Nur zur Bindung des Moduls an die Terminart des Termins; sie steht schon
     -- an beiden und wird hier allein für den zusammengesetzten Schlüssel geführt.
     holiday_session_type_id integer NOT NULL,
-    -- Was an diesem Tag galt — Modulbetrag plus Aufschlag; „eine spätere
+    -- Was an diesem Tag galt — der Modulbetrag; „eine spätere
     -- Änderung rechnet nichts rückwirkend um" (hebel.md).
     amount_cents            integer NOT NULL,
     -- Online bezahlt oder wird berechnet; im zweiten Fall trägt der Code den
@@ -450,8 +420,8 @@ CREATE INDEX ix_holiday_bookings_session ON holiday_bookings (holiday_session_id
 -- Löschanker: geht mit dem Kind.
 -- Je Kind und Programm statt je Kind. — Alternative: eine Zeile je Kind über
 -- alle Jahre; Preis: die Anmerkung aus einem Ferienprogramm von vor drei
--- Jahren stünde ungefragt auf der Teilnehmerliste der Kochwerkstatt von heute,
--- und gelöscht würde sie nie.
+-- Jahren stünde ungefragt auf der Teilnehmerliste von heute, und gelöscht
+-- würde sie nie.
 CREATE TABLE holiday_care_notes (
     holiday_care_note_id uuid NOT NULL DEFAULT gen_random_uuid(),
     child_id             uuid NOT NULL,

@@ -1,9 +1,9 @@
 -- Prüfskript zu ferien-schema.sql.
 --
--- Sollstand: 10 Tabellen — holiday_session_types, holiday_modules,
+-- Sollstand: 9 Tabellen — holiday_session_types, holiday_modules,
 -- holiday_module_prices, holiday_programmes, holiday_sessions,
--- holiday_session_days, holiday_session_surcharges,
--- holiday_cost_coverage_codes, holiday_bookings und holiday_care_notes.
+-- holiday_session_days, holiday_cost_coverage_codes, holiday_bookings und
+-- holiday_care_notes.
 -- Dazu ein Lese-Index
 -- auf die Teilnehmerliste, ein partieller Unique-Index über die nicht
 -- stornierten Buchungen und die Fremdschlüssel von Q3 und Q5 auf diese Domäne;
@@ -23,14 +23,13 @@ BEGIN
     FROM unnest(ARRAY[
         'holiday_session_types', 'holiday_modules', 'holiday_module_prices',
         'holiday_programmes', 'holiday_sessions', 'holiday_session_days',
-        'holiday_session_surcharges',
         'holiday_cost_coverage_codes', 'holiday_bookings', 'holiday_care_notes'
     ]) AS t
     WHERE to_regclass('public.' || t) IS NULL;
     IF missing IS NOT NULL THEN
         RAISE EXCEPTION 'Fehlende Tabellen: %', missing;
     END IF;
-    RAISE NOTICE 'ok: alle 10 Tabellen vorhanden';
+    RAISE NOTICE 'ok: alle 9 Tabellen vorhanden';
 END $$;
 
 DO $$
@@ -42,8 +41,7 @@ BEGIN
         'fk_holiday_bookings_child', 'fk_holiday_bookings_session',
         'fk_holiday_bookings_module', 'fk_holiday_bookings_terms',
         'fk_holiday_bookings_coverage_code', 'fk_holiday_programmes_role',
-        'uq_holiday_session_days',
-        'uq_holiday_session_surcharges', 'uq_holiday_module_prices',
+        'uq_holiday_session_days', 'uq_holiday_module_prices',
         'uq_holiday_modules_id_type', 'uq_holiday_sessions_id_type',
         'ck_holiday_bookings_payment_mode', 'ck_holiday_bookings_coverage',
         'ck_holiday_bookings_declared', 'ck_holiday_bookings_recorded',
@@ -110,26 +108,25 @@ INSERT INTO contract_texts (contract_text_id, code, valid_from, body, created_by
 -- als Spalte an der Terminart.
 INSERT INTO contract_texts (contract_text_id, code, valid_from, body, created_by)
     OVERRIDING SYSTEM VALUE VALUES
-    (2, 'holiday_cancellation_day',     DATE '2026-01-01', 'bis 21 Tage vorher kostenlos', 'system:check'),
-    (3, 'holiday_cancellation_cooking', DATE '2026-01-01', 'bis 9 Uhr kostenlos',          'system:check');
+    (2, 'holiday_cancellation_day',  DATE '2026-01-01', 'bis 21 Tage vorher kostenlos', 'system:check'),
+    (3, 'holiday_cancellation_week', DATE '2026-01-01', 'bis 21 Tage vorher kostenlos', 'system:check');
 
 INSERT INTO holiday_session_types (holiday_session_type_id, code, name,
                                    allows_external_children, cancellation_terms_code, created_by)
     OVERRIDING SYSTEM VALUE VALUES
-    -- „Alle drei stehen fremden Kindern offen, das Häkchen dafür ist heute
-    -- überall gesetzt" (10) — die Kochwerkstatt eingeschlossen. Das Häkchen
-    -- unterscheidet heute deshalb nichts und markiert nur, wo eine geschlossene
-    -- Terminart stünde; geprüft wird hier, dass es die Spalte gibt, nicht
-    -- welchen Wert sie heute trägt.
-    (1, 'holiday_day',  'Ferientag',     true, 'holiday_cancellation_day',     'system:check'),
-    (2, 'cooking',      'Kochwerkstatt', true, 'holiday_cancellation_cooking', 'system:check');
+    -- „Beide stehen fremden Kindern offen, das Häkchen dafür ist heute überall
+    -- gesetzt" (10). Das Häkchen unterscheidet heute deshalb nichts und
+    -- markiert nur, wo eine geschlossene Terminart stünde; geprüft wird hier,
+    -- dass es die Spalte gibt, nicht welchen Wert sie heute trägt.
+    (1, 'holiday_day',  'Ferientag',   true, 'holiday_cancellation_day',  'system:check'),
+    (2, 'holiday_week', 'Ferienwoche', true, 'holiday_cancellation_week', 'system:check');
 
 INSERT INTO holiday_modules (holiday_module_id, holiday_session_type_id, code, name,
-                             includes_lunch, created_by)
+                             created_by)
     OVERRIDING SYSTEM VALUE VALUES
-    (1, 1, 'day_morning',   'Ferientag vormittags',   false, 'system:check'),
-    (2, 1, 'day_full',      'Ferientag ganztags',     false, 'system:check'),
-    (3, 2, 'cook_morning',  'Kochwerkstatt vormittags', true, 'system:check');
+    (1, 1, 'day_morning', 'Ferientag vormittags', 'system:check'),
+    (2, 1, 'day_full',    'Ferientag ganztags',   'system:check'),
+    (3, 2, 'week_full',   'Ferienwoche ganztags', 'system:check');
 
 INSERT INTO holiday_programmes (holiday_programme_id, name, offering_role_id,
                                 registration_opens_at, created_by)
@@ -139,7 +136,7 @@ INSERT INTO holiday_programmes (holiday_programme_id, name, offering_role_id,
 INSERT INTO holiday_sessions (holiday_session_id, holiday_programme_id,
                               holiday_session_type_id, title, places, created_by)
     VALUES ('55555555-5555-5555-5555-555555555551', 1, 1, 'Woche 1 — Wald', 20, 'system:check'),
-           ('55555555-5555-5555-5555-555555555552', 1, 2, 'Brot backen',      8, 'system:check');
+           ('55555555-5555-5555-5555-555555555552', 1, 2, 'Woche 2 — Wasser', 8, 'system:check');
 
 -- ---------------------------------------------------------------------------
 -- Gegenproben
@@ -259,8 +256,8 @@ END $$;
 
 -- 10, „Fristen und Termine": „ab 3 Tagen ist ein Storno nicht mehr möglich" ist
 -- eine Maschinenregel und steht deshalb als Zahl an der Terminart, nicht als
--- `if` über die drei bekannten `code`-Werte. Leer heißt „keine Sperre" — die
--- Kochwerkstatt trägt leer —, und genau das muss die Spalte zulassen.
+-- `if` über ihre `code`-Werte. Leer heißt „keine Sperre", und genau das muss
+-- die Spalte zulassen.
 DO $$
 DECLARE found record;
 BEGIN
@@ -279,14 +276,31 @@ BEGIN
 END $$;
 
 SELECT pg_temp.expect_accept(
-    '10 — die Kochwerkstatt trägt keine Sperre',
-    $q$UPDATE holiday_session_types SET cancellation_deadline_days = NULL
-        WHERE code = 'cooking'$q$);
-
-SELECT pg_temp.expect_accept(
     '10 — der Ferientag trägt drei Tage',
     $q$UPDATE holiday_session_types SET cancellation_deadline_days = 3
         WHERE code = 'holiday_day'$q$);
+
+-- 10: „Ein Mittagessen trägt keines von beiden" — wo eines im Preis steckt, ist
+-- es ein Akademie-Angebot (akademie-schema.sql).
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns
+                WHERE table_name = 'holiday_modules' AND column_name = 'includes_lunch') THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — das Ferienmodul trägt wieder ein Mittagessen';
+    END IF;
+    RAISE NOTICE 'ok (abgewiesen): 10 — kein Ferienmodul trägt ein Mittagessen';
+END $$;
+
+-- 10: „Alle Beträge stehen fest und gelten für jeden Termin gleich" — einen
+-- Aufschlag je Termin gibt es nicht mehr; er ist der zweite Betrag am
+-- Akademie-Angebot (akademie-schema.sql).
+DO $$
+BEGIN
+    IF to_regclass('public.holiday_session_surcharges') IS NOT NULL THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — es gibt wieder einen Aufschlag je Termin';
+    END IF;
+    RAISE NOTICE 'ok (abgewiesen): 10 — kein Aufschlag je Termin';
+END $$;
 
 SELECT pg_temp.expect_accept(
     '10 — angekündigte Stornobedingungen neben den geltenden',
@@ -400,7 +414,7 @@ SELECT pg_temp.expect_reject(
 
 SELECT pg_temp.expect_accept(
     '10 — abgesagter Termin mit Grund, der stehen bleibt',
-    $q$UPDATE holiday_sessions SET cancelled_at = now(), cancellation_reason = 'Küche defekt'
+    $q$UPDATE holiday_sessions SET cancelled_at = now(), cancellation_reason = 'zu wenige Anmeldungen'
         WHERE holiday_session_id = '55555555-5555-5555-5555-555555555552'$q$);
 
 -- 10: „Je Termin die Tage" — derselbe Tag steht nur einmal an einem Termin.
@@ -411,22 +425,6 @@ SELECT pg_temp.expect_reject(
     '10 — derselbe Tag zweimal an einem Termin',
     $q$INSERT INTO holiday_session_days (holiday_session_id, day, created_by)
        VALUES ('55555555-5555-5555-5555-555555555551', DATE '2027-08-02', 'system:check')$q$);
-
--- 10: „der Aufschlag je Modul dieses Termins einzeln, meist null".
-INSERT INTO holiday_session_surcharges (holiday_session_id, holiday_module_id,
-                                        surcharge_cents, created_by)
-    VALUES ('55555555-5555-5555-5555-555555555551', 1, 0, 'system:check');
-SELECT pg_temp.expect_reject(
-    '10 — zweiter Aufschlag für dasselbe Modul an demselben Termin',
-    $q$INSERT INTO holiday_session_surcharges (holiday_session_id, holiday_module_id,
-                                               surcharge_cents, created_by)
-       VALUES ('55555555-5555-5555-5555-555555555551', 1, 500, 'system:check')$q$);
-
-SELECT pg_temp.expect_reject(
-    '10 — negativer Aufschlag',
-    $q$INSERT INTO holiday_session_surcharges (holiday_session_id, holiday_module_id,
-                                               surcharge_cents, created_by)
-       VALUES ('55555555-5555-5555-5555-555555555551', 2, -500, 'system:check')$q$);
 
 -- 10: das Anmeldefenster schließt nicht vor seinem Beginn.
 SELECT pg_temp.expect_reject(
