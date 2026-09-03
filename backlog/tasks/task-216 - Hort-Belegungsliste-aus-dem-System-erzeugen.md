@@ -4,7 +4,7 @@ title: Die Hort-Belegungsliste aus dem Bestand erzeugen
 status: To Do
 assignee: []
 created_date: '2026-09-03 16:38'
-updated_date: '2026-09-03 17:14'
+updated_date: '2026-09-03 17:16'
 labels:
   - anmeldung
 dependencies: []
@@ -27,7 +27,11 @@ Aus [M3]: Jürgen fragt, ob die Hort-Belegungsliste künftig aus Weltenbaum erze
 - **Kinder mit dem, was zu beachten ist** — der Hinweis am Kind (`child_health_records.action_note`) im Sichtkreis des Horts; die Domäne trägt ihn bereits, dieses Ticket nur die Anzeige.
 - **Abrechnungsliste** — Beitrag je Kind und Monat aus `care_module_prices`. Zu prüfen ist, ob sie rechnet oder nur zusammenstellt; die Buchhaltung führt Optigem, nicht Weltenbaum.
 
-**Die Hausaufgabenbetreuung kostet nichts** (Betreiber, 03.09.2026): Sie steckt im Modul und wird nicht gesondert gebucht. Wer sie besucht, ist damit die Liste der Kinder mit dem entsprechenden Modul an diesem Tag — ein Filter, kein Datum am Kind. Offen bleibt nur eine Kleinigkeit für die Hortleitung: ob es Module über Mittag **ohne** Hausaufgabenbetreuung gibt. Wenn nicht, ist die Liste der Nachmittagsliste gleich und es entsteht gar nichts; wenn doch, ist es ein Häkchen am Modul, mit derselben Begründung wie `includes_lunch` daneben.
+**Die Hausaufgabenbetreuung kostet nichts** (Betreiber, 03.09.2026): Sie steckt im Modul und wird nicht gesondert gebucht. Wer sie besucht, ist damit die Liste der Kinder mit dem entsprechenden Modul an diesem Tag — ein Filter, kein Datum am Kind. Es gibt aber Module über Mittag **ohne** Hausaufgabenbetreuung (Betreiber, 03.09.2026), also ist die Liste nicht einfach die Nachmittagsliste: `care_modules` braucht ein Häkchen daneben.
+
+Der Unterschied zu seinem Nachbarn `includes_lunch` ist erwähnenswert, weil er die Begründung umdreht: Das Essens-Häkchen steht dort, obwohl es sich heute aus der Uhrzeit ableiten ließe — „derzeit trägt jedes Modul über 13 Uhr eines, aber das ist ein Häkchen". Die Hausaufgabenbetreuung lässt sich **nicht** ableiten, weder aus der Uhrzeit noch aus der Dauer. Das Häkchen trägt hier also wirklich etwas und ist keine Vorsorge.
+
+Die Änderung ist eine Spalte an `care_modules` und beginnt als Migration in wb-backend; die `.sql` hier wird nachgezogen.
 
 **Zwei Dinge sind neu:**
 - Die **Abfrage an Brückentagen** — sie ist ein eigener Vorgang und steht in einem eigenen Ticket (TASK-217).
@@ -39,7 +43,8 @@ Aus [M3]: Jürgen fragt, ob die Hort-Belegungsliste künftig aus Weltenbaum erze
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [ ] #1 Jede Sicht ist frisch erzeugt und liest den Bestand, keine wird gepflegt
-- [ ] #2 Die Hausaufgabenbetreuung entsteht als Filter über die Module, nicht als Datum am Kind
-- [ ] #3 Die Gruppeneinteilung steht nicht in der Datenbank — und der Grund steht als Kommentar da
-- [ ] #4 Bei der Abrechnungsliste ist entschieden, ob sie rechnet oder zusammenstellt
+- [ ] #2 care_modules trägt ein Häkchen für die Hausaufgabenbetreuung; die Liste ist ein Filter darüber und kein Datum am Kind
+- [ ] #3 Der Kommentar an der Spalte sagt, warum sie sich nicht aus der Uhrzeit ableiten lässt — anders als includes_lunch
+- [ ] #4 Die Gruppeneinteilung steht nicht in der Datenbank — und der Grund steht als Kommentar da
+- [ ] #5 Bei der Abrechnungsliste ist entschieden, ob sie rechnet oder zusammenstellt
 <!-- AC:END -->
