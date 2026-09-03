@@ -15,15 +15,18 @@ Antwort auf die falsche Frage.
 | `rules.md` | Die Planungsprinzipien: Lean by Design (§1, **samt der ausdrücklichen Ausnahme für DB-Schema-Design**), Vertrauensgrenze (§2), Boring Technology (§4), Datensparsamkeit (§7) |
 | `grenzkarte.md` | Wem welche Tatsache gehört, die Querschnitts-Entitäten Q1–Q5, die weißen Flecken, die Freeze-Definition |
 | `soll-prozesse/` | Wie ein Vorgang künftig läuft — ein Block je Prozess. Die gemeinsamen Hebel in `hebel.md`, Prozessliste und Wegweiser in `README.md` |
+| `anleitungen/` | Die Unterlagen für die Stellen, die das System bedienen — eine je Prozess und Rolle. Sie sagen, was jemand tut und wann, nie warum: das steht im Soll-Block |
 | `schema/` | Das Datenmodell: je Domäne eine `-schema.sql` mit ihrem `-schema-check.sql` |
 | `api/` | Die Routen je Domäne, das Gemeinsame in `api/gemeinsam.md`. Geplant wird hier, gebaut in `wb-backend` |
 | `prozesse.md` | Wie es **heute** läuft, samt der real erhobenen Formularfelder |
 | `fachdomaenen.md` | Scope, Reihenfolge und Stammdaten-Berührung je Fachdomäne |
+| `logahr.md` | Welche Mitarbeiterangaben Weltenbaum führt, in welche Richtung eine Schnittstelle zum Personalsystem liefe und was es dafür liefern müsste |
 | `glossar.md` | Das Rollen-Vokabular, repo-übergreifend gültig — Infra-Admin vs. Admin vs. Verwaltung |
 | `host.md`, `container.md`, `deploy.md`, `runbook.md` | Die Maschine: Server und Firewall, Runtime und Stack, Ausrollen, Neuaufbau von Hand |
 | `zugang.md`, `oberflaechen.md` | Wer wie hereinkommt (Entra-ID, OTP, Rollen) und wo die Oberflächen liegen |
 | `backup.md`, `dsgvo.md`, `repos.md` | Sicherung und Wiederherstellung, die organisatorischen DSGVO-Pflichten, der Schnitt der Repos |
 | `verarbeitungsverzeichnis.md` | Der Eintrag nach Art. 30 für dieses eine Verfahren — Zwecke, Datenkategorien, Empfänger, Fristen, Maßnahmen |
+| `folgenabschaetzung.md` | Die Bewertung des Art.-9-Bestands nach Art. 35 — Risiken, Abhilfen und ihr Stand, und die Sperre, die am Livegang der Gesundheitsangaben hängt |
 | `backlog/` | Der **gesamte** Arbeitsvorrat: die Aufgabe, ihre kurze Begründung, Reihenfolge, Milestone und Abnahmekriterien |
 | `fragen.md` | Der Wortlaut der offenen Fragen an die Schule, je Gesprächspartner, samt dem Kriterium, wann eine Antwort reicht |
 | `prompts/` | Die wiederkehrenden Aufträge. Was für alle gilt, steht einmal in `prompts/gemeinsam.md` |
