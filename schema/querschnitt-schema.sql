@@ -208,31 +208,22 @@ CREATE TABLE consent_purposes (
     CONSTRAINT ck_consent_purposes_created_by CHECK (created_by ~ '^(entra:|system:)')
 );
 
--- Herkunft: oberflaechen.md — „die Bibliotheksgrenze ist die Zugriffsgrenze".
--- Der Satz steht dort und nicht in der Grenzkarte; die Karte trägt die Regel
--- dahinter: „Direkten Zugriff auf eine Bibliothek bekommt nur, wer *in* den
--- Dateien arbeitet" (Q2).
--- Zwei Zeilen, und zwei Sites: die digitale Schülerakte mit einem Ordner je
--- Kind, in dem alles liegt — die von Weltenbaum erzeugten Unterlagen wie das,
--- was Menschen dazulegen —, und die Ablage der Rechnungsfreigabe, die eine
--- eigene Site mit eigenen Rechten hat (12). Dass eine Bibliothek in einer
--- anderen Site liegt, sieht dieses Schema nicht und muss es nicht sehen: Die
--- `graph_drive_id` benennt sie eindeutig, ganz gleich wo sie hängt — „nie ein
--- Pfad" (grenzkarte.md, Q2).
+-- Herkunft: grenzkarte.md, Q2 — „Direkten Zugriff auf eine Bibliothek bekommt
+-- nur, wer *in* den Dateien arbeitet. Das ist genau eine Stelle im ganzen
+-- System: der Hort mit seinen fortgeschriebenen Dokumenten." Die Karte führt
+-- die Bibliotheken als Tabelle, und es sind drei: die **Schülerakte** — was
+-- Weltenbaum erzeugt und was Menschen dazulegen, ein Ordner je Kind, und „an
+-- sie kommt kein Mensch direkt"; die **Hortakte** — Absprachen, Verhalten,
+-- Beobachtungsbögen, gelesen und fortgeschrieben allein von Hortkräften und
+-- Hortleitung (09); und die **Belege** der Rechnungsfreigabe, ohne Kindbezug
+-- und ebenfalls ohne menschlichen Direktzugriff (12).
+-- Warum die Hortakte eine eigene Bibliothek ist und kein Unterordner, steht in
+-- der Karte und nicht hier — es braucht zwei Anforderungen und einen zweiten
+-- API-Weg, um formulierbar zu sein.
+-- Dass eine Bibliothek in einer anderen Site liegt, sieht dieses Schema nicht
+-- und muss es nicht sehen: Die `graph_drive_id` benennt sie eindeutig, ganz
+-- gleich wo sie hängt — „nie ein Pfad" (grenzkarte.md, Q2).
 -- Kein Löschanker: keine Personendaten.
--- Entschieden nach der Abnahme, abweichend von den zwei Bibliotheken der
--- Grenzkarte: ein Ordner je Kind statt zweier. Der Preis ist benannt — die
--- erzeugten Unterlagen sind für Sekretariat und Geschäftsführung nicht mehr nur
--- lesbar. Dass ein Vertrag nachträglich verändert wurde, zeigt danach allein
--- die Prüfsumme an `contracts.document_checksum`; verhindern kann sie es nicht.
--- Die Bibliothek steht: eine bestehende der Schule, mit Vollzugriff für
--- Sekretariat und Geschäftsführung, Zugriff für die Admins und einem auf ihren
--- Ordner beschränkten Zugriff für die Schulleitungen — die Zweigbindung aus
--- hebel.md („für die andere Schulform nichts") setzt sich dort als Ordnerrecht
--- fort, weil die Akte ohnehin unter der Kohorten-Kennung liegt (`GS26a`). Damit
--- ist auch die Annahme der Grenzkarte, SharePoint könne Rechte nur je
--- Bibliothek, für dieses Haus nicht die ganze Wahrheit; an der Entscheidung für
--- eine Bibliothek ändert das nichts.
 CREATE TABLE sharepoint_libraries (
     sharepoint_library_id integer GENERATED ALWAYS AS IDENTITY,
     code                  text NOT NULL,
@@ -1421,9 +1412,3 @@ CREATE UNIQUE INDEX ix_retention_holds_first
 --     Löschmechanik — die Cascade an `fk_consents_child` müsste fallen —, kein
 --     Satz an einem Kommentar.
 
--- Beantwortet: Der Hort bekommt keine eigene Bibliothek. Es bleibt bei der
--- einen Schülerakte, ein Ordner je Kind; was der Hort sieht, sieht er über
--- Weltenbaum und nicht über SharePoint. `sharepoint_libraries` trägt beliebig
--- viele Zeilen, gebraucht werden zwei — die Schülerakte und die Ablage der
--- Rechnungsfreigabe (rechnungsfreigabe-schema.sql). Käme je eine dritte dazu,
--- wäre das eine Zeile und ein weiteres Grant, kein Umbau.

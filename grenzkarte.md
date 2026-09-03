@@ -164,7 +164,7 @@ Drei weitere Folgen dieser Entscheidung:
 
 - **Das Backup bleibt wie es ist.** Es streamt ausschließlich einen `pg_dump` zum NAS (`backup.md`) und deckt damit weiterhin den vollständigen Weltenbaum-Datenbestand ab. Wären die Dateien hier, bräuchte es eine zweite Sicherungsquelle samt eigenem Wiederherstellungstest.
 - **Die Löschmechanik wird zweiteilig.** Läuft eine Aufbewahrungsfrist ab, muss der Lösch-Job die Datei in SharePoint mitentfernen, nicht nur die Referenzzeile (`dsgvo.md`). Eine verwaiste Datei in SharePoint ist genauso ein DSGVO-Verstoß wie eine verwaiste Zeile — und sie fällt niemandem auf.
-- **Zusätzliche Graph-Berechtigung nötig,** über `Mail.Send` hinaus: `Sites.Selected` als App-only-Berechtigung, je Bibliothek einzeln von einem Admin gegrantet, schreibend (`oberflaechen.md`) — kein tenantweiter Zugriff. Offen ist nur noch, welche zwei Bibliotheken das konkret sind (`backlog/`).
+- **Zusätzliche Graph-Berechtigung nötig,** über `Mail.Send` hinaus: `Sites.Selected` als App-only-Berechtigung, je Bibliothek einzeln von einem Admin gegrantet, schreibend (`oberflaechen.md`) — kein tenantweiter Zugriff. Offen ist nur noch, welche drei Bibliotheken das konkret sind (`backlog/`).
 
 ### Q3 — Zahlungsvorgang
 
