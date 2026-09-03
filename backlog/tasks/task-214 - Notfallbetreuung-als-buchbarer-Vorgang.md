@@ -4,7 +4,7 @@ title: Notfallbetreuung als buchbarer Vorgang
 status: To Do
 assignee: []
 created_date: '2026-09-03 16:38'
-updated_date: '2026-09-03 16:57'
+updated_date: '2026-09-03 17:00'
 labels:
   - schema
   - anmeldung
@@ -27,15 +27,13 @@ Aus [M3], geschärft am 03.09.2026: Eine Notfallbetreuung entsteht aus einem Not
 
 Gebraucht wird eine **Tagesbuchung**: Kind, Datum, Art des Falls, der Betrag als das, was an diesem Tag galt.
 
-**Zwei Zeitpunkte statt eines Häkchens**, wie überall dort, wo eine Zusage und ihr Vollzug auseinanderfallen können: Die Buchung ist die Ankündigung, das Abhaken durch den Hort der Beleg. Abgerechnet wird, was stattgefunden hat — sonst zahlt eine Familie für einen Notfall, der sich erledigt hat, und ein unangekündigtes Kind fiele durchs Raster. Genau das ist auch der Papierfall: Wer unangekündigt kommt, hat keine Buchung, nur den Vollzug.
+**Zwei Zeitpunkte statt eines Häkchens**, wie überall dort, wo eine Zusage und ihr Vollzug auseinanderfallen können: Die Buchung ist die Ankündigung, das Abhaken durch den Hort der Vollzug. Abgerechnet wird, was stattgefunden hat — sonst zahlt eine Familie für einen Notfall, der sich erledigt hat, und ein unangekündigtes Kind fiele durchs Raster. Genau das ist auch der Papierfall: Wer unangekündigt kommt, hat keine Buchung, nur den Vollzug.
+
+Der Hort sieht die Buchungen des Tages als [frisch erzeugte Liste](../../soll-prozesse/hebel.md#frisch-erzeugte-liste), nicht als gepflegten Bestand.
 
 Berührt die Mensa: Wer über Mittag da ist, isst, und das Tagesessen kostet 5,90 € je Fall (11). Es hängt an dem Tag, an dem es anfällt, und wird nicht im Fallpreis versteckt.
 
-**Der Nachtrag braucht einen Beleg, die Portalbuchung nicht.** Wer im Portal klickt, hat selbst gebucht — `created_by` trägt `guardian:`. Wer anruft, hat nichts Schriftliches, und dann steht Aussage gegen Aussage, sobald eine Familie sagt, ihr Kind sei an dem Tag nicht da gewesen. Dagegen die billigste Stufe, die trägt: **Jede nachgetragene Betreuung erzeugt eine Bestätigungsmail** an die Familie — Tag, Art des Falls, Betrag. `outbound_emails` hält fest, dass sie hinausging, an welche Adresse und ob sie zustellbar war; wer nicht widerspricht, hat es hingenommen. Das deckt zugleich das unangekündigte Kind ab, für das es nie eine Buchung gab.
-
-Die härtere Stufe wäre die **gezeichnete Tagesliste** — die Bauform steht beim Putzdienst schon (Liste erzeugen, abzeichnen, als Vorgang abschließen). Sie kostet Papier und einen Handgriff je Tag und lohnt erst, wenn der Streitfall wirklich vorkommt. Eine **Unterschrift im Portal** wäre die Bauform des Schulvertrags und für einen Zwanzig-Euro-Vorgang unverhältnismäßig — bewusst nicht.
-
-`[?]` **Drei Punkte für die Hortleitung**, beide in einem Satz zu beantworten und deshalb nicht in fragen.md: Gibt es eine Platzgrenze, kann eine Portalbuchung also abgelehnt werden? Wird eine gebuchte, aber nicht wahrgenommene Betreuung berechnet? Und reicht die Bestätigungsmail als Beleg, oder soll die Tagesliste gezeichnet werden?
+`[?]` **Der Nachweis auf dem Telefonweg ist offen.** Wer im Portal klickt, hat selbst gebucht — `created_by` trägt `guardian:`, und mehr braucht es nicht. Wer anruft, hat nichts Schriftliches: Weigert sich eine Familie später zu zahlen, weil ihr Kind an dem Tag angeblich nicht da war, steht Aussage gegen Aussage. Drei Stufen wären denkbar, entschieden ist keine — eine Bestätigung an die Familie, eine gezeichnete Tagesliste nach der Bauform des Putzdienstes (01), oder gar nichts, weil der Fall in der Praxis nicht vorkommt. **Vor dem Bau mit der Geschäftsführung zu klären**, zusammen mit der Frage, ob eine Notfallbetreuung überhaupt abgelehnt werden darf und ob eine gebuchte, aber nicht wahrgenommene berechnet wird.
 
 **Hängt an fragen.md Frage 10:** Welche Werte der Preisliste unsere sind, ist nicht eindeutig lesbar — die Spalte mit 8/8/12/16/20 ist anderswo mit "Stadt*" überschrieben. Vor dem Seed zu klären, nicht vor dem Bau.
 <!-- SECTION:DESCRIPTION:END -->
@@ -48,6 +46,5 @@ Die härtere Stufe wäre die **gezeichnete Tagesliste** — die Bauform steht be
 - [ ] #4 Buchung und Vollzug sind zwei Zeitpunkte: ein unangekündigtes Kind hat nur den zweiten, eine erledigte Buchung nur den ersten
 - [ ] #5 Der Hort sieht die Buchungen des Tages als frisch erzeugte Liste
 - [ ] #6 Das Mittagessen hängt an dem Tag, an dem es anfällt, und steckt nicht im Fallpreis
-- [ ] #7 Jeder Nachtrag erzeugt eine Bestätigungsmail an die Familie; die Portalbuchung braucht keine
-- [ ] #8 Die Mail steht in outbound_emails samt Zustellstatus — sie ist der Beleg, nicht die Buchung selbst
+- [ ] #7 Entschieden mit der Geschäftsführung: Nachweis auf dem Telefonweg, Ablehnung einer Buchung, Berechnung einer nicht wahrgenommenen
 <!-- AC:END -->
