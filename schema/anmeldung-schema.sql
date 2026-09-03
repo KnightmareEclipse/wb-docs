@@ -527,6 +527,14 @@ CREATE TABLE admission_days (
     day                date NOT NULL,
     starts_at_time     time NOT NULL,
     ends_at_time       time NOT NULL,
+    -- Nullable, obwohl 06 das Pausenfenster in derselben Aufzählung wie Datum,
+    -- Von–Bis, Ziel, Fensterlänge und Plätze führt und mit „(Pflicht)"
+    -- abschließt: Derselbe Block macht den Sondertermin zum „kleinsten
+    -- Anmeldetag" — „einen Anmeldetag mit einem einzigen Zeitfenster" für eine
+    -- einzelne Familie —, und ein Tag aus einem Zeitfenster hat keine Pause, in
+    -- die er sich teilen ließe. Die Pflicht gilt dem regulären Tag und wird
+    -- dort von der Anwendung getragen, wie die harte Platzgrenze eines
+    -- Zeitfensters; das Prüfskript hält die Auslassung mit einer Probe fest.
     break_from_time    time,
     break_to_time      time,
     slot_minutes       smallint NOT NULL,
@@ -641,6 +649,13 @@ CREATE TABLE applications (
     -- Einmaliges, sofort verbrauchtes Einverständnis und deshalb nicht Q1 —
     -- steht aber an der Bewerbung, weil der Kindergarten über den Anmeldetag
     -- hinaus nicht gebraucht wird (grenzkarte.md).
+    -- Ihr Anker für den dritten Zustand ist `submitted_at` und nicht die
+    -- Unterlagenprüfung: 05 erhebt sie schon in der Voranmeldung und nennt sie
+    -- dort „(Pflicht)" — „die Einwilligung, dort Auskunft einzuholen (Pflicht)".
+    -- Die Bewerbung entsteht erst mit dem Absenden, gefragt wurde also in
+    -- jedem Fall; ein leeres Feld heißt hier „verweigert" und nicht „nicht
+    -- gefragt". Der Anker an der Unterlagenprüfung läse zwischen Absenden und
+    -- Anmeldetag genau falsch herum.
     kindergarten_consent_at timestamptz,
     -- 05: „Bei jedem Ziel in der Grundschule kommt die örtlich zuständige Schule
     -- hinzu, über welchen Weg die Bewerbung auch läuft — auch ein Quereinsteiger
@@ -661,8 +676,10 @@ CREATE TABLE applications (
     record_outcome     text,
     -- Der letzte Punkt der Checkliste und die einzige Stelle, an der
     -- „durchgesehen" von „vergessen" unterscheidbar wird (grenzkarte.md).
-    -- Trägt zugleich den dritten Zustand für `kindergarten_consent_at` und
-    -- `attended_info_evening` (grenzkarte.md, „Drei Zustände").
+    -- Trägt zugleich den dritten Zustand für `attended_info_evening`
+    -- (grenzkarte.md, „Drei Zustände") — beides wird am Anmeldetag erhoben.
+    -- Für `kindergarten_consent_at` NICHT: die steht schon im abgeschickten
+    -- Formular und hat ihren Anker dort.
     documents_checked_at timestamptz,
     attended_info_evening boolean NOT NULL DEFAULT false,
     -- 06: „Für alles, was am Anmeldetag nur erklärt wird — Elternmitarbeit (14)
@@ -803,11 +820,14 @@ CREATE TABLE applications (
     CONSTRAINT ck_applications_record_outcome
         CHECK (record_outcome IN ('completed', 'no_show')),
     -- Eine Spur ohne gebuchtes Zeitfenster gibt es nicht: „Wer nie gebucht hat,
-    -- hat auch keine Spur" (06). Für die Anmerkung gilt derselbe Satz: sie ist
-    -- der letzte Punkt derselben Aufzählung.
+    -- hat auch keine Spur" (06). **Die Anmerkung trägt diese Bindung NICHT:**
+    -- Sie steht in 06 nicht beim Abschluss der Spur, sondern beim einen Haken
+    -- über das am Anmeldetag Erklärte („Dazu ein Freitext für Anmerkungen
+    -- (freiwillig)"), und ihre drei Nachbarn aus derselben Aufzählung —
+    -- `documents_checked_at`, `information_given_at`, `attended_info_evening` —
+    -- tragen ebenfalls keine. Eine Regel für einen von vieren wäre keine.
     CONSTRAINT ck_applications_record_needs_slot
-        CHECK ((record_outcome IS NULL AND record_note IS NULL)
-               OR admission_day_slot_id IS NOT NULL),
+        CHECK (record_outcome IS NULL OR admission_day_slot_id IS NOT NULL),
     -- Ein leerer Freitext ist keine Anmerkung, sondern ein leeres Feld.
     CONSTRAINT ck_applications_record_note CHECK (record_note <> ''),
     -- Zeitfenster und Tag stehen zusammen oder gar nicht.
@@ -823,8 +843,15 @@ CREATE TABLE applications (
     -- Rückzug ist der zweite Anlauf eine neue Bewerbung"). Die Gegenrichtung
     -- bleibt offen: bei der Einschreibung endet die Bewerbung, ohne dass jemand
     -- sie beendet — dort bleibt `ended_by` leer.
+    -- **Gefordert wird das Ende erst mit der Freigabe**, nicht schon mit dem
+    -- Endstatus: 07 trägt das Ergebnis in Schritt 2 ein, wo es „zunächst still"
+    -- steht und „beliebig oft änderbar" ist, und gibt es erst in Schritt 3 frei
+    -- — „erst damit endet die Bewerbung, und erst damit geht eine Mail". Ein
+    -- Ende schon beim Eintragen wäre ein Datum, das es noch nicht gibt: Die
+    -- Löschfrist liefe los und die zwei Löschankündigungen gingen über eine
+    -- Absage raus, von der die Familie nichts weiß.
     CONSTRAINT ck_applications_final_ended
-        CHECK (NOT is_final OR ended_at IS NOT NULL),
+        CHECK (NOT is_final OR released_at IS NULL OR ended_at IS NOT NULL),
     CONSTRAINT ck_applications_ended_by CHECK (ended_by IN ('parents', 'school')),
     -- Wer eine Bewerbung beendet hat, hat sie zu einem Zeitpunkt beendet.
     CONSTRAINT ck_applications_ended
@@ -1031,6 +1058,19 @@ CREATE TABLE contracts (
         WHERE (contract_type = 'care' AND released_at IS NOT NULL),
     CONSTRAINT ck_contracts_end
         CHECK ((end_date IS NULL) = (end_reason IS NULL)),
+    -- Dieselbe Ordnungsprüfung wie an der Modulanlage
+    -- (`ck_care_module_agreements_period`): Ein Vertrag endet nicht vor seiner
+    -- Aufnahme und läuft nicht über sein eigenes `runs_until` hinaus — „bis
+    -- wann er nach jetzigem Stand läuft" (09) ist die Obergrenze, eine
+    -- Kündigung darunter der Normalfall. Ohne ihn scheitert der Zahlendreher am
+    -- Hortvertrag erst im GiST-Ausdruck von `ex_contracts_care_period`, mit
+    -- einem rohen „range lower bound must be less than or equal to range upper
+    -- bound" statt eines benannten Constraints — und am Schulvertrag, der kein
+    -- `admission_date` trägt, gar nicht.
+    CONSTRAINT ck_contracts_period
+        CHECK ((end_date IS NULL OR admission_date IS NULL OR end_date >= admission_date)
+               AND (runs_until IS NULL OR admission_date IS NULL OR runs_until >= admission_date)
+               AND (end_date IS NULL OR runs_until IS NULL OR end_date <= runs_until)),
     CONSTRAINT ck_contracts_end_reason CHECK (end_reason <> ''),
     CONSTRAINT ck_contracts_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );

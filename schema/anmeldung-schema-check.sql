@@ -101,7 +101,7 @@ BEGIN
         'uq_care_need_levels_code', 'uq_tuition_fees', 'fk_tuition_fees_branch',
         'ck_tuition_fees_amount', 'ck_tuition_fees_rank',
         'fk_signatures_contract', 'fk_signatures_agreement', 'fk_payments_application',
-        'ck_contracts_text_kind', 'uq_contract_texts_id_code'
+        'ck_contracts_text_kind', 'uq_contract_texts_id_code', 'ck_contracts_period'
     ]) AS c
     WHERE NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = c);
     IF missing IS NOT NULL THEN
@@ -330,12 +330,15 @@ BEGIN
     RAISE NOTICE 'ok: kein Bearbeitungsstand und kein Zusammensetzungswunsch an der Bewerbung';
 END $$;
 
--- 07: „die Frist beginnt mit dem hier gesetzten Ende" — ein Endstatus ohne
--- Endzeitpunkt ließe den Lösch-Lauf die abgesagte Bewerbung nie erreichen und
--- sperrte zugleich den zweiten Anlauf aus 05.
+-- 07: „die Frist beginnt mit dem hier gesetzten Ende" — ein freigegebener
+-- Endstatus ohne Endzeitpunkt ließe den Lösch-Lauf die abgesagte Bewerbung nie
+-- erreichen und sperrte zugleich den zweiten Anlauf aus 05. Vor der Freigabe
+-- steht das Ergebnis dagegen „zunächst still" (07, Schritt 2) und trägt noch
+-- kein Ende; die Probe dazu steht weiter unten.
 SELECT pg_temp.expect_reject(
-    '07 — Endstatus ohne Endzeitpunkt',
-    $q$UPDATE applications SET application_status_id = 4, is_final = true
+    '07 — freigegebener Endstatus ohne Endzeitpunkt',
+    $q$UPDATE applications SET application_status_id = 4, is_final = true,
+                               decided_at = now(), released_at = now()
         WHERE application_id = '77777777-7777-7777-7777-777777777772'$q$);
 
 -- Das Flag der Statuszeile wird mitgeführt und ist deshalb an sie gebunden: ein
@@ -460,12 +463,22 @@ SELECT pg_temp.expect_reject(
     $q$UPDATE applications SET record_note = ''
         WHERE application_id = '77777777-7777-7777-7777-777777777772'$q$);
 
--- „Wer nie gebucht hat, hat auch keine Spur" (06) — das gilt auch für ihren
--- letzten Punkt.
+-- „Wer nie gebucht hat, hat auch keine Spur" (06) — das gilt für den Abschluss
+-- der Spur. Die Anmerkung steht in 06 dagegen neben dem einen Haken über das am
+-- Anmeldetag Erklärte („Dazu ein Freitext für Anmerkungen (freiwillig)") und
+-- braucht kein Zeitfenster; ihre drei Nachbarn aus derselben Aufzählung tragen
+-- ebenfalls keine solche Bindung. Beide Proben stehen hier, solange noch keine
+-- Bewerbung ein Zeitfenster hat.
 SELECT pg_temp.expect_reject(
+    '06 — Abschluss der Spur ohne gebuchtes Zeitfenster',
+    $q$UPDATE applications SET record_outcome = 'completed'
+        WHERE application_id = '77777777-7777-7777-7777-777777777771'$q$);
+SELECT pg_temp.expect_accept(
     '06 — Anmerkung ohne gebuchtes Zeitfenster',
     $q$UPDATE applications SET record_note = 'ohne Termin notiert'
         WHERE application_id = '77777777-7777-7777-7777-777777777771'$q$);
+UPDATE applications SET record_note = NULL
+    WHERE application_id = '77777777-7777-7777-7777-777777777771';
 
 SELECT pg_temp.expect_reject(
     '06 — Anmeldetag, dessen Pause nur halb gesetzt ist',
@@ -490,6 +503,21 @@ SELECT pg_temp.expect_reject(
     $q$INSERT INTO admission_day_slots (admission_day_id, starts_at, created_by)
        VALUES ('55555555-5555-5555-5555-555555555551',
                TIMESTAMPTZ '2026-11-14 08:00+01', 'system:check')$q$);
+
+-- 06 führt das Pausenfenster in derselben Aufzählung wie Datum, Von–Bis, Ziel,
+-- Fensterlänge und Plätze und schließt sie mit „(Pflicht)" ab — und macht
+-- denselben Sondertermin zum „kleinsten Anmeldetag": „einen Anmeldetag mit
+-- einem einzigen Zeitfenster" für eine einzelne Familie. Der hat keine Pause,
+-- in die er sich teilen ließe. Diese Probe hält die Auslassung fest; die
+-- Pflicht am regulären Tag trägt die Anwendung.
+SELECT pg_temp.expect_accept(
+    '06 — Sondertermin ohne Pausenfenster (der kleinste Anmeldetag)',
+    $q$INSERT INTO admission_days (admission_day_id, school_branch_id, target_grade_level,
+                                   first_grade_level, final_grade_level,
+                                   target_school_year, day, starts_at_time, ends_at_time,
+                                   slot_minutes, places_per_slot, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555559', 1, 1, 1, 4, 2029,
+               DATE '2028-11-21', TIME '14:00', TIME '14:20', 20, 1, 'system:check')$q$);
 
 -- 06: die Platzzahl eines Zeitfensters ist „eine harte Grenze — ein volles
 -- Zeitfenster ist nicht buchbar, anders als die überschreitbare Platzzahl beim
@@ -908,6 +936,48 @@ SELECT pg_temp.expect_reject(
     '09 — Vertragsende ohne Grund',
     $q$UPDATE contracts SET end_date = DATE '2027-07-31'
         WHERE contract_id = '88888888-8888-8888-8888-888888888882'$q$);
+
+-- 07, Schritt 2: „Das Ergebnis steht zunächst still und ist beliebig oft
+-- änderbar; nach draußen geht davon nichts." Erst Schritt 3 gibt frei — „erst
+-- damit endet die Bewerbung". Die stille Absage darf deshalb kein Ende tragen,
+-- die freigegebene muss eines haben.
+INSERT INTO applications (application_id, child_id, school_branch_id, target_grade_level,
+                          first_grade_level, final_grade_level, target_school_year,
+                          source, submitted_at, filling_person_id,
+                          application_status_id, created_by)
+    VALUES ('77777777-7777-7777-7777-77777777777b',
+            '44444444-4444-4444-4444-444444444446', 1, 1, 1, 4, 2028, 'pre_registration',
+            now(), '22222222-2222-2222-2222-222222222222', 1, 'system:check');
+SELECT pg_temp.expect_accept(
+    '07 — Absage eingetragen, noch nicht freigegeben: kein Ende',
+    $q$UPDATE applications SET application_status_id = 4, is_final = true, decided_at = now()
+        WHERE application_id = '77777777-7777-7777-7777-77777777777b'$q$);
+
+SELECT pg_temp.expect_accept(
+    '07 — Absage freigegeben, mit dem Ende, an dem die Frist beginnt',
+    $q$UPDATE applications SET released_at = now(), ended_at = now(), ended_by = 'school'
+        WHERE application_id = '77777777-7777-7777-7777-77777777777b'$q$);
+DELETE FROM applications WHERE application_id = '77777777-7777-7777-7777-77777777777b';
+
+-- F5: dieselbe Ordnungsprüfung wie an der Modulanlage, und zwar für beide
+-- Vertragstypen — der Schulvertrag trägt kein `admission_date`, der
+-- GiST-Ausdruck sieht ihn also nie.
+SELECT pg_temp.expect_reject(
+    '09 — Hortvertrag, der vor seiner Aufnahme endet',
+    $q$INSERT INTO contracts (child_id, contract_type, contract_text_id, contract_text_code,
+                              may_walk_home_alone, admission_date, released_at, released_by,
+                              end_date, end_reason, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444446', 'care', 2, 'care_contract', false,
+               DATE '2026-10-01', now(), 'entra:hortleitung',
+               DATE '2026-09-01', 'Zahlendreher', 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    '08 — Schulvertrag, der über sein eigenes runs_until hinaus endet',
+    $q$INSERT INTO contracts (child_id, contract_type, application_id, contract_text_id,
+                              contract_text_code, runs_until, end_date, end_reason, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444444', 'school',
+               '77777777-7777-7777-7777-777777777771', 1, 'school_contract_gs',
+               DATE '2031-07-31', DATE '2033-07-31', 'Zahlendreher', 'system:check')$q$);
 
 -- 08: „Der Vertragstext hängt an der Schulart — Grundschule und Realschule
 -- haben je einen eigenen", 09 gibt dem Hortvertrag „seinen eigenen
