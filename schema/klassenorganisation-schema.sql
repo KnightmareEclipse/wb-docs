@@ -51,9 +51,9 @@ CREATE TABLE elective_modules (
 );
 
 -- Herkunft: 15 (Klassenbildung) — „Sie hat genau eine Lehrkraft, und an ihr —
--- nicht am Modul — hängt, wer diese Kinder sieht"; gepflegt wird sie wie die
--- Klasse selbst. Löschanker: keiner — die Gruppe überlebt ihre Lehrkraft, und
--- mit dem Kind geht allein seine Mitgliedschaft.
+-- nicht am Modul — hängt, wer diese Kinder sieht". Löschanker: keiner — die
+-- Gruppe überlebt ihre Lehrkraft, und mit dem Kind geht allein seine
+-- Mitgliedschaft.
 -- Sie bekommt eine eigene Kennung, weil sie sich teilen kann: Heute gibt es je
 -- Modul und Kohorte genau eine, und die Oberfläche zeigt deshalb das Modul;
 -- entsteht eine zweite mit eigener Lehrkraft, hielte weder das Paar
@@ -80,11 +80,12 @@ CREATE TABLE elective_groups (
     -- eine noch leere Gruppe ein Zuhause hat.
     start_school_year  smallint NOT NULL,
     -- Genau eine Lehrkraft; zwei wären eine Verbindungstabelle, und dafür liegt
-    -- kein Fall vor. Beim Anlegen ist sie Pflicht — an ihr hängt die
-    -- Sichtbarkeit —, die Spalte bleibt trotzdem leerbar: Die Gruppe steht
-    -- still, wenn ihre Lehrkraft geht (wie `classes.class_teacher_id`), und
-    -- leer heißt dann „niemand sieht diese Kinder über diese Gruppe" statt
-    -- „alle".
+    -- kein Fall vor. Leerbar wie `classes.class_teacher_id` und aus demselben
+    -- Grund: Die Gruppe steht still, wenn ihre Lehrkraft geht, statt ihre Kinder
+    -- mitzunehmen. Leer heißt dann „niemand sieht diese Kinder über diese
+    -- Gruppe" — die Fehlerrichtung, die diese Datei will. Dass beim Anlegen
+    -- eine gesetzt wird, liegt in der Oberfläche und in keinem Constraint; eine
+    -- Route dafür gibt es noch nicht (api/klassenorganisation-api.md).
     employee_id        uuid,
     created_at         timestamptz NOT NULL DEFAULT now(),
     created_by         text NOT NULL,
@@ -148,8 +149,8 @@ CREATE TABLE child_group_memberships (
         FOREIGN KEY (elective_group_id, school_branch_id, elective_module_id)
         REFERENCES elective_groups (elective_group_id, school_branch_id, elective_module_id)
         ON DELETE CASCADE,
-    -- Die Kohorte prüft hier bewusst nichts: Sie steht an der Gruppe, „damit
-    -- beim Eintragen die richtigen Gruppen zur Auswahl stehen" (15) — also in
+    -- Die Kohorte prüft hier bewusst nichts: Sie steht an der Gruppe, damit beim
+    -- Eintragen die Gruppen des richtigen Jahrgangs zur Auswahl stehen — also in
     -- der Auswahl und nicht als Constraint. Ein Wiederholer bliebe sonst ohne
     -- Gruppe, obwohl er dasselbe Modul weiter besucht.
     CONSTRAINT uq_child_group_memberships_module UNIQUE (child_id, elective_module_id),
