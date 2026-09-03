@@ -81,15 +81,34 @@ Häufen sich bei einem System Aufgaben, die als *war nichts zu tun* abgehakt wer
 
 ## Löschankündigung und Anhalten
 
-**Eine Frist läuft nicht still ab.** Bevor der Lösch-Lauf einen Bestand räumt, geht eine
-**Löschankündigung** an eine benannte Stelle — bei Gesundheitsangaben eine Woche vorher, sonst zwei.
+**Eine Frist läuft nicht still ab.** Bevor der Lösch-Lauf einen Bestand räumt, gehen **zwei
+Löschankündigungen** — zwei Wochen und noch einmal eine Woche vorher. Zwei, weil eine einzelne Mail
+untergeht, und beide mit demselben Inhalt, damit die zweite ohne die erste verständlich ist.
+
 Sie trägt einen **Prüfauftrag**: ob ein Vorgang vorliegt, der die Löschung verzögert — Arztbesuch,
 Unfall, medizinische Ausnahmesituation, drohender Rechtsstreit. Die Stelle kann die Löschung **für
 einen einzelnen Fall anhalten**, und jedes Anhalten wird der **Geschäftsführung** gemeldet.
 
-Welche Stelle das ist, sagt der Block: das Sekretariat bei der Bewerbung (05), die Hortleitung bei
-der Ferienbuchung (10), die Akademieverantwortliche beim Kurs (21), Lehrkraft und Schulleitung bei
-den Angaben zu einer Fahrt (19), Schul- bzw. Hortleitung beim Gesundheitsbestand am Kind.
+**Ein Anhalten gilt bis zu einem Datum, nie unbefristet.** Ist es erreicht, beginnt die Ankündigung
+von vorn — zwei Wochen, eine Woche, dann die Löschung. Ohne dieses Datum wäre das Anhalten die
+bequemste Datenleiche des Systems: einmal gesetzt, nie wieder angesehen, und der Bestand bliebe
+unter dem Deckmantel einer Prüfung dauerhaft stehen.
+
+**Erneut anhalten darf man beliebig oft.** Ein Rechtsstreit kann Jahre dauern, und Art. 17 Abs. 3
+lit. e deckt genau das. An die Stelle einer Obergrenze tritt **Sichtbarkeit**: Die Liste der
+angehaltenen Löschungen zeigt je Fall, **seit wann er fällig ist** und **wie oft er geschoben
+wurde**. Der ursprüngliche Löschtermin bleibt beim Verlängern stehen — sonst begänne die Zählung
+mit jedem Anhalten von vorn, und genau die Zahl, um die es geht, wäre fort.
+
+**Empfänger sind immer mindestens zwei**, aus demselben Grund wie die zweite Mail: Ein Empfänger, der
+im Urlaub ist, ist kein Empfänger. Sie stehen als **Wert im System und nicht im Code** — je Bestand
+eine Liste, deren Eintrag eine einzelne Person oder eine ganze Rollengruppe sein kann und die sich
+ändern lässt, ohne dass jemand etwas baut.
+
+Derzeit besetzt: Sekretariat und die Schulleitung der beworbenen Schulart bei der Bewerbung (05),
+Hortleitung und Geschäftsführung bei der Ferienbuchung (10), die Verantwortlichen des
+Angebots und die Geschäftsführung beim Kurs (21), Lehrkraft und Schulleitung bei den Angaben zu
+einer Fahrt (19), Sekretariat und Schul- bzw. Hortleitung beim Gesundheitsbestand am Kind.
 
 Das ist der Grund, warum der Lösch-Lauf **nicht** ein Mensch einmal im Jahr anstößt, wie zunächst
 angenommen: Die Routinen laufen regelmäßig, und der Eingriff ist das Anhalten, nicht das Auslösen
@@ -107,7 +126,7 @@ Listen und Ansichten für die Hand eines Menschen — Anwesenheitsliste, Jahresw
 
 ## Geld im System, alles andere fest
 
-Alles, woran **Geld oder ein Vertrag** hängt — Preise, Beträge, Pflichtmengen —, ist jederzeit änderbar und steht im System, nie im Code. Ändern darf es die Geschäftsführung — mit zwei benannten Ausnahmen: den **Betrag eines Akademie-Angebots** setzt die anbietende Stelle, denn nur sie kennt den Einkauf dieses Kurses — wirksam wird er allerdings erst mit der Freigabe des Angebots, und damit hat auch ihn eine zweite Stelle gesehen (21), und die **Ausflugspauschale** setzt die Schulleitung, denn sie gibt jeden einzelnen Ausflug frei und weiß deshalb, was das Jahr kostet (20). Sichtbar ist alles für die Eltern, bevor sie sich entscheiden — soweit es sie angeht; die beiden Werte der Rechnungsfreigabe (12) sehen allein die, die dort arbeiten. Derzeit: Freikauf eines Putzdiensttermins 35 €, Strafe bei Abwesenheit 45 €, Bearbeitungsgebühr der Voranmeldung 25 € je Bewerbung (05), Anmeldegebühr des Schulvertrags 90 €, fällig sobald der Vertrag rechtsgültig geschlossen ist (08), Änderung der Betreuungsmodule 20 € (09), Ferienprogramm 22 € je Tag bis 14 Uhr und 28 € bis 16 Uhr, im Sommer 110 € bzw. 140 € je Woche, Stornogebühr 10 € je Tag und 50 € je Woche (10), Kochwerkstatt 30 € Kursgebühr und Chor 30 € je Halbjahr — beide am einzelnen Angebot, samt seinen Abmeldebedingungen (21) —, Mittagessen gestaffelt je Zahl der Esstage, derzeit 21,50 / 42,50 / 63,50 / 84,50 / 105 € im Monat (11), Pflichtmenge 5 reguläre Putzdienste + 1 Großputz je Familie und Jahr, Elternbonus 10 € je Monat und Familie mit 15 bzw. 10 Pflichtstunden je Schuljahr (14), Kilometerpauschale 0,30 € je km und Meldegrenze an die Geschäftsführung 250 € in der Rechnungsfreigabe (12). Dazu die beiden größten Beträge, das **Schulgeld** und der **Hortbeitrag**; beide Preislisten liegen inzwischen vor. Das Schulgeld hängt an **Schulart und Geschwisterrang** — 145 / 125 / 105 € in der Grundschule, 150 / 130 / 110 € in der Realschule, ab dem vierten Kind beitragsfrei, gezählt über beide Schulen zusammen (08); der Hortbeitrag braucht **je Modul und Zahl der gebuchten Wochentage** einen Betrag, weil der Staffelnachlass im Betrag steckt und nicht in einer Regel. Das Mittagessen steckt in keinem von beiden: Es wird zusätzlich berechnet, für jeden, der länger als 13 Uhr betreut wird (09, 11).
+Alles, woran **Geld oder ein Vertrag** hängt — Preise, Beträge, Pflichtmengen —, ist jederzeit änderbar und steht im System, nie im Code. Ändern darf es die Geschäftsführung — mit zwei benannten Ausnahmen: den **Betrag eines Akademie-Angebots** setzt die anbietende Stelle, denn nur sie kennt den Einkauf dieses Kurses — wirksam wird er allerdings erst mit der Freigabe des Angebots, und damit hat auch ihn eine zweite Stelle gesehen (21), und die **Ausflugspauschale** setzt die Schulleitung, denn sie gibt jeden einzelnen Ausflug frei und weiß deshalb, was das Jahr kostet (20). Sichtbar ist alles für die Eltern, bevor sie sich entscheiden — soweit es sie angeht; die beiden Werte der Rechnungsfreigabe (12) sehen allein die, die dort arbeiten. Derzeit: Freikauf eines Putzdiensttermins 35 €, Strafe bei Abwesenheit 45 €, Bearbeitungsgebühr der Voranmeldung 25 € je Bewerbung (05), Anmeldegebühr des Schulvertrags 100 € ab dem 01.09.2026 für jeden neuen Vertrag, fällig sobald der Vertrag rechtsgültig geschlossen ist (08), Änderung der Betreuungsmodule 20 € (09), Ferienprogramm 22 € je Tag bis 14 Uhr und 28 € bis 16 Uhr, im Sommer 110 € bzw. 140 € je Woche, Stornogebühr 10 € je Tag und 50 € je Woche (10), Kochwerkstatt 30 € Kursgebühr und Chor 30 € je Halbjahr — beide am einzelnen Angebot, samt seinen Abmeldebedingungen (21) —, Mittagessen gestaffelt je Zahl der Esstage, derzeit 21,50 / 42,50 / 63,50 / 84,50 / 105 € im Monat (11), Pflichtmenge 5 reguläre Putzdienste + 1 Großputz je Familie und Jahr, Elternbonus 10 € je Monat und Familie mit 15 bzw. 10 Pflichtstunden je Schuljahr (14), Kilometerpauschale 0,30 € je km und Meldegrenze an die Geschäftsführung 250 € in der Rechnungsfreigabe (12). Dazu die beiden größten Beträge, das **Schulgeld** und der **Hortbeitrag**; beide Preislisten liegen inzwischen vor. Das Schulgeld hängt an **Schulart und Geschwisterrang** — 145 / 125 / 105 € in der Grundschule, 150 / 130 / 110 € in der Realschule, ab dem vierten Kind beitragsfrei, gezählt über beide Schulen zusammen (08); der Hortbeitrag braucht **je Modul und Zahl der gebuchten Wochentage** einen Betrag, weil der Staffelnachlass im Betrag steckt und nicht in einer Regel. Das Mittagessen steckt in keinem von beiden: Es wird zusätzlich berechnet, für jeden, der länger als 13 Uhr betreut wird (09, 11).
 
 Jeder dieser Werte trägt ein Datum, **ab dem er gilt**. Ein neuer Preis wird im Januar mit Gültigkeit zum 1. August eingetragen und greift dann von selbst — niemand muss an diesem Tag etwas umstellen, und niemand muss sich erinnern. Es gilt immer der Wert, dessen Datum zuletzt erreicht wurde; ein noch nicht gültiger lässt sich bis dahin ändern oder zurücknehmen, ein bereits gültiger nicht mehr. Beide sind sichtbar, damit eine Familie eine angekündigte Erhöhung sieht, bevor sie sich entscheidet.
 

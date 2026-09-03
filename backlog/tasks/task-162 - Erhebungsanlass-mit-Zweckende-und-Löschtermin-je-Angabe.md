@@ -4,6 +4,7 @@ title: Erhebungsanlass mit Zweckende und Löschtermin je Angabe
 status: To Do
 assignee: []
 created_date: '2026-09-01 17:19'
+updated_date: '2026-09-03 12:26'
 labels:
   - schema
   - gesundheit
@@ -34,4 +35,6 @@ Setzt zweierlei voraus, das noch nicht steht: die Domäne der außerunterrichtli
 - [ ] #2 Zweckende und Löschtermin stehen je Angabe, nicht je Bestand
 - [ ] #3 Das Prüfskript zeigt, dass eine Angabe nach dem Zweckende aus der Alltagssicht fällt und trotzdem da ist
 - [ ] #4 Die Frist des Datenschutzbeauftragten ist eingetragen, nicht geschätzt
+- [ ] #5 Der Adressat der Vorwarnung ist ein Wert am Anlass und keine Regel im Code — welche Stelle es je Anlass ist, steht in soll-prozesse/hebel.md und wird hier nicht wiederholt
+- [ ] #6 Die Frist des Anlasses steht: vier Wochen nach der Veranstaltung; die zwei Ankündigungen davor folgen dem Hebel und werden hier nicht wiederholt
 <!-- AC:END -->

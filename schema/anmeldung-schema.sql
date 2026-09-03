@@ -500,7 +500,11 @@ CREATE TABLE admission_day_slots (
 -- Bewerbung gehen die Personenzeilen, die allein mit ihr entstanden sind;
 -- sonst wüchse der Stammdatenbestand mit Leuten, die nie an der Schule waren.
 -- Die Löschankündigung davor und das Anhalten im Einzelfall stehen als
--- gemeinsamer Hebel in hebel.md, hier ist die Stelle das Sekretariat. Bewusst KEINE Spalten für Geschwister,
+-- gemeinsamer Hebel in hebel.md — zwei Ankündigungen, zwei Wochen und eine
+-- Woche vorher. Die Stellen sind hier das Sekretariat und die Schulleitung der
+-- beworbenen Schulart: `school_branch_id` steht an dieser Tabelle, und es gibt
+-- zwei Schulleitungen, je eine für Grundschule und Realschule
+-- (`roles.is_branch_bound`, stammdaten-schema.sql). Bewusst KEINE Spalten für Geschwister,
 -- Hospitationszeitraum, Absagegrund und Notiz der Entscheidungsrunde: alle vier
 -- sind in ihrem Block ausdrücklich ausgeschlossen.
 CREATE TABLE applications (

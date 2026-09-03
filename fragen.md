@@ -1,7 +1,8 @@
 # Fragen an die Schule — was wen zu fragen ist
 
-Neun Fragen, die Weltenbaum nicht selbst beantworten kann, sortiert nach dem Gespräch, in das
-sie gehören. Je Frage steht hier ihr **Wortlaut**, das **Kriterium**, an dem du erkennst, dass die
+Neunzehn Fragen, die Weltenbaum nicht selbst beantworten kann, sortiert nach dem Gespräch, in
+das sie gehören. **Sie stehen nur hier** — das Arbeitspapier in `pruefberichte/` trägt, was die
+Mails gesagt haben und was wir daraus bauen, aber keine Frage mehr. Je Frage steht hier ihr **Wortlaut**, das **Kriterium**, an dem du erkennst, dass die
 Antwort reicht, und **woran sie hängt**.
 
 ## Abgrenzung zu den Nachbardateien
@@ -26,10 +27,24 @@ die Zahlen mit: die im Vorspann und die in der Überschrift des Gesprächs.
 
 ---
 
-## Datenschutzbeauftragte:r — drei Fragen
+## Datenschutzbeauftragte:r — vier Fragen
 
 **Die sechs Löschfristen sind beantwortet** (02.09.2026) und stehen an ihren Ankern im Schema; was
-hier bleibt, sind drei Reste. Der Satz, mit dem dieses Gespräch geführt wurde, hat sich dabei nur
+hier bleibt, sind drei Reste; die vier Fragen aus dem Gespräch vom 02.09.2026 sind am 03.09.2026
+von der Geschäftsführung beantwortet worden.
+
+**Vier Dinge gehen mit, ohne Fragen zu sein.** Erstens, dass das **Protokoll der Notfalleinsicht mit
+dem Kind geht**: Ein Vorfall 2026 an einem Kind, das 2031 abgeht, beginnt seine Frist 2031.
+Zweitens, dass das **Freigabemodell je Angabe und Instanz** gebaut wird — mit der Möglichkeit, alles
+in einer Handlung freizugeben; es ist strenger als die Vorgabe vom 02.09.2026 und deshalb eine
+Mitteilung, keine Frage. Drittens, dass **Teilnehmer der Erwachsenen-Seminare dieselbe Frist tragen
+wie schulfremde Kinder**. Und viertens: Erstens die Antwort auf seine Rückfrage, ob der
+Lösch-Lauf ohne Datenleichen gebaut werden kann: ja — die Reihenfolge über alle Domänen steht als
+achtstufige Kaskade im Kopf von `schema/querschnitt-schema.sql`, und ihr Prüfskript weist eine
+verwaiste Zeile ab. Zweitens die Kenntnisnahme, dass ein Anhalten der Löschung **unbegrenzt
+verlängerbar** ist, solange sein Grund trägt (Art. 17 Abs. 3 lit. e) — an die Stelle einer
+Obergrenze tritt Sichtbarkeit: Jeder Fall trägt seinen Grund aus einer Werteliste, und die Liste
+zeigt, seit wann er fällig ist und wie oft er geschoben wurde. Der Satz, mit dem dieses Gespräch geführt wurde, hat sich dabei nur
 halb bewährt: Dass Weltenbaum ASV-BW und Optigem nicht ersetzt und hier eine Arbeitskopie steht, ist
 bestätigt — die Aufbewahrungspflicht trifft sie nicht. **Kürzere Fristen folgen daraus aber nicht**:
 Es gibt keinen Zwang, in der Kopie zu löschen, solange das Original bleiben muss, und die Empfehlung
@@ -96,15 +111,33 @@ Lösch-Lauf sie überhaupt nicht — danach ist es eine `WHERE`-Bedingung und ke
 
 *Steht in* `schema/querschnitt-schema.sql`
 
+### 4. Sponsorenlauf: ein Personenkreis ohne Vertragsverhältnis
+
+> „Beim Sponsorenlauf zeichnen Sponsoren aus dem privaten Umfeld eines Kindes einen Betrag je
+> gelaufener Runde. Sie sollen sich künftig selbst eintragen, **ohne Zugang zum Portal**. Die
+> Buchhaltung braucht Name und Betrag, weil es spendenbescheinigungsrelevant ist. Welche
+> Rechtsgrundlage, welcher Zweck, welche Frist — und was muss der Eintragsweg den Sponsoren sagen?"
+
+**Brauchbar ist die Antwort, wenn** Rechtsgrundlage, Frist und die Pflichtangaben des Formulars
+benannt sind. Ein Zugang ohne Anmeldung, der Namen fremder Erwachsener entgegennimmt, ist der erste
+seiner Art im System.
+
+**Daran hängt:** Der ganze Vorgang. Er ist noch nicht gebaut und soll es auch nicht, bevor das steht.
+
+*Steht in* `pruefberichte/einarbeiten-2026-09-03.md`, B6
+
 ---
 
-## Geschäftsführung — eine Frage
+## Geschäftsführung — neun Fragen
 
 Die Vertragstexte stehen hier nicht mehr: Sie werden künftig anhand dessen nachgezogen, **was im
 Portal gebaut wird** — sie gehen keinem Ablauf mehr voraus und blockieren keine Domäne. Was daran zu
 tun bleibt, ist eine Aufgabe und keine Frage: `backlog/`, TASK-042.
 
-### 4. Akademie: die Kategorien und wer freigibt
+**Die ersten beiden sind Nachfragen, keine Entscheidungen** — sie standen schon in der letzten Mail
+und blieben ohne Antwort. Eine davon hat eine Frist.
+
+### 5. Akademie: die Kategorien und wer freigibt
 
 > „Zwei Dinge fehlen mir noch zur Akademie. Welche **Kategorien** gibt es zum Start? Und: Anlegen
 > darf jede und jeder Mitarbeitende, freigegeben werden muss trotzdem jedes Angebot, bevor es
@@ -120,11 +153,125 @@ Geschäftsführung ein Nadelöhr, bei der jeweiligen Leitung ein kurzer Weg, abe
 
 *Steht in* `soll-prozesse/21-akademie.md:52` · `soll-prozesse/21-akademie.md:90`
 
+### 6. Stripe-Konto und Auftragsverarbeitungsvertrag
+
+> „Ein Punkt aus der letzten Mail ist ohne Antwort geblieben: das **Stripe-Konto samt
+> Auftragsverarbeitungsvertrag**. Ohne es kann im September niemand online freikaufen; wir hatten den
+> **14.09.** als Frist notiert. Wer legt es an, und wann?"
+
+**Brauchbar ist die Antwort, wenn** feststeht, wer das Konto anlegt und bis wann.
+
+**Daran hängt:** `backlog/` TASK-034 — und welche Stripe-Gesellschaft Vertragspartner wird,
+entscheidet, ob überhaupt ein Drittlandtransfer stattfindet (`verarbeitungsverzeichnis.md`).
+
+**Die zweite Nachfrage ist erledigt:** Die Cyber-Versicherung hat am 03.09.2026 bestätigt, dass ihre
+Bedingungen keine Verschlüsselung der Festplatten fordern (TASK-087).
+
+*Steht in* `verarbeitungsverzeichnis.md` · `backlog/` TASK-034
+
+### 7. Zieht der Mailversand mit meinCLEMENS mit?
+
+> „Die Domain **meinclemens.schule** ist beauftragt. Soll die Absenderadresse künftig auch von dort
+> kommen — und wie soll das Postfach heißen, aus dem die Mails gehen? Beides ist von außen sichtbar
+> und zieht Arbeit nach sich: DNS, SPF, DKIM und DMARC hängen an der Absenderdomain, und die
+> Verschärfung von DMARC auf `reject` kommt mit."
+
+**Brauchbar ist die Antwort, wenn** feststeht, ob der Versand mitwandert, und wie das Postfach heißt.
+Der Name der Domain selbst ist entschieden (03.09.2026) und nicht mehr Teil der Frage.
+
+**Daran hängt:** `backlog/` TASK-188 und TASK-088; gekauft wird die Domain unter TASK-213.
+
+*Steht in* `zugang.md` · `host.md`
+
+### 8. Trennung der Eltern im laufenden Vertrag
+
+> „Was soll geschehen, wenn sich Eltern während eines laufenden Vertrags trennen? Wer bleibt
+> Vertragspartner, wer unterschreibt künftig, und wer darf die Änderung veranlassen?"
+
+**Brauchbar ist die Antwort, wenn** klar ist, ob der Vertrag umgeschrieben oder ergänzt wird und
+welcher Nachweis dafür vorliegen muss.
+
+**Daran hängt:** Ob das ein Feld an `contracts` ist oder ein eigener Vorgang über
+Vertragsantwort und Unterschrift — zwei Größenordnungen im Bau.
+
+*Steht in* `soll-prozesse/02-datenaenderung.md` · `soll-prozesse/08-schulvertrag.md`
+
+### 9. AGFEO: Anlagentyp und der Weg hinein
+
+> „Für die Telefonanlage brauchen wir den **Anlagentyp** und die verwendete Datenbank. Vorab eine
+> Gegenfrage von uns: Das Dashboard bindet ODBC- und LDAP-Quellen ein — soll eine Telefonanlage
+> **direkt** in der Weltenbaum-Datenbank lesen dürfen? Dort stehen Elterndaten, und ein Lesezugriff
+> von außen ist keine Formatfrage."
+
+**Brauchbar ist die Antwort, wenn** Anlagentyp und Datenbank benannt sind. Die Bewertung des
+Zugriffs machen wir, sie gehört nicht in die Antwort.
+
+**Daran hängt:** `backlog/` TASK-189.
+
+*Steht in* `backlog/` TASK-189
+
+### 10. Welche Sheets hat die Hort-Belegungsliste?
+
+> „Damit wir sagen können, ob Weltenbaum die Belegungsliste künftig erzeugen kann, brauchen wir ihre
+> **Struktur**, nicht die Datei: die Namen der Sheets und die Spaltenüberschriften darin."
+
+**Brauchbar ist die Antwort, wenn** je Sheet die Spalten aufgezählt sind.
+
+**Daran hängt:** Ob es eine [frisch erzeugte Liste](soll-prozesse/hebel.md#frisch-erzeugte-liste)
+wird oder ein Export, und ob dafür Angaben fehlen.
+
+*Steht in* `pruefberichte/einarbeiten-2026-09-03.md`, B4
+
+### 11. Notfallbetreuung: welche Preise sind unsere?
+
+> „In der Hort-Preisliste stehen für die **Notfallbetreuung** die Werte 8 / 8 / 12 / 16 / 20 in
+> derselben Spalte, die anderswo mit ‚Stadt*' überschrieben ist — also in der Vergleichsspalte.
+> Daneben steht in der ersten Spalte ‚20 € pro Fall' für den Nachmittag bis 17 Uhr, ‚8 € pro Fall'
+> für eine Stunde innerhalb der Öffnungszeiten und ‚20 € pro Fall' für eine halbe Stunde außerhalb.
+> Welche Werte sind unsere?"
+
+**Brauchbar ist die Antwort, wenn** je Fall ein Betrag zugeordnet ist.
+
+**Daran hängt:** Die Notfallbetreuung passt ohnehin nicht in die Preistabelle der Betreuungsmodule —
+die kennt nur einen Monatsbeitrag je Zahl der Wochentage, „pro Fall" hat dort keinen Platz. Ohne die
+Zuordnung stünde außerdem ein Fremdpreis in unserer Liste.
+
+*Steht in* `schema/anmeldung-schema.sql` · `backlog/` TASK-050
+
+### 12. Sponsorenlauf: wie sollen die Sponsoren hereinkommen?
+
+> „Die Sponsoren sollen sich künftig selbst eintragen, ohne Zugang zu meinCLEMENS. Wie stellt ihr
+> euch den Weg vor — ein Link je Kind, ein QR-Code wie heute, ein offenes Formular? Und wer prüft
+> hinterher den Abgleich mit dem Spendeneingang?"
+
+**Brauchbar ist die Antwort, wenn** der Weg hinein benannt ist und feststeht, wer den Abgleich macht.
+
+**Daran hängt:** Der Datenschutz-Teil steht als Frage 7; dies ist der Ablauf daneben. Beide müssen
+stehen, bevor gebaut wird.
+
+*Steht in* `pruefberichte/einarbeiten-2026-09-03.md`, B6
+
+### 13. Wie erfahren wir, wer Alumni werden will?
+
+> „Für den Alumni-Verteiler brauchen wir eine Einwilligung: Name und Mailadresse dürfen bleiben, bis
+> widersprochen wird. Offen ist, **wann und wie wir fragen** — beim Abgang im Portal, mit den letzten
+> Papieren, oder später per Mail an die zuletzt bekannte Adresse? Und fragen wir die Eltern oder das
+> Kind, wenn es volljährig ist?"
+
+**Brauchbar ist die Antwort, wenn** ein Zeitpunkt im Abgangsvorgang benannt ist und feststeht, wer
+gefragt wird.
+
+**Daran hängt:** `backlog/` TASK-208 baut die Einwilligung; ohne den Zeitpunkt hat sie keinen
+Auslöser. Und es gibt eine Kollision zu bedenken: Wer erst **nach** dem Abgang gefragt werden soll,
+muss bis dahin erreichbar sein — die Adresse fällt aber drei Monate nach dem Austritt.
+
+*Steht in* `soll-prozesse/03-irregulaerer-abgang.md` · `backlog/` TASK-208
+
 ---
 
 ## Sekretariat — vier Fragen
 
-### 5. Zuordnung der Fremdsysteme — zusammen mit Buchhaltung und Admin
+### 14. Zuordnung der Fremdsysteme — zusammen mit Buchhaltung und Admin
 
 > „Wenn sich bei einem Kind oder einer Familie etwas ändert, muss das teilweise auch in ASV-BW,
 > Optigem oder M365 nachgezogen werden. Wir haben eine Zuordnung erstellt, welche Änderung wohin
@@ -140,7 +287,7 @@ Zuordnung dort zu weit gefasst.
 
 *Steht in* `soll-prozesse/02-datenaenderung.md:32`
 
-### 6. Bescheinigungen beim Abgang
+### 15. Bescheinigungen beim Abgang
 
 > „Wenn ein Kind die Schule verlässt — welche Papiere schreibt ihr routinemäßig? Abgangszeugnis,
 > Schulbescheinigung für die neue Schule, Bestätigung der Abmeldung?"
@@ -152,7 +299,7 @@ oder nur auf Anfrage entsteht.
 
 *Steht in* `soll-prozesse/03-irregulaerer-abgang.md:25`
 
-### 7. Aufgaben des Jahreswechsels
+### 16. Aufgaben des Jahreswechsels
 
 > „Ende Juli zieht der zweite Admin alle Klassen von Hand auf die neue Stufe um, legt die Neuen an
 > und löscht die Abgänger. Was tut ihr in dieser Zeit sonst noch, jedes Jahr wieder?"
@@ -165,7 +312,7 @@ bleibt Zuruf.
 
 *Steht in* `soll-prozesse/04-schuljahreswechsel.md:30`
 
-### 8. Elternfragebogen der Grundschul-Checkliste — zusammen mit der Grundschulleitung
+### 17. Elternfragebogen der Grundschul-Checkliste — zusammen mit der Grundschulleitung
 
 > „Beim Anmeldetag der Grundschule bekommen die Eltern einen Fragebogen auf Papier mit. Was steht
 > darauf — und könnte er künftig vorab im Portal ausgefüllt werden?"
@@ -178,9 +325,9 @@ gebaut.
 
 *Steht in* `soll-prozesse/06-anmeldetag.md:20` · `grenzkarte.md`, Weiße Flecken
 
-## Schulleitung — eine Frage
+## Schulleitung — zwei Fragen
 
-### 9. Unterrichtlicher und außerunterrichtlicher Ausflug — ein Unterschied oder zwei Wörter?
+### 18. Unterrichtlicher und außerunterrichtlicher Ausflug — ein Unterschied oder zwei Wörter?
 
 > „Für die Klassenfahrt gibt es eine mehrseitige Erklärung, die die Eltern unterschreiben —
 > Einverständnis, Vollmacht, Kostenzusage, Belehrung. Für den Unterrichtsgang oder den Wandertag
@@ -199,3 +346,16 @@ Block — und dann darf beim Unterrichtsgang **kein** leeres Einwilligungsfeld s
 aussähe, als hätte jemand vergessen zu fragen.
 
 *Steht in* `soll-prozesse/19-ausfluege-und-fahrten.md` (Kopf, die Tabelle der zwei Arten)
+
+### 19. Geburtsurkunde: wie prüft das Sekretariat künftig?
+
+> „Die Geburtsurkunde wird künftig nur noch **eingesehen** und nicht mehr kopiert — das ist
+> entschieden. Offen ist der Ablauf: Wann wird sie vorgelegt, wer sieht sie an, und was wird
+> festgehalten, damit später nachvollziehbar ist, dass sie vorlag?"
+
+**Brauchbar ist die Antwort, wenn** feststeht, an welcher Stelle des Anmeldetags die Einsicht
+passiert und welche Spur davon bleibt.
+
+**Daran hängt:** `backlog/` TASK-054. Der Beschluss steht, die Umsetzung im Sekretariat nicht.
+
+*Steht in* `soll-prozesse/06-anmeldetag.md` · `backlog/` TASK-054

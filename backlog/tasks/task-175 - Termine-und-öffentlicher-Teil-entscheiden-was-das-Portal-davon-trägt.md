@@ -4,7 +4,7 @@ title: 'Termine und öffentlicher Teil: entscheiden, was das Portal davon trägt
 status: To Do
 assignee: []
 created_date: '2026-09-01 18:45'
-updated_date: '2026-09-01 21:29'
+updated_date: '2026-09-03 14:34'
 labels:
   - wartet
   - geschaeftsfuehrung
@@ -24,9 +24,9 @@ Der Zuschnitt ist am 01.09.2026 entschieden: Das Portal hat **drei Teile** — i
 
 **Der Schnitt zwischen öffentlich und angemeldet steht:** Hinter die Anmeldung gehört alles Verwaltungstechnische — Anmeldungen, Vertragssachen — und alles, was allein Interne angeht. Öffentlich steht, was jemanden interessiert, der die Schule kennenlernen oder sehen will, welche Angebote es gibt. Wer nicht sicher ist, fragt: Nützt es einem Fremden?
 
-Offen bleibt allein der Umfang: Was ist ein Kalender, was eine News, was rechnet der Kostenrechner. Erst danach lohnt ein Block.
+**Das feste Format ist eine Canva-Vorlage** (03.09.2026, mit Corrado): Wer etwas bewerben will, füllt eine Vorlage in Canva und lädt das Ergebnis hoch; Weltenbaum baut kein Layout-System. Wie sich Text, Bild und Preis darin aufteilen — und warum das BFSG die Antwort mitbestimmt — steht in **TASK-210** und wird hier nicht wiederholt. Damit ist auch Kriterium 3 beantwortet: Die Bilder liegen außerhalb der Schülerakte und werden ohne Anmeldung ausgeliefert.
 
-Der erste Bewohner steht schon fest: Die **Ausschreibung eines Akademie-Angebots** muss ohne Anmeldung lesbar sein, sonst sieht kein fremdes Kind sie je (soll-prozesse/21-akademie.md). Sie ist damit der erste Teil des Systems überhaupt, der keinen Zugang verlangt — was dort steht, steht öffentlich.
+Offen bleibt der übrige Umfang: Was ist ein Kalender, was rechnet der Kostenrechner. Erst danach lohnt ein Block.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria

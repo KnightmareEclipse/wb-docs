@@ -4,6 +4,7 @@ title: Die Kochwerkstatt aus dem Ferien-Schema herauslösen
 status: To Do
 assignee: []
 created_date: '2026-09-01 19:10'
+updated_date: '2026-09-03 11:37'
 labels:
   - schema
   - ferien
@@ -25,7 +26,12 @@ ordinal: 189000
 <!-- SECTION:DESCRIPTION:BEGIN -->
 Die Kochwerkstatt ist seit dem 01.09.2026 ein Akademie-Angebot (Block 21) und kein Ferientermin mehr. Block 10 ist nachgezogen, das Schema noch nicht — und wb-backend führt es, die Änderung beginnt also dort als Migration.
 
-Drei Dinge verlieren damit ihren Grund und nicht bloß ihre Beispiele: die Terminart 'cooking' samt ihren beiden Modulen und ihrem Stornotext, die Tabelle holiday_session_surcharges (sie gibt es laut ihres eigenen Kommentars allein für die Lebensmittel der Kochwerkstatt — im Ferienprogramm sind alle Beträge fest) und das Kennzeichen am Modul, ob ein Mittagessen enthalten ist (Block 10: 'Die Ferienmodule tragen keines').
+Drei Dinge verlassen die Ferien-Domäne. Zwei davon wandern in die Akademie und verschwinden NICHT (bestätigt am 03.09.2026):
+
+- Der Lebensmittelaufschlag (`holiday_session_surcharges`) ist kein Kochwerkstatt-Artefakt, sondern der einzige Betrag dieser Domäne, den nicht die Geschäftsführung setzt: "Die Lebensmittel kauft die Hauswirtschaftsleitung je Termin ein, und was sie kosten, weiß niemand ein Jahr im Voraus" (10). Er wird in der Akademie ein zweiter Betrag am Angebot (TASK-176). Für die Ferien selbst bleibt kein Fall übrig, die Tabelle fällt also — aber erst, wenn ihr Nachfolger steht.
+- Das Kennzeichen `holiday_modules.includes_lunch` ("Die Ferienmodule tragen keines") wird in der Akademie eine allgemeine Option am Angebot, mit derselben Bedeutung: im Preis enthalten, nie gesondert berechnet, und das Kind steht an dem Tag auf der Mensaliste (11).
+
+Ersatzlos weg ist allein die Terminart 'cooking' samt ihren beiden Modulen und ihrem Stornotext. Die beiden Module werden in der Akademie zwei Angebote, weil man sich dort zum Angebot als Ganzem anmeldet.
 
 Danach ziehen die Kommentare in ferien-schema.sql, der Sollstand im Kopf von ferien-schema-check.sql und dessen Seed-Zeilen nach.
 <!-- SECTION:DESCRIPTION:END -->
@@ -33,8 +39,8 @@ Danach ziehen die Kommentare in ferien-schema.sql, der Sollstand im Kopf von fer
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [ ] #1 Migration in wb-backend, danach die .sql hier nachgezogen
-- [ ] #2 holiday_session_surcharges ist weg — oder es steht in einem Kommentar, welcher Ferienfall sie noch braucht
-- [ ] #3 Das Kennzeichen 'Mittagessen enthalten' am Ferienmodul ist weg
+- [ ] #2 holiday_session_surcharges ist weg, und der Aufschlag steht als zweiter Betrag am Akademie-Angebot — TASK-176 trägt ihn, bevor diese Tabelle fällt
+- [ ] #3 includes_lunch ist vom Ferienmodul weg und steht als Option am Akademie-Angebot
 - [ ] #4 Die Terminart Kochwerkstatt samt Modulen und Stornotext ist aus Schema, Prüfskript und Seed verschwunden
 - [ ] #5 Der Sollstand im Kopf des Prüfskripts stimmt wieder, alle Prüfskripte laufen grün gegen die vollständige Datenbank
 <!-- AC:END -->

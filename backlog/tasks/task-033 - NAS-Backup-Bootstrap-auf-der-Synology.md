@@ -1,9 +1,10 @@
 ---
 id: TASK-033
 title: NAS-Backup-Bootstrap auf der Synology
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-08-27 11:37'
+updated_date: '2026-09-03 14:55'
 labels:
   - wartet
   - zweiter-admin
@@ -27,3 +28,9 @@ SSH-Keypair für den Pull-Key generieren (privat ausschließlich auf dem NAS), T
 <!-- AC:BEGIN -->
 - [ ] #1 Muss vor den ersten echten Elterndaten laufen, nicht nachträglich
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Mail an den zweiten Admin verschickt am 03.09.2026, wartet auf den Pull-Key.
+<!-- SECTION:NOTES:END -->

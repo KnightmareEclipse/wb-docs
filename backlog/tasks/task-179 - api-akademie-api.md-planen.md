@@ -4,6 +4,7 @@ title: api/akademie-api.md planen
 status: To Do
 assignee: []
 created_date: '2026-09-01 19:10'
+updated_date: '2026-09-03 12:26'
 labels:
   - api
   - akademie
@@ -35,4 +36,6 @@ Die harte Platzzahl muss beim Absenden zählen, nicht beim Anzeigen — anders a
 - [ ] #2 Der Zahlweg folgt dem Mandat, nicht einer Eingabe
 - [ ] #3 Die Platzzahl ist beim Absenden hart und die Route sagt, was der Elternteil bei Gleichstand sieht
 - [ ] #4 Teilnehmerliste und Gesundheitsausschnitt hängen an der anbietenden Rolle am Angebot, nicht an einer Regel im Code
+- [ ] #5 Die Freigabe ist abschaltbar bzw. auf 'automatisch akzeptieren' setzbar — ein Wert im System, kein fest verdrahteter Schritt (03.09.2026)
+- [ ] #6 Die anbietende Stelle am Angebot ist nicht auf eine Rolle festgelegt: eine Person, mehrere Personen oder eine Rollengruppe, änderbar ohne Bau
 <!-- AC:END -->

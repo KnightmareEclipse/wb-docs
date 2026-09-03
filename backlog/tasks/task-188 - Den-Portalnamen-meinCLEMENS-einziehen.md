@@ -4,6 +4,7 @@ title: Den Portalnamen meinCLEMENS einziehen
 status: To Do
 assignee: []
 created_date: '2026-09-01 20:27'
+updated_date: '2026-09-03 14:14'
 labels:
   - wb-docs
   - frontend
@@ -27,4 +28,5 @@ Nicht mitentschieden ist, was daraus folgt. Der Hostname portal.clemens.schule s
 - [ ] #1 Der Name steht in oberflaechen.md und in beiden Oberflächen, nicht mehr "das Portal"
 - [ ] #2 Die Mailvorlagen tragen ihn in Betreff und Absenderzeile
 - [ ] #3 Entschieden, ob Hostname, Absenderadresse und Postfachname mitziehen — vorher besprochen, nicht nebenbei
+- [ ] #4 Entschieden, welche Absenderadresse je Anlass gilt — Vorgangsmails, Hortsachen und Newsletter dürfen verschiedene tragen; outbound_emails bekommt dafür eine Spalte (03.09.2026)
 <!-- AC:END -->

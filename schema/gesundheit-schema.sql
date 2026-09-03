@@ -433,10 +433,12 @@ CREATE INDEX ix_health_trait_values_pair
 -- bleiben — nach der Anlaufzeit womöglich ein Monats- oder Quartalsbericht
 -- statt einer Meldung je Fall; die Zeile hier trägt beides gleich gut, weil sie
 -- den Zeitpunkt führt und nicht den Versand.
--- [?] Die eigene Aufbewahrungsfrist des Protokolls fehlt weiter. Wer es ansieht,
--- steht (die Geschäftsführung); wie lange es steht, nicht. Notiert ist „Frist
--- 1h" — das ist auslegungsbedürftig und meint eher die Dauer der Einsicht als
--- die Aufbewahrung des Protokolls. Bis zur Klärung geht es mit dem Kind.
+-- Die Aufbewahrung des Protokolls steht seit dem 03.09.2026: **es geht mit dem
+-- Kind**, wie die Gesundheitsangaben selbst. Ein Vorfall im September 2026 an
+-- einem Kind, das 2031 abgeht, beginnt seine Frist also 2031 und nicht 2026 —
+-- gerechnet wird ab dem Austritt, nicht ab dem Zugriff. Die notierte „Frist 1 h"
+-- war nie die Aufbewahrung, sondern die Meldung an die Geschäftsführung; sie
+-- geht inzwischen unmittelbar beim Auslösen heraus.
 CREATE TABLE health_emergency_accesses (
     health_emergency_access_id uuid NOT NULL DEFAULT gen_random_uuid(),
     child_id                   uuid NOT NULL,
@@ -498,6 +500,8 @@ CREATE TABLE measles_proofs (
 --     für die Gesundheitsangaben, **drei Jahre** für das übrige Anmeldeformular
 --     samt Unterschrift, und **drei Monate** für den Gesundheitsbestand am Kind.
 --     Je Frist die Löschankündigung und das Anhalten im Einzelfall, die
---     hebel.md gemeinsam beschreibt. Der Bezugstag der drei Monate ist nicht
---     genannt und noch zu klären. Bis die Domäne steht, gilt weiter „die
+--     hebel.md gemeinsam beschreibt. Der Bezugstag der drei Monate steht seit
+--     dem 03.09.2026: der **Austritt** des Kindes. Ein schulfremdes Kind hat
+--     keinen — bei ihm gilt die eigene Frist aus ferien-schema.sql, vier Wochen
+--     nach dem letzten gebuchten Termin. Bis die Domäne steht, gilt weiter „die
 --     Gesundheitsangaben nach dem letzten bestätigten Ende dieses Kindes" (03).

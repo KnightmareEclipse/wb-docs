@@ -4,6 +4,7 @@ title: 'Fragensatz je Anlass: vorbefüllen und bestätigen statt neu erheben'
 status: To Do
 assignee: []
 created_date: '2026-09-01 17:19'
+updated_date: '2026-09-03 12:34'
 labels:
   - wb-backend
   - wb-elternportal
@@ -33,4 +34,5 @@ Ausdrücklich nicht dabei: Feldreihenfolge, Layout, bedingte Anschlussfragen, Fo
 - [ ] #2 Eine neu hinzugefügte Frage erreicht nur Kinder ohne Antwort darauf
 - [ ] #3 Die Bestätigung der Aktualität ist festgehalten, nicht nur angezeigt
 - [ ] #4 Kein Formularbaukasten: keine Reihenfolge, kein Layout, keine bedingten Fragen
+- [ ] #5 Auch der Ausflug stellt seinen Fragensatz aus derselben Liste zusammen — ein Mechanismus für Ferienprogramm, Akademie und Fahrt, nicht drei
 <!-- AC:END -->

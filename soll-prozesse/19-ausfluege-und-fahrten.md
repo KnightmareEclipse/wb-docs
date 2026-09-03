@@ -108,11 +108,13 @@ Lehrkraft abzusprechen, und die Rückführung organisieren die Eltern selbst.
   fester Vorlauf statt einer Spanne, damit niemand ihn je Fahrt neu festlegt.
 - **Storno- und Zusatzkosten** bei Nichtantritt oder vorzeitiger Beendigung trägt die Familie; eine
   Reiserücktrittsversicherung ist ihre eigene Sache.
-- Für die Angaben, die nur zu dieser Fahrt gehören, gilt eine eigene Aufbewahrung, gerechnet **ab
+- Für die Angaben, die über diese Fahrt hereinkommen, gilt eine eigene Aufbewahrung, gerechnet **ab
   dem Ende der Fahrt** und nicht ab dem Austritt des Kindes: **vier Wochen** für die
   Gesundheitsangaben, **drei Jahre** für das übrige Anmeldeformular samt Unterschrift (02.09.2026),
   mit [Löschankündigung](hebel.md#löschankündigung-und-anhalten) an Lehrkraft und Schulleitung.
-  **Wer die Angaben sehen darf, bestimmt die Lehrkraft** — sie
+  **Welche Gesundheitsfragen eine Fahrt stellt, wählt die Lehrkraft je Ausflug aus der Feldliste**
+  (03.09.2026) — es gibt keinen festen Fragensatz für alle Fahrten.
+- **Wer die Angaben sehen darf, bestimmt die Lehrkraft** — sie
   benennt Verantwortlichen und Begleitperson, beides nur interne Mitarbeitende, dazu die
   Schulleitung.
 
@@ -160,9 +162,13 @@ Vollmacht der Eltern, und die Schule wird dabei nicht Vertragspartner. Was davon
 
 Der Ausflug samt Teilnahmen geht nach seiner eigenen Frist, gerechnet **ab dem Ende der Fahrt** und
 nicht ab dem Austritt des Kindes; wie lang sie ist, steht oben unter „Fristen". Die unterschriebene
-Erklärung folgt der Frist der Schülerakte. Die fahrtgebundenen Angaben — Badeerlaubnis, die
-Versicherung zur Ansteckungsfreiheit — verschwinden mit der Fahrt, die dauerhaften bleiben am
-Kind.
+Erklärung folgt der Frist der Schülerakte.
+
+**Alle Gesundheitsangaben, die nur über diese Fahrt hereinkommen, verschwinden mit ihr** — auch
+Impfschutz, Schwimmfähigkeit und private Haftpflicht, die zunächst als dauerhaft notiert waren
+(03.09.2026). In den Bestand am Kind kommt nur, was der Vertrag erhebt; alles Übrige hängt am Anlass
+und trägt dessen vier Wochen. Sie auf Vorrat zu behalten, weil vielleicht eine weitere Fahrt sie
+braucht, ist keine Begründung: Dass sie kommt, ist nicht sicher.
 
 ## Gehört nicht dazu
 

@@ -172,10 +172,16 @@ Rechtsdokument; was tatsächlich eingezogen wurde, steht in Optigem und nicht hi
 Jahre trägt ein Vertrag, dessen Kind nie kommt, und ein ersetzter: Ursprungsfassung und Update
 laufen gemeinsam ab dem Austritt, nicht ab der Freigabe des Nachfolgers.
 
-Auf den übrigen Betriebsdaten — Putzdienst, Elternmitarbeit, Mensa, Rechnungsfreigabe — liegt
-**keine Aufbewahrungspflicht**. Eine Einschränkung: Aus der Elternmitarbeit entsteht eine
-Rückzahlung, die noch **drei Monate nach dem Schulwechsel abrufbar** sein soll. `[?]` Was das für
-den Löschzeitpunkt heißt, ist als Rückfrage offen.
+Auf den übrigen Betriebsdaten — Putzdienst, Elternmitarbeit, Mensa — liegt **keine
+Aufbewahrungspflicht**. Aus der Elternmitarbeit entsteht eine Rückzahlung, die noch **drei Monate
+nach dem Schulwechsel abrufbar** sein soll; seit dem 03.09.2026 ist auch der Bezugstag geklärt: Die
+drei Monate rechnen **ab dem Abgang des Kindes**, nicht ab dem einzelnen Vorgang. Dieselbe Rechnung
+trägt die Mensa, die schon heute am letzten bestätigten Ende dieses Kindes hängt.
+
+**Die Rechnungsfreigabe gehört nicht in diese Aufzählung**, obwohl sie mit ihr erfragt wurde: Sie
+kennt kein Kind und keine Familie, ihre Belege stehen zehn Jahre und tragen bewusst keinen
+Löschanker, und der Beleg überlebt seinen Einreicher ([12](12-rechnungsfreigabe.md)). Was dort
+verschwindet, hängt allein an der Frist des Mitarbeitendeneintrags — und die ist offen.
 
 Nicht mittragend ist die Annahme, mit der diese Fristen erfragt wurden: Dass die
 aufbewahrungspflichtige Führung in ASV-BW und Optigem liegt, ist bestätigt — die Pflicht trifft die

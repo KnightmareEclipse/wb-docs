@@ -6,7 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2026-09-02 07:55'
-updated_date: '2026-09-02 14:10'
+updated_date: '2026-09-03 14:51'
 labels:
   - entscheidung
   - gesundheit
@@ -29,4 +29,5 @@ Annahme aus TASK-153/156 (Nachtlauf 02.09.2026): Jede Rolle mit teacher, die fü
 <!-- AC:BEGIN -->
 - [ ] #1 Entschieden, welche Felder die Fachlehrkraft ohne Klassenleitung sieht, mit der Geschäftsführung
 - [ ] #2 Seed (value_list_seed, Abschnitt Gesundheit) und api/gesundheit-api.md sagen dasselbe wie die Blöcke nach TASK-152
+- [x] #3 Entschieden, ob das Fach überhaupt geführt wird: Für die Sichtbarkeit trägt allein Lehrkraft ↔ Kindermenge ↔ Zeitraum, und kein Vorgang im Repo stellt eine Frage, die das Fach beantwortet — Stundenplan und Zeugnisse sind out of scope
 <!-- AC:END -->

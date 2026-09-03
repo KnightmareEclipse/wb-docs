@@ -6,6 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2026-09-02 07:55'
+updated_date: '2026-09-03 14:51'
 labels:
   - entscheidung
   - gesundheit
@@ -26,4 +27,5 @@ Annahmen aus TASK-153/156 (Nachtlauf 02.09.2026): POST /children/{id}/emergency-
 <!-- AC:BEGIN -->
 - [ ] #1 Bestätigt, dass die Notfallantwort die Notfallkontakte trägt — oder die Route auf den Gesundheitsausschnitt verengt
 - [ ] #2 Nach der Antwort des Datenschutzbeauftragten: Leseroute und Frist des Protokolls geplant
+- [ ] #3 Die Frist des Protokolls steht: es geht mit dem Kind (03.09.2026). Offen bleibt allein, wer es lesen darf
 <!-- AC:END -->

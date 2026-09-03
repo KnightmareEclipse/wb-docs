@@ -202,7 +202,8 @@ Absage, Rückzug, Warteplatz, Einschreibung —, und was danach mit ihr geschieh
 Lösch-Lauf (17).
 
 Eine Bewerbung, die zu keiner Aufnahme geführt hat, bleibt **sechs Monate** ab dem Tag, an dem ihr
-Endstatus feststeht (02.09.2026), mit [Löschankündigung](hebel.md#löschankündigung-und-anhalten) an das Sekretariat. Mit der Bewerbung gehen die
+Endstatus feststeht (02.09.2026), mit den beiden [Löschankündigungen](hebel.md#löschankündigung-und-anhalten) an das Sekretariat und die
+Schulleitung der beworbenen Schulart. Mit der Bewerbung gehen die
 Personenzeilen, die allein mit ihr entstanden sind.
 
 ## Gehört nicht dazu

@@ -4,6 +4,7 @@ title: Schema für Ausflugskonto und Bildungskarte bauen
 status: To Do
 assignee: []
 created_date: '2026-09-01 18:44'
+updated_date: '2026-09-03 12:02'
 labels:
   - schema
   - veranstaltungen
@@ -36,4 +37,5 @@ Beschlossen am 01.09.2026 mit der Geschäftsführung, Ablauf in soll-prozesse/19
 - [ ] #3 Der Leserkreis der Bildungskarte ist im Schema begründet und trennt Grundschule von Realschule
 - [ ] #4 Beim Schulabgang friert das Konto ein und der Rest steht als Auszahlung
 - [ ] #5 Keine Spalte für einen Guthabenstand, der von der Stadt käme — es gibt keine Schnittstelle
+- [ ] #6 Die Pauschale setzt die Schulleitung, ersatzweise die Buchhaltung — beide Rollen dürfen den Wert schreiben (03.09.2026)
 <!-- AC:END -->

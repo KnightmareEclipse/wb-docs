@@ -17,8 +17,10 @@
 -- des Programms. Sie ist damit deutlich kürzer als die der Buchung selbst
 -- (sechs Monate, unten) — die Gesundheitsangabe wird für den Tag gebraucht, die
 -- Buchung als Nachweis darüber hinaus. Löschankündigung und Anhalten im
--- Einzelfall stehen als gemeinsamer Hebel in hebel.md; die Stelle ist hier die
--- Hortleitung, beim Kurs die Akademieverantwortliche.
+-- Einzelfall stehen als gemeinsamer Hebel in hebel.md; die Stellen sind hier
+-- Hortleitung und Geschäftsführung, beim Kurs die Verantwortlichen des Angebots
+-- und die Geschäftsführung — nie nur eine, damit die Ankündigung nicht an einem
+-- Urlaub scheitert.
 -- Bewusst KEINE Warteliste und kein Nachrücken: „Ist ein Termin zu,
 -- ist er zu."
 
@@ -346,7 +348,8 @@ CREATE TABLE holiday_cost_coverage_codes (
 -- Teilnahmebedingungen, der zugestimmt wurde." Löschanker: der letzte gebuchte
 -- Termin dieses Kindes — „der Anker, den es heute nicht gibt" — und **sechs
 -- Monate danach** (Datenschutzbeauftragter, 02.09.2026), mit der
--- Löschankündigung an die Hortleitung, die hebel.md gemeinsam beschreibt.
+-- Löschankündigung an Hortleitung und Geschäftsführung, die hebel.md gemeinsam
+-- beschreibt.
 -- Bei einem schulfremden Kind geht seine Zeile mit der letzten Buchung: Es hat
 -- kein Austrittsdatum, an dem sonst gerechnet würde. Bewusst KEINE Löschung beim Storno: „die Buchung
 -- bleibt stehen und gilt als storniert, sie verschwindet nicht".

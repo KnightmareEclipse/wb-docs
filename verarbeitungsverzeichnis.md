@@ -78,8 +78,36 @@ Tenant-Vertrag samt seinen Standardvertragsklauseln. Hetzner verarbeitet in Deut
 
 ## f) Löschfristen
 
-Die **Dauern** sind offen und gehören der Schulleitung samt Datenschutzbeauftragter (TASK-058.01 bis
-.10). Der **Anker**, an dem jede Frist hängt, steht dagegen fest und ist eine Kaskade je Kind
+Die **Dauern** stehen seit dem 02./03.09.2026, bis auf zwei. Art. 30 Abs. 1 lit. f verlangt sie an
+dieser Stelle; begründet sind sie je Bestand am Löschanker im Schema, und dort und nicht hier wird
+geändert:
+
+| Bestand | Frist | steht in |
+|---|---|---|
+| Schulvertrag | fünf Jahre nach dem Austritt | `soll-prozesse/03` |
+| SEPA-Mandat | zwei Jahre nach dem Austritt | `soll-prozesse/03` |
+| Bewerbung ohne Aufnahme | sechs Monate ab dem Endstatus | `schema/anmeldung-schema.sql` |
+| Ferienbuchung samt schulfremdem Kind | sechs Monate nach dem letzten gebuchten Termin | `schema/ferien-schema.sql` |
+| Gesundheitsbestand am Kind | drei Monate nach dem Austritt | `schema/gesundheit-schema.sql` |
+| Gesundheitsangaben eines schulfremden Kindes | vier Wochen nach dem letzten gebuchten Termin | `schema/ferien-schema.sql` |
+| Gesundheitsangaben einer Veranstaltung | vier Wochen nach ihrem Ende | `soll-prozesse/19`, `21` |
+| Anmeldeformular einer Fahrt samt Unterschrift | drei Jahre nach dem Ende der Fahrt | `soll-prozesse/19` |
+| Putzdienst und Elternmitarbeit | Zyklusende plus ein Jahr, nicht der Austritt | `schema/putzdienst-schema.sql` |
+| Rückzahlung der Elternmitarbeit | drei Monate ab dem Abgang abrufbar | `soll-prozesse/03` |
+| Mensa | letztes bestätigtes Ende dieses Kindes | `schema/mensa-schema.sql` |
+| Belege der Rechnungsfreigabe | zehn Jahre, kein Löschanker | `schema/rechnungsfreigabe-schema.sql` |
+| Anmeldecode und Sitzung | 24 Stunden bzw. 30 Tage | `schema/stammdaten-schema.sql` |
+
+**Offen sind zwei:** die Aufbewahrung des Notfallprotokolls und die Frist des Eintrags eines
+ausgeschiedenen Mitarbeitenden — an der zweiten hängt zugleich, was in der Rechnungsfreigabe je
+verschwindet (TASK-058.07, TASK-160).
+
+Vor jeder Löschung gehen **zwei Ankündigungen** an mindestens zwei Empfänger, zwei Wochen und eine
+Woche vorher; sie tragen einen Prüfauftrag, und die Löschung lässt sich für den Einzelfall anhalten
+— unbegrenzt verlängerbar, solange der Grund trägt (Art. 17 Abs. 3 lit. e), dafür mit sichtbarer
+Fälligkeit. Der Ablauf steht einmal in `soll-prozesse/hebel.md`.
+
+Der **Anker**, an dem jede Frist hängt, steht ebenfalls fest und ist eine Kaskade je Kind
 (`dsgvo.md`): eingeschrieben → nichts löschen; `exit_date` gesetzt → dieser Anker; sonst der
 späteste Anker der berührten Fachdomäne; bleibt auch der leer → `children.created_at`.
 
@@ -108,4 +136,6 @@ zweitgefasst.
   Dateien aus dem gemeinsamen Passwortmanager (`rules.md` Abschnitt 2).
 - **Keine Verschlüsselung at rest**, bewusst und mit Preis: Sie schützt gegen den physischen Zugriff
   auf eine Platte, den die Vertrauensgrenze bereits Hetzner zuschreibt, und kostete eine Passphrase
-  bei jedem Neustart (`rules.md` Abschnitt 2, Rückbestätigung durch die Versicherung in TASK-087).
+  bei jedem Neustart (`rules.md` Abschnitt 2). Die Cyber-Versicherung fordert sie nicht und hat das
+  am 03.09.2026 schriftlich bestätigt; ihre Empfehlung zielt auf physischen Diebstahl und damit auf
+  das Risiko, das der AV-Vertrag mit Hetzner trägt (`host.md`).

@@ -4,6 +4,7 @@ title: Schema für Ausflüge und Fahrten bauen
 status: To Do
 assignee: []
 created_date: '2026-09-01 18:44'
+updated_date: '2026-09-03 12:34'
 labels:
   - schema
   - veranstaltungen
@@ -38,4 +39,5 @@ Beschlossen am 01.09.2026 mit der Geschäftsführung, Ablauf in soll-prozesse/19
 - [ ] #3 Kostenrahmen und tatsächliche Kosten sind zwei Angaben, nicht eine
 - [ ] #4 Das Prüfskript weist eine Anmeldung an einem nicht freigegebenen Ausflug ab
 - [ ] #5 Vollmacht und Erklärung nutzen Q1/Q2, der Ratenplan Q3 — keine zweite Bauform daneben
+- [ ] #6 Die Veranstaltung stellt ihren Fragensatz selbst zusammen: welche Gesundheitsfragen ein Ausflug stellt, wird je Ausflug aus der Feldliste gewählt und nicht verdrahtet (03.09.2026)
 <!-- AC:END -->
