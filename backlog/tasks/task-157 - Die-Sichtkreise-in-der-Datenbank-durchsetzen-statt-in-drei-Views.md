@@ -4,7 +4,7 @@ title: Die Sichtkreise in der Datenbank durchsetzen statt in drei Views
 status: To Do
 assignee: []
 created_date: '2026-09-01 17:19'
-updated_date: '2026-09-03 16:39'
+updated_date: '2026-09-03 19:10'
 labels:
   - wb-backend
   - gesundheit
@@ -47,5 +47,15 @@ Grund und Modell stehen in schema/gesundheit-schema.sql (Dateikopf) und in grenz
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
-Zwischenstand aus dem Nachtlauf (02.09.2026): Bis zur Policy sind die Sichtkreise sechs Sichten health_values_<code> aus einer Definition in der Gesundheits-Revision, je mit eigener DB-Rolle (backend_health, _class_lead, _care, _sports, _emergency; kitchen liest backend_kitchen). everyday_health_traits und kitchen_health_traits bleiben als abgeleitete Sichten über care und kitchen, damit Ferien und Mensa nicht anfassen mussten. test_a_field_added_to_a_sight_is_a_row_and_not_a_release zeigt, dass ein Feld eine Zeile ist; ein neuer Sichtkreis ist bis hierhin noch eine Zeile plus eine Sicht.
+Die drei Bedingungen stehen jetzt alle als Zeilen, die Policy fehlt: Bedingung 1
+health_field_visibility samt presence_only (TASK-206), Bedingung 2
+health_trait_releases (TASK-205), Bedingung 3 die Tabellen der zweiten Achse in
+klassenorganisation (TASK-161). Aus sechs Sichtkreisen sind fünf geworden, sports
+ist fort (TASK-197).
+
+Zu bauen bleibt der wb-backend-Teil, und er beginnt erst mit dem grünen
+Prüfbericht zum Schema: eine Policy statt der fünf Sichten, die zusammengelegten
+DB-Rollen, und der Seed mit needs_release, value_kind_code und presence_only.
+Bis dahin filtert jede Sicht allein über den Sichtkreis, Zuständigkeit und
+Freigabe prüft die Route (api/gesundheit-api.md).
 <!-- SECTION:NOTES:END -->
