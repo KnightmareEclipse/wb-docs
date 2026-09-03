@@ -270,11 +270,11 @@ CREATE TABLE child_health_records (
     -- vergessene Frage darf nicht wie eine Verweigerung aussehen.
     answered_at            timestamptz,
     declined_at            timestamptz,
-    -- „ein kurzer handlungsrelevanter Hinweis ('keine Sprungübungen',
-    -- 'Notfallmedikament im Sekretariat'), den die Klassenlehrkraft formuliert
-    -- und den alle unterrichtenden Personen sehen"
-    -- — die zweite Spalte mit eigenem GRANT neben dem vollen Satz
-    -- (grenzkarte.md, „Zugriff, je Angabe"). Nicht zu verwechseln mit dem
+    -- „Der kurze handlungsrelevante Hinweis der Klassenlehrkraft … ein Feld am
+    -- Bestand, nicht am Merkmal, und damit die einzige Angabe über das Kind
+    -- statt über eine Erkrankung" (grenzkarte.md, „Zugriff, drei Bedingungen")
+    -- — die zweite Spalte mit eigenem GRANT neben dem vollen Satz. Wer ihn
+    -- liest, steht in api/gesundheit-api.md. Nicht zu verwechseln mit dem
     -- Feld „Beachten" an einem einzelnen Merkmal: Das schreiben die Eltern und
     -- es gilt für diese eine Angabe, dieser Satz kommt von der Klassenlehrkraft
     -- und gilt für das Kind.
@@ -348,9 +348,8 @@ CREATE TABLE child_health_answers (
 -- Die Schulbegleitung ist eine Merkmalsart dieser Liste und kein Freitext an
 -- der Bewerbung: „er gehört zu den Gesundheits- und Förderdaten mit deren
 -- Zugriffsprofil" (grenzkarte.md).
--- Die Zeckenentfernung ebenfalls, und hier gegen grenzkarte.md: die führt sie
--- als Q1-Zweck („Erlaubnis, kein Gesundheitsmerkmal"), Block 08 zählt sie unter
--- den Punkten dieses Bestands auf. Der Block ist jünger und schlägt die Karte.
+-- Die Zeckenentfernung ebenfalls: „Sie ist dort eine Kategorie wie jede andere,
+-- nur mit genau einem Feld: der Erlaubnis" (grenzkarte.md).
 CREATE TABLE health_traits (
     health_trait_id        uuid NOT NULL DEFAULT gen_random_uuid(),
     child_health_answer_id uuid NOT NULL,
@@ -663,10 +662,10 @@ CREATE TABLE measles_proofs (
 -- ---------------------------------------------------------------------------
 -- Offene Fragen an die Schule
 -- ---------------------------------------------------------------------------
--- [?] Die Aufbewahrungsfrist des Notfallprotokolls (`health_emergency_accesses`)
---     — Adressat: der Datenschutzbeauftragte. Wer es ansieht, ist seit dem
---     02.09.2026 beantwortet: die Geschäftsführung, gemeldet je Betätigung. Die
---     Frist nicht.
+-- Keine. Die Aufbewahrung des Notfallprotokolls stand hier zuletzt als Frage
+-- offen; sie ist entschieden — es geht mit dem Kind (03, 08, und der Kommentar
+-- an `health_emergency_accesses`), gerechnet ab dem Austritt und nicht ab dem
+-- Zugriff.
 --
 -- Der Erhebungsanlass ist keine offene Frage mehr: Er ist der Sichtkreis, an
 -- den freigegeben wird, und Zweckende wie Löschtermin stehen an der Freigabe

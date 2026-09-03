@@ -94,8 +94,9 @@ Zeile lesen darf, hilft kein Filter davor (TASK-157, offen).
 **R2 — Die Notfalleinsicht wird zur Abkürzung.** Wer den vollen Satz sehen will, aber nicht darf,
 klickt „Notfall". *Abhilfe:* Jede Einsicht wird protokolliert (`health_emergency_accesses`, gebaut);
 das Protokoll geht mit dem Kind und nicht mit dem Zugriff, ein Vorfall bleibt also über Jahre
-zuordenbar. Verhindert wird die Einsicht nicht — sie ist der Zweck des Bestands.
-`[?]` Wie lange das Protokoll aufbewahrt wird — Datenschutzbeauftragte:r.
+zuordenbar. Verhindert wird die Einsicht nicht — sie ist der Zweck des Bestands. Wie lange das
+Protokoll bleibt, steht damit auch fest: bis zur Löschung des Kindes, gerechnet ab dessen Austritt
+(`schema/gesundheit-schema.sql`).
 
 **R3 — Eine Freigabe für einen Anlass wirkt für alle.** Wer für einen Ausflug freigibt, gibt nicht
 für den Alltag frei. *Abhilfe:* Die Freigabe gilt je Angabe und je Instanz, mit der Auflage, dass

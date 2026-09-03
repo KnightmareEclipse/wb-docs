@@ -294,7 +294,7 @@ Der kurze **handlungsrelevante Hinweis** der Klassenlehrkraft steht daneben: ein
 
 Die Domäne ist damit **eine Oberfläche, keine Datendomäne**: eine Ansicht über alle Kinder einer künftigen Klassenstufe mit Geschlecht, Wohnort, Geschwistern und Wunschnotiz, aus der ein Mensch `children.class_id` setzt. Verwandt mit der Restplatz-Zuordnung des Putzdiensts — ein Zuordnungsproblem mit Nebenbedingungen, aber bei rund 50 Kindern und drei Wünschen eines, das ein Mensch am Tisch löst und kein Solver.
 
-**Elternvertretung (13).** Je Klasse gibt es Elternvertreter:in und Stellvertretung — eine Verknüpfung Person↔Klasse, kein Stammdatum der Person. Ohne Schuljahres-Historie (`schema/stammdaten-schema.sql`) trägt sie immer nur den aktuellen Stand, was hier genügt. Die beiden übrigen Angaben derselben Liste, **Klassenlehrer:in und Klassenzimmer**, stehen bereits als `classes.class_teacher_id` und `classes.room` — die Domäne bringt also nur die Elternvertretung mit.
+**Elternvertretung (13).** Je Klasse **und Schuljahr** die gewählten Personen — eine Verknüpfung Person↔Klasse, kein Stammdatum der Person, und **mehrere ohne Rangfolge**: „zwei oder drei ist die Praxis, keine Regel", und einen Amtstitel führt niemand (16). Das Schuljahr steht an der Zeile, weil das Amt mit ihm endet und weil 14 wissen muss, für welches es die Mitarbeitsstunden erlässt. Die beiden übrigen Angaben derselben Liste, **Klassenlehrer:in und Klassenzimmer**, stehen bereits als `classes.class_teacher_id` und `classes.room` — die Domäne bringt also nur die Elternvertretung mit.
 
 ## Bewusst nicht zusammengelegt
 

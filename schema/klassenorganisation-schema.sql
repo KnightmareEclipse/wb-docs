@@ -24,9 +24,9 @@
 -- Die zweite Achse — von welchen Kindern jemand liest
 -- ---------------------------------------------------------------------------
 
--- Herkunft: grenzkarte.md, „Zugriff, je Angabe" — „Welche Kinder jemand sieht,
--- ist die zweite Achse …: Sie folgt aus Stammklasse, Wahlmodul, AG oder der
--- Begleitung einer Veranstaltung." Kein Löschanker: keine Personendaten.
+-- Herkunft: 15 (Klassenbildung) — „Quer zur Klasse steht die Wahlmodulgruppe:
+-- Technik, AES und Französisch werden einmal gewählt und bis zum Abgang
+-- behalten." Kein Löschanker: keine Personendaten.
 -- Drei Zeilen — Technik, AES, Französisch —, und sie stehen hier allein, weil
 -- sie die Sichtbarkeit tragen. Bewusst KEINE Fächerliste daneben: Die siebzehn
 -- Fächer der Realschule und die dreizehn der Grundschule tragen nichts, denn
@@ -48,9 +48,10 @@ CREATE TABLE elective_modules (
     CONSTRAINT ck_elective_modules_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
--- Herkunft: grenzkarte.md wie oben; gepflegt wird sie wie die Klasse selbst
--- (15). Löschanker: keiner — die Gruppe überlebt ihre Lehrkraft, und mit dem
--- Kind geht allein seine Mitgliedschaft.
+-- Herkunft: 15 (Klassenbildung) — „Sie hat genau eine Lehrkraft, und an ihr —
+-- nicht am Modul — hängt, wer diese Kinder sieht"; gepflegt wird sie wie die
+-- Klasse selbst. Löschanker: keiner — die Gruppe überlebt ihre Lehrkraft, und
+-- mit dem Kind geht allein seine Mitgliedschaft.
 -- Sie bekommt eine eigene Kennung, weil sie sich teilen kann: Heute gibt es je
 -- Modul und Kohorte genau eine, und die Oberfläche zeigt deshalb das Modul;
 -- entsteht eine zweite mit eigener Lehrkraft, hielte weder das Paar
@@ -101,7 +102,8 @@ CREATE TABLE elective_groups (
     CONSTRAINT ck_elective_groups_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
--- Herkunft: grenzkarte.md wie oben. Löschanker: geht mit dem Kind (03).
+-- Herkunft: 15 (Klassenbildung) — „Ein Kind kann in mehreren Gruppen sein;
+-- heute ist es je eines." Löschanker: geht mit dem Kind (03).
 -- Eine Tabelle und keine Spalte an `children`, obwohl heute je Kind genau eine
 -- Zeile entsteht: Wird aus der Klasse als Einheit doch die eigene Fördergruppe
 -- (siehe `class_teaching_assignments`), hat ein förderbedürftiges Kind in aller
@@ -132,8 +134,10 @@ CREATE TABLE child_group_memberships (
 CREATE INDEX ix_child_group_memberships_group
     ON child_group_memberships (elective_group_id);
 
--- Herkunft: grenzkarte.md wie oben, „Sie folgt aus Stammklasse …"; gepflegt je
--- Schuljahr von der Stelle, die die Klassen ohnehin führt (15). Löschanker:
+-- Herkunft: 15 (Klassenbildung) — „Drei Wege führen zu einem Kind, und je
+-- Zuordnung entsteht eine eigene Liste: die Klassenleitung, der Unterricht in
+-- seiner Klasse und die Wahlmodulgruppe"; gepflegt je Schuljahr von der Stelle,
+-- die die Klassen ohnehin führt. Löschanker:
 -- geht mit dem Mitarbeitendeneintrag, also mit `employees.last_working_day`.
 -- Die Klasse ist die Einheit, auch wo sie zu grob ist: Der Förderunterricht der
 -- Grundschule geht an fünf Kinder einer Klasse, über diese Zeile sieht die
@@ -181,9 +185,10 @@ CREATE INDEX ix_class_teaching_assignments_class
 -- Unterrichtsende — was der Hort zum Planen braucht
 -- ---------------------------------------------------------------------------
 
--- Herkunft: 15 (Klassenbildung) — „Je Klasse und Schuljahr, an welchem
--- Wochentag der Unterricht wann endet"; gelesen wird sie im Hort (09), der
--- daran weiß, wann er mit wie vielen Kindern rechnet. Kein Löschanker: keine
+-- Herkunft: 15 (Klassenbildung) — „Das Unterrichtsende je Wochentag (Uhrzeit,
+-- Pflicht, sobald es feststeht)", je Klasse eine Zeile („wann sie an welchem
+-- Wochentag Unterrichtsende hat", Z1). Gelesen wird sie im Hort (09), der daran
+-- weiß, wann er mit wie vielen Kindern rechnet. Kein Löschanker: keine
 -- Personendaten.
 -- Bewusst KEINE Ankunftszeit: Die Kinder treffen unterschiedlich ein, es hängt
 -- an den Eltern und am Verkehr — eine Zeit je Klasse wäre nicht ungenau,
@@ -236,9 +241,13 @@ CREATE TABLE class_representatives (
     -- Datumsfeld.
     school_year             smallint NOT NULL,
     -- Eine sorgeberechtigte Person aus dem Bestand, ausgewählt und nicht
-    -- eingetippt. Bewusst ohne Prüfung, ob sie noch ein Kind in dieser Klasse
-    -- hat: „Wechselt ein Kind die Klasse oder geht es ab, endet das Amt nicht
-    -- von selbst."
+    -- eingetippt. **Dass sie sorgeberechtigt ist, prüft die Route und kein
+    -- Constraint** (api/klassenorganisation-api.md): Der Fremdschlüssel zeigt
+    -- auf `persons`, weil das Amt an der Klasse hängt und nicht an einer
+    -- Familie — und `guardians` trägt nur, wer eine der drei freiwilligen
+    -- Angaben gemacht hat, wäre als Ziel also zu eng. Bewusst auch ohne
+    -- Prüfung, ob sie noch ein Kind in dieser Klasse hat: „Wechselt ein Kind
+    -- die Klasse oder geht es ab, endet das Amt nicht von selbst."
     person_id               uuid NOT NULL,
     created_at              timestamptz NOT NULL DEFAULT now(),
     created_by              text NOT NULL,
@@ -262,10 +271,12 @@ CREATE INDEX ix_class_representatives_year
 -- ---------------------------------------------------------------------------
 -- Offene Fragen an die Schule
 -- ---------------------------------------------------------------------------
--- [?] Wer die Unterrichtsverteilung und die Wahlmodulgruppen pflegt —
---     Adressat: die Schulleitung je Schulart. Angenommen ist sie selbst,
---     nachgezogen zum Schuljahreswechsel; von Hand in Weltenbaum, nicht aus
---     ASV-BW und nicht aus dem Deputatsplan. Ungeprüft.
+-- [?] Bestätigt die Schule, dass die Schulleitung je Schulart die
+--     Unterrichtsverteilung, das Unterrichtsende und die Wahlmodulgruppen
+--     pflegt? — Adressat: die Schulleitung. Block 15 trägt die Annahme bereits
+--     als Satz, bestätigt ist sie nicht (TASK-161). Am Schema hängt daran
+--     nichts: Die Antwort entscheidet allein, wer die Routen dieses Durchgangs
+--     aufrufen darf.
 --
 -- Zur Elternvertretung keine. Bewusst KEINE zweite Tabelle für ein Gremium über der Klasse: „Und kein
 -- Gremium über der Klassenvertretung: Gesamtelternbeirat, Vorsitz,
