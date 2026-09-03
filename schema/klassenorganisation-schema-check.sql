@@ -159,6 +159,7 @@ INSERT INTO persons (person_id, first_name, last_name, created_by) VALUES
     ('22222222-2222-2222-2222-222222222231', 'Klassen', 'Lehrkraft', 'system:check'),
     ('22222222-2222-2222-2222-222222222232', 'Technik', 'Lehrkraft', 'system:check'),
     ('22222222-2222-2222-2222-222222222233', 'Ohne',    'Zuordnung', 'system:check'),
+    ('22222222-2222-2222-2222-222222222234', 'Zweite',  'Lehrkraft', 'system:check'),
     ('22222222-2222-2222-2222-222222222241', 'Kind',    'Ausa',      'system:check'),
     ('22222222-2222-2222-2222-222222222242', 'Kind',    'Ausb',      'system:check'),
     ('22222222-2222-2222-2222-222222222243', 'Kind',    'Grundschule', 'system:check'),
@@ -171,7 +172,9 @@ INSERT INTO employees (employee_id, person_id, house_id, created_by) VALUES
     ('88888888-8888-8888-8888-888888888882',
      '22222222-2222-2222-2222-222222222232', 1, 'system:check'),
     ('88888888-8888-8888-8888-888888888883',
-     '22222222-2222-2222-2222-222222222233', 1, 'system:check');
+     '22222222-2222-2222-2222-222222222233', 1, 'system:check'),
+    ('88888888-8888-8888-8888-888888888884',
+     '22222222-2222-2222-2222-222222222234', 1, 'system:check');
 INSERT INTO families (family_id, created_by)
     VALUES ('33333333-3333-3333-3333-333333333333', 'system:check');
 -- Zwei Realschulkinder in zwei Klassen derselben Kohorte — der Fall, für den es
@@ -225,6 +228,13 @@ SELECT pg_temp.expect_reject(
     'TASK-161 — dieselbe Lehrkraft zweimal in derselben Klasse und im selben Jahr',
     $q$INSERT INTO class_teaching_assignments (employee_id, class_id, school_year, created_by)
        VALUES ('88888888-8888-8888-8888-888888888881', 3, 2026, 'system:check')$q$);
+
+-- 15: „Wer in ihr unterrichtet (je Schuljahr, mehrere Personen, ohne Fach)" —
+-- der Schlüssel grenzt den Doppeleintrag ab, nicht die zweite Lehrkraft.
+SELECT pg_temp.expect_accept(
+    'TASK-161 — zwei Lehrkräfte in derselben Klasse und im selben Jahr',
+    $q$INSERT INTO class_teaching_assignments (employee_id, class_id, school_year, created_by)
+       VALUES ('88888888-8888-8888-8888-888888888884', 3, 2026, 'system:check')$q$);
 
 -- „Zwei Gruppen desselben Moduls im selben Jahrgang sind darstellbar, mit
 -- verschiedenen Lehrkräften" — der Fall, für den die Gruppe eine eigene
@@ -306,12 +316,14 @@ SELECT pg_temp.expect_reject(
                                             school_branch_id, elective_module_id, created_by)
        VALUES ('44444444-4444-4444-4444-444444444444', 1, 2, 1, 'system:check')$q$);
 
--- Und das Modul kommt von der Gruppe, nicht vom Schreibenden.
+-- Und das Modul kommt von der Gruppe, nicht vom Schreibenden: Gruppe 3 ist AES
+-- (Modul 2), eingetragen wird Französisch (Modul 3) — ein Modul, das dieses Kind
+-- noch nicht hat, damit hier der Fremdschlüssel greift und nicht die Einmalwahl.
 SELECT pg_temp.expect_reject(
     'TASK-161 — Mitgliedschaft mit fremdem Modul eingetragen',
     $q$INSERT INTO child_group_memberships (child_id, elective_group_id,
                                             school_branch_id, elective_module_id, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444441', 3, 2, 1, 'system:check')$q$);
+       VALUES ('44444444-4444-4444-4444-444444444441', 3, 2, 3, 'system:check')$q$);
 
 -- „Listen entstehen je Zuordnung, nicht je Lehrkraft": Die Technik-Lehrkraft
 -- unterrichtet keine Klasse und sieht trotzdem ein Kind aus jeder der beiden —
