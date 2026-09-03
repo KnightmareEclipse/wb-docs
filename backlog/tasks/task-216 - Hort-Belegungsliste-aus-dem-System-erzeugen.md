@@ -27,10 +27,11 @@ Aus [M3]: Jürgen fragt, ob die Hort-Belegungsliste künftig aus Weltenbaum erze
 - **Kinder mit dem, was zu beachten ist** — der Hinweis am Kind (`child_health_records.action_note`) im Sichtkreis des Horts; die Domäne trägt ihn bereits, dieses Ticket nur die Anzeige.
 - **Abrechnungsliste** — Beitrag je Kind und Monat aus `care_module_prices`. Zu prüfen ist, ob sie rechnet oder nur zusammenstellt; die Buchhaltung führt Optigem, nicht Weltenbaum.
 
-**Zwei Dinge sind neu:**
+**Drei Dinge sind neu:**
 
 - Die **Hausaufgabenbetreuung**: welche Kinder darin sind, ist ein Datum, das der Bestand heute nicht kennt. Erst zu klären ist, ob es aus dem gebuchten Modul folgt oder daneben steht — im ersten Fall entsteht gar nichts.
-- Die **Abfrage an Brückentagen** — sie ist ein eigener Vorgang und steht in einem eigenen Ticket.
+- Die **Abfrage an Brückentagen** — sie ist ein eigener Vorgang und steht in einem eigenen Ticket (TASK-217).
+- **Unterrichtsende je Klasse und Wochentag**, samt der späteren Ankunft nach dem Sport: ebenfalls ein eigenes Ticket (TASK-218), weil es ein Datum ist und keine Sicht.
 
 **Die Gruppeneinteilung der Hausaufgabenbetreuung bleibt draußen** (Betreiber, 03.09.2026): Klasse 1+2 und 3+4 werden in je zwei Gruppen betreut, aber das ändert sich, es hängt keine Zusage daran und keine Abrechnung. Im Frontend ist es eine Anzeigeregel, in der Datenbank wäre es eine Liste, die niemand pflegt. Eine Zuordnung entsteht erst, wenn jemand sie braucht — und dann trägt sie dieselbe Bauform wie die Wahlmodulgruppe (TASK-161).
 <!-- SECTION:DESCRIPTION:END -->
