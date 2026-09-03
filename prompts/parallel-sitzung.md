@@ -16,7 +16,7 @@ niemand muss wissen, was die anderen gerade tun.
 | **2** | Akademie und Ferien: TASK-176, 177, 178, 179, 180 | `schema/ferien-*`, `schema/akademie-*` (neu), `api/ferien-api.md`, `api/akademie-api.md` (neu), `soll-prozesse/10`, `21` |
 | **3** | Hort: TASK-214, 216, 217 | `schema/anmeldung-*`, `soll-prozesse/09` — **nur lesend, 09 gehört Sitzung 1** |
 | **4** | Prosa ohne Schema: TASK-209, 211, 119, 121 | `verarbeitungsverzeichnis.md`, `runbook.md`, neue Dokumente |
-| **5** | Prüflauf nach `prompts/schema-pruefen.md` für eine Domäne, die eine andere Sitzung **fertig** hat | keine — ein Prüflauf schreibt einen Bericht und ändert nichts |
+| **5** | Prüflauf für etwas, das eine andere Sitzung **fertig** hat — `prompts/schema-pruefen.md` nach einem Schema, `prompts/api-pruefen.md` nach gebauten Routen | keine — ein Prüflauf schreibt einen Bericht und ändert nichts |
 
 Fehlt deine Nummer in der Tabelle, frag mich; rate nicht.
 
@@ -33,6 +33,10 @@ gebaut hat, prüft nicht.
 **Das ist dein einziger Haltepunkt.** Steht eine Domäne im Schema, hörst du auf und meldest sie zum
 Prüfen — was auf ihr aufbaut, etwa ihre Routen, beginnt erst mit dem grünen Bericht. Sonst planst du
 gegen ein Schema, das sich noch ändert.
+
+Der Bericht kommt zu dir zurück: Du schließt seine Funde mit `prompts/schema-reparieren.md`, überträgst
+mit `prompts/schema-uebertragen.md` nach `wb-backend` und machst dann weiter. Am Ende des Strangs
+wiederholt sich das für die Routen — bauen, prüfen lassen, mit `prompts/api-reparieren.md` schließen.
 
 Arbeite die Tickets deines Strangs in ihrer Reihenfolge ab; wo eine Abhängigkeit besteht, steht sie
 im Ticket. Ist der letzte durch, sag es und hör auf — such dir keinen neuen Strang.
