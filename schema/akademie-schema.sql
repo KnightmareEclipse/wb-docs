@@ -68,6 +68,10 @@ CREATE TABLE academy_offerings (
     -- Der Zweig ist keine Angebotsart, sondern sagt, woran die Anmeldung hängt:
     -- am Kind oder an einer Person. Er steht deshalb hier und wird von
     -- `uq_academy_offerings_id_branch` an die Anmeldung gebunden.
+    -- [A!] Die beiden Zweige sind eine Domäne mit einem Häkchen. —
+    -- Alternative: eine eigene Domäne für die Erwachsenen-Seminare; Preis: jede
+    -- Tabelle dieser Datei stünde zweimal, obwohl beide Zweige jeden Schritt
+    -- von 21 teilen und sich allein im Teilnehmer unterscheiden.
     for_adults          boolean NOT NULL DEFAULT false,
     -- Das Thema: Titel und Beschreibung sind die Ausschreibung und „für alle
     -- sichtbar, auch ohne Anmeldung".
@@ -101,6 +105,9 @@ CREATE TABLE academy_offerings (
     -- kauft sie je Termin ein, und was sie kosten, weiß niemand ein Jahr im
     -- Voraus" (10). Er ist der Nachfolger des Ferienaufschlags und wird zum
     -- Betrag addiert, nicht daneben berechnet.
+    -- [A] Der Teilnehmer zahlt die Summe aus beiden. — Alternative: den
+    -- Lebensmittelbetrag getrennt ausweisen und berechnen; Preis: eine zweite
+    -- Forderung je Anmeldung, und 21 kennt nur einen Betrag je Angebot.
     food_amount_cents   integer NOT NULL DEFAULT 0,
     -- Im Preis enthalten und nie gesondert berechnet; wo es gesetzt ist, steht
     -- das Kind an diesem Tag auf der Mensaliste (11) — dieselbe Bedeutung wie
@@ -118,6 +125,9 @@ CREATE TABLE academy_offerings (
     -- 0 Uhr** — der ganze Fristtag ist dann gesperrt; leere Tageszahl heißt
     -- „keine Sperre". Den Eltern wird nie der Abstand gezeigt, sondern der
     -- daraus gerechnete Termin.
+    -- [A] Die leere Uhrzeit heißt 0 Uhr. — Alternative: Tagesende; Preis: „bis
+    -- 3 Tage davor" ließe dann bis zur letzten Minute des dritten Tages
+    -- abmelden, also einen Tag länger als im Ferienprogramm.
     cancellation_deadline_days smallint,
     cancellation_deadline_time time,
     -- Der Code des Textes, unter dem die Abmeldebedingungen dieses Angebots in
@@ -255,13 +265,17 @@ CREATE TABLE academy_offering_audiences (
         CHECK (created_by ~ '^(entra:|system:)')
 );
 
--- Herkunft: 21 (Akademie) — „Bei der übergeordneten Stelle die Freigabe — die
+-- Herkunft: 21 (Akademie) — „Bei der freigebenden Stelle die Freigabe — die
 -- einzige Entscheidung in diesem Block, die einen Vorgang anhält." Wer das ist,
 -- sind benannte Personen und keine Rolle (Geschäftsführung, 03.09.2026): Eine
 -- Rolle träfe alle, die sie tragen, hier prüft eine benannte Person Rahmen und
 -- Wording. Löschanker: geht mit der Mitarbeitendenzeile. Bewusst KEINE Zuordnung
 -- je Angebot oder Kategorie: „eine zentrale Person prüft", nicht die jeweilige
 -- Leitung.
+-- [A!] Die Freigabeberechtigung steht als Personenliste und nicht als Rolle. —
+-- Alternative: eine neue Rolle, wie hebel.md es sonst verlangt („Rechte je
+-- Person gibt es nicht"); Preis: sie träfe jeden, der sie trägt, und die
+-- Entscheidung vom 03.09.2026 will genau das nicht.
 CREATE TABLE academy_approvers (
     academy_approver_id integer GENERATED ALWAYS AS IDENTITY,
     employee_id         uuid NOT NULL,
@@ -343,6 +357,10 @@ CREATE TABLE academy_registrations (
     academy_cost_coverage_code_id uuid,
     -- Die Fassung der Abmeldebedingungen, die beim Absenden galt — „sichtbar,
     -- bevor angemeldet wird"; eine Unterschrift entsteht daraus nicht.
+    -- [A] Die Anmeldung hält die Fassung fest, wie die Ferienbuchung ihre
+    -- Teilnahmebedingungen. — Alternative: nur der Code am Angebot; Preis: nach
+    -- der ersten Änderung ist nicht mehr lesbar, was beim Absenden galt, und
+    -- genau daran hängt der einbehaltene Betrag.
     cancellation_terms_contract_text_id integer NOT NULL,
     -- Die Abmeldung in zwei Schritten: die Eltern erklären, die anbietende
     -- Stelle trägt ein und entscheidet über den Betrag — dieselbe Bauform wie
