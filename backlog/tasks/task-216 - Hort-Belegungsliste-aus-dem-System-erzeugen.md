@@ -1,10 +1,10 @@
 ---
 id: TASK-216
 title: Die Hort-Belegungsliste aus dem Bestand erzeugen
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-03 16:38'
-updated_date: '2026-09-03 20:49'
+updated_date: '2026-09-03 20:58'
 labels:
   - anmeldung
 milestone: m-5
@@ -43,9 +43,9 @@ Die Änderung ist eine Spalte an `care_modules` und beginnt als Migration in wb-
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Jede Sicht ist frisch erzeugt und liest den Bestand, keine wird gepflegt
+- [x] #1 Jede Sicht ist frisch erzeugt und liest den Bestand, keine wird gepflegt
 - [x] #2 care_modules trägt ein Häkchen für die Hausaufgabenbetreuung; die Liste ist ein Filter darüber und kein Datum am Kind
 - [x] #3 Der Kommentar an der Spalte sagt, warum sie sich nicht aus der Uhrzeit ableiten lässt — anders als includes_lunch
 - [x] #4 Die Gruppeneinteilung steht nicht in der Datenbank — und der Grund steht als Kommentar da
-- [ ] #5 Bei der Abrechnungsliste ist entschieden, ob sie rechnet oder zusammenstellt
+- [x] #5 Bei der Abrechnungsliste ist entschieden, ob sie rechnet oder zusammenstellt
 <!-- AC:END -->

@@ -4,7 +4,7 @@ title: Notfallbetreuung als buchbarer Vorgang
 status: In Progress
 assignee: []
 created_date: '2026-09-03 16:38'
-updated_date: '2026-09-03 20:49'
+updated_date: '2026-09-03 20:58'
 labels:
   - schema
   - anmeldung
@@ -62,7 +62,7 @@ Damit ist auch der Fund E2 erledigt: Die Spalte mit 8/8/12/16/20 war doch unsere
 - [x] #3 Ein Kind ohne Betreuungsvertrag kann gebucht werden — als Gegenprobe
 - [x] #4 Beide Eingänge schreiben dieselbe Zeile; der Weg ist an created_by ablesbar und braucht kein Feld
 - [x] #5 Buchung und Vollzug sind zwei Zeitpunkte: ein unangekündigtes Kind hat nur den zweiten, eine erledigte Buchung nur den ersten
-- [ ] #6 Der Hort sieht die Buchungen des Tages als frisch erzeugte Liste
+- [x] #6 Der Hort sieht die Buchungen des Tages als frisch erzeugte Liste
 - [ ] #7 Entschieden mit der Geschäftsführung: Nachweis auf dem Telefonweg, Ablehnung einer Buchung, Berechnung einer nicht wahrgenommenen
 - [x] #8 Bei den Modulen 2 bis 4 wird das Essen zusätzlich berechnet — es steckt in keinem Fallpreis
 <!-- AC:END -->

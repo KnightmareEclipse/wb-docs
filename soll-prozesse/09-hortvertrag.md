@@ -255,6 +255,25 @@ beantwortet. Derselbe Bestand, anders gezählt, ist die **Belegung**, mit der di
 entscheidet: je Wochentag, wie viele Kinder bis wann da sind — eine zweite Liste daneben gibt es
 nicht.
 
+Die **Hort-Belegungsliste**, die der Hort heute in Excel führt, ist damit keine Datei mehr, sondern
+ein Satz [frisch erzeugter](hebel.md#frisch-erzeugte-liste) Sichten auf denselben Bestand: die
+Gesamtübersicht mit Kind, Klasse, Wochentagen und Modul, dieselbe nach Tag und nach Klasse
+gruppiert, die **Auslastung** je Modul und Wochentag, die Kinder mit dem, **was zu beachten ist** —
+der Hinweis am Kind im Sichtkreis des Horts ([08](08-schulvertrag.md)) —, die
+**Notfallbetreuungen des Tages**, die der Hort abhakt, und die **Abrechnungsliste**: Beitrag je Kind
+und Monat aus den gebuchten Modulen, dazu die Fälle des Monats. Sie **stellt zusammen und rechnet
+keine Ermäßigung** — die Geschwisterermäßigung und alles, was die Beitragssatzung sonst gewährt,
+wendet die Buchhaltung in Optigem an, und eine zweite Stelle, an der dieselbe Zahl entsteht, wäre
+eine Schatten-Abrechnung.
+
+Wer die **Hausaufgabenbetreuung** besucht, ist ebenfalls eine solche Sicht und kein Datum am Kind:
+Sie kostet nichts und wird nicht gesondert gebucht, sie steckt im Modul — aber nicht in jedem über
+Mittag, und weder Uhrzeit noch Dauer verraten, in welchem. Das Modul trägt deshalb ein Häkchen
+daneben, und die Liste ist der Filter darüber. **Die Gruppeneinteilung bleibt draußen**: Klasse 1+2
+und 3+4 werden in je zwei Gruppen betreut, aber das ändert sich, und es hängt weder eine Zusage noch
+eine Abrechnung daran; im Portal ist sie eine Anzeigeregel, im System wäre sie eine Liste, die
+niemand pflegt.
+
 Die **Akte** legt Weltenbaum an wie in [08](08-schulvertrag.md); ein externes Kind hat keine Kohorte
 und bekommt seinen Ordner in einer eigenen Ablage für externe Hortkinder — es sind sehr wenige, und
 eine gerechnete Kennung für sie zu erfinden wäre teurer als das Handanlegen.
@@ -295,6 +314,48 @@ gelangten **ausschließlich** den Betreuungskräften zur Kenntnis — sie stimmt
 Sekretariat und Schulleitung sehen sie, und die Klassenlehrkraft eines eigenen Kindes sieht sie
 vollständig ([15](15-klassenbildung.md)) — Geschäftsführung und Hortleitung
 
+## Notfallbetreuung und Brückentage
+
+Zwei kleine Vorgänge stehen neben dem Vertrag. Beide gehören dem Hort, und keiner von beiden ist
+eine Modulbuchung.
+
+Die **Notfallbetreuung** entsteht aus einem Notfall — spontan, für einen einzelnen Tag, abgerechnet
+je Fall statt je Monat. Sie steht **Hortkindern wie Nicht-Hortkindern** offen und passt deshalb in
+kein Betreuungsmodul: Ein Modul hinge an einer Modulanlage, die ein Kind ohne Betreuungsvertrag
+nicht hat. Gebucht wird sie im Portal; wer stattdessen anruft, ist damit nicht draußen — dann trägt
+sie der Hort nach. Das ist der [offizielle Umweg](hebel.md#der-offizielle-umweg) mit einer benannten
+Abweichung: Hier trägt der **Hort** stellvertretend ein und nicht das Sekretariat, denn er nimmt den
+Anruf entgegen. Ein Feld für den Weg gibt es nicht — er steht am Urheber der Zeile.
+
+**Buchung und Vollzug sind zwei Zeitpunkte:** Die Buchung ist die Ankündigung, das Abhaken durch den
+Hort der Vollzug. Abgerechnet wird, was stattgefunden hat — sonst zahlte eine Familie für einen
+Notfall, der sich erledigt hat, und ein unangekündigtes Kind fiele durchs Raster. Genau das ist der
+Papierfall: Wer unangekündigt kommt, hat keine Buchung, nur den Vollzug.
+
+Der Betrag hängt am Fall und nicht an der Zahl der Wochentage — 8 € für die Frühbetreuung oder das
+Modul bis 13:00, 12 € bis 14:30, 16 € bis 15:30, 20 € bis 17:00, dazu 20 € für eine halbe Stunde
+außerhalb der Öffnungszeiten, die als einzige zu keinem Modul gehört, weil es sie als Monatsbeitrag
+nicht gibt. Wie beim Monatsbeitrag gehört zu den Modulen über Mittag **ein Essen, das zusätzlich
+berechnet wird** und in keinem dieser Preise steckt ([11](11-mensa.md)). Die
+[Geschwisterermäßigung](hebel.md#geld-im-system-alles-andere-fest) gilt für die Notfallbetreuung
+nicht.
+
+`[?]` Drei Dinge daran sind offen und hängen zusammen: der **Nachweis auf dem Telefonweg** — wer im
+Portal bucht, hat seine Buchung, wer anruft, hat nichts Schriftliches —, ob eine Notfallbetreuung
+**abgelehnt** werden darf, und ob eine gebuchte, aber **nicht wahrgenommene** berechnet wird. Für
+den ersten wären eine Bestätigung an die Familie, eine gezeichnete Tagesliste nach der Bauform des
+Putzdienstes ([01](01-putzdienst.md)) oder gar nichts denkbar, weil der Streitfall in der Praxis
+nicht vorkommt — Geschäftsführung
+
+Vor manchen Ferien endet der Unterricht mitten in der Woche: Bis Mittwoch ist Schule, Donnerstag und
+Freitag sind schon frei. Für diese **Brückentage** fragt der Hort ab, wer sein Kind trotzdem bringt
+— eine Abfrage je Tag, eine Antwort je Kind. Angestoßen wird sie vom Hort, beantwortet von den
+Eltern, und danach steht die Liste, mit der er die Betreuung plant. **Wer nicht antwortet, bringt
+sein Kind nicht:** Die stille Antwort ist die sichere, sonst plant der Hort für Kinder, die nicht
+kommen. Ein eigener Betrag fällt nicht an — das gebuchte Modul gilt weiter, abgefragt wird allein
+die Anwesenheit. Läuft an dem Tag ein [Ferienprogramm](10-ferienprogramm.md), entsteht keine
+Abfrage: Dort wird gebucht.
+
 ## Sonderfälle
 
 - Der [offizielle Umweg](hebel.md#der-offizielle-umweg) gilt ohne Einschränkung, mit einer Ausnahme:
@@ -315,10 +376,6 @@ vollständig ([15](15-klassenbildung.md)) — Geschäftsführung und Hortleitung
   Austrittsdatum und Abgangsliste.
 - Der **Putzdienst** bleibt außen vor: seine Pflichtmenge hängt an eingeschriebenen Kindern, ein
   externes Hortkind schuldet null ([01](01-putzdienst.md)) — dafür braucht es keine eigene Regel.
-- Die **Notfallbetreuung** bleibt ebenfalls außerhalb: Sie wird verbal oder telefonisch vereinbart —
-  im Notfall geht niemand erst ins Portal —, kostet je Fall einen eigenen Betrag und wird außerhalb
-  abgerechnet; im System entsteht dafür keine Zeile, und die Geschwisterermäßigung gilt für sie
-  nicht.
 
 ## Was heute schiefgeht
 
@@ -368,8 +425,9 @@ Zugang ([00](00-zugang-und-portal.md)), sofern kein Geschwisterkind eine hat.
 ## Gehört nicht dazu
 
 - **Der laufende Hort-Alltag**: wer heute tatsächlich da war, Krankmeldungen und Fehlzeiten,
-  Vorfälle, Ordnungsmaßnahmen samt Anhörung, Notfallbetreuung — bleibt beim Hort und kommt in
-  Weltenbaum nicht vor, auch nicht halb.
+  Vorfälle, Ordnungsmaßnahmen samt Anhörung — bleibt beim Hort und kommt in Weltenbaum nicht vor,
+  auch nicht halb. Die Notfallbetreuung gehört seit dem 03.09.2026 nicht mehr dazu: Sie steht als
+  eigener Vorgang oben.
 - Aufsichtspflicht, Haftung und Versicherung: Vertragstext, kein Vorgang.
 - Das **Ferienprogramm** samt Ferienbetreuung: [10](10-ferienprogramm.md).
 - Die **Mensa** als eigenständige Anmeldung: [11](11-mensa.md) — hier steht nur, dass ein Modul das

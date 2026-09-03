@@ -866,7 +866,8 @@ CREATE TABLE configured_values (
     -- „expense_report_threshold_cents", „contract_fee_cents",
     -- „care_sibling_discount_basis_points", „care_change_fee_cents",
     -- „parent_bonus_monthly_cents", „parent_bonus_required_hours_primary",
-    -- „parent_bonus_required_hours_secondary"). Jeder von ihnen ist von der
+    -- „parent_bonus_required_hours_secondary",
+    -- „meal_single_amount_cents"). Jeder von ihnen ist von der
     -- Geschäftsführung änderbar und trägt seinen Gültigkeitstag; im Code steht
     -- nur der Code, nie die Zahl.
     -- „expense_report_threshold_cents" ist die Meldegrenze der
@@ -881,7 +882,13 @@ CREATE TABLE configured_values (
     -- das, was rules.md Abschnitt 1 verbietet.
     -- „care_sibling_discount_basis_points" ist die Geschwisterermäßigung auf die
     -- Betreuungskosten (derzeit 1000, also 10 %); gerechnet wird sie nicht hier,
-    -- siehe `care_module_prices` in anmeldung-schema.sql.
+    -- siehe `care_module_prices` in anmeldung-schema.sql. Von der
+    -- Notfallbetreuung nimmt der Betreuungsvertrag sie ausdrücklich aus.
+    -- „meal_single_amount_cents" ist das einzelne Mittagessen ohne Abo, derzeit
+    -- 5,90 € je Fall. Es fällt an, wo ein Fall der Notfallbetreuung über Mittag
+    -- reicht (anmeldung-schema.sql), und steht hier statt in `meal_prices`
+    -- (mensa-schema.sql), weil es weder je Modul noch je Schulart verschieden
+    -- ist und keine Zahl von Esstagen kennt, an der es hinge.
     -- „care_change_fee_cents" ist die Änderungsgebühr der Betreuungsmodule,
     -- derzeit 20 €: hebel.md zählt sie unter den Werten auf, von denen gilt
     -- „ist jederzeit änderbar und steht im System, nie im Code" („Änderung der

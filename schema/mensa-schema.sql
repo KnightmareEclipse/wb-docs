@@ -69,9 +69,14 @@ CREATE TABLE meal_variants (
 -- Liste für beide Wege, weil es nur diese eine Preisliste gibt — Hort- und
 -- Realschulkind zahlen dasselbe Essen. Eine zweite Staffel wäre eine Tabelle
 -- mehr und keine andere Struktur.
--- Bewusst KEIN Betrag für das einzelne Essen ohne Abo (Preisliste: 5,90 € je
--- Fall): kein Block kennt einen solchen Vorgang, und ein Preis ohne Buchung
--- wäre eine Zahl auf Vorrat.
+-- Das einzelne Essen ohne Abo steht bewusst NICHT hier: Es hat keine Zahl von
+-- Esstagen, an der es hinge, und ist eine Zahl statt einer Staffel. Es fällt an,
+-- wo ein Fall der Notfallbetreuung über Mittag reicht — welcher das ist, sagt
+-- `emergency_care_types.care_module_id` über `care_modules.includes_lunch`
+-- (anmeldung-schema.sql), und wie beim Monatsbeitrag steckt es nicht im
+-- Fallpreis. Der Betrag steht deshalb als „meal_single_amount_cents" in
+-- `configured_values` (querschnitt-schema.sql), wie jeder Wert, der weder je
+-- Modul noch je Schulart verschieden ist; derzeit 5,90 € je Fall.
 CREATE TABLE meal_prices (
     meal_price_id        integer GENERATED ALWAYS AS IDENTITY,
     -- Die Zahl der Esstage in der Woche, wie beim Hortbeitrag die Zahl der

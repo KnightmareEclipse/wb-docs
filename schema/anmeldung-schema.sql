@@ -1198,10 +1198,10 @@ CREATE TABLE emergency_care_bookings (
     CONSTRAINT fk_emergency_care_bookings_type
         FOREIGN KEY (emergency_care_type_id)
         REFERENCES emergency_care_types (emergency_care_type_id),
-    -- [A] Ein Fall je Kind, Tag und Art; zwei halbe Stunden außerhalb der
-    --     Öffnungszeiten sind damit eine Zeile und ein Betrag. — Alternative:
-    --     eine Stückzahl an der Zeile; Preis: eine Spalte, die außer bei genau
-    --     diesem einen Fall niemand über 1 setzt.
+    -- Ein Fall je Kind, Tag und Art; zwei halbe Stunden außerhalb der
+    -- Öffnungszeiten sind damit eine Zeile und ein Betrag. Eine Stückzahl an
+    -- der Zeile wäre eine Spalte, die außer bei genau diesem einen Fall niemand
+    -- über 1 setzt.
     CONSTRAINT uq_emergency_care_bookings
         UNIQUE (child_id, care_date, emergency_care_type_id),
     CONSTRAINT ck_emergency_care_bookings_amount CHECK (amount_cents >= 0),
@@ -1223,11 +1223,11 @@ CREATE TABLE emergency_care_bookings (
 -- ab, „wer sein Kind trotzdem bringt und wer nicht". Eine Zeile ist die Abfrage
 -- eines Tages; angestoßen wird sie vom Hort, nie von selbst. Kein Löschanker:
 -- keine Personendaten — die Antworten daneben tragen sie und gehen mit ihr.
--- [A] Der Brückentag wird nicht gesondert berechnet: Das gebuchte Modul des
---     Kindes gilt weiter, abgefragt wird allein die Anwesenheit — deshalb eine
---     Antwort und keine Tagesbuchung wie bei der Notfallbetreuung. —
---     Alternative: eine Tagesbuchung mit eigenem Betrag; Preis: ein zweiter
---     Zahlweg neben dem Monatsbeitrag für Tage, die er schon abdeckt.
+-- Der Brückentag wird nicht gesondert berechnet: Das gebuchte Modul des Kindes
+-- gilt weiter, abgefragt wird allein die Anwesenheit — deshalb eine Antwort und
+-- keine Tagesbuchung wie bei der Notfallbetreuung. Eine Tagesbuchung mit eigenem
+-- Betrag wäre ein zweiter Zahlweg neben dem Monatsbeitrag für Tage, die er schon
+-- abdeckt.
 -- [A!] Dass an einem Tag mit Ferienprogramm keine Abfrage entsteht, prüft die
 --      Anwendung und kein Trigger. — Alternative: ein Trigger, der
 --      `holiday_session_days` liest; Preis: `anmeldung` läse dann `ferien`,
