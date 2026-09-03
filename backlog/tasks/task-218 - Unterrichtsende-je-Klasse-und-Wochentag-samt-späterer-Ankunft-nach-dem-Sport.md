@@ -1,12 +1,10 @@
 ---
 id: TASK-218
-title: >-
-  Unterrichtsende je Klasse und Wochentag, samt dem Merker für späteres
-  Eintreffen
+title: 'Unterrichtsende je Klasse und Wochentag, samt Häkchen für Sport am Ende'
 status: To Do
 assignee: []
 created_date: '2026-09-03 17:11'
-updated_date: '2026-09-03 17:22'
+updated_date: '2026-09-03 17:26'
 labels:
   - schema
   - klassenorganisation
@@ -27,11 +25,11 @@ Und er führt eine Abweichung mit: **Wo Sport am Unterrichtsende liegt, kommen d
 
 **Wie viel später, weiß niemand, und deshalb wird es nicht gespeichert** (Betreiber, 03.09.2026): Geführt wird heute nur, *welche* Klasse *an welchem Tag* Sport am Ende hat — ohne Uhrzeit. Ein Feld für die Ankunftszeit wäre damit eine Spalte, die entweder leer bliebe oder mit einer geratenen Zahl gefüllt würde, und beides ist schlechter als nichts.
 
-**Gebraucht wird also eine Zeile je Klasse und Wochentag** mit dem Unterrichtsende als Uhrzeit und einem **kurzen Grund als Text**, wo die Kinder später kommen. Leer heißt „kommen zum Unterrichtsende"; gefüllt heißt „kommen später", und der Text sagt warum — „Sport, Rückfahrt von der Halle".
+**Gebraucht wird also eine Zeile je Klasse und Wochentag** mit dem Unterrichtsende als Uhrzeit und einem **Häkchen `sport_at_end`** (Betreiber, 03.09.2026): An diesem Tag liegt Sport am Ende, die Kinder kommen deshalb später. Mehr wird nicht getrackt, weil mehr nicht existiert.
 
-Ein Häkchen `sport_at_end` täte es auch, und der Fall bleibt vorerst der einzige: Schwimmen betrifft die Hortkinder nicht (Betreiber, 03.09.2026). Der Text steht trotzdem da, aus zwei Gründen, die beide klein sind: Er landet auf einer Liste, die ein Mensch liest, und „kommt später" allein wirft die Frage auf, warum. Und er ist nach der **Wirkung** benannt statt nach der Ursache — wechselt die Halle oder kommt ein anderer Grund dazu, ändert sich der Text und nicht die Spalte. Kostet dasselbe wie das Häkchen; wäre das Häkchen gewünscht, ist es ein Wort.
+Der Kommentar an der Spalte trägt, was das Häkchen nicht sagt: **wie viel später, weiß niemand** — es gibt keine Ankunftszeit, weder gemessen noch vereinbart, und eine Spalte dafür bliebe leer oder würde geraten. Der Hort liest das Häkchen und weiß, was es heißt.
 
-Keine gespeicherte Verzögerung, die niemand kennt.
+Verworfen, mit kleinem Preis: ein **Freitext-Grund** statt des Häkchens wäre nach der Wirkung benannt statt nach der Ursache und trüge einen zweiten Anlass mit, ohne dass eine Spalte dazukäme. Er kostet dafür einen Satz, den jemand tippt, für eine Tatsache, die jeder kennt. Käme ein zweiter Anlass — Schwimmen betrifft die Hortkinder ausdrücklich nicht —, ist er ein zweites Häkchen oder eben doch der Text; heute trägt das eine.
 
 **Das ist kein Stundenplan und wird keiner.** Eine Zeit je Klasse und Wochentag beantwortet die Frage des Horts vollständig; Untis bleibt out of scope, und weder Fächer noch Stunden noch Räume entstehen hier. Wer später eine Stundenplanfrage stellt, bekommt eine eigene Domäne und nicht diese Tabelle.
 
@@ -47,9 +45,8 @@ Sie gehört zu `klassenorganisation` — dieselbe Domäne wie das Unterrichtsver
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [ ] #1 Eine Zeile je Klasse und Wochentag mit dem Unterrichtsende als Uhrzeit
-- [ ] #2 Der Grund für späteres Eintreffen steht als kurzer Text; leer heißt 'kommen zum Unterrichtsende'
-- [ ] #3 Keine zweite Uhrzeit für die Ankunft — der Kommentar sagt, dass sie nirgends existiert
-- [ ] #4 Der Merker ist nach der Wirkung benannt, nicht nach dem Sport — ein Häkchen wäre die gleichwertige Alternative und steht als solche im Text
-- [ ] #5 Kein Fach, keine Stunde, kein Raum: Die Tabelle bleibt eine Zeit je Klasse und Wochentag
-- [ ] #6 Die Zeiten hängen am Schuljahr und werden wie die Unterrichtsverteilung gepflegt
+- [ ] #2 Ein Häkchen sagt, dass an diesem Tag Sport am Ende liegt und die Kinder später kommen
+- [ ] #3 Keine Ankunftszeit — der Kommentar sagt, dass sie nirgends existiert und geraten würde
+- [ ] #4 Kein Fach, keine Stunde, kein Raum: Die Tabelle bleibt eine Zeit je Klasse und Wochentag
+- [ ] #5 Die Zeiten hängen am Schuljahr und werden wie die Unterrichtsverteilung gepflegt
 <!-- AC:END -->
