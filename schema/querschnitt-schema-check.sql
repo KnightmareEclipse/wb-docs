@@ -951,6 +951,12 @@ INSERT INTO loeschlauf (platz, tabelle, im_lauf) VALUES
     ( 5, 'holiday_care_notes', true),
     ( 7, 'academy_cost_coverage_codes', true),
     ( 7, 'meal_subscriptions', true),
+    -- Betriebsdaten am Kind ohne Aufbewahrungspflicht, am letzten bestätigten
+    -- Ende dieses Kindes wie das Essensabo daneben (03). Sie hängen an keinem
+    -- Vertrag: Ein Kind ohne Betreuungsvertrag kann beide haben, sie stehen
+    -- deshalb neben `meal_subscriptions` und nicht hinter `contracts`.
+    ( 7, 'emergency_care_bookings', true),
+    ( 7, 'care_bridge_day_responses', true),
     ( 8, 'health_trait_values', true), ( 8, 'consents',           true),
     ( 9, 'documents',          true),
     -- Drei Monate nach dem Austritt und damit lange vor dem Vertrag, der das

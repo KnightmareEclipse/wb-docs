@@ -418,8 +418,12 @@ Austritt aus dem Hort zu löschen, eingehalten, ohne dass dieser Block eine eige
 Vertrag, Modulanlagen und Mandat tragen dieselben Fristen wie in
 [08](08-schulvertrag.md) — fünf Jahre nach dem Austritt, das Mandat zwei
 ([03](03-irregulaerer-abgang.md)) — und gehören zum Lösch-Lauf (17). **Beim externen Kind ist der
-Austritt das Ende seines Hortvertrags**, denn ein Austrittsdatum hat es nicht; dieselbe Rechnung
-trägt die Notfallbetreuung, die an keinem Vertrag hängt. Die **Hortakte** hängt an demselben Ende —
+Austritt das Ende seines Hortvertrags**, denn ein Austrittsdatum hat es nicht. Die
+**Notfallbetreuung** trägt diese Frist nicht: Sie ist keine Urkunde und hängt an keinem Vertrag,
+sondern ein Betriebsdatum am Kind ohne Aufbewahrungspflicht, und sie verschwindet mit dem letzten
+bestätigten Ende dieses Kindes — dieselbe Rechnung wie beim Mittagessen
+([03](03-irregulaerer-abgang.md), [11](11-mensa.md)). Ebenso die Antworten auf eine
+Brückentagsabfrage. Die **Hortakte** hängt an demselben Ende —
 bei einem externen Kind ist das sein letzter Betreuungstag, ein Austrittsdatum hat es nicht —, trägt
 aber eine eigene Frist: `[?]` wie lang, entscheidet der Datenschutzbeauftragte. Endet der Vertrag eines externen Kindes,
 endet damit die letzte [laufende Verbindung](hebel.md#laufende-verbindung) seiner Familie und ihr

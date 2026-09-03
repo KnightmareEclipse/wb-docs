@@ -33,7 +33,7 @@
 -- DIE REIHENFOLGE DES LÖSCH-LAUFS (17). Jede Tabelle nennt ihren eigenen
 -- Löschanker; die Abfolge über alle Domänen nennt keine, und ohne sie kommt der
 -- Lauf beim ersten Versuch nicht durch: `DELETE FROM children` scheitert an
--- sieben Fremdschlüsseln, die das Kind mit Absicht festhalten. Sie steht
+-- zwölf Fremdschlüsseln, die das Kind mit Absicht festhalten. Sie steht
 -- deshalb hier, weil sie keiner Domäne gehört. Acht Stufen:
 --
 --   1. Die Vorgänge am Kind, jeder erst, wenn seine eigene Frist abgelaufen
@@ -41,7 +41,10 @@
 --      verwaiste Datei … ist genauso ein DSGVO-Verstoß wie eine verwaiste
 --      Zeile"), `sepa_mandates`, `contracts`, dann `applications` — der Vertrag
 --      hält seine Bewerbung fest und geht ihr voraus —, `holiday_bookings`,
---      `meal_subscriptions`, `health_trait_values`, die unterschriebene
+--      `meal_subscriptions`, `emergency_care_bookings` und
+--      `care_bridge_day_responses` — beide hängen am Kind und an keinem
+--      Vertrag, ein Kind ohne Betreuungsvertrag kann beide haben —,
+--      `health_trait_values`, die unterschriebene
 --      Zustimmung (`consents`, wo sie eine Datei trägt) und zuletzt
 --      `documents`. Jeder nimmt mit, was an ihm hängt: Unterschriften,
 --      Antworten, Modulanlagen, Zahlungen, Esstage.

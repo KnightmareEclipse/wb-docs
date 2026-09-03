@@ -1363,6 +1363,31 @@ BEGIN
     RAISE NOTICE 'ok (erlaubt): 217 — wer nicht antwortet, wird nicht erwartet';
 END $$;
 
+-- 09/03: „Beim externen Kind ist der Austritt das Ende seines Hortvertrags,
+-- denn ein Austrittsdatum hat es nicht." Der Anker des Vertrags ist deshalb
+-- zweigeteilt; diese Gegenprobe legt seine zweite Hälfte an — ein gekündigter
+-- Hortvertrag, dessen Kind nie ein `exit_date` bekommt. Ein Anker allein auf
+-- `children.exit_date` liefe für ihn nie ab, und ausgerechnet die Verträge,
+-- für die diese Tabelle den Typ `care` überhaupt trägt, blieben stehen.
+INSERT INTO contracts (contract_id, child_id, contract_type, contract_text_id,
+                       may_walk_home_alone, admission_date, released_at, released_by,
+                       end_date, end_reason, created_by)
+    VALUES ('88888888-8888-8888-8888-88888888888e',
+            '44444444-4444-4444-4444-444444444446', 'care', 2, false,
+            DATE '2026-09-01', now(), 'entra:hortleitung',
+            DATE '2027-01-31', 'ordentlich gekündigt zum Halbjahr', 'system:check');
+DO $$
+DECLARE ohne_austritt integer;
+BEGIN
+    SELECT count(*) INTO ohne_austritt
+      FROM contracts c JOIN children k ON k.child_id = c.child_id
+     WHERE c.contract_type = 'care' AND c.end_date IS NOT NULL AND k.exit_date IS NULL;
+    IF ohne_austritt = 0 THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — kein beendeter Hortvertrag ohne Austrittsdatum am Kind: die zweite Hälfte des Ankers ist unbelegt';
+    END IF;
+    RAISE NOTICE 'ok (erlaubt): 03/09 — % beendete(r) Hortvertrag ohne exit_date am Kind, der Anker braucht contracts.end_date', ohne_austritt;
+END $$;
+
 -- Die übrigen Stufen dieser Domäne im Lauf aus 17; die Reihenfolge über alle
 -- Domänen steht im Kopf von querschnitt-schema.sql.
 
@@ -1378,8 +1403,8 @@ SELECT pg_temp.expect_reject(
     '17 — Bewerbung gelöscht, während ihr Vertrag sie noch festhält',
     $q$DELETE FROM applications WHERE application_id = '77777777-7777-7777-7777-777777777771'$q$);
 
--- „Löschanker: die offene Aufbewahrungsfrist für Vertragsdaten (03)" — der
--- Vertrag nimmt Antworten, Unterschriften und Modulanlagen mit.
+-- „Löschanker: fünf Jahre nach dem Austritt des Kindes" (03) — der Vertrag
+-- nimmt Antworten, Unterschriften und Modulanlagen mit.
 SELECT pg_temp.expect_accept(
     '08/09 — der Vertrag geht, Antworten, Unterschriften und Modulanlagen mit ihm',
     $q$DELETE FROM contracts$q$);
@@ -1391,7 +1416,14 @@ BEGIN
        OR EXISTS (SELECT 1 FROM signatures WHERE contract_id IS NOT NULL) THEN
         RAISE EXCEPTION 'REGEL NICHT GEBAUT — etwas überlebt seinen Vertragsvorgang';
     END IF;
-    RAISE NOTICE 'ok (erlaubt): 08/09 — nichts überlebt seinen Vertragsvorgang';
+    -- Die Notfallbetreuung dagegen hängt an keinem Vertrag und trägt ihren
+    -- eigenen Anker: „Sie steht Hortkindern wie Nicht-Hortkindern offen" (09).
+    -- Ginge sie hier mit, verlöre ein Kind ohne Betreuungsvertrag seine
+    -- Abrechnung, sobald irgendein Vertrag fällt.
+    IF NOT EXISTS (SELECT 1 FROM emergency_care_bookings) THEN
+        RAISE EXCEPTION 'ZU VIEL GELÖSCHT — die Notfallbetreuung ging mit dem Vertrag';
+    END IF;
+    RAISE NOTICE 'ok (erlaubt): 08/09 — nichts überlebt seinen Vertragsvorgang, die Notfallbetreuung hängt an keinem';
 END $$;
 
 -- 07: „die Frist beginnt mit dem hier gesetzten Ende" — die Bewerbung nimmt

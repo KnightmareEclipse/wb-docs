@@ -871,7 +871,16 @@ CREATE TABLE application_offers (
 -- mit denselben vier Stationen und derselben Antwort je Erziehungsberechtigtem:
 -- eine zweite Vertragstabelle wäre eine Kopie" (grenzkarte.md). Löschanker:
 -- **fünf Jahre nach dem Austritt des Kindes** (Datenschutzbeauftragter,
--- 02.09.2026) — für jede Fassung dieselbe Frist und derselbe Bezugstag. Ein
+-- 02.09.2026) — für jede Fassung dieselbe Frist und derselbe Bezugstag.
+-- **Der Bezugstag ist zweigeteilt, weil es zwei Sorten Kind gibt:**
+-- `children.exit_date` beim eingeschriebenen, `contracts.end_date` beim
+-- externen Hortkind — „Beim externen Kind ist der Austritt das Ende seines
+-- Hortvertrags, denn ein Austrittsdatum hat es nicht" (09). Ohne die zweite
+-- Hälfte erreichte der Lauf ausgerechnet die Verträge nie, für die diese
+-- Tabelle den Typ `care` überhaupt trägt: Ein externes Kind bekommt nie ein
+-- `exit_date`, und eine Frist, die auf ein leeres Feld zeigt, läuft nicht ab.
+-- Welches der beiden Felder gilt, entscheidet der Lauf am Kind und nicht ein
+-- Constraint — `now()` ist in keinem CHECK zulässig (querschnitt-schema.sql). Ein
 -- ersetzter Vertrag rechnet deshalb nicht ab der Freigabe seines Nachfolgers:
 -- Ursprungsfassung und Update laufen gemeinsam ab dem Austritt, weil der alte
 -- Vertrag belegt, was bis zur Ersetzung galt. Ein Vertrag, dessen Kind nie
@@ -1155,9 +1164,13 @@ CREATE TABLE care_module_bookings (
 -- — spontan, für einen einzelnen Tag, abgerechnet je Fall statt je Monat."
 -- Sie hängt am Kind und nicht am Vertrag: Die Notfallbetreuung steht
 -- Hortkindern wie Nicht-Hortkindern offen, und „ein Modul hinge an einer
--- Modulanlage, die ein Kind ohne Betreuungsvertrag nicht hat" (09). Löschanker: dieselbe offene
--- Aufbewahrungsfrage wie Vertrag und Modulanlage (17) — die Zeile ist ein
--- Abrechnungsposten, und sie hält das Kind fest, statt mit ihm zu gehen.
+-- Modulanlage, die ein Kind ohne Betreuungsvertrag nicht hat" (09).
+-- Löschanker: **das letzte bestätigte Ende dieses Kindes**, wie das Essensabo
+-- in mensa-schema.sql. Die fünf Jahre des Vertrags trägt sie nicht: Sie ist
+-- keine Urkunde und hängt an keinem Vertrag, sondern zählt zu den
+-- Betriebsdaten, auf denen „keine Aufbewahrungspflicht" liegt (03). Sie hält
+-- das Kind fest, statt mit ihm zu gehen, damit der Lauf sie sieht und ein
+-- Anhalten trägt.
 -- Bewusst KEINE Spalte für das Mittagessen: Es folgt dem Modul des Falls
 -- (`emergency_care_types.care_module_id` → `care_modules.includes_lunch`), wie
 -- es beim Monatsbeitrag dem gebuchten Modul folgt — „Anmelden muss sich dafür
