@@ -87,6 +87,11 @@ Ausgelesen werden:
 - Je **externem Kind** die Schule, die es besucht, samt Jahrgang (Pflicht, Freitext) — **nicht** die
   Klassenstufe, an der der [Jahreslauf](04-schuljahreswechsel.md) hängt, und niemand wertet sie aus:
   sie steht auf der Betreuungsliste, damit die Hortkraft weiß, wann dieses Kind Schulschluss hat.
+- Für die eigenen Kinder steht dasselbe an der Klasse: **wann welche Klasse an welchem Wochentag
+  Unterrichtsende hat**, samt dem Häkchen für Sport am Ende — die Halle ist extern, die Eltern
+  fahren die Kinder zurück, und diese Klasse trifft an dem Tag später ein. Der Hort führt das heute
+  selbst und plant seinen Betrieb daran; erhoben wird es nicht hier, sondern mit der Klasse
+  ([15](15-klassenbildung.md)).
 
 Alles Übrige gehört anderen Blöcken und behält deren Regeln, auch wenn es hier zum ersten Mal
 gefüllt wird:

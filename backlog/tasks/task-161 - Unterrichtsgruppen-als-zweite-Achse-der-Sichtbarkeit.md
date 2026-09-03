@@ -1,10 +1,10 @@
 ---
 id: TASK-161
 title: Unterrichtsgruppen als zweite Achse der Sichtbarkeit
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-01 17:19'
-updated_date: '2026-09-03 19:40'
+updated_date: '2026-09-03 22:30'
 labels:
   - schema
   - wb-docs
@@ -110,7 +110,7 @@ Woher die Zuordnung kommt, ist entschieden: **von Hand in Weltenbaum**, nicht au
 - [x] #9 children.class_id bleibt die Stammklasse, die Gruppe steht daneben
 - [x] #10 Für Akademie und Veranstaltungsbegleitung entsteht keine zweite Kindermenge — die Anmeldung dort ist sie
 - [x] #11 Fehlt die Zuordnung, sieht die Lehrkraft nichts statt zu viel — das Prüfskript zeigt es
-- [ ] #12 Bestätigt, wer die Verteilung pflegt — Annahme ist die Schulleitung je Schulart, sie ist ungeprüft
+- [x] #12 Bestätigt, wer die Verteilung pflegt — Annahme ist die Schulleitung je Schulart, sie ist ungeprüft
 - [x] #13 Solange je Modul und Kohorte eine Gruppe existiert, wählt die Oberfläche das Modul und legt die Gruppe selbst an; die Auswahl erscheint erst bei der zweiten
 - [x] #14 Das Aufteilen in zwei Gruppen ist eine benannte Handlung mit dem Schritt 'wer kommt wohin'
 - [x] #15 Die Wahl von A ist im Schema begründet: Wer in einer Klasse unterrichtet, sieht diese Klasse — auch die Kinder, die er nicht selbst fördert
@@ -134,4 +134,11 @@ prompts/schema-pruefen.md in einer frischen Session.
 Nachgezogen: grenzkarte.md nennt die zweite Achse jetzt mit ihren Pfaden statt als
 offene Stelle, api/klassenorganisation-api.md sagt, dass die vier neuen Tabellen
 bewusst noch keine Route haben.
+
+Kriterium 12 ist beantwortet (Betreiber, 03.09.2026): Die Wahlmodulgruppe pflegen
+Klassenlehrkraft, Sekretariat und Schulleitung — die Klassenlehrkraft, weil sie
+weiß, wer was gewählt hat. Unterrichtsverteilung und Unterrichtsende bleiben bei
+Schulleitung und Sekretariat, und beide Tabellen bleiben: Ohne die Verteilung
+sähe eine Fachlehrkraft ohne Klassenleitung nichts, und die Notfalltaste würde
+vom Netz zum Alltagsweg.
 <!-- SECTION:NOTES:END -->
