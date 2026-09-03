@@ -5,6 +5,12 @@ Schuljahr, der Kurs an einem Nachmittag, die Reihe über sechs Wochen — Chor, 
 Kochwerkstatt. Sie ist kein fertiges Programm, sondern eines, das wächst: Was sie in zwei Jahren
 anbietet, weiß heute niemand, und wer heute eine Struktur je Angebotsart baut, baut die falsche.
 
+**Zwei Zweige unter einem Dach:** Kursangebote für Kinder und Jugendliche und **Seminarangebote für
+Erwachsene**. Sie teilen jeden Schritt dieses Blocks und unterscheiden sich in einem Punkt — wer
+teilnimmt: dort ein Kind, hier die erwachsene Person selbst, die sich anmeldet und für die keine
+Familie entsteht. Der Zweig steht am Angebot, damit sich niemand zum falschen anmeldet; sonst hängt
+nichts daran.
+
 **Daraus folgt die Form dieses Blocks: ein Ablauf für jedes Angebot, und keine Angebotsarten.** Was
 die Angebote unterscheidet, sind Werte — nicht Schritte.
 
@@ -42,17 +48,22 @@ ihn ausgeschrieben hat.
   Lehrkraft ihren Chor. Sie legt an, setzt Zielgruppe, Platzzahl, Betrag und Anmeldefenster,
   schließt die Anmeldung, sagt ab und ruft die Teilnehmerliste ab. Eine neue
   [Rolle](hebel.md#rollen) entsteht dafür nicht; wer ein Angebot führt, ist an ihm benannt — wie die
-  verantwortliche Lehrkraft am Ausflug ([19](19-ausfluege-und-fahrten.md)). **Anlegen darf jede und
-  jeder Mitarbeitende** — draußen steht das Angebot aber erst, wenn es freigegeben ist (Schritt 2).
+  verantwortliche Lehrkraft am Ausflug ([19](19-ausfluege-und-fahrten.md)). Es sind **eine oder
+  mehrere Personen, jederzeit änderbar** — eine Rolle träfe alle, die sie tragen, und beim Kurs
+  einer einzelnen Person ist das zu breit. **Anlegen darf jede und jeder Mitarbeitende** — draußen
+  steht das Angebot aber erst, wenn es freigegeben ist (Schritt 2).
 - Die **Geschäftsführung** führt die Akademie als Ganzes: Sie pflegt die **Kategorien**, sieht jedes
   Angebot und ändert es, wenn sie es für nötig hält.
-- Die **übergeordnete Stelle** gibt frei, bevor ein Angebot draußen steht — der Preis dafür, dass
+- Die **freigebende Stelle** gibt frei, bevor ein Angebot draußen steht — der Preis dafür, dass
   jede und jeder anlegen darf: Das Angebot trägt den Namen der Schule, nennt einen Betrag und bindet
-  Plätze, und wer es anlegt, ist nicht zwangsläufig, wer dafür einsteht.
-  `[?]` Welche Stelle das ist, ist nicht entschieden: die Geschäftsführung für jedes Angebot, oder
-  die Leitung der Stelle, an der die anbietende Person hängt. — Geschäftsführung
+  Plätze, und wer es anlegt, ist nicht zwangsläufig, wer dafür einsteht. Es sind **benannte
+  Personen und keine Rolle**, eine oder mehrere und jederzeit änderbar: Eine zentrale Person prüft
+  Rahmen und Wording, nicht die jeweilige Leitung. Die Freigabe lässt sich außerdem **abschalten**
+  — dann gilt jedes Angebot als angenommen.
+  `[?]` Wer es ist, steht noch nicht fest. — Geschäftsführung
 - **Eltern** melden ihr Kind an; **eine sorgeberechtigte Person allein genügt**, wie bei der
-  Ferienbuchung ([10](10-ferienprogramm.md)) — es entsteht kein Vertrag.
+  Ferienbuchung ([10](10-ferienprogramm.md)) — es entsteht kein Vertrag. Im Erwachsenen-Zweig
+  meldet sich die **teilnehmende Person selbst** an, für sich und niemanden sonst.
 - Das **Sekretariat** meldet stellvertretend an ([offizieller Umweg](hebel.md#der-offizielle-umweg))
   und erzeugt Kostenübernahme-Codes (Sonderfälle).
 - Die **Buchhaltung** zieht die Beiträge ein und kommt sonst nicht vor.
@@ -66,9 +77,9 @@ Fotoeinverständnis und der Gesundheitsbestand ([08](08-schulvertrag.md)).
 | # | wer | tut was | danach steht fest |
 |---|---|---|---|
 | 1 | anbietende Stelle | Legt das Angebot an: **Kategorie**, **Thema** — Titel und Beschreibung, das ist die Ausschreibung —, **Zeitraum** und in Worten, wann es stattfindet, **wen es anspricht** und ob **fremde Kinder** mitmachen dürfen, die **Platzzahl**, den **Betrag** und das **Anmeldefenster**. Von Hand und ohne Raster, wie das Anmeldefenster des Ferienprogramms ([10](10-ferienprogramm.md)) | dass es das Angebot gibt, für wen, wie viele mitkommen, was es kostet und ab wann man sich anmelden kann |
-| 2 | übergeordnete Stelle | **Gibt das Angebot frei** oder gibt es mit einem Satz zurück. Sie erfährt davon als [Aufgabe](hebel.md#nachzieh-aufgabe-und-wochenmail). Bis zur Freigabe steht das Angebot nirgends — nicht im öffentlichen Teil und nicht im Portal —, und niemand kann sich anmelden | dass jemand dafür einsteht, dass es dieses Angebot gibt |
+| 2 | freigebende Stelle | **Gibt das Angebot frei** oder gibt es mit einem Satz zurück. Sie erfährt davon als [Aufgabe](hebel.md#nachzieh-aufgabe-und-wochenmail). Bis zur Freigabe steht das Angebot nirgends — nicht im öffentlichen Teil und nicht im Portal —, und niemand kann sich anmelden | dass jemand dafür einsteht, dass es dieses Angebot gibt |
 | 3 | System | Stellt die Ausschreibung in den **öffentlichen Teil des Portals** — lesbar ohne Anmeldung, sonst sähe kein fremdes Kind sie je. Wen das Angebot nicht anspricht, dem wird es im Portal nicht angeboten; verborgen ist es damit nicht | dass das Angebot draußen steht und wer sich anmelden kann |
-| 4 | Eltern | Melden ihr Kind an. Die bekannte Familie tut es im Portal; eine unbekannte bestätigt ihre Mailadresse mit dem [Anmeldecode](hebel.md#zugang-und-anmeldecode) und trägt ein, was ein Kurstag braucht — Name, Geburtsdatum und Anschrift des Kindes, sich selbst und die übrigen Sorgeberechtigten, dazu Notfallnummer, Fotoeinverständnis und Gesundheitsangaben nach denselben Regeln wie bei der Ferienbuchung ([10](10-ferienprogramm.md)). **Mehrere Kinder in einem Zug**. Geprüft wird, ob das Kind zur Zielgruppe gehört und ob noch ein Platz frei ist | wer an diesem Angebot teilnimmt und was die Leitung über das Kind wissen muss |
+| 4 | Eltern | Melden ihr Kind an. Die bekannte Familie tut es im Portal; eine unbekannte bestätigt ihre Mailadresse mit dem [Anmeldecode](hebel.md#zugang-und-anmeldecode) und trägt ein, was ein Kurstag braucht — Name, Geburtsdatum und Anschrift des Kindes, sich selbst und die übrigen Sorgeberechtigten, dazu Notfallnummer, Fotoeinverständnis und Gesundheitsangaben nach denselben Regeln wie bei der Ferienbuchung ([10](10-ferienprogramm.md)). **Mehrere Kinder in einem Zug**. Geprüft wird, ob das Kind zur Zielgruppe gehört und ob noch ein Platz frei ist. Im Erwachsenen-Zweig trägt die teilnehmende Person dasselbe für sich ein — Name, Geburtsdatum, Anschrift und Notfallnummer —, und es entsteht weder eine Familie noch ein Kind | wer an diesem Angebot teilnimmt und was die Leitung über ihn wissen muss |
 | 5 | System | **Das Geld folgt dem Mandat**: Hat die Familie ein SEPA-Mandat, wird der Beitrag eingezogen wie das Schulgeld ([08](08-schulvertrag.md)), und die Buchhaltung bekommt dafür eine [Aufgabe](hebel.md#nachzieh-aufgabe-und-wochenmail). **Ein Mandat hat jede Familie mit einem Schul- oder einem Hortvertrag** — auch die eines externen Hortkindes, sie zahlt den Hortbeitrag darüber ([09](09-hortvertrag.md)). Ohne Mandat ist damit allein die Familie, deren Kind **nur für diesen Kurs** kommt; sie bezahlt beim Absenden online ([Sofortzahlung](hebel.md#sofortzahlung)), und die Anmeldung entsteht erst mit der bestätigten Zahlung; an ihre Stelle tritt sonst der Kostenübernahme-Code (Sonderfälle) | dass der Beitrag auf dem Weg ist, und auf welchem |
 | 6 | anbietende Stelle | **Schließt die Anmeldung** — zum gesetzten Datum oder jederzeit von Hand. Ein Angebot, dessen Platzzahl erreicht ist, ist ohnehin nicht mehr wählbar | wie viele Kinder kommen — die Zahl, mit der geplant wird |
 | 7 | Eltern, anbietende Stelle | **Abmeldung und Absage**: Die Eltern melden ihr Kind im Portal ab oder rufen an ([offizieller Umweg](hebel.md#der-offizielle-umweg)); wirksam wird es, wenn die anbietende Stelle es einträgt — sie wendet die Bedingungen an, trägt den **berechneten oder einbehaltenen Betrag** ein und gibt den Platz frei. Die Erklärung wird sofort eine Aufgabe bei ihr **und** eine Mail, wie beim Ferienstorno ([10](10-ferienprogramm.md)). **Umgekehrt sagt auch sie ab** — eine einzelne Anmeldung oder das ganze Angebot samt Grund in einem Satz; dann gilt keine Frist und keine Gebühr: Bezahltes wird voll erstattet, Berechnetes nicht berechnet | dass dieses Kind nicht kommt, wer es wann erklärt hat, was es kostet und dass der Platz wieder offen ist |
@@ -86,8 +97,11 @@ lief oder ausfiel.
 
 **Die Kategorie ist ein [Wert im System](hebel.md#geld-im-system-alles-andere-fest)**, gepflegt von
 der Geschäftsführung. Sie gliedert das Verzeichnis und sonst nichts: An ihr hängt kein Ablauf, keine
-Berechtigung und kein Preis, und deshalb kostet eine neue Kategorie nichts als eine Zeile. Welche es
-zum Start gibt, entscheidet die Geschäftsführung — `[?]` sie hat sie noch nicht benannt.
+Berechtigung und kein Preis, und deshalb kostet eine neue Kategorie nichts als eine Zeile. Sie ist
+am Angebot **Pflicht**, und die Liste ist **zunächst leer**: Welche Kategorien es gibt, entscheidet
+die Geschäftsführung später. Daraus folgt eine Reihenfolge, die man einmal gesehen haben muss — das
+**erste Angebot braucht die erste Kategorie**, und bis dahin sagt die Oberfläche das, statt eine
+leere Auswahl zu zeigen.
 
 Dazu die zwei Angaben, die das Angebot zuschneiden:
 
@@ -103,7 +117,8 @@ Dazu die zwei Angaben, die das Angebot zuschneiden:
   ([10](10-ferienprogramm.md)): Wo zwölf Kinder an sechs Herdplatten stehen, ist das dreizehnte eins
   zu viel, und daran ändert der Zufall zweier gleichzeitiger Anmeldungen nichts.
 
-Je **Anmeldung** das Kind, das Angebot, der Betrag als das, was beim Absenden galt, der **Zahlweg** —
+Je **Anmeldung** das Kind — im Erwachsenen-Zweig die teilnehmende Person —, das Angebot, der Betrag
+als das, was beim Absenden galt, der **Zahlweg** —
 eingezogen, online bezahlt oder berechnet, dazu in einem Satz, an wen — und, bei einer Abmeldung,
 der Tag der Erklärung, wer sie abgegeben hat, der Tag des Eintrags und der berechnete Betrag; die
 Anmeldung bleibt stehen und gilt als abgemeldet, sie verschwindet nicht.
@@ -131,7 +146,7 @@ ab und neu an.
 Bei der anbietenden Stelle: welche Angebote es gibt, in welchem Zuschnitt, mit welcher Platzzahl und
 welchem Betrag, wann geschlossen wird, was eine Abmeldung kostet und ob abgesagt wird.
 
-**Bei der übergeordneten Stelle die Freigabe** — die einzige Entscheidung in diesem Block, die einen
+**Bei der freigebenden Stelle die Freigabe** — die einzige Entscheidung in diesem Block, die einen
 Vorgang anhält. Sie ist ein Ja oder ein Zurück mit einem Satz, keine Bewertung und keine Auflage: Wer
 zurückgibt, sagt warum, und die anbietende Person legt geändert wieder vor. Ein abgelehntes Angebot
 bleibt ein Entwurf und wird nirgends gezählt.
@@ -224,7 +239,9 @@ Kurs ändert daran nichts. SharePoint bekommt nichts, weil kein Dokument entsteh
 
 ## Löschen
 
-Kein eigener Vorgang. Der Anker ist das **Ende des letzten Angebots dieses Kindes**: Mit ihm endet
+Kein eigener Vorgang. Der Anker ist das **Ende des letzten Angebots dieses Teilnehmers**, und ab ihm
+laufen sechs Monate — für die Teilnehmer der Erwachsenen-Seminare dieselbe Frist wie für schulfremde
+Kinder (Datenschutzbeauftragter). Mit ihm endet
 die [laufende Verbindung](hebel.md#laufende-verbindung), und hat die Familie keine andere, endet ihr
 Zugang ([00](00-zugang-und-portal.md)); ab da rechnet der Lösch-Lauf (17). Für die
 Gesundheitsangaben eines fremden Kindes gilt die eigene Frist aus [10](10-ferienprogramm.md).

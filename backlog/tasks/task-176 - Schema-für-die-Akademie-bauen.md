@@ -1,10 +1,10 @@
 ---
 id: TASK-176
 title: Schema für die Akademie bauen
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-01 19:09'
-updated_date: '2026-09-03 18:02'
+updated_date: '2026-09-03 21:30'
 labels:
   - schema
   - akademie
@@ -37,20 +37,20 @@ Nach prompts/schema-bauen.md, danach schema-pruefen.md in einer frischen Session
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Angebot und Anmeldung stehen; es gibt keine Spalte für eine Angebotsart
-- [ ] #2 Die Verantwortlichen sind eine oder mehrere Personen am Angebot, dynamisch setzbar — keine Rolle
-- [ ] #3 Der Zielgruppen-Zuschnitt ist der aus dem Elternbonus, keine zweite Bauform
-- [ ] #4 Die Platzzahl ist hart — das Prüfskript weist die Anmeldung über die Platzzahl hinaus ab
-- [ ] #5 Die Anmeldung ohne SEPA-Mandat hängt als fünfte Vorgangs-Spalte an payments, die mit Mandat erzeugt keine Zahlung
-- [ ] #6 Ein Angebot, das fremde Kinder nicht zulässt, weist die Anmeldung eines fremden Kindes ab — mit Gegenprobe
-- [ ] #7 Der Kostenübernahme-Code folgt der Form aus ferien-schema.sql
-- [ ] #8 Das Angebot trägt die Option 'Mittagessen enthalten' mit der Bedeutung aus ferien-schema.sql
-- [ ] #9 Das Angebot trägt neben dem Betrag einen zweiten, den die Hauswirtschaftsleitung setzt (Lebensmittel)
-- [ ] #10 Die Absagefrist steht je Angebot als Tageszahl UND Uhrzeit; die Konvention für die leere Uhrzeit steht als Spaltenkommentar
-- [ ] #11 Der Stornotext bleibt als Verweis auf contract_texts daneben
-- [ ] #12 Die Abmeldung folgt der Bauform aus holiday_bookings: zwei Schritte und ein einbehaltener Betrag
-- [ ] #13 Eltern sehen nie einen Abstand, sondern den ausgerechneten Termin
-- [ ] #14 Der Erwachsenen-Zweig ist zum Start dabei: die Anmeldung hängt an einer Person und nicht am Kind
-- [ ] #15 Die Löschfrist der Erwachsenen-Teilnehmer ist dieselbe wie die schulfremder Kinder: sechs Monate nach dem letzten gebuchten Termin
-- [ ] #16 Die Kategorie ist Pflicht am Angebot; die Werteliste steht und ist zunächst leer
+- [x] #1 Angebot und Anmeldung stehen; es gibt keine Spalte für eine Angebotsart
+- [x] #2 Die Verantwortlichen sind eine oder mehrere Personen am Angebot, dynamisch setzbar — keine Rolle
+- [x] #3 Der Zielgruppen-Zuschnitt ist der aus dem Elternbonus, keine zweite Bauform
+- [x] #4 Die Platzzahl ist hart — das Prüfskript weist die Anmeldung über die Platzzahl hinaus ab
+- [ ] #5 Die Anmeldung ohne SEPA-Mandat hängt als fünfte Vorgangs-Spalte an payments, die mit Mandat erzeugt keine Zahlung — offen: die Spalte steht in querschnitt-schema.sql (Sitzung 6), der Fremdschlüssel wartet am Fuß von akademie-schema.sql
+- [x] #6 Ein Angebot, das fremde Kinder nicht zulässt, weist die Anmeldung eines fremden Kindes ab — mit Gegenprobe
+- [x] #7 Der Kostenübernahme-Code folgt der Form aus ferien-schema.sql
+- [x] #8 Das Angebot trägt die Option 'Mittagessen enthalten' mit der Bedeutung aus ferien-schema.sql
+- [x] #9 Das Angebot trägt neben dem Betrag einen zweiten, den die Hauswirtschaftsleitung setzt (Lebensmittel)
+- [x] #10 Die Absagefrist steht je Angebot als Tageszahl UND Uhrzeit; die Konvention für die leere Uhrzeit steht als Spaltenkommentar
+- [x] #11 Der Stornotext bleibt als Verweis auf contract_texts daneben
+- [x] #12 Die Abmeldung folgt der Bauform aus holiday_bookings: zwei Schritte und ein einbehaltener Betrag
+- [x] #13 Eltern sehen nie einen Abstand, sondern den ausgerechneten Termin
+- [x] #14 Der Erwachsenen-Zweig ist zum Start dabei: die Anmeldung hängt an einer Person und nicht am Kind
+- [x] #15 Die Löschfrist der Erwachsenen-Teilnehmer ist dieselbe wie die schulfremder Kinder: sechs Monate nach dem letzten gebuchten Termin
+- [x] #16 Die Kategorie ist Pflicht am Angebot; die Werteliste steht und ist zunächst leer
 <!-- AC:END -->
