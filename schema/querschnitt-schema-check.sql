@@ -953,6 +953,10 @@ INSERT INTO loeschlauf (platz, tabelle, im_lauf) VALUES
     ( 7, 'meal_subscriptions', true),
     ( 8, 'health_trait_values', true), ( 8, 'consents',           true),
     ( 9, 'documents',          true),
+    -- Drei Monate nach dem Austritt und damit lange vor dem Vertrag, der das
+    -- Kind fünf Jahre hält; er hält es seinerseits fest, damit der Lauf ihn
+    -- sieht und ein Anhalten trägt.
+    ( 9, 'child_health_records', true),
     -- Stufe 2
     (10, 'children', true),
     -- Stufe 3. Der Einzel-Freikauf steht vor der Zuteilung, die ihn mit

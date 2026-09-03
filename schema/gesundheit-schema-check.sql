@@ -46,6 +46,8 @@ BEGIN
         'fk_health_type_fields_field',
         'pk_health_visibility_scopes', 'uq_health_visibility_scopes_release',
         'uq_health_visibility_scopes_emergency',
+        'uq_health_visibility_scopes_temporary', 'ck_health_visibility_scopes_temporary',
+        'fk_health_trait_releases_scope', 'ck_health_trait_releases_temporary',
         'pk_health_field_visibility', 'fk_health_field_visibility_pair',
         'fk_health_field_visibility_kind', 'ck_health_field_visibility_presence',
         'ck_health_field_visibility_emergency',
@@ -269,13 +271,15 @@ SELECT pg_temp.expect_reject(
                                             value_kind_code, presence_only, created_by)
        VALUES (1, 1, 2, 'text', true, 'system:check')$q$);
 
--- Und die Wertart kommt vom Feld, nicht vom Schreibenden.
+-- Und die Wertart kommt vom Feld, nicht vom Schreibenden. Feld 5 ist ein
+-- Zeitraum; der Sichtkreis muss ein gewöhnlicher sein, sonst greift der
+-- Notfall-Schlüssel und die Wertart bleibt ungeprüft.
 SELECT pg_temp.expect_reject(
     'TASK-206 — Sichtbarkeit mit falscher Wertart eingetragen',
     $q$INSERT INTO health_field_visibility (health_visibility_scope_id,
                                             health_trait_type_id, health_field_id,
                                             value_kind_code, created_by)
-       VALUES (5, 3, 5, 'text', 'system:check')$q$);
+       VALUES (3, 3, 5, 'text', 'system:check')$q$);
 
 -- Sichtbar machen lässt sich nur, was die Kategorie überhaupt erhebt.
 SELECT pg_temp.expect_reject(
@@ -465,13 +469,15 @@ SELECT pg_temp.expect_reject(
        VALUES ('66666666-6666-6666-6666-666666666662', 5, 1, 'text', 'Zecken',
                'system:check')$q$);
 
--- Kein Wert im falschen Typ: Die Wertart kommt vom Feld.
+-- Kein Wert im falschen Typ: Die Wertart kommt vom Feld. An einem Merkmal ohne
+-- Wert für dieses Feld, sonst greift `uq_health_trait_values` und der
+-- Fremdschlüssel auf die Wertart bleibt ungeprüft.
 SELECT pg_temp.expect_reject(
     '3a — Bezeichnung als Ja/Nein eingetragen',
     $q$INSERT INTO health_trait_values (health_trait_id, health_trait_type_id,
                                         health_field_id, value_kind_code, value_bool,
                                         created_by)
-       VALUES ('66666666-6666-6666-6666-666666666661', 3, 1, 'bool', true,
+       VALUES ('66666666-6666-6666-6666-666666666663', 3, 1, 'bool', true,
                'system:check')$q$);
 
 -- Und die Wertart bestimmt, welche Spalte gefüllt sein muss.
@@ -564,9 +570,17 @@ SELECT pg_temp.expect_accept(
 -- Eine Anlass-Instanz neben den beiden dauerhaften: dieselbe Bauform, nur mit
 -- Zweckende und Löschtermin.
 INSERT INTO health_visibility_scopes (health_visibility_scope_id, code, name,
-                                      needs_release, created_by)
+                                      needs_release, is_temporary, created_by)
     OVERRIDING SYSTEM VALUE
-    VALUES (6, 'trip_2026_10', 'Klassenfahrt Oktober 2026', true, 'system:check');
+    VALUES (6, 'trip_2026_10', 'Klassenfahrt Oktober 2026', true, true, 'system:check');
+
+-- 19: Eine befristete Instanz ist immer ein Freigabeziel — ohne Freigabe gäbe es
+-- nichts, das nach vier Wochen verfiele.
+SELECT pg_temp.expect_reject(
+    '19 — befristete Instanz, die kein Freigabeziel ist',
+    $q$INSERT INTO health_visibility_scopes (code, name, needs_release, is_temporary,
+                                             created_by)
+       VALUES ('trip_bad', 'Fahrt ohne Freigabe', false, true, 'system:check')$q$);
 INSERT INTO health_field_visibility (health_visibility_scope_id, health_trait_type_id,
                                      health_field_id, value_kind_code, created_by)
     VALUES (6, 3, 1, 'text', 'system:check'), (6, 3, 2, 'text', 'system:check');
@@ -643,9 +657,11 @@ SELECT pg_temp.expect_reject(
 SELECT pg_temp.expect_reject(
     'TASK-205 — Einzelfreigabe an eine nie gefragte Instanz',
     $q$INSERT INTO health_trait_releases (health_trait_id, health_visibility_scope_id,
-                                          child_health_record_id, created_by)
+                                          child_health_record_id, is_temporary,
+                                          delete_on, created_by)
        VALUES ('66666666-6666-6666-6666-666666666661', 6,
-               '55555555-5555-5555-5555-555555555551', 'system:check')$q$);
+               '55555555-5555-5555-5555-555555555551', true,
+               CURRENT_DATE + 27, 'system:check')$q$);
 
 -- Der Widerruf der Instanz setzt voraus, dass keine Einzelfreigabe mehr hängt —
 -- die gewollte Reihenfolge, damit keine Angabe an einer widerrufenen Instanz
@@ -686,7 +702,7 @@ BEGIN
     RAISE NOTICE 'ok: dieselben Felder, und trotzdem sieht der Hort ohne Freigabe nichts';
 END $$;
 
--- „Der Mitarbeitende sieht im Notfall alles, nicht nur einen Ausschnitt":
+-- „Der Mitarbeitende sieht im Notfall alles" (TASK-205), nicht nur einen Ausschnitt:
 -- Der Notfallkreis läuft weder über die Feldmatrix noch über die Freigabe. Eine
 -- Zeile in der Matrix wäre eine Begrenzung, die es nicht gibt — und eine
 -- Vollständigkeit, die niemand hält, sobald ein Paar dazukommt.
@@ -727,13 +743,33 @@ END $$;
 INSERT INTO child_health_releases (child_health_record_id, health_visibility_scope_id,
                                    released_at, created_by)
     VALUES ('55555555-5555-5555-5555-555555555551', 6, now(), 'system:check');
+-- 19: „vier Wochen für die Gesundheitsangaben", gerechnet ab dem Ende der Fahrt
+-- — ohne Löschtermin wäre die befristete Freigabe von einer dauerhaften nicht zu
+-- unterscheiden, und der Lösch-Lauf fände sie nie.
+SELECT pg_temp.expect_reject(
+    '19 — Freigabe an eine Fahrt ohne Löschtermin',
+    $q$INSERT INTO health_trait_releases (health_trait_id, health_visibility_scope_id,
+                                          child_health_record_id, is_temporary, created_by)
+       VALUES ('66666666-6666-6666-6666-666666666661', 6,
+               '55555555-5555-5555-5555-555555555551', true, 'system:check')$q$);
+
+-- Und das Häkchen kommt von der Instanz, nicht vom Schreibenden.
+SELECT pg_temp.expect_reject(
+    '19 — dauerhafte Freigabe mit geliehener Befristung',
+    $q$INSERT INTO health_trait_releases (health_trait_id, health_visibility_scope_id,
+                                          child_health_record_id, is_temporary,
+                                          delete_on, created_by)
+       VALUES ('66666666-6666-6666-6666-666666666662', 3,
+               '55555555-5555-5555-5555-555555555551', true,
+               CURRENT_DATE + 27, 'system:check')$q$);
+
 SELECT pg_temp.expect_accept(
     'TASK-162 — dieselbe Angabe, der Fahrt befristet freigegeben',
     $q$INSERT INTO health_trait_releases (health_trait_id, health_visibility_scope_id,
-                                          child_health_record_id, purpose_ends_on,
-                                          delete_on, created_by)
+                                          child_health_record_id, is_temporary,
+                                          purpose_ends_on, delete_on, created_by)
        VALUES ('66666666-6666-6666-6666-666666666661', 6,
-               '55555555-5555-5555-5555-555555555551',
+               '55555555-5555-5555-5555-555555555551', true,
                CURRENT_DATE - 1, CURRENT_DATE + 27, 'system:check')$q$);
 
 SELECT pg_temp.expect_reject(
@@ -884,16 +920,26 @@ SELECT pg_temp.expect_reject(
     'Q2 — Kind gelöscht, obwohl noch ein Attest in SharePoint liegt',
     $q$DELETE FROM children WHERE child_id = '44444444-4444-4444-4444-444444444441'$q$);
 
--- 03: gelöscht wird „die Gesundheitsangaben nach dem letzten bestätigten Ende
--- dieses Kindes". Diese Probe belegt allein den Cascade über vier Ebenen:
--- Bestand, Antwort, Merkmal, Wert — in der Reihenfolge, die der Lösch-Lauf
--- fährt (querschnitt-schema.sql, Stufe 1): erst die Wertzeile, die das Attest
--- festhält, dann das Dokument, dann das Kind.
+-- Das Attest fort, und das Kind steht immer noch: Der Gesundheitsbestand hat
+-- seine eigene, kürzere Frist — drei Monate nach dem Austritt, während der
+-- Vertrag fünf Jahre steht — und hält sein Kind fest, statt per Cascade mit ihm
+-- zu gehen. Nur so sieht der Lösch-Lauf ihn, und nur so überlebt ein angehaltener
+-- Bestand sein Anhalten (hebel.md).
+DELETE FROM health_trait_values WHERE value_document_id IS NOT NULL;
+DELETE FROM documents WHERE child_id = '44444444-4444-4444-4444-444444444441';
+SELECT pg_temp.expect_reject(
+    '03 — Kind gelöscht, obwohl sein Gesundheitsbestand noch steht',
+    $q$DELETE FROM children WHERE child_id = '44444444-4444-4444-4444-444444444441'$q$);
+
+-- Und in der Reihenfolge des Laufs geht beides: erst der Bestand, der Antwort,
+-- Merkmal, Wert und Freigabe per Cascade mitnimmt, dann das Kind mit dem, was
+-- unmittelbar an ihm hängt.
 SELECT pg_temp.expect_accept(
-    '03 — der Bestand verschwindet mit dem Kind, über alle vier Ebenen',
-    $q$DELETE FROM health_trait_values WHERE value_document_id IS NOT NULL;
-       DELETE FROM documents WHERE child_id = '44444444-4444-4444-4444-444444444441';
-       DELETE FROM children  WHERE child_id = '44444444-4444-4444-4444-444444444441'$q$);
+    '03 — erst der Bestand, dann das Kind',
+    $q$DELETE FROM child_health_records
+        WHERE child_id = '44444444-4444-4444-4444-444444444441';
+       DELETE FROM children
+        WHERE child_id = '44444444-4444-4444-4444-444444444441'$q$);
 
 DO $$
 BEGIN

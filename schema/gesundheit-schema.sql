@@ -171,8 +171,9 @@ CREATE TABLE health_visibility_scopes (
     -- für ein Kind vergeben, sondern steht jedem Mitarbeitenden für jedes Kind
     -- offen und wird stattdessen protokolliert (`health_emergency_accesses`).
     -- Er läuft deshalb auch nicht über `health_field_visibility`, sondern sieht
-    -- **jedes** Feld jeder Kategorie — „der Mitarbeitende sieht im Notfall
-    -- alles, nicht nur einen Ausschnitt" (02.09.2026). Als Zeilenmenge wäre das
+    -- **jedes** Feld jeder Kategorie: „der Mitarbeitende sieht im Notfall alles"
+    -- (Auflage vom 02.09.2026, TASK-205) — nicht nur einen Ausschnitt. Als
+    -- Zeilenmenge wäre das
     -- eine Vollständigkeit, die niemand hält: Ein neues Paar (Kategorie, Feld)
     -- wäre im Notfall unsichtbar, bis jemand die Zeile nachträgt, und der
     -- Fehler bliebe still. Die Sicht liefert stattdessen alles und reduziert
@@ -186,6 +187,14 @@ CREATE TABLE health_visibility_scopes (
     -- der Freigaben ausdrücklich übergeht. Ein Häkchen hier und keine zweite
     -- Werteliste daneben: die wäre dieselben Dinge ein zweites Mal.
     needs_release              boolean NOT NULL DEFAULT false,
+    -- Wahr bei einer Anlass-Instanz: „Für die Angaben, die über diese Fahrt
+    -- hereinkommen, gilt eine eigene Aufbewahrung, gerechnet ab dem Ende der
+    -- Fahrt … vier Wochen für die Gesundheitsangaben" (19). Ohne dieses Häkchen
+    -- ist eine Freigabe an eine Fahrt von einer dauerhaften an die Schule nicht
+    -- zu unterscheiden, und der Lösch-Lauf findet sie über den leeren
+    -- Löschtermin nie; `health_trait_releases` führt es mit und wird davon
+    -- gesteuert.
+    is_temporary               boolean NOT NULL DEFAULT false,
     is_active                  boolean NOT NULL DEFAULT true,
     created_at                 timestamptz NOT NULL DEFAULT now(),
     created_by                 text NOT NULL,
@@ -199,6 +208,13 @@ CREATE TABLE health_visibility_scopes (
     -- Trägt den zusammengesetzten Fremdschlüssel von `health_field_visibility`.
     CONSTRAINT uq_health_visibility_scopes_emergency
         UNIQUE (health_visibility_scope_id, is_emergency),
+    -- Und den von `health_trait_releases`.
+    CONSTRAINT uq_health_visibility_scopes_temporary
+        UNIQUE (health_visibility_scope_id, is_temporary),
+    -- Eine Instanz, die befristet freigegeben wird, ist ein Freigabeziel; ohne
+    -- Freigabe gäbe es nichts, das nach vier Wochen verfiele.
+    CONSTRAINT ck_health_visibility_scopes_temporary
+        CHECK (NOT is_temporary OR needs_release),
     CONSTRAINT ck_health_visibility_scopes_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
@@ -276,8 +292,10 @@ CREATE TABLE measles_presentation_types (
 -- Herkunft: 08 (Schulvertrag) — „Die Gesundheitsangaben sind ein Bestand je
 -- Kind …: freiwillig, mit einer vorgeschalteten Frage, ob überhaupt geantwortet
 -- wird — ‚will nicht beantworten' ist eine eingetragene Antwort und kein leeres
--- Feld." Löschanker: das letzte bestätigte Ende dieses Kindes (03) — damit ist
--- die Löschzusage des Betreuungsvertrags eingehalten. Ein leeres Feld gibt es
+-- Feld." Löschanker: **drei Monate nach dem Austritt** des Kindes
+-- (Datenschutzbeauftragter, 02./03.09.2026); ein schulfremdes Kind hat keinen
+-- Austritt, bei ihm gilt das letzte bestätigte Ende (03). Damit ist die
+-- Löschzusage des Betreuungsvertrags eingehalten. Ein leeres Feld gibt es
 -- nur bei den Kindern des Vollimports, „erkennbar daran, dass diese Strecke bei
 -- ihnen nie lief".
 CREATE TABLE child_health_records (
@@ -300,8 +318,17 @@ CREATE TABLE child_health_records (
     created_by             text NOT NULL,
 
     CONSTRAINT pk_child_health_records PRIMARY KEY (child_health_record_id),
+    -- NO ACTION und nicht Cascade, wie `holiday_care_notes` (ferien-schema.sql)
+    -- und aus denselben zwei Gründen. Der Bestand hat seine **eigene, kürzere**
+    -- Frist — drei Monate nach dem Austritt, während der Vertrag fünf Jahre
+    -- steht und das Kind so lange festhält —, muss also vom Lösch-Lauf selbst
+    -- geräumt werden und nicht per Cascade mit dem Kind. Und er trägt
+    -- Löschankündigung und Anhalten (hebel.md, Empfänger: Sekretariat und
+    -- Schul- bzw. Hortleitung): Eine Cascade nähme die angehaltene Zeile mit
+    -- dem Kind mit, ohne dass der Lauf sie sieht. Was darunter hängt — Antwort,
+    -- Merkmal, Wert, Freigabe — geht dann mit ihm.
     CONSTRAINT fk_child_health_records_child
-        FOREIGN KEY (child_id) REFERENCES children (child_id) ON DELETE CASCADE,
+        FOREIGN KEY (child_id) REFERENCES children (child_id),
     CONSTRAINT uq_child_health_records UNIQUE (child_id),
     -- Beantwortet oder ausdrücklich verweigert, nie beides.
     CONSTRAINT ck_child_health_records_answer
@@ -364,8 +391,8 @@ CREATE TABLE child_health_answers (
 -- chronische Erkrankung, Medikament, Notfallmedikament samt Notfallbeschreibung,
 -- körperliche Einschränkung, Seh- oder Hörschwäche, therapeutische Maßnahme
 -- samt Grund und Zeitraum, Zeckenentfernung — steht, was, ob ein Attest vorlag
--- und ob die Schule handeln darf." Löschanker: geht mit dem Bestand und damit
--- mit dem Kind (03).
+-- und ob die Schule handeln darf; bei Medikamenten dazu, ob das Kind sie selbst
+-- nimmt." Löschanker: geht mit dem Bestand und damit mit dem Kind (03).
 -- Die Zeile trägt nichts mehr als ihre Zugehörigkeit: Was das Merkmal ist, wie
 -- es heißt, ob ein Attest vorlag und ob die Schule handeln darf, steht als
 -- Wertzeile daneben. Sie bleibt trotzdem eine eigene Tabelle, weil ein Kind
@@ -428,8 +455,8 @@ CREATE UNIQUE INDEX ix_health_traits_single
     ON health_traits (child_health_answer_id)
     WHERE NOT allows_multiple;
 
--- Herkunft: das Gespräch mit der Geschäftsführung vom 01.09.2026 — „bei
--- chronischer Krankheit angeben und selber entscheiden, wie tief".
+-- Herkunft: das Gespräch mit der Geschäftsführung vom 01.09.2026 — die Eltern
+-- entscheiden je Kategorie, ob und wie tief sie antworten (TASK-205).
 -- Löschanker: geht mit dem Merkmal und damit mit dem Kind (03).
 -- Eine Zeile je beantwortetem Feld. Ein Feld ohne Zeile ist nicht beantwortet;
 -- ob es überhaupt gefragt wurde, sagt `child_health_answers` eine Ebene höher.
@@ -593,6 +620,9 @@ CREATE TABLE health_trait_releases (
     -- bekommen hat.
     child_health_record_id     uuid NOT NULL,
     is_released                boolean NOT NULL DEFAULT true,
+    -- Mitgeführt wie oben, und der CHECK unten hängt daran: Eine Anlass-Instanz
+    -- ohne Löschtermin wäre eine dauerhafte, die niemand als solche erkennt.
+    is_temporary               boolean NOT NULL DEFAULT false,
     -- Ab hier fällt die Angabe aus jeder Alltagsansicht dieses Sichtkreises,
     -- bleibt aber stehen: eingeschränkt verarbeitet, lesbar allein zur
     -- Verteidigung von Rechtsansprüchen (Art. 17 Abs. 3 lit. e, Art. 18 DSGVO).
@@ -618,7 +648,15 @@ CREATE TABLE health_trait_releases (
         FOREIGN KEY (child_health_record_id, health_visibility_scope_id, is_released)
         REFERENCES child_health_releases (child_health_record_id, health_visibility_scope_id,
                                           is_released) ON DELETE CASCADE,
+    CONSTRAINT fk_health_trait_releases_scope
+        FOREIGN KEY (health_visibility_scope_id, is_temporary)
+        REFERENCES health_visibility_scopes (health_visibility_scope_id, is_temporary),
     CONSTRAINT ck_health_trait_releases_released CHECK (is_released),
+    -- 19: „vier Wochen für die Gesundheitsangaben", gerechnet ab dem Ende der
+    -- Fahrt. Der Termin wird beim Freigeben gesetzt; ohne ihn stünde die Angabe
+    -- dauerhaft bei einer Stelle, die sie für einen Anlass bekommen hat.
+    CONSTRAINT ck_health_trait_releases_temporary
+        CHECK (NOT is_temporary OR delete_on IS NOT NULL),
     CONSTRAINT ck_health_trait_releases_dates
         CHECK (delete_on IS NULL OR purpose_ends_on IS NULL OR delete_on >= purpose_ends_on),
     CONSTRAINT ck_health_trait_releases_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
@@ -628,9 +666,10 @@ CREATE TABLE health_trait_releases (
 CREATE INDEX ix_health_trait_releases_delete_on
     ON health_trait_releases (delete_on);
 
--- Herkunft: das Gespräch mit der Geschäftsführung vom 01.09.2026 — „das sollte
--- eine Taste sein bei dem Schüler, wodurch jeder Mitarbeiter im Notfall
--- nachschauen kann". Löschanker: geht mit dem Kind (03).
+-- Herkunft: das Gespräch mit der Geschäftsführung vom 01.09.2026 — eine Taste am
+-- Kind, über die jeder Mitarbeitende im Notfall nachsehen kann (TASK-205).
+-- Löschanker: geht mit dem Kind (03) und ausdrücklich nicht mit dem
+-- Gesundheitsbestand, siehe unten.
 -- Der Notfallausschnitt wird nicht über die Zuständigkeit für ein Kind
 -- vergeben, sondern steht jedem Mitarbeitenden für jedes Kind offen — eine
 -- Genehmigungskette ist bei einem Anfall auf dem Schulhof das falsche Bauteil,
@@ -641,8 +680,8 @@ CREATE INDEX ix_health_trait_releases_delete_on
 -- Bewusst KEINE Spalte für einen eingetippten Grund: Er wäre im Ernstfall nicht
 -- zu tippen und im Missbrauchsfall nicht wahr.
 -- Die Konstruktion ist am 02.09.2026 bestätigt worden, mit drei Auflagen: Der
--- Mitarbeitende sieht im Notfall **alles**, nicht nur einen Ausschnitt, und ohne
--- Rücksicht auf Freigaben — sonst blendete eine Hort-Ablehnung genau den
+-- Mitarbeitende sieht im Notfall **alles**" — nicht nur einen Ausschnitt, und
+-- ohne Rücksicht auf Freigaben, sonst blendete eine Hort-Ablehnung genau den
 -- Zugriff, der im Ernstfall zählt; dass ein ärztliches Attest vorliegt, muss
 -- ersichtlich sein, ohne dass das Attest selbst einsehbar wäre
 -- (`health_field_visibility.presence_only`); und **jede Betätigung wird der
@@ -716,7 +755,18 @@ CREATE TABLE measles_proofs (
 -- den freigegeben wird, und Zweckende wie Löschtermin stehen an der Freigabe
 -- (`health_trait_releases`). Was noch fehlt, ist der Anlassgeber — die Domäne
 -- der außerunterrichtlichen Veranstaltungen legt die Instanz an, an die eine
--- Fahrt freigeben lässt. Bis dahin gibt es die zwei dauerhaften Instanzen
+-- Fahrt freigeben lässt.
+--
+-- [A!] Mit ihr kommt eine Frage, die dieses Modell nicht beantwortet: **Wer
+-- eine Anlass-Instanz lesen darf, ist eine Zeilenmenge und kein GRANT.** Block
+-- 19 sagt „Wer die Angaben sehen darf, bestimmt die Lehrkraft — sie benennt
+-- Verantwortlichen und Begleitperson"; ein Sichtkreis wird dagegen über eine
+-- Sicht je Kreis und eine DB-Rolle vergeben (api/gesundheit-api.md), und eine
+-- je Fahrt benannte Person ist darin nicht ausdrückbar — jede Fahrt kostete
+-- eine Sicht und ein GRANT. — Alternative: die Instanz bekommt eine
+-- Leserliste (Person × Instanz), die die Policy neben dem Sichtkreis prüft;
+-- Preis: die erste Zuständigkeit im System, die nicht aus einer Rolle folgt.
+-- Zu entscheiden vor Domäne 19, nicht davor nötig. Bis dahin gibt es die zwei dauerhaften Instanzen
 -- `school` und `care`, und die drei Monate nach dem Austritt des Kindes sind
 -- der einzige gerechnete Löschtermin. Ein schulfremdes Kind hat keinen Austritt
 -- — bei ihm gilt die eigene Frist aus ferien-schema.sql, vier Wochen nach dem

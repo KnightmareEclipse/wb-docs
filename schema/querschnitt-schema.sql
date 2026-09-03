@@ -56,6 +56,14 @@
 --      Cascade mit dem Gesundheitssatz ginge, ohne dass der Lauf es sieht: bis
 --      dahin hielte es das Attest fest. Merkmal und Antwortzeile darüber nennt
 --      der Lauf nicht — sie halten nichts fest und gehen mit dem Bestand.
+--      Der `child_health_records` selbst steht dagegen hier und nicht in
+--      Stufe 2: **drei Monate nach dem Austritt** (Datenschutzbeauftragter,
+--      02./03.09.2026), während der Vertrag fünf Jahre steht und das Kind so
+--      lange festhält. Er hält sein Kind deshalb mit NO ACTION fest, statt per
+--      Cascade mit ihm zu gehen — sonst überlebte kein Anhalten den Vertrag,
+--      und der Handlungshinweis der Klassenlehrkraft stünde vier Jahre und neun
+--      Monate zu lang. Was unter ihm hängt — Antwort, Merkmal, Freigabe —,
+--      nimmt er mit.
 --      Gleich nach `holiday_bookings` und noch in dieser Stufe steht der
 --      eingelöste `holiday_cost_coverage_codes`: die Buchung hält ihn mit
 --      NO ACTION fest (`fk_holiday_bookings_coverage_code`), und er trägt eine
