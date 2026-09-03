@@ -338,8 +338,8 @@ SELECT pg_temp.expect_reject(
     $q$INSERT INTO holiday_care_notes (child_id, holiday_programme_id, note, created_by)
        VALUES ('44444444-4444-4444-4444-444444444444', 1, 'noch etwas', 'guardian:x')$q$);
 
--- 10: „Wirksam wird er erst, wenn die anbietende Stelle ihn einträgt: Sie …
--- trägt den einbehaltenen Betrag ein."
+-- 10 Z6: „Wirksam wird er erst, wenn die Hortleitung ihn einträgt: Sie wendet
+-- die Frist an, trägt den einbehaltenen Betrag ein und gibt den Platz frei."
 SELECT pg_temp.expect_accept(
     '10 — Storno erklärt, aber noch nicht eingetragen',
     $q$UPDATE holiday_bookings
@@ -446,7 +446,7 @@ SELECT pg_temp.expect_reject(
                                      title, places, created_by)
        VALUES (1, 1, 'Leer', 0, 'system:check')$q$);
 
--- 10: „Die Ferienwoche hat eigene Beträge" — je Modul und Gültigkeitstag einer.
+-- 10: „Die Ferienwoche trägt eigene Beträge" — je Modul und Gültigkeitstag einer.
 INSERT INTO holiday_module_prices (holiday_module_id, valid_from, amount_cents, created_by)
     VALUES (1, DATE '2027-01-01', 2000, 'system:check');
 SELECT pg_temp.expect_reject(

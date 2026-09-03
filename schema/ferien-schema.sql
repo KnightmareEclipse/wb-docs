@@ -68,7 +68,7 @@ CREATE TABLE holiday_session_types (
     -- was zur Buchung galt. Derselbe Weg wie bei der Nachbarangabe, den
     -- Teilnahmebedingungen (`holiday_bookings.terms_contract_text_id`).
     -- Das System rechnet aus ihnen weiterhin nichts: es zeigt sie, und die
-    -- anbietende Stelle trägt den einbehaltenen Betrag ein.
+    -- Hortleitung trägt den einbehaltenen Betrag ein.
     cancellation_terms_code text NOT NULL,
     -- Die Sperre der Eltern als Zahl und nicht als `if` über die drei bekannten
     -- `code`-Werte: „bis 3 Tage davor … ab 3 Tagen ist ein Storno nicht mehr
@@ -81,9 +81,8 @@ CREATE TABLE holiday_session_types (
     -- diese Zahl sagt der Route, ab wann sie ihn nicht mehr entgegennimmt, und
     -- ohne sie hinge die Regel an `code`-Werten im Anwendungscode, wo kein
     -- Prüfskript sie sieht. Das System rechnet aus ihr weiterhin keinen Betrag:
-    -- „Das System rechnet daraus nichts" — es sperrt, und die anbietende Stelle
-    -- trägt ein. Für Sekretariat und anbietende Stelle gilt sie nicht
-    -- (offizieller Umweg).
+    -- „Das System rechnet daraus nichts" — es sperrt, und die Hortleitung trägt
+    -- ein. Für Sekretariat und Hortleitung gilt sie nicht (offizieller Umweg).
     cancellation_deadline_days smallint,
     created_at              timestamptz NOT NULL DEFAULT now(),
     created_by              text NOT NULL,
@@ -169,10 +168,11 @@ CREATE TABLE holiday_module_prices (
 -- Programm und Termine
 -- ---------------------------------------------------------------------------
 
--- Herkunft: 10 (Ferienprogramm) — „Die anbietende Stelle legt ein Programm an:
--- Name, Anmeldefenster und seine Termine." Löschanker: keiner, keine
--- Personendaten. Die anbietende Stelle ist heute immer die Hortleitung (10);
--- sie steht als Wert am Programm und nicht als Regel im Code.
+-- Herkunft: 10 (Ferienprogramm) — „Die Hortleitung legt ein Programm an: Name,
+-- Anmeldefenster und seine Termine." Löschanker: keiner, keine Personendaten.
+-- Die anbietende Stelle ist damit heute die einzige, die der Block kennt; sie
+-- steht trotzdem als Zeile am Programm und nicht als Rolle im Code — rules.md
+-- Abschnitt 3, „organisatorische Werte … liegen als Daten in der Datenbank".
 CREATE TABLE holiday_programmes (
     holiday_programme_id  integer GENERATED ALWAYS AS IDENTITY,
     name                  text NOT NULL,
@@ -261,8 +261,8 @@ CREATE TABLE holiday_session_days (
 -- Kostenübernahme und Buchung
 -- ---------------------------------------------------------------------------
 
--- Herkunft: 10 (Ferienprogramm) — „Sekretariat oder anbietende Stelle erzeugt
--- einen Kostenübernahme-Code für eine Mailadresse und ein Programm, dazu ein
+-- Herkunft: 10 (Ferienprogramm) — „Sekretariat oder Hortleitung erzeugt einen
+-- Kostenübernahme-Code für eine Mailadresse und ein Programm, dazu ein
 -- Satz, an wen berechnet wird … Der Code gilt für diese eine Anmeldung … und
 -- verfällt nach 14 Tagen." Löschanker: nicht die Frist. hebel.md sagt „Fristen
 -- sperren, sie löschen nicht" — die Frist macht den Code ungültig und räumt
@@ -341,7 +341,7 @@ CREATE TABLE holiday_bookings (
     -- Die Fassung, die beim Absenden galt; eine Unterschrift entsteht daraus
     -- nicht.
     terms_contract_text_id  integer NOT NULL,
-    -- Der Storno in zwei Schritten: die Eltern erklären, die anbietende Stelle
+    -- Der Storno in zwei Schritten: die Eltern erklären, die Hortleitung
     -- trägt ein und entscheidet über den Betrag.
     cancellation_declared_at timestamptz,
     cancellation_declared_by text,
@@ -410,8 +410,8 @@ CREATE INDEX ix_holiday_bookings_session ON holiday_bookings (holiday_session_id
 
 
 -- Herkunft: 10 (Ferienprogramm) — „Dazu je Kind eine Anmerkung für die
--- Betreuung (freiwillig, Freitext, sichtbar für die anbietende Stelle,
--- Hortkräfte und Sekretariat)". Der Block zählt sie ausdrücklich NEBEN dem auf,
+-- Betreuung (freiwillig, Freitext, sichtbar für die Hortleitung, Hortkräfte und
+-- Sekretariat)". Der Block zählt sie ausdrücklich NEBEN dem auf,
 -- was „je Buchung" steht; an der Buchung stünde sie je Kind UND Termin, und ein
 -- Kind, das eine Ferienwoche bucht, trüge dieselbe Anmerkung fünfmal — eine
 -- Korrektur erreichte eine davon (rules.md Abschnitt 1). Sie steht deshalb je

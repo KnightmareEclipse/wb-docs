@@ -613,8 +613,9 @@ SELECT pg_temp.expect_reject(
               retained_amount_cents = 99999
         WHERE academy_registration_id = '66666666-6666-6666-6666-666666666603'$q$);
 
--- „Sagt sie selbst ab, gilt keine Frist und keine Gebühr: Bezahltes wird voll
--- erstattet" — der einbehaltene Betrag darf null sein.
+-- Sagt die anbietende Stelle selbst ab, „gilt keine Frist und keine Gebühr:
+-- Bezahltes wird voll erstattet, Berechnetes nicht berechnet" (21) — der
+-- einbehaltene Betrag darf null sein.
 SELECT pg_temp.expect_accept(
     '21 — Abmeldung eingetragen mit einbehaltenem Betrag null',
     $q$UPDATE academy_registrations
@@ -649,8 +650,8 @@ END $$;
 -- Gegenproben — Q3 und Q5
 -- ---------------------------------------------------------------------------
 
--- Q3, grenzkarte.md: „Ein fünfter Anlass folgt demselben Muster: die
--- Akademie-Anmeldung einer Familie ohne SEPA-Mandat."
+-- Q3, grenzkarte.md: „Der fünfte folgt demselben Muster und steht: die
+-- Akademie-Anmeldung einer Familie **ohne** SEPA-Mandat."
 SELECT pg_temp.expect_accept(
     'Q3 — Zahlung auf die Akademie-Anmeldung',
     $q$INSERT INTO payments (academy_registration_id, amount_cents, status, confirmed_at,

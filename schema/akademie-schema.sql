@@ -17,8 +17,12 @@
 -- Betreuungsanmerkung: „Der Gesundheitsbestand wird hier nicht geführt", aber
 -- über diese Domäne erhoben — bei einem fremden Kind entsteht er mit der
 -- Anmeldung, bei einem Kind der Schule geben die Eltern den vorhandenen Bestand
--- frei (`gesundheit-schema.sql`), mit derselben eigenen Frist wie im
--- Ferienprogramm, gerechnet vom Ende des letzten Angebots.
+-- „für dieses Angebot frei" (21). Wohin diese Freigabe zeigt, steht noch nicht:
+-- `gesundheit-schema.sql` kennt heute die zwei dauerhaften Sichtkreise `school`
+-- und `care`, und „was noch fehlt, ist der Anlassgeber" — die Akademie ist einer
+-- von zwei Anlässen, die auf ihn warten. Die eigene Frist des fremden Kindes
+-- steht bis dahin in ferien-schema.sql; hier rechnet sie vom Ende des letzten
+-- Angebots.
 -- Bewusst KEINE Warteliste und kein Nachrücken: „ist ein Angebot voll, ist es
 -- voll", und ein Nein gibt es nicht als Eintrag.
 
@@ -101,10 +105,11 @@ CREATE TABLE academy_offerings (
     -- gehört diesem einen Angebot und lebt nicht länger als es; was beim
     -- Absenden galt, hält die Anmeldung fest.
     amount_cents        integer NOT NULL,
-    -- Der Zusatzbetrag: was an diesem einen Angebot neben der Gebühr anfällt
-    -- und niemand ein Jahr im Voraus weiß — bei der Kochwerkstatt die
-    -- Lebensmittel, die „die Hauswirtschaftsleitung je Termin einkauft" (10),
-    -- anderswo Material, Eintritt oder Fahrt. Er ist der Nachfolger des
+    -- Der Zusatzbetrag: „für das, was an diesem einen Angebot anfällt und nicht
+    -- die Gebühr ist — die Lebensmittel der Kochwerkstatt, anderswo Material,
+    -- Eintritt oder Fahrt" (21). Getrennt geführt, weil ihn oft eine andere
+    -- Stelle kennt als die, die die Gebühr setzt: „Bei der Kochwerkstatt weiß es
+    -- die Hauswirtschaftsleitung." Er ist der Nachfolger des
     -- Ferienaufschlags, wird zur Gebühr addiert statt daneben berechnet, und
     -- ist meistens null. Sein Etikett sagt, wofür er ist: Ein zweiter Betrag
     -- ohne Namen stünde in der Ausschreibung, ohne dass jemand ihn erklären
@@ -148,8 +153,10 @@ CREATE TABLE academy_offerings (
     approved_by         text,
     returned_at         timestamptz,
     return_reason       text,
-    -- „Umgekehrt sagt auch sie ab — das ganze Angebot samt Grund in einem
-    -- Satz"; die Zeile bleibt stehen.
+    -- „Umgekehrt sagt auch sie ab — eine einzelne Anmeldung oder das ganze
+    -- Angebot samt Grund in einem Satz" (21). Hier steht die Absage des ganzen
+    -- Angebots; die der einzelnen Anmeldung ist ihre Abmeldung, eingetragen von
+    -- der anbietenden Stelle. Die Zeile bleibt stehen.
     cancelled_at        timestamptz,
     cancellation_reason text,
     created_at          timestamptz NOT NULL DEFAULT now(),
@@ -326,10 +333,11 @@ CREATE TABLE academy_cost_coverage_codes (
         CHECK (created_by ~ '^(entra:|system:)')
 );
 
--- Herkunft: 21 (Akademie) — „Je Anmeldung das Kind, das Angebot, der Betrag als
--- das, was beim Absenden galt, der Zahlweg … und, bei einer Abmeldung, der Tag
--- der Erklärung, wer sie abgegeben hat, der Tag des Eintrags und der berechnete
--- Betrag; die Anmeldung bleibt stehen und gilt als abgemeldet." Löschanker: das
+-- Herkunft: 21 (Akademie) — „Je Anmeldung das Kind — im Erwachsenen-Zweig die
+-- teilnehmende Person —, das Angebot, der Betrag als das, was beim Absenden galt
+-- …, der Zahlweg … und, bei einer Abmeldung, der Tag der Erklärung, wer sie
+-- abgegeben hat, der Tag des Eintrags und der berechnete Betrag; die Anmeldung
+-- bleibt stehen und gilt als abgemeldet." Löschanker: das
 -- Ende des letzten Angebots dieses Teilnehmers und **sechs Monate danach** —
 -- dieselbe Frist wie die Ferienbuchung, und für die Teilnehmer der
 -- Erwachsenen-Seminare dieselbe wie für schulfremde Kinder
@@ -344,9 +352,10 @@ CREATE TABLE academy_registrations (
     -- zusammen (rules.md Abschnitt 1). Ohne ihn ginge die Anmeldung eines
     -- Kindes zu einem Erwachsenen-Seminar durch.
     for_adults              boolean NOT NULL DEFAULT false,
-    -- Im Kinder-Zweig das Kind, im Erwachsenen-Zweig die Person: „die Anmeldung
-    -- hängt an einer Person und nicht am Kind" (Geschäftsführung, 03.09.2026).
-    -- Genau eine der beiden Spalten steht, und welche, sagt der Zweig.
+    -- Im Kinder-Zweig das Kind, im Erwachsenen-Zweig die Person: „dort ein Kind,
+    -- hier die erwachsene Person selbst, die sich anmeldet und für die keine
+    -- Familie entsteht" (21). Genau eine der beiden Spalten steht, und welche,
+    -- sagt der Zweig.
     child_id                uuid,
     person_id               uuid,
     -- Was beim Absenden galt — Gebühr plus Zusatzbetrag; „eine spätere
@@ -441,9 +450,10 @@ CREATE INDEX ix_academy_registrations_offering
 -- wiederholt wird:
 --   * Die **Platzzahl ist hart** (21) und zählt fremde Zeilen; einen
 --     deklarativen Weg dafür kennt Postgres nicht.
---   * **Fremde Kinder**, wo das Angebot sie nicht zulässt: „bekannt ist ein
---     Kind, das eingeschrieben ist (08) oder einen laufenden Hortvertrag hat
---     (09)" — beides steht in anderen Tabellen, und ein CHECK sieht nur seine
+--   * **Fremde Kinder**, wo das Angebot sie nicht zulässt. „Fremd heißt hier
+--     dasselbe wie in 10" (21), und dort heißt es: „bekannt ist dabei ein Kind,
+--     das eingeschrieben ist (08) oder einen laufenden Hortvertrag hat (09)"
+--     (10 Z3) — beides steht in anderen Tabellen, und ein CHECK sieht nur seine
 --     eigene Zeile.
 -- Im Ferienprogramm liegt die zweite Prüfung in der Anwendung; hier nicht, weil
 -- die Regel sonst keine Gegenprobe hätte. `FOR UPDATE` serialisiert die
