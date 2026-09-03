@@ -85,6 +85,15 @@ child_group_memberships (child_id, elective_group_id)
 
 **Kein Verlauf, wer wann unterrichtet hat.** Die Sichtbarkeit fragt nach dem Jetzt; ein Lehrerwechsel überschreibt. Wer die Geschichte will, liest die Änderungsspur.
 
+**Woher der Zuschnitt stammt** (Teams-Chat und Deputatsverteilung 2026/27, ausgewertet am 03.09.2026) — hier festgehalten, weil das Arbeitspapier verschwindet und die Herkunft sonst nirgends stünde:
+
+- **Realschule, Pflichtbereich (17 Fächer):** Religionslehre/Ethik, Deutsch, Englisch, Mathematik, Geschichte, Geographie, Gemeinschaftskunde, WBS, Physik, Chemie, Biologie, Musik, BK, Sport, Schwimmen, Reflexion BO, Medienbildung/Informatik. **Wahlpflichtbereich (3):** Technik, AES, Französisch — die drei klassenübergreifenden.
+- **Grundschule (13 Fächer):** Religionslehre, Deutsch, Deutsch Erzählkreis, Deutsch +, D (Förder/Vertiefung), Heimat- und Sachunterricht, Englisch, Mathematik, M (Förder/Vertiefung), Bildende Kunst/Text.Werk, Text.Werk, Musik, Sport. Deutsch und Mathematik zerfallen also in mehrere Zeilen — deshalb der Fall des Förderunterrichts oben.
+- **Grundschulklassen (7):** 1a, 1b, 2a, 2b, 3a, 3b, 4 — die vierte Stufe ist einzügig. Je Klasse eine Klassenleitung; wer es ist, kommt aus dem Bestand und nicht aus diesem Ticket.
+- **Fachlehrkraft ist, wer in einer Klasse unterrichtet, ohne ihre Klassenleitung zu sein** — außer in Religion: Die liegt konzeptionell immer bei der Klassenleitung, in beiden Schularten, und ist damit das einzige Fach, das nie eine Fachlehrkraft-Sicht erzeugt. Die Deputatsverteilung bestätigt es, und sie zeigt zugleich den Gegenfall: Selbst ein Kernfach wie Deutsch geht in einer Klasse an eine Fachlehrkraft, während eine andere Person die Klasse führt.
+
+**Keine dieser Fächerlisten wird gebaut.** Sie stehen hier als Beleg dafür, woher der Zuschnitt kommt — gebraucht werden von ihnen nur die drei Wahlmodule.
+
 Woher die Zuordnung kommt, ist entschieden: **von Hand in Weltenbaum**, nicht aus ASV und nicht aus dem Deputatsplan — gepflegt von der Schulleitung je Schulart, nachgezogen zum Schuljahreswechsel (Annahme, siehe unten).
 <!-- SECTION:DESCRIPTION:END -->
 

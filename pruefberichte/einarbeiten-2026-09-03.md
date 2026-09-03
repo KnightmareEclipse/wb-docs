@@ -121,7 +121,9 @@ ist sie nur noch.
 **Am 03.09.2026 in ihre Tickets überführt und deshalb gestrichen:** die drei Preislisten (A2 →
 TASK-050, samt der Feststellung, dass die Zwischenstufen bei Nachmittag 2 und 3 fehlen), die drei
 Korrekturen an der Bildungskarte samt der vertagten Sichtbarkeit und der Klassensicht auf das Konto
-(A5, A7, DS12 → TASK-170) und die Antwort zum Schulvertragsupdate (A9 → TASK-126).
+(A5, A7, DS12 → TASK-170) und die Antwort zum Schulvertragsupdate (A9 → TASK-126). **Am selben Tag
+folgten A12 und A13** — Fächerlisten, Klassen und die Definition der Fachlehrkraft stehen jetzt in
+TASK-161, samt dem Satz, dass keine dieser Listen gebaut wird.
 
 **A1. Die fünf offenen Beträge sind bestätigt** → TASK-051
 Alle mit `valid_from` **sofort**: `care_change_fee_cents` 20 €, `care_sibling_discount_basis_points`
@@ -159,54 +161,6 @@ Zwei Zweige unter einem Dach: **Seminarangebote für Erwachsene** und **Kursange
 Jugendliche**. Kategorien darunter werden später benannt — die **Werteliste wird gebaut und bleibt zunächst leer**, die Kategorie am Angebot ist Pflicht (03.09.2026). Für die Eltern soll das Wort womöglich
 „Kursangebote/AGs" heißen statt „Akademie". **Der Erwachsenen-Zweig ist neu und nicht gebaut** —
 siehe B1.
-
-**A12. Die Fächer der Realschule und die Definition der Fachlehrkraft** · [T] → TASK-197, TASK-161
-Damit ist beantwortet, was DS4 offenlässt: „für ihre Schüler" heißt Klassenleitung für die eigene
-Klasse, Fachlehrkraft für die Klassen, in denen sie unterrichtet.
-
-- **Pflichtbereich (17):** Religionslehre/Ethik, Deutsch, Englisch, Mathematik, Geschichte,
-  Geographie, Gemeinschaftskunde, WBS, Physik, Chemie, Biologie, Musik, BK, Sport, Schwimmen,
-  Reflexion BO, Medienbildung/Informatik.
-- **Wahlpflichtbereich (3):** Technik, AES, Französisch. **Diese drei sind klassenübergreifend** —
-  damit hat TASK-161 (Unterrichtsgruppen als zweite Achse der Sichtbarkeit) seine konkreten Gruppen
-  und ist keine Vorsorge mehr.
-- **Fachlehrkraft ist, wer in einer Klasse unterrichtet, ohne ihre Klassenleitung zu sein.** Das
-  kann in jedem Pflichtfach vorkommen — **außer Religion: die liegt konzeptionell immer bei der
-  Klassenleitung**, in Realschule wie Grundschule. Religion ist damit das einzige Fach, das nie
-  eine Fachlehrkraft-Sicht erzeugt.
-Das Ticket TASK-197 ist damit nicht mehr „Sichtkreis der Fachlehrkraft festlegen", sondern
-„Unterrichtsverhältnis je Fach und Klasse führen" — heute steht dort `sports` stellvertretend für
-alle Lehrkräfte ohne Klassenleitung, und genau diese Krücke fällt weg.
-
-**A13. Die Grundschule: Fächer, Klassen und Klassenleitungen** · [T], `~/Downloads/Medien.jpg`
-Aus der **Deputatsverteilung 2026/27** (V.1), einem Foto der ausgedruckten Tabelle.
-
-- **Fächer (13):** Religionslehre, Deutsch, Deutsch Erzählkreis, Deutsch +, D (Förder/Vertiefung),
-  Heimat- und Sachunterricht, Englisch, Mathematik, M (Förder/Vertiefung), Bildende Kunst/Text.Werk,
-  Text.Werk, Musik, Sport. **Deutsch und Mathematik zerfallen in mehrere Zeilen** — Kernfach,
-  Erzählkreis, Plus, Förder/Vertiefung. Ein Fach ist damit nicht die kleinste Einheit; das
-  Unterrichtsverhältnis hängt an dieser feineren Zeile, sonst fällt Förderunterricht mit dem
-  Kernfach zusammen.
-- **Klassen (7):** 1a, 1b, 2a, 2b, 3a, 3b, 4 — die vierte Stufe ist einzügig.
-- **Klassenleitungen:** 1a Laura · 1b Sara · 2a Silvie · 2b Jasmina · 3a Cordula · 3b Silvia ·
-  4 Mike.
-- Die Tabelle führt **Wochenstunden je Fach und Klasse** (Summe 177 bzw. 183) — ein Deputatsplan,
-  keine Sichtbarkeitsregel. Für Weltenbaum ist nur die Zuordnung Person→Fach→Klasse interessant,
-  nicht die Stundenzahl.
-- **Religionslehre trägt in jeder Klasse die Farbe ihrer Klassenleitung** — die Regel aus A12
-  bestätigt sich in der Tabelle. Umgekehrt zeigt Deutsch in der 2a, dass selbst ein Kernfach an eine
-  Fachlehrkraft geht (dort Hanne, während Silvie die Klasse führt).
-- **Die Farblegende fehlt, und das bleibt so** (03.09.2026). Ohne sie ist die Tabelle nicht
-  auslesbar — zwei Farben sind auf dem Foto kaum zu trennen, und Personen ohne Klassenleitung
-  tauchen nur als Farbe auf. Sie wird trotzdem nicht erbeten: **Das Unterrichtsverhältnis wird von
-  Hand in Weltenbaum gepflegt**, nicht importiert. Sieben Klassen mal einer Handvoll Fächer sind ein
-  Nachmittag, die Verteilung ändert sich ohnehin jährlich, und eine nebenher gepflegte Liste als
-  Quelle wäre eine zweite Wahrheit neben ASV. Was aus dem Plan zu holen war — Klassen,
-  Klassenleitungen, Fächerliste —, steht bereits oben.
-
-**Nebenbefund für TASK-049:** Dieser Deputatsplan ist eine der „nebenher gepflegten Listen". Als
-Quelle für das Unterrichtsverhältnis kommt er nicht in Frage — dass er es als Einziger trüge, war
-der Grund, ihn anzufordern, und genau der ist mit der Handpflege entfallen.
 
 ---
 

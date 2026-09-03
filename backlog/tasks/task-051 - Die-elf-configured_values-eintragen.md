@@ -4,7 +4,7 @@ title: Die elf configured_values eintragen
 status: To Do
 assignee: []
 created_date: '2026-08-27 11:37'
-updated_date: '2026-09-03 14:51'
+updated_date: '2026-09-03 18:09'
 labels:
   - wartet
   - geschaeftsfuehrung
@@ -35,6 +35,7 @@ Freikauf und Strafe im Putzdienst, Bearbeitungs- und Anmeldegebühr, Änderungsg
 - [ ] #3 Die sechs bestätigten Werte liegen mit valid_from 2026-09-01 im Seed
 - [ ] #4 Kein zwölfter Wert für den Jahresfreikauf: er ist das Rechenergebnis aus sechs Pflichtterminen (5+1) à 35 € = 210 € (E3 geklärt 03.09.2026)
 - [ ] #5 Die Anmeldegebühr ist 100 €, gültig ab 01.09.2026 für jeden neuen Vertrag (Geschäftsführung, 03.09.2026) — die 90 € aus dem Hebel sind ersetzt
+- [ ] #6 Die Bedingung der Änderungsgebühr steht in Block 09 und nicht im Wert: Sie fällt nur an, wenn keine Stundenplananpassung vorliegt und kein Zeitpunkt greift, zu dem eine Anpassung kostenfrei möglich wäre
 <!-- AC:END -->
 
 ## Implementation Notes
