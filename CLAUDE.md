@@ -105,6 +105,8 @@ Diese Datei wird automatisch geladen; verlinkt werden muss nichts. Je nach Arbei
   er rot werden kann. Geschlossen werden die Funde mit `prompts/api-reparieren.md`, ein Lauf je
   Bericht: Dort ist der Fund selbst die herausgenommene Sicherung, der neue Test also erst rot und
   dann grün.
+- **Mehrere Sitzungen gleichzeitig:** `prompts/parallel-sitzung.md`, mit „Du bist Sitzung N" davor.
+  Er verteilt die Dateien auf Stränge; alles Weitere gilt unverändert.
 - **Eine Antwort aus der Schule:** `prompts/antwort-einarbeiten.md`, eine Session je Antwortmail.
   Wohin die Antwort dann wandert, steht in `fragen.md`, nicht im Prompt.
 - **Infrastruktur:** `host.md`, `container.md`, `deploy.md`, `runbook.md`, `backup.md`.
