@@ -35,7 +35,7 @@ Berührt die Mensa: Wer über Mittag da ist, isst, und das Tagesessen kostet 5,9
 
 `[?]` **Der Nachweis auf dem Telefonweg ist offen.** Wer im Portal klickt, hat selbst gebucht — `created_by` trägt `guardian:`, und mehr braucht es nicht. Wer anruft, hat nichts Schriftliches: Weigert sich eine Familie später zu zahlen, weil ihr Kind an dem Tag angeblich nicht da war, steht Aussage gegen Aussage. Drei Stufen wären denkbar, entschieden ist keine — eine Bestätigung an die Familie, eine gezeichnete Tagesliste nach der Bauform des Putzdienstes (01), oder gar nichts, weil der Fall in der Praxis nicht vorkommt. **Vor dem Bau mit der Geschäftsführung zu klären**, zusammen mit der Frage, ob eine Notfallbetreuung überhaupt abgelehnt werden darf und ob eine gebuchte, aber nicht wahrgenommene berechnet wird.
 
-**Hängt an fragen.md Frage 10:** Welche Werte der Preisliste unsere sind, ist nicht eindeutig lesbar — die Spalte mit 8/8/12/16/20 ist anderswo mit "Stadt*" überschrieben. Vor dem Seed zu klären, nicht vor dem Bau.
+**Hängt an fragen.md Frage 9:** Welche Werte der Preisliste unsere sind, ist nicht eindeutig lesbar — die Spalte mit 8/8/12/16/20 ist anderswo mit "Stadt*" überschrieben. Vor dem Seed zu klären, nicht vor dem Bau.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria

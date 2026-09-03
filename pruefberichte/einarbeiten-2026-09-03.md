@@ -44,6 +44,11 @@ den Blöcken 03, 05, 10, 19 und 00, in `fragen.md` und `grenzkarte.md`; die Tick
 Einzelfall, Meldung an die Geschäftsführung — steht jetzt einmal als Hebel in
 `soll-prozesse/hebel.md` und wird von den Blöcken nur genannt.
 
+**Die Hort-Belegungsliste ist beschrieben** (03.09.2026): acht Sichten, davon sieben auf Bestände,
+die es schon gibt — Gesamtübersicht, nach Tag, nach Klasse, Auslastung je Modul, Kinder mit dem, was
+zu beachten ist, und die Abrechnung. Neu sind nur die Hausaufgabenbetreuung und die Abfrage an
+Brückentagen (TASK-216, TASK-217). Die Datei selbst bleibt ungelesen.
+
 **Der ganze Abschnitt B ist gestrichen:** Jedes der acht neuen Themen hat inzwischen sein Ticket —
 B1 und B2 in TASK-176, TASK-211 und TASK-212, B3 in TASK-214, B4 in TASK-216, B5 in TASK-207, B6 in
 TASK-215 (auf der langen Bank, es war eine Idee), B7 in TASK-208 und B8 in TASK-209. Damit ist das

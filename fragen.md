@@ -1,6 +1,6 @@
 # Fragen an die Schule — was wen zu fragen ist
 
-Siebzehn Fragen, die Weltenbaum nicht selbst beantworten kann, sortiert nach dem Gespräch, in
+Sechzehn Fragen, die Weltenbaum nicht selbst beantworten kann, sortiert nach dem Gespräch, in
 das sie gehören. **Sie stehen nur hier** — das Arbeitspapier in `pruefberichte/` trägt, was die
 Mails gesagt haben und was wir daraus bauen, aber keine Frage mehr. Je Frage steht hier ihr **Wortlaut**, das **Kriterium**, an dem du erkennst, dass die
 Antwort reicht, und **woran sie hängt**.
@@ -113,7 +113,7 @@ Lösch-Lauf sie überhaupt nicht — danach ist es eine `WHERE`-Bedingung und ke
 
 ---
 
-## Geschäftsführung — acht Fragen
+## Geschäftsführung — sieben Fragen
 
 Die Vertragstexte stehen hier nicht mehr: Sie werden künftig anhand dessen nachgezogen, **was im
 Portal gebaut wird** — sie gehen keinem Ablauf mehr voraus und blockieren keine Domäne. Was daran zu
@@ -195,19 +195,7 @@ Zugriffs machen wir, sie gehört nicht in die Antwort.
 
 *Steht in* `backlog/` TASK-189
 
-### 9. Welche Sheets hat die Hort-Belegungsliste?
-
-> „Damit wir sagen können, ob Weltenbaum die Belegungsliste künftig erzeugen kann, brauchen wir ihre
-> **Struktur**, nicht die Datei: die Namen der Sheets und die Spaltenüberschriften darin."
-
-**Brauchbar ist die Antwort, wenn** je Sheet die Spalten aufgezählt sind.
-
-**Daran hängt:** Ob es eine [frisch erzeugte Liste](soll-prozesse/hebel.md#frisch-erzeugte-liste)
-wird oder ein Export, und ob dafür Angaben fehlen.
-
-*Steht in* `pruefberichte/einarbeiten-2026-09-03.md`, B4
-
-### 10. Notfallbetreuung: welche Preise sind unsere?
+### 9. Notfallbetreuung: welche Preise sind unsere?
 
 > „In der Hort-Preisliste stehen für die **Notfallbetreuung** die Werte 8 / 8 / 12 / 16 / 20 in
 > derselben Spalte, die anderswo mit ‚Stadt*' überschrieben ist — also in der Vergleichsspalte.
@@ -223,7 +211,7 @@ Zuordnung stünde außerdem ein Fremdpreis in unserer Liste.
 
 *Steht in* `schema/anmeldung-schema.sql` · `backlog/` TASK-050
 
-### 11. Wie erfahren wir, wer Alumni werden will?
+### 10. Wie erfahren wir, wer Alumni werden will?
 
 > „Für den Alumni-Verteiler brauchen wir eine Einwilligung: Name und Mailadresse dürfen bleiben, bis
 > widersprochen wird. Offen ist, **wann und wie wir fragen** — beim Abgang im Portal, mit den letzten
@@ -243,7 +231,7 @@ muss bis dahin erreichbar sein — die Adresse fällt aber drei Monate nach dem 
 
 ## Sekretariat — vier Fragen
 
-### 12. Zuordnung der Fremdsysteme — zusammen mit Buchhaltung und Admin
+### 11. Zuordnung der Fremdsysteme — zusammen mit Buchhaltung und Admin
 
 > „Wenn sich bei einem Kind oder einer Familie etwas ändert, muss das teilweise auch in ASV-BW,
 > Optigem oder M365 nachgezogen werden. Wir haben eine Zuordnung erstellt, welche Änderung wohin
@@ -259,7 +247,7 @@ Zuordnung dort zu weit gefasst.
 
 *Steht in* `soll-prozesse/02-datenaenderung.md:32`
 
-### 13. Bescheinigungen beim Abgang
+### 12. Bescheinigungen beim Abgang
 
 > „Wenn ein Kind die Schule verlässt — welche Papiere schreibt ihr routinemäßig? Abgangszeugnis,
 > Schulbescheinigung für die neue Schule, Bestätigung der Abmeldung?"
@@ -271,7 +259,7 @@ oder nur auf Anfrage entsteht.
 
 *Steht in* `soll-prozesse/03-irregulaerer-abgang.md:25`
 
-### 14. Aufgaben des Jahreswechsels
+### 13. Aufgaben des Jahreswechsels
 
 > „Ende Juli zieht der zweite Admin alle Klassen von Hand auf die neue Stufe um, legt die Neuen an
 > und löscht die Abgänger. Was tut ihr in dieser Zeit sonst noch, jedes Jahr wieder?"
@@ -284,7 +272,7 @@ bleibt Zuruf.
 
 *Steht in* `soll-prozesse/04-schuljahreswechsel.md:30`
 
-### 15. Elternfragebogen der Grundschul-Checkliste — zusammen mit der Grundschulleitung
+### 14. Elternfragebogen der Grundschul-Checkliste — zusammen mit der Grundschulleitung
 
 > „Beim Anmeldetag der Grundschule bekommen die Eltern einen Fragebogen auf Papier mit. Was steht
 > darauf — und könnte er künftig vorab im Portal ausgefüllt werden?"
@@ -299,7 +287,7 @@ gebaut.
 
 ## Schulleitung — zwei Fragen
 
-### 16. Unterrichtlicher und außerunterrichtlicher Ausflug — ein Unterschied oder zwei Wörter?
+### 15. Unterrichtlicher und außerunterrichtlicher Ausflug — ein Unterschied oder zwei Wörter?
 
 > „Für die Klassenfahrt gibt es eine mehrseitige Erklärung, die die Eltern unterschreiben —
 > Einverständnis, Vollmacht, Kostenzusage, Belehrung. Für den Unterrichtsgang oder den Wandertag
@@ -319,7 +307,7 @@ aussähe, als hätte jemand vergessen zu fragen.
 
 *Steht in* `soll-prozesse/19-ausfluege-und-fahrten.md` (Kopf, die Tabelle der zwei Arten)
 
-### 17. Geburtsurkunde: wie prüft das Sekretariat künftig?
+### 16. Geburtsurkunde: wie prüft das Sekretariat künftig?
 
 > „Die Geburtsurkunde wird künftig nur noch **eingesehen** und nicht mehr kopiert — das ist
 > entschieden. Offen ist der Ablauf: Wann wird sie vorgelegt, wer sieht sie an, und was wird
