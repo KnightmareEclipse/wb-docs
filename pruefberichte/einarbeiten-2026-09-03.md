@@ -107,11 +107,6 @@ schreiben**. Seine Rückfrage, ob das ohne Datenleichen geht, ist beantwortet: j
 Reihenfolge im Kopf von `schema/querschnitt-schema.sql` leistet genau das — sie geht als Zusage mit
 hinaus (`fragen.md`, Vorspann des Datenschutzgesprächs).
 
-**DS12. Die Bildungskarte ist vertagt.** → TASK-170, überschreibt A6
-„Die Frage kann erst nach Klärung des Ausflugsprozesses beantwortet werden. Es könnte eine Option
-geben, die keine Info über Bildungskarte erforderlich macht." **Diese Mail ist eine halbe Stunde
-jünger als [M2]** und hebt damit das dortige vorläufige „A" auf.
-
 **DS13. Die Geburtsurkunde wird künftig nur eingesehen.** → TASK-054
 Ja zur bloßen Einsicht. Prüfprozess und Praktikabilität klärt Jürgen am Montag — der Beschluss steht,
 die Umsetzung im Sekretariat nicht.
@@ -123,26 +118,17 @@ die Umsetzung im Sekretariat nicht.
 Kurze Läufe, alle aus [M2]. Jeder Punkt ist eine Entscheidung, die schon gefallen ist; einzutragen
 ist sie nur noch.
 
+**Am 03.09.2026 in ihre Tickets überführt und deshalb gestrichen:** die drei Preislisten (A2 →
+TASK-050, samt der Feststellung, dass die Zwischenstufen bei Nachmittag 2 und 3 fehlen), die drei
+Korrekturen an der Bildungskarte samt der vertagten Sichtbarkeit und der Klassensicht auf das Konto
+(A5, A7, DS12 → TASK-170) und die Antwort zum Schulvertragsupdate (A9 → TASK-126).
+
 **A1. Die fünf offenen Beträge sind bestätigt** → TASK-051
 Alle mit `valid_from` **sofort**: `care_change_fee_cents` 20 €, `care_sibling_discount_basis_points`
 10 %, `mileage_rate_cents` 0,30 €/km, `expense_report_threshold_cents` 250 €,
 `parent_bonus_monthly_cents` 10 €. **Die Änderungsgebühr trägt eine Bedingung**, die kein Betrag
 ist: sie fällt nur an, wenn *keine* Stundenplananpassung vorliegt und *kein* Zeitpunkt greift, zu
 dem eine Anpassung kostenfrei möglich wäre. Das gehört in Block 09, nicht in den Wert.
-
-**A2. Die drei Preislisten liegen vor** → TASK-050
-- **Schulgeld, gültig ab 01.08.2026:** Grundschule 145 €, Realschule 150 €. Geschwister: 1. Kind
-  (höchste Klassenstufe) keine Ermäßigung, 2. Kind −20 €, 3. Kind −40 €, ab dem 4. Kind
-  beitragsfrei — je auf den Grundpreis der besuchten Schulart.
-- **Mensa, gültig ab September 2026:** 1 Tag 21,50 € · 2 Tage 42,50 € · 3 Tage 63,50 € · 4 Tage
-  84,50 € · 5 Tage 105,00 € je Monat, Tagesessen 5,90 € pro Fall. **Auf elf Monate kalkuliert, der
-  August ist beitragsfrei** — das ist eine Regel und kein Preis.
-- **Hort, gültig ab September 2026** (Spalte „Neue Preise"): Frühbetreuung 12 € · Nachmittag 1 (bis
-  13:00) 12 € · Nachmittag 2 (bis 14:30) 1 Tag 27 €, 5 Tage 130 € · Nachmittag 3 (bis 15:30) 1 Tag
-  37 €, 5 Tage 175 € · Nachmittag 4 (bis 17:00) 1 Tag 73 €, 2 Tage 126 €, 3 Tage 168 €, 4 Tage
-  189 €, 5 Tage 210 € · Hort nach Mittagsschule (RS Klasse 5, 15:00–17:00) 1 Tag 23 €. Ferien:
-  8–14 Uhr 22 €, 8–16 Uhr 28 € bei Selbstverpflegung.
-  **Die Notfallbetreuung ist aus der Tabelle nicht eindeutig lesbar** — siehe E2.
 
 **A3. Rollenvergabe bestätigt, mit einer Ausnahme** → TASK-190
 Die Regel steht (Führungskraft vergibt ihren Bereich, Personalwesen den Rest, Admin alles). **Aber:
@@ -154,32 +140,14 @@ Der Name soll in der Portaladresse und im Mailabsender auftauchen. Zwei Rückfra
 die den Ticketumfang verdoppeln: ob der Mailversand mitwandert und ob die Domain
 `meinCLEMENS.schule` heißen soll (`fragen.md` Frage 10).
 
-**A5. Bildungskarte: drei Korrekturen am notierten Ablauf** → TASK-170, TASK-171, TASK-172
-- Leere oder abgelaufene Karte: die Kosten bleiben **nur dann** bei uns, wenn wir zu spät abrechnen
-  und das Versäumnis bei uns liegt; sonst wird mit dem Guthaben verrechnet.
-- Das **Schullandheim kann** über die Bildungskarte abgerechnet werden — es ist nicht ausgenommen.
-- Das **Mittagessen kann teilweise** über die Bildungskarte abgerechnet werden. Das zieht die
-  Mensa-Domäne in den Ablauf, die bisher nicht darin vorkommt.
-
 **A6. Bildungskarte, wer sie sieht: hinfällig** → TASK-170
 In [M2] stand ein vorläufiges „A" (dauerhaft am Kind, für Lehrkräfte sichtbar). **DS12 aus der
 späteren Mail hebt das auf** — die Frage ist vertagt, bis der Ausflugsprozess steht. Nicht
 einarbeiten.
 
-**A7. Ausflugskonto: die Lehrkraft sieht den Stand ihrer Klasse (B)** → TASK-170, TASK-171
-Für die Eltern**sicht** ist die Antwort ein weiches Nein („Bauchgefühl", begründet mit dem bisher
-schlecht laufenden Prozess) — als Entscheidung notieren, nicht als Beschluss. Offen: wie der
-eingezogene Pauschalbetrag ins System kommt: von der **Schulleitung, ersatzweise der
-Buchhaltung** (03.09.2026).
-
 **A8. Akademie-Freigabe: eine Person, noch nicht benannt** → TASK-179, TASK-180
 Eine zentrale Person prüft Rahmen und Wording, nicht die jeweilige Leitung. Wer, klärt Jürgen mit
 Corrado und Sabine. Ticket bleibt offen, aber die Struktur ist entschieden.
-
-**A9. Schulvertragsupdate, wenn niemand bestätigt: A **und** B** → TASK-126
-Erst Erinnerung, dann Sperre im Portal — und in beiden Fällen ein Hinweis ans Sekretariat, damit es
-nachgehen kann. Begründung: ob ein Vertrag ohne bestätigte wesentliche Änderung weiterläuft, ist
-eine Prüfung, kein Automatismus.
 
 **A10. Elternbonus: die Mechanik ist bestätigt** → TASK-164 bis TASK-166
 Elf Monate à 10 €, im zwölften Monat anteilig erstattet nach geleisteten Stunden (15 Grundschule,

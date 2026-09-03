@@ -4,7 +4,7 @@ title: Soll-Block Schulvertragsupdate schreiben
 status: In Progress
 assignee: []
 created_date: '2026-08-28 13:27'
-updated_date: '2026-08-28 15:49'
+updated_date: '2026-09-03 18:05'
 labels:
   - wb-docs
   - soll-block
@@ -30,7 +30,8 @@ Die Geschäftsführung will allen Familien die neueste Fassung des Schulvertrags
 <!-- AC:BEGIN -->
 - [ ] #1 Wer stellt die Fassung ein, wen erreicht sie, wen ausdrücklich nicht
 - [ ] #2 Kenntnisnahme je Familie oder je sorgeberechtigter Person — und Unterschrift oder Haken
-- [ ] #3 Was geschieht, wenn niemand antwortet: Erinnerung, Sperre oder nichts
+- [x] #3 Was geschieht, wenn niemand antwortet: Erinnerung, Sperre oder nichts
 - [ ] #4 Der Anker entschieden — vierter Bezug in signatures oder eigene Tabelle, samt Löschanker
 - [ ] #5 Termin gesetzt: die Geschäftsführung will ihn zum Schuljahresanfang, ein Elternportal gibt es dafür noch nicht
+- [ ] #6 Beantwortet am 02.09.2026: erst Erinnerung, dann Sperre im Portal — und in beiden Fällen ein Hinweis ans Sekretariat, damit es nachgehen kann. Begründung: ob ein Vertrag ohne bestätigte wesentliche Änderung weiterläuft, ist eine Prüfung und kein Automatismus
 <!-- AC:END -->
