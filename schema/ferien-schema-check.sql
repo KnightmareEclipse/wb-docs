@@ -515,6 +515,11 @@ SELECT pg_temp.expect_reject(
     $q$UPDATE holiday_sessions SET cancelled_at = now()
         WHERE holiday_session_id = '55555555-5555-5555-5555-555555555552'$q$);
 
+SELECT pg_temp.expect_reject(
+    '10 — abgesagter Termin mit leerem Grund',
+    $q$UPDATE holiday_sessions SET cancelled_at = now(), cancellation_reason = ''
+        WHERE holiday_session_id = '55555555-5555-5555-5555-555555555552'$q$);
+
 SELECT pg_temp.expect_accept(
     '10 — abgesagter Termin mit Grund, der stehen bleibt',
     $q$UPDATE holiday_sessions SET cancelled_at = now(), cancellation_reason = 'zu wenige Anmeldungen'
@@ -675,7 +680,7 @@ SELECT pg_temp.expect_reject(
 SELECT pg_temp.expect_accept(
     'Q3 — Zahlung über die Summe mehrerer Buchungen, an der ersten von ihnen',
     $q$INSERT INTO payments (holiday_booking_id, amount_cents, created_by)
-       VALUES ('66666666-6666-6666-6666-666666666661', 12000, 'system:check')$q$);
+       VALUES ('66666666-6666-6666-6666-666666666662', 12000, 'system:check')$q$);
 
 -- 10: „Der Code gilt für diese eine Anmeldung." Eingelöst hängt er an seiner
 -- Buchung und geht erst nach ihr — `fk_holiday_bookings_coverage_code` hält ihn
@@ -691,7 +696,8 @@ SELECT pg_temp.expect_reject(
 SELECT pg_temp.expect_accept(
     'Q3 — die Zahlung geht mit ihrer Ferienbuchung',
     $q$DELETE FROM holiday_bookings
-        WHERE holiday_booking_id = '66666666-6666-6666-6666-666666666661'$q$);
+        WHERE holiday_booking_id IN ('66666666-6666-6666-6666-666666666661',
+                                     '66666666-6666-6666-6666-666666666662')$q$);
 
 SELECT pg_temp.expect_accept(
     '10 — nach der Buchung geht der eingelöste Code',

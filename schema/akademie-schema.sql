@@ -149,6 +149,11 @@ CREATE TABLE academy_offerings (
     -- legt geändert wieder vor — dann wird `returned_at` geleert. Ist die
     -- Freigabe abgeschaltet (`configured_values`, ein Wert im System und kein
     -- fest verdrahteter Schritt), setzt sie der Lauf selbst mit `system:`.
+    -- „Sie erfährt davon als Aufgabe" (21 Z2) — die Aufgabe ist keine Zeile in
+    -- `sync_tasks`, sondern folgt aus diesen beiden Spalten: offen ist, was
+    -- weder freigegeben noch zurückgegeben ist. Dieselbe Form wie die beiden
+    -- Putzdienst-Aufgaben, die aus `allocation_released_at` und
+    -- `attendance_recorded_at` folgen (querschnitt-schema.sql).
     approved_at         timestamptz,
     approved_by         text,
     returned_at         timestamptz,

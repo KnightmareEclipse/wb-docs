@@ -11,7 +11,9 @@
 -- Erhoben werden sie über diese Domäne trotzdem — bei einem fremden Kind
 -- entsteht der Gesundheitsbestand mit der Ferienbuchung, weil es keinen anderen
 -- Weg gibt, auf dem er entstünde; bei einem Kind der Schule geben die Eltern
--- den vorhandenen Bestand für dieses Programm frei (`gesundheit-schema.sql`).
+-- den vorhandenen Bestand für dieses Programm frei. Wohin diese Freigabe zeigt,
+-- steht noch nicht: `gesundheit-schema.sql` kennt heute die zwei dauerhaften
+-- Sichtkreise `school` und `care`, und „was noch fehlt, ist der Anlassgeber".
 -- Die eigene Frist dieses Bestands steht seit dem 02.09.2026: **vier Wochen
 -- nach dem letzten gebuchten Termin**, gerechnet vom Termin und nicht vom Ende
 -- des Programms. Sie ist damit deutlich kürzer als die der Buchung selbst
@@ -89,6 +91,8 @@ CREATE TABLE holiday_session_types (
     CONSTRAINT pk_holiday_session_types      PRIMARY KEY (holiday_session_type_id),
     CONSTRAINT uq_holiday_session_types_code UNIQUE (code),
     CONSTRAINT ck_holiday_session_types_terms CHECK (cancellation_terms_code <> ''),
+    CONSTRAINT ck_holiday_session_types_code  CHECK (code <> ''),
+    CONSTRAINT ck_holiday_session_types_name  CHECK (name <> ''),
     CONSTRAINT ck_holiday_session_types_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
@@ -122,6 +126,8 @@ CREATE TABLE holiday_modules (
     -- Trägt den zusammengesetzten Fremdschlüssel der Buchung: er bindet Modul
     -- und Termin an dieselbe Terminart (rules.md Abschnitt 1).
     CONSTRAINT uq_holiday_modules_id_type UNIQUE (holiday_module_id, holiday_session_type_id),
+    CONSTRAINT ck_holiday_modules_code CHECK (code <> ''),
+    CONSTRAINT ck_holiday_modules_name CHECK (name <> ''),
     CONSTRAINT ck_holiday_modules_times
         CHECK (ends_at_time IS NULL OR starts_at_time IS NULL OR ends_at_time > starts_at_time),
     CONSTRAINT ck_holiday_modules_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
@@ -233,6 +239,9 @@ CREATE TABLE holiday_sessions (
     CONSTRAINT uq_holiday_sessions_id_programme
         UNIQUE (holiday_session_id, holiday_programme_id),
     CONSTRAINT ck_holiday_sessions_title  CHECK (title <> ''),
+    CONSTRAINT ck_holiday_sessions_description CHECK (description <> ''),
+    -- „samt Grund in einem Satz" (10) — ein leerer Satz ist keiner.
+    CONSTRAINT ck_holiday_sessions_reason CHECK (cancellation_reason <> ''),
     CONSTRAINT ck_holiday_sessions_places CHECK (places > 0),
     -- Eine Absage trägt ihren Grund in einem Satz, wie jedes Ende in 03.
     CONSTRAINT ck_holiday_sessions_cancellation
@@ -305,6 +314,7 @@ CREATE TABLE holiday_cost_coverage_codes (
     CONSTRAINT uq_holiday_cost_coverage_codes_id_programme
         UNIQUE (holiday_cost_coverage_code_id, holiday_programme_id),
     CONSTRAINT ck_holiday_cost_coverage_codes_email  CHECK (email <> ''),
+    CONSTRAINT ck_holiday_cost_coverage_codes_hash   CHECK (code_hash <> ''),
     CONSTRAINT ck_holiday_cost_coverage_codes_note   CHECK (invoice_note <> ''),
     CONSTRAINT ck_holiday_cost_coverage_codes_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
