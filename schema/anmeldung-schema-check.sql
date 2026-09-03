@@ -1,13 +1,14 @@
 -- Prüfskript zu anmeldung-schema.sql.
 --
--- Sollstand: 20 Tabellen — acht Wertelisten (application_statuses,
+-- Sollstand: 25 Tabellen — neun Wertelisten (application_statuses,
 -- kindergartens, school_levels, enrolment_assessments,
 -- kindergarten_recommendations, attended_offers,
--- care_need_levels, care_modules), dazu care_module_prices, tuition_fees,
--- enrolment_windows,
+-- care_need_levels, care_modules, emergency_care_types), dazu
+-- care_module_prices, emergency_care_prices, tuition_fees, enrolment_windows,
 -- application_unlocks, admission_days, admission_day_slots, applications,
--- application_offers, contracts, contract_responses, care_module_agreements und
--- care_module_bookings. Dazu drei partielle Unique-Indizes und die beiden
+-- application_offers, contracts, contract_responses, care_module_agreements,
+-- care_module_bookings, emergency_care_bookings, care_bridge_days und
+-- care_bridge_day_responses. Dazu drei partielle Unique-Indizes und die beiden
 -- Querschnitts-Fremdschlüssel auf `contracts` und `applications`. Zwei
 -- Fremdschlüssel dieser Datei sind zusammengesetzt, obwohl sie einspaltig
 -- aussehen: `fk_applications_slot` bindet das Zeitfenster an seinen Tag,
@@ -31,13 +32,15 @@ BEGIN
         'care_module_prices', 'tuition_fees', 'enrolment_windows', 'application_unlocks',
         'admission_days', 'admission_day_slots', 'applications',
         'application_offers', 'contracts', 'contract_responses',
-        'care_module_agreements', 'care_module_bookings'
+        'care_module_agreements', 'care_module_bookings',
+        'emergency_care_types', 'emergency_care_prices', 'emergency_care_bookings',
+        'care_bridge_days', 'care_bridge_day_responses'
     ]) AS t
     WHERE to_regclass('public.' || t) IS NULL;
     IF missing IS NOT NULL THEN
         RAISE EXCEPTION 'Fehlende Tabellen: %', missing;
     END IF;
-    RAISE NOTICE 'ok: alle 20 Tabellen vorhanden';
+    RAISE NOTICE 'ok: alle 25 Tabellen vorhanden';
 END $$;
 
 -- 07: „Bewertung, Ranking und Notizen der Lehrkräfte: außerhalb des Systems,
@@ -101,7 +104,18 @@ BEGIN
         'uq_care_need_levels_code', 'uq_tuition_fees', 'fk_tuition_fees_branch',
         'ck_tuition_fees_amount', 'ck_tuition_fees_rank',
         'fk_signatures_contract', 'fk_signatures_agreement', 'fk_payments_application',
-        'ck_contracts_text_kind', 'uq_contract_texts_id_code', 'ck_contracts_period'
+        'ck_contracts_text_kind', 'uq_contract_texts_id_code', 'ck_contracts_period',
+        'ex_contracts_care_period', 'ck_admission_day_slots_places',
+        'uq_emergency_care_types_code', 'uq_emergency_care_types_module',
+        'fk_emergency_care_types_module', 'ck_emergency_care_types_created_by',
+        'uq_emergency_care_prices', 'ck_emergency_care_prices_amount',
+        'fk_emergency_care_prices_type', 'fk_emergency_care_bookings_child',
+        'fk_emergency_care_bookings_type', 'uq_emergency_care_bookings',
+        'ck_emergency_care_bookings_amount', 'ck_emergency_care_bookings_state',
+        'ck_emergency_care_bookings_attended', 'ck_emergency_care_bookings_attended_by',
+        'uq_care_bridge_days', 'ck_care_bridge_days_created_by',
+        'fk_care_bridge_day_responses_day', 'fk_care_bridge_day_responses_child',
+        'uq_care_bridge_day_responses'
     ]) AS c
     WHERE NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = c);
     IF missing IS NOT NULL THEN
@@ -1284,6 +1298,133 @@ BEGIN
 END $$;
 
 -- ---------------------------------------------------------------------------
+-- Gegenproben — was die Bewerbung am Anmeldetag aufnimmt
+-- ---------------------------------------------------------------------------
+
+-- 06: „Ebenso ergänzt werden die wahrgenommenen Angebote." Mehrfachauswahl,
+-- also mehrere Zeilen je Bewerbung — aber jedes Angebot nur einmal. Ohne diese
+-- Zeilen prüfte die Kaskade weiter unten eine leere Tabelle und wäre
+-- zwangsläufig grün.
+INSERT INTO application_offers (application_id, attended_offer_id, created_by)
+    VALUES ('77777777-7777-7777-7777-777777777771', 1, 'system:check'),
+           ('77777777-7777-7777-7777-777777777771', 2, 'system:check');
+SELECT pg_temp.expect_reject(
+    '06 — dasselbe wahrgenommene Angebot zweimal an derselben Bewerbung',
+    $q$INSERT INTO application_offers (application_id, attended_offer_id, created_by)
+       VALUES ('77777777-7777-7777-7777-777777777771', 1, 'system:check')$q$);
+SELECT pg_temp.expect_reject(
+    '06 — ein Angebot, das die Werteliste nicht kennt',
+    $q$INSERT INTO application_offers (application_id, attended_offer_id, created_by)
+       VALUES ('77777777-7777-7777-7777-777777777771', 99, 'system:check')$q$);
+
+-- 06, „Zum Kind": bei Grundschule Klasse 1 die Einstufung „schulpflichtig,
+-- Kann-Kind oder zurückgestellt (Pflicht)" und die Empfehlung des Kindergartens
+-- „(freiwillig)", bei Realschule Klasse 5 die Grundschulempfehlung „(Pflicht)"
+-- und daneben die eigene Einschätzung der Lehrkräfte. Alle vier sind Wertelisten
+-- und nirgends NOT NULL: Ein Quereinsteiger hat keine davon, und die Pflicht
+-- gilt dem Formular seiner Schulart, nicht der Zeile — sie trägt die Anwendung.
+-- Belegt wird hier, dass jede Werteliste greift und keine Zeile einen Wert
+-- annimmt, den sie nicht kennt.
+INSERT INTO enrolment_assessments (enrolment_assessment_id, code, name)
+    OVERRIDING SYSTEM VALUE VALUES
+    (1, 'compulsory', 'schulpflichtig'), (2, 'may_enrol', 'Kann-Kind'),
+    (3, 'deferred',   'zurückgestellt');
+INSERT INTO kindergarten_recommendations (kindergarten_recommendation_id, code, name)
+    OVERRIDING SYSTEM VALUE VALUES
+    (1, 'enrol', 'Einschulung'), (2, 'defer', 'Zurückstellung');
+
+SELECT pg_temp.expect_accept(
+    '06 — Einstufung, Kindergarten samt Einwilligung und Empfehlung an der Bewerbung',
+    $q$UPDATE applications
+          SET enrolment_assessment_id = 2,
+              kindergarten_id = 1,
+              kindergarten_consent_at = now(),
+              kindergarten_recommendation_id = 1,
+              attended_info_evening = true
+        WHERE application_id = '77777777-7777-7777-7777-777777777771'$q$);
+
+SELECT pg_temp.expect_accept(
+    '06 — Grundschulempfehlung und die eigene Einschätzung nebeneinander',
+    $q$UPDATE applications
+          SET primary_school_recommendation_id = 2, assessed_level_id = 3
+        WHERE application_id = '77777777-7777-7777-7777-777777777771'$q$);
+
+SELECT pg_temp.expect_reject(
+    '06 — Einstufung, die die Werteliste nicht kennt',
+    $q$UPDATE applications SET enrolment_assessment_id = 99
+        WHERE application_id = '77777777-7777-7777-7777-777777777771'$q$);
+SELECT pg_temp.expect_reject(
+    '06 — Kindergartenempfehlung, die die Werteliste nicht kennt',
+    $q$UPDATE applications SET kindergarten_recommendation_id = 99
+        WHERE application_id = '77777777-7777-7777-7777-777777777771'$q$);
+SELECT pg_temp.expect_reject(
+    '06 — Grundschulempfehlung auf einer Schulform, die es nicht gibt',
+    $q$UPDATE applications SET primary_school_recommendation_id = 99
+        WHERE application_id = '77777777-7777-7777-7777-777777777771'$q$);
+SELECT pg_temp.expect_reject(
+    '06 — eigene Einschätzung auf einer Schulform, die es nicht gibt',
+    $q$UPDATE applications SET assessed_level_id = 99
+        WHERE application_id = '77777777-7777-7777-7777-777777777771'$q$);
+SELECT pg_temp.expect_reject(
+    '06 — Kindergarten, den die Werteliste nicht kennt',
+    $q$UPDATE applications SET kindergarten_id = 99
+        WHERE application_id = '77777777-7777-7777-7777-777777777771'$q$);
+
+-- 06: „wie viele Kinder gleichzeitig hineinpassen" steht am Tag; das einzelne
+-- Zeitfenster darf davon abweichen. Null Plätze wären keine Abweichung, sondern
+-- ein geschlossenes Fenster — dafür gibt es kein Feld.
+SELECT pg_temp.expect_accept(
+    '06 — einzelnes Zeitfenster mit abweichender Platzzahl',
+    $q$UPDATE admission_day_slots SET places_override = 2
+        WHERE admission_day_slot_id = '66666666-6666-6666-6666-666666666661'$q$);
+SELECT pg_temp.expect_reject(
+    '06 — Zeitfenster mit null Plätzen',
+    $q$UPDATE admission_day_slots SET places_override = 0
+        WHERE admission_day_slot_id = '66666666-6666-6666-6666-666666666661'$q$);
+
+-- hebel.md, „Laufende Verbindung": „Zusage und Warteplatz ja, Absage nein."
+-- `keeps_connection` steht anders als `is_final` NUR an der Statuszeile und
+-- wird an der Bewerbung nicht mitgeführt: An ihm hängt kein Constraint dieser
+-- Domäne, sondern der Portalzugang und über ihn die Löschfrist (05), und beide
+-- liest die Anwendung. Die Probe hält die Bedeutung fest — ein Endstatus, der
+-- die Verbindung erhält, ist genau die Einschreibung; jeder andere nimmt sie
+-- mit.
+DO $$
+DECLARE falsch text;
+BEGIN
+    SELECT string_agg(code, ', ') INTO falsch
+      FROM application_statuses
+     WHERE is_final AND keeps_connection AND code <> 'enrolled';
+    IF falsch IS NOT NULL THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — Endstatus, der die Verbindung erhält: %', falsch;
+    END IF;
+    SELECT string_agg(code, ', ') INTO falsch
+      FROM application_statuses
+     WHERE NOT is_final AND NOT keeps_connection;
+    IF falsch IS NOT NULL THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — laufender Status ohne Verbindung: %', falsch;
+    END IF;
+    RAISE NOTICE 'ok: hebel.md — die Verbindung endet mit dem Endstatus, außer bei der Einschreibung';
+END $$;
+
+-- 08: „die abschließende Vollständigkeitsprüfung, auf der die hier offen
+-- gebliebenen Unterlagen auflaufen" (Vormerkung aus 06). Sie steht am Vertrag
+-- und nicht an der Bewerbung: geprüft wird, wenn ein Kind wirklich kommt.
+SELECT pg_temp.expect_accept(
+    '08 — Vollständigkeitsprüfung am Vertrag',
+    $q$UPDATE contracts SET completeness_checked_at = now()
+        WHERE contract_id = '88888888-8888-8888-8888-888888888881'$q$);
+
+-- 09: „Die Gebühr erlässt die Hortleitung, wenn eine Stundenplanänderung der
+-- Anlass ist." Ein Erlass ist ein Häkchen an der Anlage und kein eigener
+-- Vorgang; die Gegenprobe hält fest, dass er ohne Freigabe schon dasteht — er
+-- wird mit ihr entschieden, nicht danach.
+SELECT pg_temp.expect_accept(
+    '09 — Änderungsgebühr an der noch nicht freigegebenen Anlage erlassen',
+    $q$UPDATE care_module_agreements SET change_fee_waived = true
+        WHERE care_module_agreement_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1'$q$);
+
+-- ---------------------------------------------------------------------------
 -- Gegenproben — Notfallbetreuung und Brückentage
 -- ---------------------------------------------------------------------------
 
@@ -1554,9 +1695,17 @@ END $$;
 
 -- Stufe 1, der Rest: „`documents` und `child_file_folders` …, `sepa_mandates`"
 -- — auch sie halten das Kind fest, und dieses Skript legt ein Mandat an.
+-- Die drei Nachbarn stehen im Statement, damit allein das Mandat übrig bleibt:
+-- Sonst wiese `fk_emergency_care_bookings_child` ab, und die Probe beliefe
+-- sich auf dieselbe Sache wie die nächste — `fk_sepa_mandates_child` hätte im
+-- ganzen Repo keine Gegenprobe mehr.
 SELECT pg_temp.expect_reject(
     '17 — Kind gelöscht, während sein SEPA-Mandat es noch festhält',
-    $q$DELETE FROM children$q$);
+    $q$DELETE FROM documents;
+       DELETE FROM child_file_folders;
+       DELETE FROM emergency_care_bookings;
+       DELETE FROM care_bridge_day_responses;
+       DELETE FROM children$q$);
 
 -- Die Tagesbuchung der Notfallbetreuung ist ein Abrechnungsposten und hält das
 -- Kind ebenso fest; sie geht vor ihm, wie der Vertrag.
@@ -1566,6 +1715,14 @@ SELECT pg_temp.expect_reject(
        DELETE FROM child_file_folders;
        DELETE FROM sepa_mandates;
        DELETE FROM care_bridge_day_responses;
+       DELETE FROM children$q$);
+
+SELECT pg_temp.expect_reject(
+    '17 — Kind gelöscht, während die Brückentagsantwort es noch festhält',
+    $q$DELETE FROM documents;
+       DELETE FROM child_file_folders;
+       DELETE FROM sepa_mandates;
+       DELETE FROM emergency_care_bookings;
        DELETE FROM children$q$);
 
 -- Stufe 2: erst jetzt lässt sich das Kind löschen — vorher hielten es
