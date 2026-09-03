@@ -4,7 +4,7 @@ title: Notfallbetreuung als buchbarer Vorgang
 status: To Do
 assignee: []
 created_date: '2026-09-03 16:38'
-updated_date: '2026-09-03 17:56'
+updated_date: '2026-09-03 18:02'
 labels:
   - schema
   - anmeldung
@@ -40,14 +40,16 @@ Berührt die Mensa: Wer über Mittag da ist, isst, und das Tagesessen kostet 5,9
 | Fall | je Fall |
 |---|---|
 | Frühbetreuung oder Modul 1 (bis 13:00) | 8 € |
-| Modul 2 (Schulende bis 14:30) | 12 € zuzüglich Essen |
-| Modul 3 (Schulende bis 15:30) | 16 € einschließlich Mittagessen |
+| Modul 2 (Schulende bis 14:30) | 12 € |
+| Modul 3 (Schulende bis 15:30) | 16 € |
 | Modul 4 (Schulende bis 17:00) | 20 € |
 | eine halbe Stunde außerhalb der Öffnungszeiten | 20 € |
 
+**Bei den Modulen 2 bis 4 gehört ein Essen dazu und wird zusätzlich berechnet** — es steckt in keinem dieser Preise. Das ist dieselbe Regel wie beim Monatsbeitrag, und `care_modules.includes_lunch` sagt sie bereits: „Das Häkchen sagt, DASS ein Essen dazugehört, nicht, dass es im Modulpreis steckt."
+
 Damit ist auch der Fund E2 erledigt: Die Spalte mit 8/8/12/16/20 war doch unsere und nicht die der Stadt.
 
-**Zwei Dinge daran sind bemerkenswert und gehören als Kommentar ans Schema.** Erstens ist der letzte Fall **an kein Modul gebunden** — eine halbe Stunde außerhalb der Öffnungszeiten gibt es als Monatsbeitrag nicht. Der Fallpreis hängt also an einem Modul **oder** steht allein, und beides muss die Preistabelle hergeben. Zweitens ist das Essen **uneinheitlich behandelt**: Bei Modul 3 steckt es im Fallpreis, bei Modul 2 kommt es obendrauf. Das ist so gewollt und keine Schlamperei — wer es später „harmonisiert", ändert einen Preis.
+**Ein Fall hängt an keinem Modul**, und das gehört als Kommentar ans Schema: Die halbe Stunde außerhalb der Öffnungszeiten liegt außerhalb jedes Moduls, es gibt sie als Monatsbeitrag nicht. Der Fallpreis hängt also an einem Modul **oder** steht allein, und beides muss die Preistabelle hergeben.
 
 **Hängt an fragen.md Frage 9:** Welche Werte der Preisliste unsere sind, ist nicht eindeutig lesbar — die Spalte mit 8/8/12/16/20 ist anderswo mit "Stadt*" überschrieben. Vor dem Seed zu klären, nicht vor dem Bau.
 <!-- SECTION:DESCRIPTION:END -->
@@ -56,10 +58,10 @@ Damit ist auch der Fund E2 erledigt: Die Spalte mit 8/8/12/16/20 war doch unsere
 <!-- AC:BEGIN -->
 - [ ] #1 Die Notfallbetreuung ist eine Tagesbuchung mit Preis je Fall, kein weiteres Betreuungsmodul
 - [ ] #2 Der Fallpreis hängt an einem Modul oder steht allein — die halbe Stunde außerhalb der Öffnungszeiten hat kein Modul
-- [ ] #3 Das Essen steckt bei Modul 3 im Fallpreis und bei Modul 2 nicht; der Kommentar sagt, dass das gewollt ist
-- [ ] #4 Ein Kind ohne Betreuungsvertrag kann gebucht werden — als Gegenprobe
-- [ ] #5 Beide Eingänge schreiben dieselbe Zeile; der Weg ist an created_by ablesbar und braucht kein Feld
-- [ ] #6 Buchung und Vollzug sind zwei Zeitpunkte: ein unangekündigtes Kind hat nur den zweiten, eine erledigte Buchung nur den ersten
-- [ ] #7 Der Hort sieht die Buchungen des Tages als frisch erzeugte Liste
-- [ ] #8 Entschieden mit der Geschäftsführung: Nachweis auf dem Telefonweg, Ablehnung einer Buchung, Berechnung einer nicht wahrgenommenen
+- [ ] #3 Ein Kind ohne Betreuungsvertrag kann gebucht werden — als Gegenprobe
+- [ ] #4 Beide Eingänge schreiben dieselbe Zeile; der Weg ist an created_by ablesbar und braucht kein Feld
+- [ ] #5 Buchung und Vollzug sind zwei Zeitpunkte: ein unangekündigtes Kind hat nur den zweiten, eine erledigte Buchung nur den ersten
+- [ ] #6 Der Hort sieht die Buchungen des Tages als frisch erzeugte Liste
+- [ ] #7 Entschieden mit der Geschäftsführung: Nachweis auf dem Telefonweg, Ablehnung einer Buchung, Berechnung einer nicht wahrgenommenen
+- [ ] #8 Bei den Modulen 2 bis 4 wird das Essen zusätzlich berechnet — es steckt in keinem Fallpreis
 <!-- AC:END -->

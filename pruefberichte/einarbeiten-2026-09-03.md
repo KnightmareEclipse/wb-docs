@@ -188,7 +188,7 @@ eine Bedingung daran**: drei Monate nach dem Schulwechsel muss die Rückzahlung 
 
 **A11. Akademie-Struktur steht** → TASK-176 bis TASK-180
 Zwei Zweige unter einem Dach: **Seminarangebote für Erwachsene** und **Kursangebote für Kinder und
-Jugendliche**. Kategorien darunter werden später benannt — **zum Start gibt es keine**, die Werteliste entsteht erst mit ihnen (03.09.2026). Für die Eltern soll das Wort womöglich
+Jugendliche**. Kategorien darunter werden später benannt — die **Werteliste wird gebaut und bleibt zunächst leer**, die Kategorie am Angebot ist Pflicht (03.09.2026). Für die Eltern soll das Wort womöglich
 „Kursangebote/AGs" heißen statt „Akademie". **Der Erwachsenen-Zweig ist neu und nicht gebaut** —
 siehe B1.
 

@@ -29,7 +29,7 @@ Der Zahlweg hängt am SEPA-Mandat der Familie und nicht an einer Wahl der Eltern
 
 **Die Freigabe hängt an Personen, nicht an einer Rolle** (03.09.2026): eine oder mehrere, dynamisch gesetzt, und wer es ist, entscheidet die Geschäftsführung später. Eine Rolle träfe alle, die sie tragen; hier prüft eine benannte Person Rahmen und Wording. Dasselbe gilt für die anbietende Stelle am Angebot — auch sie sind Personen (TASK-176). Die Freigabe bleibt außerdem abschaltbar bzw. auf "automatisch akzeptieren" setzbar.
 
-**Kategorien gibt es zum Start nicht** — die Routen dürfen sie deshalb nicht voraussetzen, weder als Filter noch als Pflichtangabe.
+**Die Kategorie ist Pflicht, ihre Liste zunächst leer.** Die Routen behandeln sie als Pflichtangabe, müssen aber mit einer leeren Auswahl umgehen: Solange kein Wert steht, lässt sich kein Angebot anlegen, und die Antwort sagt das, statt eine leere Liste zu liefern.
 
 Die harte Platzzahl muss beim Absenden zählen, nicht beim Anzeigen — anders als im Ferienprogramm, das eine Überschreitung um eins hinnimmt.
 <!-- SECTION:DESCRIPTION:END -->
