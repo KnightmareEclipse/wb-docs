@@ -27,7 +27,11 @@ Und er führt eine Abweichung mit: **Wo Sport am Unterrichtsende liegt, kommen d
 
 **Wie viel später, weiß niemand, und deshalb wird es nicht gespeichert** (Betreiber, 03.09.2026): Geführt wird heute nur, *welche* Klasse *an welchem Tag* Sport am Ende hat — ohne Uhrzeit. Ein Feld für die Ankunftszeit wäre damit eine Spalte, die entweder leer bliebe oder mit einer geratenen Zahl gefüllt würde, und beides ist schlechter als nichts.
 
-**Gebraucht wird also eine Zeile je Klasse und Wochentag** mit dem Unterrichtsende als Uhrzeit und einem **kurzen Grund als Text**, wo die Kinder später kommen. Leer heißt „kommen zum Unterrichtsende"; gefüllt heißt „kommen später", und der Text sagt warum — „Sport, Rückfahrt von der Halle". Kein Häkchen „Sport": Schwimmen steht in derselben Fächerliste und würde sofort ein zweites verlangen. Und keine gespeicherte Verzögerung, die niemand kennt.
+**Gebraucht wird also eine Zeile je Klasse und Wochentag** mit dem Unterrichtsende als Uhrzeit und einem **kurzen Grund als Text**, wo die Kinder später kommen. Leer heißt „kommen zum Unterrichtsende"; gefüllt heißt „kommen später", und der Text sagt warum — „Sport, Rückfahrt von der Halle".
+
+Ein Häkchen `sport_at_end` täte es auch, und der Fall bleibt vorerst der einzige: Schwimmen betrifft die Hortkinder nicht (Betreiber, 03.09.2026). Der Text steht trotzdem da, aus zwei Gründen, die beide klein sind: Er landet auf einer Liste, die ein Mensch liest, und „kommt später" allein wirft die Frage auf, warum. Und er ist nach der **Wirkung** benannt statt nach der Ursache — wechselt die Halle oder kommt ein anderer Grund dazu, ändert sich der Text und nicht die Spalte. Kostet dasselbe wie das Häkchen; wäre das Häkchen gewünscht, ist es ein Wort.
+
+Keine gespeicherte Verzögerung, die niemand kennt.
 
 **Das ist kein Stundenplan und wird keiner.** Eine Zeit je Klasse und Wochentag beantwortet die Frage des Horts vollständig; Untis bleibt out of scope, und weder Fächer noch Stunden noch Räume entstehen hier. Wer später eine Stundenplanfrage stellt, bekommt eine eigene Domäne und nicht diese Tabelle.
 
@@ -45,7 +49,7 @@ Sie gehört zu `klassenorganisation` — dieselbe Domäne wie das Unterrichtsver
 - [ ] #1 Eine Zeile je Klasse und Wochentag mit dem Unterrichtsende als Uhrzeit
 - [ ] #2 Der Grund für späteres Eintreffen steht als kurzer Text; leer heißt 'kommen zum Unterrichtsende'
 - [ ] #3 Keine zweite Uhrzeit für die Ankunft — der Kommentar sagt, dass sie nirgends existiert
-- [ ] #4 Kein Häkchen für Sport: Schwimmen stünde sonst als zweites daneben
+- [ ] #4 Der Merker ist nach der Wirkung benannt, nicht nach dem Sport — ein Häkchen wäre die gleichwertige Alternative und steht als solche im Text
 - [ ] #5 Kein Fach, keine Stunde, kein Raum: Die Tabelle bleibt eine Zeit je Klasse und Wochentag
 - [ ] #6 Die Zeiten hängen am Schuljahr und werden wie die Unterrichtsverteilung gepflegt
 <!-- AC:END -->
