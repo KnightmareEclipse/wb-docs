@@ -4,10 +4,11 @@ title: Trennung der Eltern im laufenden Vertrag
 status: To Do
 assignee: []
 created_date: '2026-09-03 17:29'
-updated_date: '2026-09-03 17:44'
+updated_date: '2026-09-03 18:20'
 labels:
   - anmeldung
   - stammdaten
+milestone: m-5
 dependencies: []
 references:
   - soll-prozesse/02-datenaenderung.md

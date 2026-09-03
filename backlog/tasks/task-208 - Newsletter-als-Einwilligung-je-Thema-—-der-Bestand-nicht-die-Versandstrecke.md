@@ -4,11 +4,12 @@ title: 'Newsletter als Einwilligung je Thema — der Bestand, nicht die Versands
 status: To Do
 assignee: []
 created_date: '2026-09-03 13:55'
-updated_date: '2026-09-03 14:05'
+updated_date: '2026-09-03 18:20'
 labels:
   - schema
   - dsgvo
   - querschnitt
+milestone: m-5
 dependencies: []
 references:
   - schema/querschnitt-schema.sql

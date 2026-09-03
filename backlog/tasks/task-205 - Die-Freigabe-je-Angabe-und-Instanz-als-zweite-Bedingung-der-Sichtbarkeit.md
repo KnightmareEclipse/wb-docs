@@ -4,12 +4,13 @@ title: Die Freigabe je Angabe und Instanz als zweite Bedingung der Sichtbarkeit
 status: To Do
 assignee: []
 created_date: '2026-09-03 11:33'
-updated_date: '2026-09-03 14:51'
+updated_date: '2026-09-03 18:20'
 labels:
   - schema
   - gesundheit
   - dsgvo
   - wb-docs
+milestone: m-5
 dependencies: []
 references:
   - schema/gesundheit-schema.sql

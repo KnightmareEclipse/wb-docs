@@ -6,10 +6,12 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2026-09-03 13:55'
+updated_date: '2026-09-03 18:20'
 labels:
   - schema
   - ferien
   - akademie
+milestone: m-5
 dependencies: []
 references:
   - schema/ferien-schema.sql

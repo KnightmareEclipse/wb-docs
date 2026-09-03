@@ -4,10 +4,11 @@ title: 'Unterrichtsende je Klasse und Wochentag, samt Häkchen für Sport am End
 status: To Do
 assignee: []
 created_date: '2026-09-03 17:11'
-updated_date: '2026-09-03 17:27'
+updated_date: '2026-09-03 18:20'
 labels:
   - schema
   - klassenorganisation
+milestone: m-5
 dependencies: []
 references:
   - schema/klassenorganisation-schema.sql

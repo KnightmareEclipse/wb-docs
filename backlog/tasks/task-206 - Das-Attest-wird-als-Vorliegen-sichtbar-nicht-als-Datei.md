@@ -4,10 +4,12 @@ title: 'Das Attest wird als Vorliegen sichtbar, nicht als Datei'
 status: To Do
 assignee: []
 created_date: '2026-09-03 11:36'
+updated_date: '2026-09-03 18:20'
 labels:
   - schema
   - gesundheit
   - dsgvo
+milestone: m-5
 dependencies: []
 references:
   - schema/gesundheit-schema.sql

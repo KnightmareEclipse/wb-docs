@@ -4,8 +4,10 @@ title: Folgenabschätzung nach Art. 35 schreiben
 status: To Do
 assignee: []
 created_date: '2026-09-03 13:55'
+updated_date: '2026-09-03 18:20'
 labels:
   - dsgvo
+milestone: m-5
 dependencies: []
 references:
   - verarbeitungsverzeichnis.md

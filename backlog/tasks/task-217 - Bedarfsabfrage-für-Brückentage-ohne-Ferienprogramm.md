@@ -4,9 +4,11 @@ title: Bedarfsabfrage für Brückentage ohne Ferienprogramm
 status: To Do
 assignee: []
 created_date: '2026-09-03 17:09'
+updated_date: '2026-09-03 18:20'
 labels:
   - schema
   - anmeldung
+milestone: m-5
 dependencies: []
 references:
   - soll-prozesse/09-hortvertrag.md

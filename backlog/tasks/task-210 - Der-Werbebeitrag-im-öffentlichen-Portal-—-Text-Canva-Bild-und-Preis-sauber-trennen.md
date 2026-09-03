@@ -6,10 +6,12 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2026-09-03 14:38'
+updated_date: '2026-09-03 18:20'
 labels:
   - portal
   - oberflaeche
   - dsgvo
+milestone: m-5
 dependencies:
   - TASK-175
 references:

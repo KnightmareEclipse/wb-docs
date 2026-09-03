@@ -4,9 +4,10 @@ title: Die Hort-Belegungsliste aus dem Bestand erzeugen
 status: To Do
 assignee: []
 created_date: '2026-09-03 16:38'
-updated_date: '2026-09-03 17:16'
+updated_date: '2026-09-03 18:20'
 labels:
   - anmeldung
+milestone: m-5
 dependencies: []
 references:
   - soll-prozesse/09-hortvertrag.md

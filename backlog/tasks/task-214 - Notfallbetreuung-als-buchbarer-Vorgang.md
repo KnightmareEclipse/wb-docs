@@ -4,10 +4,11 @@ title: Notfallbetreuung als buchbarer Vorgang
 status: To Do
 assignee: []
 created_date: '2026-09-03 16:38'
-updated_date: '2026-09-03 18:02'
+updated_date: '2026-09-03 18:20'
 labels:
   - schema
   - anmeldung
+milestone: m-5
 dependencies: []
 references:
   - schema/anmeldung-schema.sql

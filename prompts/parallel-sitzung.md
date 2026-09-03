@@ -30,6 +30,10 @@ Lies es zuerst, nicht die Tabelle oben; die sagt nur, welche dir gehören.
 `prompts/block-fuellen.md`. Der Prüflauf danach gehört ausdrücklich einer anderen Sitzung: Wer
 gebaut hat, prüft nicht.
 
+**Das ist dein einziger Haltepunkt.** Steht eine Domäne im Schema, hörst du auf und meldest sie zum
+Prüfen — was auf ihr aufbaut, etwa ihre Routen, beginnt erst mit dem grünen Bericht. Sonst planst du
+gegen ein Schema, das sich noch ändert.
+
 Arbeite die Tickets deines Strangs in ihrer Reihenfolge ab; wo eine Abhängigkeit besteht, steht sie
 im Ticket. Ist der letzte durch, sag es und hör auf — such dir keinen neuen Strang.
 

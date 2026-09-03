@@ -4,10 +4,11 @@ title: 'Notizfeld an der Person, mit drei Auflagen'
 status: To Do
 assignee: []
 created_date: '2026-09-03 17:44'
-updated_date: '2026-09-03 17:49'
+updated_date: '2026-09-03 18:20'
 labels:
   - dsgvo
   - stammdaten
+milestone: m-5
 dependencies: []
 references:
   - schema/stammdaten-schema.sql

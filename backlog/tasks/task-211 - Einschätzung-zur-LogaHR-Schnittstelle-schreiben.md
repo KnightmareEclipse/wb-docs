@@ -4,8 +4,10 @@ title: Einschätzung zur LogaHR-Schnittstelle schreiben
 status: To Do
 assignee: []
 created_date: '2026-09-03 14:51'
+updated_date: '2026-09-03 18:20'
 labels:
   - stammdaten
+milestone: m-5
 dependencies: []
 references:
   - schema/stammdaten-schema.sql
