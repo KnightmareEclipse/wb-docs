@@ -327,6 +327,10 @@ CREATE TABLE academy_cost_coverage_codes (
     CONSTRAINT pk_academy_cost_coverage_codes PRIMARY KEY (academy_cost_coverage_code_id),
     CONSTRAINT fk_academy_cost_coverage_codes_offering
         FOREIGN KEY (academy_offering_id) REFERENCES academy_offerings (academy_offering_id),
+    -- Trägt den zusammengesetzten Fremdschlüssel der Anmeldung: er bindet den
+    -- Code an das Angebot, für das er erzeugt wurde (rules.md Abschnitt 1).
+    CONSTRAINT uq_academy_cost_coverage_codes_id_offering
+        UNIQUE (academy_cost_coverage_code_id, academy_offering_id),
     CONSTRAINT ck_academy_cost_coverage_codes_email CHECK (email <> ''),
     CONSTRAINT ck_academy_cost_coverage_codes_note  CHECK (invoice_note <> ''),
     CONSTRAINT ck_academy_cost_coverage_codes_created_by
@@ -399,9 +403,13 @@ CREATE TABLE academy_registrations (
         FOREIGN KEY (child_id) REFERENCES children (child_id),
     CONSTRAINT fk_academy_registrations_person
         FOREIGN KEY (person_id) REFERENCES persons (person_id),
+    -- „Er … gilt für diese eine Anmeldung" (21) — und für das Angebot, für das
+    -- er erzeugt wurde: Ohne diesen zusammengesetzten Schlüssel bezahlte ein
+    -- Code der Kochwerkstatt den Chor.
     CONSTRAINT fk_academy_registrations_coverage_code
-        FOREIGN KEY (academy_cost_coverage_code_id)
-        REFERENCES academy_cost_coverage_codes (academy_cost_coverage_code_id),
+        FOREIGN KEY (academy_cost_coverage_code_id, academy_offering_id)
+        REFERENCES academy_cost_coverage_codes (academy_cost_coverage_code_id,
+                                                academy_offering_id),
     CONSTRAINT fk_academy_registrations_terms
         FOREIGN KEY (cancellation_terms_contract_text_id)
         REFERENCES contract_texts (contract_text_id),
@@ -447,6 +455,14 @@ CREATE UNIQUE INDEX ix_academy_registrations_active_child
 CREATE UNIQUE INDEX ix_academy_registrations_active_person
     ON academy_registrations (academy_offering_id, person_id)
     WHERE cancellation_recorded_at IS NULL AND person_id IS NOT NULL;
+
+-- 21: „Er … gilt für diese eine Anmeldung." Ohne diesen Schlüssel zahlt das
+-- Jugendamt einmal und die Schule berechnet mehrfach. Wie am Index darüber
+-- zählen die abgemeldeten Zeilen nicht mit: Wer abmeldet und neu anmeldet,
+-- benutzt denselben Code für denselben Vorgang.
+CREATE UNIQUE INDEX ix_academy_registrations_coverage_code
+    ON academy_registrations (academy_cost_coverage_code_id)
+    WHERE cancellation_recorded_at IS NULL AND academy_cost_coverage_code_id IS NOT NULL;
 
 CREATE INDEX ix_academy_registrations_offering
     ON academy_registrations (academy_offering_id)

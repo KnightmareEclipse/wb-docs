@@ -53,6 +53,7 @@ BEGIN
         'ck_academy_registrations_retained', 'ck_academy_registrations_declared_by',
         'ck_academy_registrations_recorded_by',
         'ck_academy_offerings_surcharge_label',
+        'uq_academy_cost_coverage_codes_id_offering',
         'fk_payments_academy_registration', 'fk_sync_tasks_academy_registration'
     ]) AS c
     WHERE NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = c);
@@ -63,6 +64,7 @@ BEGIN
     FROM unnest(ARRAY['ix_academy_registrations_active_child',
                       'ix_academy_registrations_active_person',
                       'ix_academy_registrations_offering',
+                      'ix_academy_registrations_coverage_code',
                       'ix_sync_tasks_open_academy']) AS i
     WHERE to_regclass('public.' || i) IS NULL;
     IF missing IS NOT NULL THEN
@@ -564,6 +566,34 @@ SELECT pg_temp.expect_reject(
     '21 — ein Zahlweg, den es nicht gibt',
     $q$UPDATE academy_registrations SET payment_mode = 'cash'
         WHERE academy_registration_id = '66666666-6666-6666-6666-666666666601'$q$);
+
+-- 21: „Er … gilt für diese eine Anmeldung." Zweimal eingelöst zahlt das Amt
+-- einmal und die Schule berechnet zweimal.
+SELECT pg_temp.expect_reject(
+    '21 — derselbe Kostenübernahme-Code an einer zweiten offenen Anmeldung',
+    $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
+                                          payment_mode, academy_cost_coverage_code_id,
+                                          cancellation_terms_contract_text_id, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555501',
+               '33333333-3333-3333-3333-333333333304', 3500, 'invoiced',
+               '77777777-7777-7777-7777-777777777701', 1, 'guardian:x')$q$);
+
+-- 21: erzeugt wird er „für eine Mailadresse und ein Angebot" — er bezahlt
+-- deshalb kein anderes.
+INSERT INTO academy_cost_coverage_codes (academy_cost_coverage_code_id,
+                                         academy_offering_id, email, code_hash,
+                                         invoice_note, created_by)
+    VALUES ('77777777-7777-7777-7777-777777777702',
+            '55555555-5555-5555-5555-555555555502', 'familie@example.org', 'y',
+            'Landratsamt', 'entra:sekretariat');
+SELECT pg_temp.expect_reject(
+    '21 — Code der offenen Kochwerkstatt an einer Anmeldung zur geschlossenen',
+    $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
+                                          payment_mode, academy_cost_coverage_code_id,
+                                          cancellation_terms_contract_text_id, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555501',
+               '33333333-3333-3333-3333-333333333304', 3500, 'invoiced',
+               '77777777-7777-7777-7777-777777777702', 1, 'guardian:x')$q$);
 
 -- Wie im Ferienprogramm: Ablauf und Einlösen des Codes haben keine eigene
 -- Spalte, sie folgen aus `created_at` und aus der Anmeldung, die auf ihn zeigt.

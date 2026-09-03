@@ -228,8 +228,11 @@ CREATE TABLE holiday_sessions (
         FOREIGN KEY (holiday_programme_id) REFERENCES holiday_programmes (holiday_programme_id),
     CONSTRAINT fk_holiday_sessions_type
         FOREIGN KEY (holiday_session_type_id) REFERENCES holiday_session_types (holiday_session_type_id),
-    -- Trägt den zusammengesetzten Fremdschlüssel der Buchung weiter unten.
+    -- Tragen die zusammengesetzten Fremdschlüssel der Buchung weiter unten: den
+    -- der Terminart und den des Programms.
     CONSTRAINT uq_holiday_sessions_id_type UNIQUE (holiday_session_id, holiday_session_type_id),
+    CONSTRAINT uq_holiday_sessions_id_programme
+        UNIQUE (holiday_session_id, holiday_programme_id),
     CONSTRAINT ck_holiday_sessions_title  CHECK (title <> ''),
     CONSTRAINT ck_holiday_sessions_places CHECK (places > 0),
     -- Eine Absage trägt ihren Grund in einem Satz, wie jedes Ende in 03.
@@ -298,6 +301,10 @@ CREATE TABLE holiday_cost_coverage_codes (
     CONSTRAINT pk_holiday_cost_coverage_codes PRIMARY KEY (holiday_cost_coverage_code_id),
     CONSTRAINT fk_holiday_cost_coverage_codes_programme
         FOREIGN KEY (holiday_programme_id) REFERENCES holiday_programmes (holiday_programme_id),
+    -- Trägt den zusammengesetzten Fremdschlüssel der Buchung: er bindet den Code
+    -- an das Programm, für das er erzeugt wurde (rules.md Abschnitt 1).
+    CONSTRAINT uq_holiday_cost_coverage_codes_id_programme
+        UNIQUE (holiday_cost_coverage_code_id, holiday_programme_id),
     CONSTRAINT ck_holiday_cost_coverage_codes_email  CHECK (email <> ''),
     CONSTRAINT ck_holiday_cost_coverage_codes_note   CHECK (invoice_note <> ''),
     CONSTRAINT ck_holiday_cost_coverage_codes_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
@@ -331,6 +338,10 @@ CREATE TABLE holiday_bookings (
     -- Nur zur Bindung des Moduls an die Terminart des Termins; sie steht schon
     -- an beiden und wird hier allein für den zusammengesetzten Schlüssel geführt.
     holiday_session_type_id integer NOT NULL,
+    -- Dasselbe für das Programm: Es steht am Termin und wird hier allein
+    -- mitgeführt, damit der Kostenübernahme-Code an das Programm gebunden
+    -- werden kann, für das er erzeugt wurde.
+    holiday_programme_id    integer NOT NULL,
     -- Was an diesem Tag galt — der Modulbetrag; „eine spätere
     -- Änderung rechnet nichts rückwirkend um" (hebel.md).
     amount_cents            integer NOT NULL,
@@ -364,9 +375,17 @@ CREATE TABLE holiday_bookings (
     CONSTRAINT fk_holiday_bookings_module
         FOREIGN KEY (holiday_module_id, holiday_session_type_id)
         REFERENCES holiday_modules (holiday_module_id, holiday_session_type_id),
+    -- Bindet den Termin an sein Programm, gegen das der Code geprüft wird.
+    CONSTRAINT fk_holiday_bookings_programme
+        FOREIGN KEY (holiday_session_id, holiday_programme_id)
+        REFERENCES holiday_sessions (holiday_session_id, holiday_programme_id),
+    -- „Der Code gilt für diese eine Anmeldung" (10) — und für das Programm, für
+    -- das er erzeugt wurde: Ohne diesen zusammengesetzten Schlüssel bezahlte
+    -- ein Code des einen Programms eine Buchung im anderen.
     CONSTRAINT fk_holiday_bookings_coverage_code
-        FOREIGN KEY (holiday_cost_coverage_code_id)
-        REFERENCES holiday_cost_coverage_codes (holiday_cost_coverage_code_id),
+        FOREIGN KEY (holiday_cost_coverage_code_id, holiday_programme_id)
+        REFERENCES holiday_cost_coverage_codes (holiday_cost_coverage_code_id,
+                                                holiday_programme_id),
     CONSTRAINT fk_holiday_bookings_terms
         FOREIGN KEY (terms_contract_text_id) REFERENCES contract_texts (contract_text_id),
     CONSTRAINT ck_holiday_bookings_payment_mode
@@ -404,6 +423,14 @@ CREATE TABLE holiday_bookings (
 CREATE UNIQUE INDEX ix_holiday_bookings_active
     ON holiday_bookings (child_id, holiday_session_id)
     WHERE cancellation_recorded_at IS NULL;
+
+-- 10: „Der Code gilt für diese eine Anmeldung." Ohne diesen Schlüssel zahlt das
+-- Amt einmal und die Schule berechnet mehrfach. Wie am Index darüber zählen die
+-- stornierten Zeilen nicht mit: Wer storniert und neu bucht, benutzt denselben
+-- Code für denselben Vorgang.
+CREATE UNIQUE INDEX ix_holiday_bookings_coverage_code
+    ON holiday_bookings (holiday_cost_coverage_code_id)
+    WHERE cancellation_recorded_at IS NULL AND holiday_cost_coverage_code_id IS NOT NULL;
 
 CREATE INDEX ix_holiday_bookings_session ON holiday_bookings (holiday_session_id)
     WHERE cancellation_recorded_at IS NULL;
