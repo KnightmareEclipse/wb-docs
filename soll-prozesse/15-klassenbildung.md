@@ -6,8 +6,8 @@ Zwei Anlässe, kein Formular und kein Stichtag. Einmal im Jahr legt die Schullei
 beginnenden** Klassen an — real im Juni und Juli, wenn der Jahrgang beisammen ist
 ([04](04-schuljahreswechsel.md)) —, und ganzjährig setzt sie Kinder hinein oder um.
 
-Eine **Klasse ist ein Körper, der Kinder, eine Klassenlehrkraft und einen Raum bündelt**, mehr
-nicht. Sie trägt eine **Kennung, die ihr ganzes Leben gleich bleibt**: Schulart, Startschuljahr, Zug
+Eine **Klasse ist ein Körper, der Kinder, eine Klassenlehrkraft und einen Raum bündelt** — dazu, wer
+in ihr unterrichtet und wann sie Schluss hat, und mehr nicht. Sie trägt eine **Kennung, die ihr ganzes Leben gleich bleibt**: Schulart, Startschuljahr, Zug
 — `GS26b`, `RS26a`. Das Startschuljahr ist das, in dem die **Kohorte** begonnen hat, nicht zwingend
 das, in dem die Klasse angelegt wurde: Ein zweiter Zug, der erst entsteht, wenn eine Stufe geteilt
 wird, trägt trotzdem die Jahreszahl seiner Kohorte.
@@ -21,7 +21,8 @@ eines Namens, den es dreimal gab.
 ## Beteiligte
 
 - Die **Schulleitung ihrer Schulform** ([Rollen](hebel.md#rollen)) legt Klassen an, benennt die
-  Klassenlehrkraft und setzt die Kinder; das Sekretariat darf dasselbe
+  Klassenlehrkraft, setzt die Kinder und pflegt Unterrichtsverteilung, Unterrichtsende und
+  Wahlmodulgruppen; das Sekretariat darf dasselbe
   ([Standardantwort](hebel.md#standardantworten)).
 - **Lehrkräfte** rufen ihre Klassenliste ab, wo sie in [06](06-anmeldetag.md) und
   [07](07-aufnahmeentscheidung.md) noch Papier bekommen — im System arbeiten sie schon, seit sie
@@ -41,7 +42,7 @@ verschiedenen Zügen sitzen.
 
 | # | wer | tut was | danach steht fest |
 |---|---|---|---|
-| 1 | Schulleitung | Legt an, was **neu beginnt**: die Eingangsklassen 1 und 5, dazu einen weiteren Zug, wo eine Stufe geteilt wird — derzeit sind es meist zwei je Stufe. Je Klasse Schulart, Startschuljahr und Zug — zusammen die Kennung —, die Klassenlehrkraft und der Raum. Bestehende Klassen legt niemand neu an und niemand schreibt sie fort | welche Klassen es gibt, wer sie führt und wo sie sitzen |
+| 1 | Schulleitung | Legt an, was **neu beginnt**: die Eingangsklassen 1 und 5, dazu einen weiteren Zug, wo eine Stufe geteilt wird — derzeit sind es meist zwei je Stufe. Je Klasse Schulart, Startschuljahr und Zug — zusammen die Kennung —, die Klassenlehrkraft und der Raum. Dazu drei Dinge, die je Schuljahr nachgezogen werden: **wer in dieser Klasse unterrichtet**, **wann sie an welchem Wochentag Unterrichtsende hat**, und je Wahlmodul und Jahrgang die **Gruppe samt ihrer Lehrkraft**. Bestehende Klassen legt niemand neu an und niemand schreibt sie fort | welche Klassen es gibt, wer sie führt und in ihnen unterrichtet, wo sie sitzen und wann sie Schluss haben |
 | 2 | Schulleitung | Setzt jedes Kind in eine Klasse seiner Stufe. **Kein Termin, zwei Bedingungen**: Das Kind ist eingeschrieben — was ab der Freigabe seines Schulvertrags gilt und nicht erst am ersten Schultag ([08](08-schulvertrag.md)), ein aufrückendes Kind ist es ohnehin — und es gibt eine Klasse, in die es passt. Umsetzen geht jederzeit und ist dieselbe Handlung. Gibt es in der Stufe nur eine Klasse, steht das Kind ohne Zutun darin. Die Gründe — Freundschaften, Förderbedarf, Ausgewogenheit — bleiben außerhalb wie das Ranking in [07](07-aufnahmeentscheidung.md) | in welcher Klasse jedes Kind sitzt und seit wann |
 | 3 | Sekretariat, Admin | Ziehen nach: **ASV-BW** die Klasse des Kindes, **M365** Klassengruppe und Mailverteiler. Zum Schuljahreswechsel über die Jahresansicht ohne eigene [Aufgabe](hebel.md#nachzieh-aufgabe-und-wochenmail) ([04](04-schuljahreswechsel.md)), unterjährig als Aufgabe wie bei jedem Eintritt ([08](08-schulvertrag.md)). **Auch ein Klassenwechsel mitten im Jahr erzeugt sie** — sonst erführe kein Fremdsystem davon; es ist dieselbe Art wie beim Eintritt, eine noch offene wird ersetzt statt verdoppelt | nichts — die Arbeit ist getan oder nicht |
 
@@ -55,9 +56,26 @@ Je Klasse:
 - Und der **Raum** (freiwillig, freie Angabe): Er sagt, welches Zimmer das Klassenzimmer ist, rein
   informativ — eine Raumliste, einen Belegungsplan oder eine Prüfung auf Doppelbelegung gibt es
   nicht.
+- **Wer in ihr unterrichtet** (je Schuljahr, mehrere Personen, ohne Fach): Die Zuordnung trägt keine
+  Fächerliste, denn für „wer darf welches Kind sehen" zählt allein das Paar aus Lehrkraft und
+  Kindermenge. Sie wird von Hand gepflegt, nicht aus ASV-BW oder dem Deputatsplan übernommen.
+- Das **Unterrichtsende je Wochentag** (Uhrzeit, Pflicht, sobald es feststeht), dazu ein Häkchen,
+  wenn an diesem Tag **Sport am Ende** liegt: Die Halle ist extern, die Eltern fahren die Kinder
+  zurück, und der Hort weiß daran, dass diese Klasse später eintrifft. Eine **Ankunftszeit gibt es
+  nicht** — die Kinder treffen unterschiedlich ein, eine Zahl dafür wäre nicht ungenau, sondern
+  falsch. Ein Stundenplan wird daraus nicht: kein Fach, keine Stunde, kein Raum.
 
 **Stufe und Anzeigename werden nicht erhoben, sondern gerechnet**; eine Klasse, deren Stufe über 4
 bzw. 10 hinausliefe, ist ausgelaufen und taucht in keiner laufenden Ansicht mehr auf.
+
+**Quer zur Klasse steht die Wahlmodulgruppe**: Technik, AES und Französisch werden einmal gewählt
+und bis zum Abgang behalten, die Gruppe lebt deshalb so lange wie die Kohorte und trägt kein
+Schuljahr. Sie hat **genau eine Lehrkraft**, und an ihr — nicht am Modul — hängt, wer diese Kinder
+sieht: Hinge es am Modul, sähe die Technik-Lehrkraft alle Technik-Kinder der Schule statt der
+fünfzehn, die sie unterrichtet. Solange es je Modul und Jahrgang nur eine Gruppe gibt, wählt man bei
+der Anmeldung schlicht das **Modul** und die Gruppe entsteht dabei; erst wenn jemand eine zweite
+anlegt, erscheint eine Auswahl — und dann sagt ein Mensch, welche Kinder hinübergehen, denn raten
+kann das niemand. Ein Kind kann in mehreren Gruppen sein; heute ist es je eines.
 
 Je Kind seine Klasse (Pflicht, sobald beide Bedingungen erfüllt sind), änderbar durch Schulleitung
 und Sekretariat, mit [Änderungsspur](hebel.md#änderungsspur). Sichtbar ist sie für alle, die das
@@ -66,20 +84,30 @@ dazu die Elternvertretung dieser Klasse ([16](16-elternvertretung.md)); den Raum
 Notiz für den Betrieb. Der Preis ist, dass ein Klassenwechsel mitten im Jahr im Portal steht, bevor
 die Schule ihn mitteilt.
 
-**Die Klasse trägt zwei Einsichten**, beide an der Klassenlehrkraft und beide nur für die Kinder
-ihrer Klasse:
+**Hier entsteht, von welchen Kindern jemand liest.** Das ist die eine der zwei Achsen der
+Sichtbarkeit; die andere — welche Angabe ein Sichtkreis überhaupt sehen kann — steht in
+[08](08-schulvertrag.md) und wird hier nicht wiederholt. Drei Wege führen zu einem Kind, und je
+Zuordnung entsteht **eine eigene Liste**: die Klassenleitung, der Unterricht in seiner Klasse und
+die Wahlmodulgruppe. Wer die 7a unterrichtet und daneben eine Technikgruppe führt, bekommt „7a" und
+„Technik 7 · A" getrennt und muss seine Techniker nicht aus zwei Klassenlisten heraussuchen.
+**Fehlt die Zuordnung, sieht die Lehrkraft nichts** — nicht alles.
 
-- die **Gesundheitsangaben vollständig** — Diagnose, Behandlungsgrund und Attestlage eingeschlossen,
-  wie Sekretariat und Schulleitung und mehr als jede andere Lehrkraft, die nur die Alltagsangaben
-  sieht ([08](08-schulvertrag.md)) —
-- und das **Austrittsdatum**, denn das Ende eines Kindes geht seine Klasse an und nicht das ganze
-  Kollegium ([03](03-irregulaerer-abgang.md)).
+**Die Klasse ist dabei die Einheit, auch wo sie zu grob ist.** Der Förderunterricht der Grundschule
+geht an fünf Kinder einer Klasse; über die Zuordnung sieht die Förderlehrkraft alle
+siebenundzwanzig. Das ist entschieden und nicht übersehen: Der weitere Kreis bleibt innerhalb
+*einer* Klasse, deren Kinder dieselbe Lehrkraft ohnehin täglich vor sich hat, und die
+Fehlerrichtung stimmt — es sieht jemand ein Kind, das er ohnehin unterrichtet, statt dass im
+Ernstfall die Angabe der Person fehlt, die daneben steht. Eine eigene Fördergruppe wäre der andere
+Weg; sie wäre eine Gruppe wie die Wahlmodulgruppe und kein neues Modell, kostete aber eine
+Mitgliederliste, die unterjährig wechselt und niemandem gehört.
 
-Ändern darf sie beides nicht, und eine **Vertretung erbt es nicht** — wer eine Stunde übernimmt,
-führt keine Klasse; wer im Einzelfall mehr wissen muss, fragt das Sekretariat
-([offizieller Umweg](hebel.md#der-offizielle-umweg)). Alles Übrige berechtigt die Klasse nicht: Was
-eine [Rolle](hebel.md#rollen) sonst sehen darf, steht in den jeweiligen Blöcken und gilt für alle
-Kinder ([02](02-datenaenderung.md)).
+**Die Klassenleitung trägt darüber hinaus eine Einsicht, die aus der Klasse folgt**: das
+**Austrittsdatum**, denn das Ende eines Kindes geht seine Klasse an und nicht das ganze Kollegium
+([03](03-irregulaerer-abgang.md)). Ändern darf sie es nicht, und eine **Vertretung erbt es nicht** —
+wer eine Stunde übernimmt, führt keine Klasse; wer im Einzelfall mehr wissen muss, fragt das
+Sekretariat ([offizieller Umweg](hebel.md#der-offizielle-umweg)). Alles Übrige berechtigt die Klasse
+nicht: Was eine [Rolle](hebel.md#rollen) sonst sehen darf, steht in den jeweiligen Blöcken und gilt
+für alle Kinder ([02](02-datenaenderung.md)).
 
 **Keine Kapazität**: Wie viele Kinder in einer Klasse sitzen, wird gezeigt, nicht geprüft — die
 Zielmarke von derzeit 25 steht so wenig im System wie in [07](07-aufnahmeentscheidung.md). Wo die
@@ -114,11 +142,10 @@ außerhalb des Systems.
 Die **Klassenliste**, [frisch erzeugt](hebel.md#frisch-erzeugte-liste): wer in dieser Klasse ist —
 die eingeschriebenen Kinder, ein abgegangenes fällt ohne Zutun heraus
 ([03](03-irregulaerer-abgang.md)) —, mit dem, was die Lehrkraft im Alltag ohnehin sehen darf —
-Notfallnummer und Abholberechtigte ([02](02-datenaenderung.md)), die Alltagsangaben zur Gesundheit
-und das Fotoeinverständnis ([08](08-schulvertrag.md)), dazu die Schuladresse des Kindes
-([13](13-m365-konten.md)). Sichtbar für Lehrkräfte, Sekretariat und Schulleitung; neue Einsicht
-entsteht durch die Liste nicht, sie liegt nur beieinander — den vollen Gesundheitsbestand sieht die
-Klassenlehrkraft am Kind und nicht hier. Sie ersetzt zwei Handarbeiten: die ausgedruckte
+Notfallnummer und Abholberechtigte ([02](02-datenaenderung.md)), die Gesundheitsangaben ihres
+Sichtkreises und das Fotoeinverständnis ([08](08-schulvertrag.md)), dazu die Schuladresse des Kindes
+([13](13-m365-konten.md)). Sichtbar für die Lehrkräfte dieser Klasse, Sekretariat und Schulleitung;
+neue Einsicht entsteht durch die Liste nicht, sie liegt nur beieinander. Sie ersetzt zwei Handarbeiten: die ausgedruckte
 Klassenliste und den Eintrag im Telefonbuch-PC.
 
 **Der Klassenverteiler in Outlook bleibt** — die Schule schreibt ihre Eltern vorerst weiter über
@@ -179,7 +206,9 @@ Schuljahre bleiben als Kennung stehen und tragen für sich keine Personendaten.
 
 ## Gehört nicht dazu
 
-- Stundenplan, Fächer, Noten, Zeugnisse, Sitzordnung, WebUntis.
+- Stundenplan, Fächer, Noten, Zeugnisse, Sitzordnung, WebUntis. Die Unterrichtsverteilung ist
+  keiner: Sie sagt, wer in einer Klasse unterrichtet, nicht was und wann. Das Unterrichtsende
+  ebensowenig — eine Zeit je Klasse und Wochentag, mehr nicht.
 - Raumverwaltung und Belegungsplan: der Raum ist eine Angabe an der Klasse, mehr nicht.
 - AGs (`../prozesse.md` Abschnitt 20).
 - Wer eingeschrieben ist: [08](08-schulvertrag.md).

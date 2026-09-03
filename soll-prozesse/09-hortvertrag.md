@@ -93,9 +93,19 @@ gefüllt wird:
 
 - Das **Fotoeinverständnis** bleibt je Person ein Ja oder Nein ([08](08-schulvertrag.md)) und deckt
   Schule, Hort und KITA in einem.
-- Die **Gesundheitsangaben** bleiben ein Bestand je Kind mit derselben Sichtbarkeit — Hortkräfte den
-  Alltag, Sekretariat und Schulleitung auch Diagnose und Attestlage —, aus dem [11](11-mensa.md) die
-  Küchenangaben liest.
+- Die **Gesundheitsangaben** bleiben ein Bestand je Kind ([08](08-schulvertrag.md)), aus dem
+  [11](11-mensa.md) die Küchenangaben liest. **Der Hort ist dabei eine eigene Instanz dieses einen
+  Bestands, nicht ein zweiter.** Die Eltern geben ihn dem Hort deshalb ausdrücklich frei — erst
+  überhaupt, dann je Angabe, in einer Handlung für alles oder einzeln — und **dürfen die Freigabe
+  verweigern**; verweigert heißt, die Hortkräfte sehen diese Angabe nicht, während die Schule sie
+  weiter sieht. „Beim Hort nicht gefragt" ist dabei etwas anderes als „beim Hort abgelehnt": Beim
+  externen Kind entsteht der Bestand hier, bei einem Schulkind steht er schon, und bis jemand fragt,
+  liegt dem Hort schlicht nichts vor. Freigegeben sieht der Hort dasselbe wie eine Lehrkraft —
+  das **Attest** als Vorliegen, den Rest im Klartext. Was das für die Küche heißt, entscheidet nicht
+  diese Freigabe, sondern die Liste: Über die Hortliste gilt die Freigabe an den Hort, über die
+  Mensa-Tagesliste die an die Schule ([11](11-mensa.md)).
+- Die **Notfalleinsicht** steht auch den Hortkräften offen, für jedes Kind und ohne Rücksicht auf
+  eine verweigerte Freigabe ([08](08-schulvertrag.md)).
 - Der **Masernnachweis** wird wie in [06](06-anmeldetag.md) nur danach erhoben, **ob** und **wie**
   er vorlag, ohne Kopie — sonst hätte ausgerechnet das externe Kind keinen, obwohl der Träger ein
   Fehlen dem Gesundheitsamt melden muss.

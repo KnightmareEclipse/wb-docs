@@ -15,40 +15,53 @@ Stelle referenzieren, ohne sie zu bauen — [`anmeldung-api.md`](anmeldung-api.m
 (Masernnachweis regulärer Kinder), 08 Z2 (Gesundheitsangaben beantworten oder ablehnen), 09 Z3
 (externes Kind: beides zum ersten Mal). Alle drei haben hier eine Route. Es gibt **8 Routen**; **4**
 nennen eine dieser Zeilen, **4** einen Hebel oder Abschnitt der Karte (`grenzkarte.md` „Zugriff, je
-Angabe", [15](../soll-prozesse/15-klassenbildung.md) „Zwei Einsichten", das Gespräch mit der
+Angabe", [15](../soll-prozesse/15-klassenbildung.md) „Hier entsteht, von welchen Kindern jemand
+liest", das Gespräch mit der
 Geschäftsführung vom 01.09.2026 für die Notfalleinsicht). Keine Abweichung.
 
 ## Zugriffsmodell
 
-Sichtbarkeit hängt am **Paar aus Kategorie und Feld**, vergeben an einen **Sichtkreis**
-(`health_field_visibility`). Sichtkreise überschneiden sich, ohne einander zu enthalten — es gibt
-keine Stufen mehr, und keine Route entscheidet in einer Fallunterscheidung, welches Feld sie
-ausliefert: **Jeder Sichtkreis ist eine Sicht in der Datenbank, an eine eigene DB-Rolle vergeben**,
-und die Route liest durch die Sicht ihrer Rolle. Ein Feld, das der Sichtkreis nicht trägt, kommt
-unter dieser Rolle gar nicht aus der Datenbank.
+Sichtbarkeit ist ein **Schnitt aus drei Bedingungen**, und alle drei sind Zeilen:
 
-Sechs Sichtkreise, und **welche Rolle welchen bekommt, steht nur hier**:
+1. **Trägt der Sichtkreis das Feld?** — `health_field_visibility`, je Paar aus Kategorie und Feld,
+   samt `presence_only` für das Attest.
+2. **Ist die Angabe dieser Instanz freigegeben?** — `health_trait_releases`, je Angabe und
+   Sichtkreis. Der Notfallausschnitt übergeht sie ausdrücklich, die Küche erbt die Freigabe der
+   Liste, auf der das Kind steht.
+3. **Ist die aufrufende Person für dieses Kind zuständig?** — die zweite Achse
+   (`klassenorganisation-schema.sql`): Klassenleitung, Unterricht in seiner Klasse, oder eine
+   Wahlmodulgruppe, in der es Mitglied ist.
+
+Keine Route entscheidet in einer Fallunterscheidung, welches Feld sie ausliefert: **Jeder Sichtkreis
+ist eine Sicht in der Datenbank, an eine eigene DB-Rolle vergeben**, und die Route liest durch die
+Sicht ihrer Rolle. Ein Feld, das der Sichtkreis nicht trägt, kommt unter dieser Rolle gar nicht aus
+der Datenbank.
+
+Fünf Sichtkreise, und **welche Rolle welchen bekommt, steht nur hier**:
 
 | Sichtkreis (`code`) | Wer | Worauf eingeschränkt (welche Kinder) | DB-Rolle |
 |---|---|---|---|
 | **volle Akte** (`full`) | `secretariat`; `school_management`; Erziehungsberechtigte | Sekretariat unbeschränkt; Schulleitung nur ihre Schulart; Eltern nur die eigene Familie | `backend_health` |
-| **Klassenleitung** (`class_lead`) | die Klassenlehrkraft (`classes.class_teacher_id`, keine `roles`-Zeile) | nur die Kinder der eigenen Klasse | `backend_health_class_lead` |
+| **Schule** (`school`) | die Klassenlehrkraft (`classes.class_teacher_id`, keine `roles`-Zeile) und jede Rolle mit `teacher` | nur die Kinder, für die sie zuständig ist — zweite Achse | `backend_health_school` |
 | **Betreuung** (`care`) | `day_care_staff`, `day_care_management` | nur Kinder mit laufendem Hortvertrag | `backend_health_care` |
-| **Sport** (`sports`) | jede Rolle mit `teacher`, die für dieses Kind nicht Klassenlehrkraft ist | unbeschränkt über alle Kinder | `backend_health_sports` |
 | **Küche** (`kitchen`) | `canteen`, `domestic_services_management` | über die Tagesliste ([`mensa-api.md`](mensa-api.md)) und die Teilnehmerliste ([`ferien-api.md`](ferien-api.md)), nie am einzelnen Kind | `backend_kitchen` |
 | **Notfall** (`emergency`) | jede Mitarbeiterrolle | **jedes Kind**, ohne Zuständigkeit — dafür protokolliert | `backend_health_emergency` |
 
 Was jeder Sichtkreis **enthält**, ist Konfiguration und steht begründet im Seed (`wb-backend`,
-„value list seed", Abschnitt Gesundheit), nicht hier: Ein Feld dazu ist dort eine Zeile.
+„value list seed", Abschnitt Gesundheit), nicht hier: Ein Feld dazu ist dort eine Zeile. Die Matrix
+trägt seit dem groben Schnitt vom 02.09.2026 nur noch **zwei** echte Unterscheidungen — die Küche
+auf Unverträglichkeit und Allergie, und das Attest als bloßes Vorliegen —; alles Übrige steht
+Lehrkräften und Hort offen.
 
-`[A]` **Sport steht für den Fachunterricht insgesamt.** Die einzige Fachlehrkraft, die ein Block
-nennt, ist die des Sportunterrichts (`grenzkarte.md`), und bis die zweite Achse steht — Wahlmodul,
-AG, Begleitung einer Veranstaltung (`backlog/`) — ist jede Lehrkraft ohne Klassenleitung für jedes
-Kind Fachlehrkraft. Der Sichtkreis trägt deshalb die Handlungshinweise („Beachten") und Erlaubnisse,
-nicht die Bezeichnungen. — Alternative: ein siebter Sichtkreis `teaching` mit der Alltagsliste aus
-08 Z. 95 (Unverträglichkeit, Allergie, Notfallmedikation, Zeckenentfernung samt Bezeichnung); Preis:
-genau die Stufe, die TASK-152 aus den Blöcken nimmt, lebte als Sichtkreis weiter, und die
-Fachlehrkraft sähe Diagnosenamen, für die kein Block einen Grund nennt.
+**`care` bleibt trotz derselben Felder ein eigener Sichtkreis**, und der Grund ist nicht die Matrix,
+sondern die Freigabe: Schule und Hort sind zwei Instanzen desselben Bestands, die Eltern entscheiden
+je Instanz, und derselbe Sichtkreis für beide könnte das nicht auseinanderhalten.
+
+**Das Attest kommt für `school` und `care` nur als Vorliegen heraus** (`presence_only`): Die Sicht
+liefert statt der `document_id`, ob eine hinterlegt ist. `full` behält es im Klartext — sonst könnte
+das Sekretariat den Abgleich zwischen Elternangabe und Attest nicht führen, den der
+Datenschutzbeauftragte am 02.09.2026 verlangt hat. Ein Prüfzustand entsteht daraus nicht: Weicht das
+Attest ab, ändert das Sekretariat den Wert, und die Spur trägt die Änderungsspur.
 
 `[A]` **Die Eltern lesen die volle Akte ihres Kindes**, nicht einen Sichtkreis: Sie haben jede
 Zeile selbst geschrieben. — Alternative: ein eigener Sichtkreis `guardian`; Preis: eine Zeile je
@@ -58,7 +71,7 @@ Paar, die immer alle Paare enthält.
 
 - **Der handlungsrelevante Hinweis** (`child_health_records.action_note`), von der
   Klassenlehrkraft formuliert, „den alle unterrichtenden Personen sehen" (`grenzkarte.md`): geht an
-  `full` (Personal), `class_lead`, `sports` und `emergency`. Nicht an den Hort — er unterrichtet
+  `full` (Personal), `school` und `emergency`. Nicht an den Hort — er unterrichtet
   nicht — und nicht an die Eltern. — Alternative: ihn im Portal mitliefern; Preis: die fachliche
   Einschätzung der Klassenlehrkraft wird ein Feld, das sie der Familie gegenüber begründen muss.
   `backend_health_note` ist eine *Schreib*beschränkung; `backend_runtime` liest die Spalte
@@ -69,10 +82,13 @@ Paar, die immer alle Paare enthält.
   als Entwarnung, „die eine Fehldeutung, die bei Art.-9-Daten wirklich schadet"
   (`schema/gesundheit-schema.sql`).
 
-**Die Klassenlehrkraft ist keine `roles`-Zeile, sondern ein Ownership-Check** über
-`classes.class_teacher_id` — dieselbe Mechanik wie in [`klassenorganisation-api.md`](klassenorganisation-api.md).
-`class_lead` vor `sports`: Wer für dieses Kind die Klasse führt, bekommt den weiteren Kreis, und es
-gibt keinen Fall, in dem der engere gewinnen soll.
+**Zuständig für ein Kind ist, wer es unterrichtet** — Klassenleitung
+(`classes.class_teacher_id`), Unterricht in seiner Klasse (`class_teaching_assignments`) oder seine
+Wahlmodulgruppe (`child_group_memberships`). Alle drei sind Ownership-Checks und keine `roles`-Zeile,
+dieselbe Mechanik wie in [`klassenorganisation-api.md`](klassenorganisation-api.md). Eine Rangfolge
+zwischen ihnen gibt es nicht mehr: Sie führen zum selben Sichtkreis und unterscheiden sich nur
+darin, **welche** Kinder sie erreichen. **Fehlt jede Zuordnung, ist die Antwort `404`** — die
+Fehlerrichtung ist „nichts", nicht „alles".
 
 **Was diese Domäne nicht selbst entscheidet:** Ob eine `school_management`- oder
 `day_care_management`-Person überhaupt zu diesem Kind darf, prüft die Ownership-Spalte am Kind —
@@ -97,7 +113,7 @@ Dazu ein Anker ohne Kind: `/health-questionnaire`, der Fragensatz — Kategorien
 
 ## Enge Rolle
 
-**Sieben**, und sechs davon sind Sichtkreise. `backend_runtime` hält auf den vier Datentabellen
+**Sechs**, und fünf davon sind Sichtkreise. `backend_runtime` hält auf den vier Datentabellen
 nur die Schlüssel- und Zustandsspalten (`*_id`, `health_trait_type_id`, `health_field_id`,
 `value_kind_code`, `answered_at`, `declined_at`, `created_*`) und das `INSERT`/`DELETE`; die fünf
 Wertspalten von `health_trait_values` liest **keine** Rolle an der Tabelle — sie kommen allein
@@ -106,13 +122,15 @@ Rollen sind Lesegrenzen.
 
 - **Je Sichtkreis eine Sicht** `health_values_<code>` (Kind, Antwort, Merkmal, Feld, die fünf
   Wertspalten), gefiltert über `health_field_visibility` auf den einen Sichtkreis, `SELECT` an die
-  DB-Rolle aus der Tabelle oben. Alle sechs entstehen aus **einer** Definition in der Migration,
+  DB-Rolle aus der Tabelle oben. Alle fünf entstehen aus **einer** Definition in der Migration,
   und die Vergabe an die Rolle ist ein `GRANT` — „wird über GRANTs vergeben"
-  (`schema/gesundheit-schema.sql`). `[A]` Sichten je Sichtkreis, keine Policy: Die Zeilenfilterung
-  per RLS ist TASK-157 und ein Urteil bei Tageslicht; bis dahin ist ein neuer Sichtkreis eine Zeile
-  **und** eine Sicht. — Alternative: eine Sicht mit `scope_code`-Spalte und dem Sichtkreis als
-  Parameter der Route; Preis: die Grenze läge im Anwendungscode, und dieselbe DB-Rolle könnte jeden
-  Kreis lesen.
+  (`schema/gesundheit-schema.sql`). Die Sicht leert dabei die `document_id`, wo
+  `health_field_visibility.presence_only` gesetzt ist, und liefert an ihrer Stelle nur, dass eine
+  hinterlegt ist: RLS filtert Zeilen und keine Spalten, das muss also die Sicht tun. `[A]` Sichten
+  je Sichtkreis, keine Policy: Die Zeilenfilterung per RLS ist TASK-157 und ein Urteil bei
+  Tageslicht; bis dahin ist ein neuer Sichtkreis eine Zeile **und** eine Sicht. — Alternative: eine
+  Sicht mit `scope_code`-Spalte und dem Sichtkreis als Parameter der Route; Preis: die Grenze läge
+  im Anwendungscode, und dieselbe DB-Rolle könnte jeden Kreis lesen.
 - **`backend_health_note`** — unverändert: `SELECT`, `INSERT`, `UPDATE` auf
   `child_health_records.action_note` samt Schlüssel, **kein `DELETE`**.
 - **`backend_kitchen`** bekommt statt `kitchen_health_traits` die Sicht `health_values_kitchen`;
@@ -128,7 +146,7 @@ Rollen sind Lesegrenzen.
 | Handlung | Herkunft | Wer darf | Worauf eingeschränkt | Schreibt/liest | Enge Rolle |
 |---|---|---|---|---|---|
 | `GET /health-questionnaire` — der Fragensatz: aktive Kategorien mit `allows_multiple`, je Kategorie ihre aktiven Felder mit Wertart | [08](../soll-prozesse/08-schulvertrag.md) Z2 — ohne die Fragen kein Formular | jede angemeldete Person | unbeschränkt; keine Personendaten | liest | — |
-| `GET /children/{child_id}/health-record` — der Bestand: die vorgeschaltete Frage, je Kategorie ihr Zustand (`unasked`, `answered`, `declined`) und ihre Merkmale mit **genau den Feldern des Sichtkreises**, dazu Hinweis und (nur `full`, nur Personal) Masernnachweis | `grenzkarte.md` „Zugriff, je Angabe"; [09](../soll-prozesse/09-hortvertrag.md) „Hortkräfte den Alltag …"; [15](../soll-prozesse/15-klassenbildung.md) „Zwei Einsichten"; `grenzkarte.md` „schnell nachprüfbar" für den Masernnachweis | Erziehungsberechtigte; `secretariat`, `school_management`, `day_care_staff`, `day_care_management`, `teacher`; Klassenlehrkraft | wie die Tabelle oben; die Kategorienliste der Antwort trägt nur Kategorien, von denen der Sichtkreis ein Feld sieht. **Drei Zustände sichtbar unterschieden:** `answered` mit leerer Merkmalsliste heißt „nichts vorhanden", `declined` heißt „will nicht sagen", `unasked` heißt „nie gefragt" — der Normalfall über Monate, weil der Bestand von Hand nachgetragen wird (`soll-prozesse/README.md`, „Nacharbeit"). Der Masernnachweis steht nur Personal der vollen Sicht offen | liest | die Sicht des Sichtkreises |
+| `GET /children/{child_id}/health-record` — der Bestand: die vorgeschaltete Frage, je Kategorie ihr Zustand (`unasked`, `answered`, `declined`) und ihre Merkmale mit **genau den Feldern des Sichtkreises**, dazu Hinweis und (nur `full`, nur Personal) Masernnachweis | `grenzkarte.md` „Zugriff, je Angabe"; [09](../soll-prozesse/09-hortvertrag.md) „Der Hort ist dabei eine eigene Instanz dieses einen Bestands"; [15](../soll-prozesse/15-klassenbildung.md) „Hier entsteht, von welchen Kindern jemand liest"; `grenzkarte.md` „schnell nachprüfbar" für den Masernnachweis | Erziehungsberechtigte; `secretariat`, `school_management`, `day_care_staff`, `day_care_management`, `teacher`; Klassenlehrkraft | wie die Tabelle oben, und zusätzlich die zwei Bedingungen aus dem Zugriffsmodell: nur Kinder, für die die Person zuständig ist, und je Angabe nur, was diesem Sichtkreis freigegeben ist — beides ausgenommen beim Notfallausschnitt, der über die eigene Route läuft. Die Kategorienliste der Antwort trägt nur Kategorien, von denen der Sichtkreis ein Feld sieht. **Drei Zustände sichtbar unterschieden:** `answered` mit leerer Merkmalsliste heißt „nichts vorhanden", `declined` heißt „will nicht sagen", `unasked` heißt „nie gefragt" — der Normalfall über Monate, weil der Bestand von Hand nachgetragen wird (`soll-prozesse/README.md`, „Nacharbeit"). Der Masernnachweis steht nur Personal der vollen Sicht offen | liest | die Sicht des Sichtkreises |
 | `PUT /children/{child_id}/health-record` — die vorgeschaltete Frage: beantworten oder ausdrücklich ablehnen | [08](../soll-prozesse/08-schulvertrag.md) Z2, „ändern die Eltern danach jederzeit im Portal — hier, nicht in 02"; [09](../soll-prozesse/09-hortvertrag.md) Z3 | Erziehungsberechtigte; `secretariat` (Umweg) | eigene Familie, nach [Einsichtsstufe](../soll-prozesse/hebel.md#einsichtsstufe) **nur „voll"**. Setzt `answered_at` **oder** `declined_at`. **`beantwortet` ist der Abschluss der Erhebung und trägt die eine Regel, die die Datenbank nicht halten kann:** Jede aktive Kategorie muss eine Antwortzeile haben — beantwortet oder abgelehnt. Fehlt eine, antwortet die Route `400` und **nennt die Kategorie**; nichts wird geschrieben. Ablehnen ist jederzeit möglich und rührt vorhandene Zeilen nicht an. `[A]` Die Vollständigkeit heißt „jede Kategorie beantwortet", nicht „jedes Feld gefüllt": Die Tiefe je Merkmal wählen die Eltern selbst („selber entscheiden, wie tief"), eine Kategorie ohne Antwort dagegen ist eine vergessene Frage. — Alternative: je Feld eine Pflicht; Preis: ein `is_required` am Paar, und damit der Formularbaukasten, den das Schema ausdrücklich nicht baut | schreibt, `guardian:`/`entra:` | — |
 | `PUT /children/{child_id}/health-record/answers/{trait_type_code}` — **eine Kategorie am Stück**: `declined`, oder `answered` mit der vollständigen Liste ihrer Merkmale, je Merkmal die Werte je Feld (`{feldcode: wert}`) | [08](../soll-prozesse/08-schulvertrag.md) Z2; [09](../soll-prozesse/09-hortvertrag.md) Z3; das Gespräch vom 01.09.2026 („je Kategorie freiwillig und in der Tiefe wählbar") | Erziehungsberechtigte (voll); `secretariat` (Umweg) | eigene Familie. Legt den Bestand an, wenn es ihn noch nicht gibt — noch unbeantwortet, der Abschluss ist die Route darüber. **Ersetzt** die Merkmale der Kategorie: Ein Merkmal mit `health_trait_id` bleibt dieselbe Zeile (die Änderungsspur trägt dann die Änderung, nicht Löschen und Neuanlage), eines ohne entsteht, eines, das im Rumpf fehlt, wird gelöscht — Zeile für Zeile, keine Massenoperation ([`gemeinsam.md`](gemeinsam.md#schreiben)). Was die Datenbank prüft, prüft die Route nicht noch einmal: Feld an der falschen Kategorie, Wert in der falschen Art, zweite Zeile einer Kategorie mit `allows_multiple = false`, leerer Text — jede dieser Verletzungen wird als `400` mit dem Feldnamen beantwortet, nicht als 500. **Ein Merkmal ohne einen einzigen Wert ist keines** und wird abgewiesen — die eine Regel, die kein CHECK sieht, weil ein fehlender Wert eine fehlende Zeile ist. `[A]` Der Fragensatz einer Kategorie wird am Stück geschrieben, nicht der Wert einzeln: Die Kategorie ist, was die Eltern als eine Frage sehen, und ein Abbruch nach der Hälfte darf keine halbe Allergie hinterlassen. — Alternative: `PUT` je Wert; Preis: die Vollständigkeit eines Merkmals ist dann nie prüfbar, und der Ablauf steht im Frontend | schreibt, `guardian:`/`entra:` | — |
 | `PUT /children/{child_id}/health-note` — den handlungsrelevanten Hinweis setzen oder leeren | `grenzkarte.md` „Zugriff, je Angabe" | Klassenlehrkraft der eigenen Klasse | nur die eigene Klasse; **kein Umweg** — der Hinweis ist ihre fachliche Einschätzung, keine Verwaltungsangabe | schreibt, `entra:` | `backend_health_note` |
@@ -157,11 +175,16 @@ Je eine Zeile, benannt und nicht mitgeplant:
   ändert sich mit einer Migration.
 - **Die Freigabe des Bestands für ein Ferienprogramm** (10) ist eine Ferien-Route
   ([`ferien-api.md`](ferien-api.md)); was die Betreuung dann sieht, ist der Sichtkreis `care`.
-- **Der Erhebungsanlass** — welche Kategorie aus welchem Vorgang stammt, samt eigener Frist — ist
-  nicht gebaut (`schema/gesundheit-schema.sql`, offene Fragen); bis dahin fragt der Abschluss alle
-  aktiven Kategorien.
-- **Die zweite Achse** — von welchen Kindern eine Fachlehrkraft liest — bleibt bei Klasse,
-  Betreuungsvertrag und Familie (TASK-157).
+- **Der Erhebungsanlass** ist der Sichtkreis, an den freigegeben wird; was fehlt, ist der
+  Anlassgeber — die Domäne der außerunterrichtlichen Veranstaltungen legt die Instanz an
+  (`schema/gesundheit-schema.sql`, offene Fragen). Bis dahin fragt der Abschluss alle aktiven
+  Kategorien.
+- **Die zweite Achse steht** (`schema/klassenorganisation-schema.sql`), die **Policy dazu nicht**:
+  Bis TASK-157 sie baut, filtert jede Sicht allein über den Sichtkreis, und Zuständigkeit wie
+  Freigabe prüft die Route.
+- **Die Freigabe je Instanz** (`child_health_releases`, `health_trait_releases`) hat noch **keine
+  Schreibroute**: Sie entsteht im Durchgang, der auch die Oberfläche der zweiten Anmeldung trägt
+  (TASK-163), und ist ohne die Policy ohnehin nur halb wirksam.
 - **Wer das Notfallprotokoll ansieht und wie lange es bleibt** — beim Datenschutzbeauftragten
   (`pruefberichte/fragen-datenschutz.txt`, Frage 5); bis dahin hat es keine Leseroute.
 - **Die Betreuungsliste der Hortleitung** trägt weiterhin keinen Gesundheits-Ausschnitt (09).
@@ -175,6 +198,9 @@ Je eine Zeile, benannt und nicht mitgeplant:
 
 - [`ferien-api.md`](ferien-api.md): Die Teilnehmerliste liest den Sichtkreis `care` über
   `backend_health_care` statt „die Alltagsmerkmale über `backend_health_everyday`".
+- `wb-backend`: `backend_health_class_lead` und `backend_health_sports` verschmelzen zu
+  `backend_health_school`; der Sichtkreis `sports` und seine Seed-Zeilen entfallen, `full` bekommt
+  eine Seed-Zeile für das Attest im Klartext, und jede Sichtbarkeitszeile trägt jetzt ihre Wertart.
 - [`mensa-api.md`](mensa-api.md): `kitchen_health_traits` ist eine abgeleitete Sicht des
   Sichtkreises `kitchen`, und die Küche sieht, was dieser Sichtkreis trägt — Bezeichnung und
   Beachten von Unverträglichkeit und Allergie.

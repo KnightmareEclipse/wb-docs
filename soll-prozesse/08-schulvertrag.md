@@ -77,6 +77,13 @@ nur an einer Stelle: bei den Kindern, die beim Vollimport schon eingeschrieben w
 Bestand das Sekretariat erst aus der Akte nachträgt ([README](README.md)) — erkennbar daran, dass
 diese Strecke bei ihnen nie lief.
 
+**Freiwillig ist dabei jede Kategorie einzeln, und die Tiefe wählen die Eltern selbst.** Je
+Kategorie — Allergie, chronische Erkrankung, Notfallmedikament — stehen deshalb drei Antworten
+nebeneinander, und sie bedeuten Verschiedenes: **beantwortet, es gibt nichts** ist eine Entwarnung,
+**will nicht sagen** ist keine, und **nie gefragt** ist über Monate der Normalfall, solange der
+Bestand aus der Akte nachgetragen wird. Wer das nicht unterscheidet, liest eine leere Liste als
+Entwarnung — die eine Fehldeutung, die hier wirklich schadet.
+
 Diese Frage steht **je Kind und nicht je Person**, anders als das Fotoeinverständnis: Der Bestand
 ist einer, also ist auch die Entscheidung darüber eine, und getragen wird sie von den Unterschriften
 unter dem Vertrag. Widersprechen sich zwei Sorgeberechtigte, gilt wie überall in diesem Block der
@@ -92,13 +99,28 @@ Was die Küche daraus braucht, liest [11](11-mensa.md) aus demselben Bestand, de
 ([09](09-hortvertrag.md)) — erhoben wird er hier, und nur bei einem externen Hortkind ohne
 Schulvertrag füllt ihn [09](09-hortvertrag.md) zum ersten Mal.
 
-Lehrkräfte und Hort sehen davon, was im Alltag zu tun ist — Unverträglichkeit, Allergie,
-Notfallmedikation samt Erlaubnis, Zeckenentfernung —, nicht Diagnose, Behandlungsgrund und
-Attestlage; die sehen Sekretariat und Schulleitung — und die **Klassenlehrkraft für die Kinder ihrer
-Klasse**, eine der beiden Einsichten, die aus einer Klassenzuordnung folgen
-([15](15-klassenbildung.md)); sie darf lesen, nicht ändern. Die **Mensa** sieht den schmalsten
-Ausschnitt: allein Unverträglichkeit und Allergie, denn mehr braucht niemand, der kocht
-([11](11-mensa.md)).
+**Wer was sieht, hängt an zwei Dingen, und beide sind Zeilen und keine Stufe.** Das eine ist der
+**Sichtkreis**: Lehrkräfte und Hortkräfte sehen alles, das **Attest** darunter nur als Vorliegen —
+dass eines da ist, nicht was darin steht —, und den Abgleich zwischen Elternangabe und Attest führt
+das Sekretariat, das es im Klartext sieht. Die **Mensa** sieht den schmalsten Ausschnitt: allein
+Unverträglichkeit und Allergie, denn mehr braucht niemand, der kocht ([11](11-mensa.md)). Alle
+dürfen lesen, ändern nur, wer die Angabe erhoben hat.
+
+Das andere ist, **von welchen Kindern**: „für ihre Kinder" heißt, wer das Kind unterrichtet —
+Klassenleitung, Unterricht in seiner Klasse, oder seine Wahlmodulgruppe. Woraus sich das ergibt,
+steht in [15](15-klassenbildung.md) und wird hier nicht wiederholt.
+
+**Die Eltern geben je Instanz frei.** Schule und Hort lesen denselben Bestand, aber die Familie
+entscheidet für jede der beiden erst, ob sie überhaupt etwas sieht, und danach je Angabe —
+in einer Handlung für alles oder einzeln. Beim Schulvertrag ist die Schule die Instanz; wie das für
+den Hort läuft und was eine Ablehnung dort bedeutet, steht in [09](09-hortvertrag.md).
+
+**Und im Notfall kommt jeder Mitarbeitende an jedes Kind.** Eine Taste am Kind, ohne Zuständigkeit,
+ohne Genehmigung und ohne Rücksicht auf eine verweigerte Freigabe — eine Genehmigungskette ist bei
+einem Anfall auf dem Schulhof das falsche Bauteil. Der Schutz ist die Nachvollziehbarkeit: Jede
+Betätigung hinterlässt eine Zeile und wird der Geschäftsführung gemeldet, unmittelbar beim Auslösen.
+Das Protokoll geht mit dem Kind. Die anderen Blöcke nennen diesen Weg, beschreiben ihn aber nicht
+noch einmal.
 
 Das **Fotoeinverständnis** ist je Person ein Ja oder Nein, ab 14 mit dem Kind als drittem; es ist
 die am breitesten gelesene Einwilligung und für **alle Lehrkräfte, Hortkräfte und das Sekretariat**
