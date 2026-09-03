@@ -4,7 +4,7 @@ title: 'Unterrichtsende je Klasse und Wochentag, samt Häkchen für Sport am End
 status: To Do
 assignee: []
 created_date: '2026-09-03 17:11'
-updated_date: '2026-09-03 17:26'
+updated_date: '2026-09-03 17:27'
 labels:
   - schema
   - klassenorganisation
@@ -23,11 +23,9 @@ Beschrieben am 03.09.2026: Der Hort führt heute, **wann welche Klasse Unterrich
 
 Und er führt eine Abweichung mit: **Wo Sport am Unterrichtsende liegt, kommen die Kinder später.** Die Schule hat keine eigene Sporthalle, die Halle ist extern, und die Eltern fahren die Kinder anschließend zurück — das ist Teil der Elternarbeit. Für den Hort heißt das: An diesem Wochentag trifft diese Klasse später ein.
 
-**Wie viel später, weiß niemand, und deshalb wird es nicht gespeichert** (Betreiber, 03.09.2026): Geführt wird heute nur, *welche* Klasse *an welchem Tag* Sport am Ende hat — ohne Uhrzeit. Ein Feld für die Ankunftszeit wäre damit eine Spalte, die entweder leer bliebe oder mit einer geratenen Zahl gefüllt würde, und beides ist schlechter als nichts.
+**Eine Ankunftszeit gibt es nicht, und zwar der Sache nach** (Betreiber, 03.09.2026): Die Kinder treffen unterschiedlich ein — es hängt an den Eltern, am Verkehr, an allem Möglichen. Eine Zeit je Klasse wäre also nicht bloß ungenau, sondern falsch. Geführt wird deshalb nur, *welche* Klasse *an welchem Tag* Sport am Ende hat.
 
 **Gebraucht wird also eine Zeile je Klasse und Wochentag** mit dem Unterrichtsende als Uhrzeit und einem **Häkchen `sport_at_end`** (Betreiber, 03.09.2026): An diesem Tag liegt Sport am Ende, die Kinder kommen deshalb später. Mehr wird nicht getrackt, weil mehr nicht existiert.
-
-Der Kommentar an der Spalte trägt, was das Häkchen nicht sagt: **wie viel später, weiß niemand** — es gibt keine Ankunftszeit, weder gemessen noch vereinbart, und eine Spalte dafür bliebe leer oder würde geraten. Der Hort liest das Häkchen und weiß, was es heißt.
 
 Verworfen, mit kleinem Preis: ein **Freitext-Grund** statt des Häkchens wäre nach der Wirkung benannt statt nach der Ursache und trüge einen zweiten Anlass mit, ohne dass eine Spalte dazukäme. Er kostet dafür einen Satz, den jemand tippt, für eine Tatsache, die jeder kennt. Käme ein zweiter Anlass — Schwimmen betrifft die Hortkinder ausdrücklich nicht —, ist er ein zweites Häkchen oder eben doch der Text; heute trägt das eine.
 
@@ -46,7 +44,7 @@ Sie gehört zu `klassenorganisation` — dieselbe Domäne wie das Unterrichtsver
 <!-- AC:BEGIN -->
 - [ ] #1 Eine Zeile je Klasse und Wochentag mit dem Unterrichtsende als Uhrzeit
 - [ ] #2 Ein Häkchen sagt, dass an diesem Tag Sport am Ende liegt und die Kinder später kommen
-- [ ] #3 Keine Ankunftszeit — der Kommentar sagt, dass sie nirgends existiert und geraten würde
+- [ ] #3 Keine Ankunftszeit je Klasse — sie unterscheidet sich von Kind zu Kind
 - [ ] #4 Kein Fach, keine Stunde, kein Raum: Die Tabelle bleibt eine Zeit je Klasse und Wochentag
 - [ ] #5 Die Zeiten hängen am Schuljahr und werden wie die Unterrichtsverteilung gepflegt
 <!-- AC:END -->
