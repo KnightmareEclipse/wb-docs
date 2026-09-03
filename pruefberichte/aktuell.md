@@ -1,15 +1,17 @@
-# Prüfbericht — Domäne akademie
+# Prüfbericht — akademie und ferien
 
-Gelesen: `soll-prozesse/hebel.md`, `rules.md` §1/§3/§7, `grenzkarte.md`, dann
-`schema/akademie-schema.sql` samt `-check.sql` und Block 21; zum Abgleich Block 10, 09 und 14 sowie
-`ferien-schema.sql`, `elternbonus-schema.sql`, `anmeldung-schema.sql`, `querschnitt-schema.sql`,
-`stammdaten-schema.sql`, `gesundheit-schema.sql`.
+Einmal zu Beginn gelesen: `soll-prozesse/hebel.md`, `rules.md` §1/§3/§7, `grenzkarte.md`. Was je
+Domäne dazukam, steht in ihrem Abschnitt. Die Nummern laufen über den ganzen Bericht durch.
 
 Lauf: alle vierzehn `*-schema.sql` in der dokumentierten Reihenfolge in eine leere Datenbank,
 `rc=0` je Datei; danach alle vierzehn `*-schema-check.sql` gegen die vollständige Datenbank,
 `rc=0` je Skript. Die Funde unten stammen aus eigenen `INSERT`s gegen dieselbe Datenbank.
 
 ## akademie
+
+Gelesen: `schema/akademie-schema.sql` samt `-check.sql`, dann Block 21; zum Abgleich Block 10, 09
+und 14 sowie `ferien-schema.sql`, `elternbonus-schema.sql`, `anmeldung-schema.sql`,
+`querschnitt-schema.sql`, `stammdaten-schema.sql`, `gesundheit-schema.sql`.
 
 ### Funde
 
@@ -191,9 +193,149 @@ akademie · Eine Zielgruppenzeile an einem Erwachsenen-Angebot geht durch, obwoh
 Schema kommt ohne die Antwort aus; `academy_approvers` bleibt bis dahin leer, und dann kann niemand
 freigeben. Ob das gewollt ist, entscheidet nicht dieser Lauf.
 
-Ohne Fund durchgekommen: keine — geprüft wurde allein `akademie`.
-
 ### Sortierung nach Gewicht
 
 F1, F2, F3, F4 brechen im Betrieb oder verhindern den Bau des Erwachsenen-Zweigs; F5, F6 nehmen
 gebauten Regeln ihre Beweiskraft; F7 bis F13 sind Anker, Verweise und Zitate.
+
+## ferien
+
+Gelesen: `schema/ferien-schema.sql` samt `-check.sql`, dann Block 10; zum Abgleich Block 09, 21 und
+02 sowie `querschnitt-schema.sql`, `stammdaten-schema.sql`, `gesundheit-schema.sql` und
+`akademie-schema.sql`.
+
+### Funde
+
+```
+[F14] ferien · Klasse 1/2 · holiday_bookings, holiday_cost_coverage_codes
+Derselbe Fund wie F1, an den ferien-Tabellen und aus derselben Blockstelle: „Der Code gilt für
+diese eine Anmeldung", erzeugt „für eine Mailadresse und ein Programm". Verifiziert: ein Code des
+Programms 2 bezahlt zwei Buchungen in Programm 1, für zwei verschiedene Kinder — beide INSERTs
+angenommen. Der Code ist das einzige Papier, auf dem steht, an wen berechnet wird.
+Vorschlag: partieller UNIQUE über `holiday_cost_coverage_code_id` an den nicht stornierten
+Buchungen, dazu ein zusammengesetzter Fremdschlüssel über das Programm.
+```
+
+```
+[F15] ferien · Klasse 1 · holiday_session_types.allows_external_children
+10 Z3: „**Geprüft wird nur eines:** ob die Terminart fremden Kindern offensteht." Es ist die
+einzige Zulassungsregel dieser Domäne, und sie hat weder Constraint noch Gegenprobe: ein Kind ohne
+Einschreibung und ohne Hortvertrag bucht eine Terminart mit `allows_external_children = false`
+(eigener INSERT, angenommen). Der Spaltenkommentar begründet das mit „Trigger gibt es in diesem
+Schema nirgends" — akademie hat für dieselbe Angabe einen gebaut, „weil die Regel sonst keine
+Gegenprobe hätte".
+Vorschlag: denselben Trigger wie `enforce_academy_registration()` — dann trägt eine Fassung des
+Prädikats beide Domänen, und F2 wird an einer Stelle repariert.
+```
+
+```
+[F16] ferien · Klasse 3 · ferien-schema.sql und -check.sql, fünf Stellen
+Vier Zitate schreiben „Hortleitung" in „anbietende Stelle" um, ohne es zu kennzeichnen: „Die
+anbietende Stelle legt ein Programm an …" (10 Z1 sagt „Die Hortleitung"), „Sekretariat oder
+anbietende Stelle erzeugt einen Kostenübernahme-Code …" (Sonderfälle: „Sekretariat oder
+Hortleitung"), „sichtbar für die anbietende Stelle, Hortkräfte und Sekretariat" (Block: „für die
+Hortleitung"), und im Prüfskript „wenn die anbietende Stelle ihn einträgt". Dazu „Die Ferienwoche
+hat eigene Beträge" statt „trägt". Das erste dieser Zitate ist zugleich die Begründung für
+`holiday_programmes.offering_role_id` — eine Spalte, die der Block nicht verlangt: er kennt genau
+eine Stelle.
+Vorschlag: Wortlaut wiederherstellen und die Spalte mit rules.md §3 begründen statt mit dem Block.
+```
+
+```
+[F17] ferien · Klasse 1 · holiday_bookings, holiday_sessions, holiday_programmes
+10 Z5/Z6: ein abgesagter Termin „ist nicht mehr buchbar", und wer das Anmeldefenster verpasst, „ist
+nicht dabei". Beides geht durch: eine Buchung an einem abgesagten Termin eines geschlossenen
+Programms und eine Buchung, deren Anmeldefenster erst 2030 öffnet (eigene INSERTs, beide
+angenommen). Für die Stornosperre schreibt die Datei ausdrücklich hin, dass die Route sie trägt und
+warum; für diese beiden steht nichts.
+Vorschlag: mit F15 in denselben Trigger, oder je ein Satz, der sie der Route zuweist.
+```
+
+```
+[F18] ferien · Klasse 1 · sieben Textspalten ohne Leerstring-CHECK
+10: ein abgesagter Termin trägt „samt Grund in einem Satz". `ck_holiday_sessions_cancellation`
+prüft nur, dass der Grund nicht fehlt — mit `cancellation_reason = ''` geht die Absage durch
+(eigener UPDATE, angenommen). Dasselbe für `holiday_session_types.code` und `.name`,
+`holiday_modules.code` und `.name`, `holiday_sessions.description` und
+`holiday_cost_coverage_codes.code_hash`; akademie setzt für dieselben Fälle durchgängig
+`CHECK (spalte <> '')`.
+Vorschlag: die fehlenden Leerstring-CHECKs nachziehen, den am Absagegrund mit Gegenprobe.
+```
+
+```
+[F19] ferien · Klasse 6 · grenzkarte.md, Zeile „3 Ferienanmeldung"
+Die Karte führt für die Domäne „Q1, Q3". `ferien-schema.sql` trägt aber einen Q5-Fremdschlüssel
+nach (`fk_sync_tasks_holiday_booking`), und Block 10 verlangt ihn zweifach — die Optigem-Aufgabe je
+Kind und die Erstattungsaufgabe je Fall. Dieselbe Lücke hat die Zeile „6 Akademie"
+(`fk_sync_tasks_academy_registration`). Die Mitzieh-Liste aus CLAUDE.md endet bei `grenzkarte.md`,
+und dort ist sie nicht angekommen.
+Vorschlag: in beiden Zeilen Q5 ergänzen.
+```
+
+```
+[F20] ferien · Klasse 5 · ferien-schema-check.sql, „Zahlung über die Summe"
+Die Probe belegt nicht, was ihr Name sagt: Sie legt eine **zweite** Zahlung auf dieselbe Buchung
+(nachgezählt: zwei Zeilen auf `…661`), während der Satz, den sie belegen soll, „ein Absenden ist
+eine Sitzung und eine Zahlungszeile" lautet. Bewiesen wird damit, dass zwei Zahlungen je Buchung
+möglich sind — nicht, dass eine Zahlung einen abweichenden Summenbetrag tragen darf.
+Vorschlag: den Summenbetrag an einer Buchung ohne eigene Zahlung eintragen.
+```
+
+```
+[F21] ferien · Klasse 1 · Dateikopf, fremde Datei gesundheit-schema.sql
+Wie F9, hier für das Ferienprogramm: 10 sagt, die Eltern gäben den Bestand „beim Buchen für dieses
+Programm ausdrücklich frei und dürfen die Freigabe verweigern", und der Dateikopf verweist dafür
+auf `gesundheit-schema.sql`. Dort gibt es nur die zwei dauerhaften Sichtkreise `school` und `care`,
+und der Schlusskommentar sagt: „Was noch fehlt, ist der Anlassgeber."
+Vorschlag: den Verweis auf den Stand bringen, bis die Instanz je Veranstaltung entsteht.
+```
+
+```
+[F22] ferien · Klasse 1 · holiday_care_notes
+Die Anmerkung steht je Kind und Programm, ihr Löschanker ist „geht mit dem Kind". Bei einem Kind
+der Schule überlebt sie damit ihre Buchung um Jahre — die geht sechs Monate nach dem letzten
+Termin, die Anmerkung erst mit dem Austritt. Der Block setzt für sie keine Frist, entscheidet den
+Fall also nicht; genannt, weil er mit dem Freitext genau die Angaben trifft, für die daneben vier
+Wochen gelten.
+Vorschlag: eine Frist am Programm entscheiden lassen (Datenschutzbeauftragter) statt am Kind.
+```
+
+### Angesehen, nicht als Fund gewertet
+
+```
+ferien · `holiday_programmes.offering_role_id` sah nach einem Mechanismus ohne Bedarf aus — der
+        Block kennt genau eine Stelle; rules.md §3 stellt organisatorische Werte aber in die
+        Datenbank. Der Fund ist das Zitat (F16), nicht die Spalte.
+ferien · Die Werbe-Einwilligung fehlt im „Bewusst KEINE"-Kopf, steht aber richtig als Q1-Zeile
+        (`consent_purposes.marketing_holiday`) und ist im Querschnitts-Prüfskript belegt.
+ferien · Die Empfänger der Löschankündigung stehen als Kommentar im Dateikopf, obwohl hebel.md sie
+        „als Wert im System und nicht im Code" verlangt — die Liste entsteht mit dem Lösch-Lauf
+        (TASK-007, TASK-009) und nicht hier.
+ferien · `cancellation_deadline_days` hat keine Gegenprobe ihrer Wirkung; die Datei weist die
+        Sperre ausdrücklich der Route zu und begründet, warum die Zahl trotzdem in der Datenbank
+        steht.
+ferien · Die Platzzahl sperrt nicht — „Obergrenze für die Anzeige, keine Sperre", der Block sagt es
+        wörtlich und nennt die Überschreitung um eins als hinnehmbar.
+ferien · Eine Anmerkung lässt sich an ein Kind hängen, das im Programm nichts gebucht hat; kein
+        Blocksatz verbietet es, und das Sekretariat trägt sie stellvertretend ein.
+ferien · Der Storno ist eintragbar, ohne je erklärt worden zu sein — wie in akademie, und kein
+        Blocksatz verlangt die Reihenfolge.
+ferien · `terms_contract_text_id` kann auf jeden beliebigen Text zeigen; das steht schon als F11
+        und gilt beiden Dateien.
+```
+
+### `[A!]` in dieser Domäne
+
+Keine — weder `ferien-schema.sql` noch Block 10 trägt eine Marke `[A]`, `[A!]` oder `[?]`.
+
+### Sortierung nach Gewicht
+
+F14 kostet Geld, F15 und F17 lassen Kinder an Termine, die ihnen nicht offenstehen; F16 und F18
+tragen Behauptungen und Constraints, die nicht halten, was sie sagen; F19 bis F22 sind Karte,
+Gegenprobe, Verweis und eine offene Frist.
+
+## Über beide Domänen
+
+Ohne Fund durchgekommen: keine der beiden. Der Ladelauf in der dokumentierten Reihenfolge und alle
+vierzehn Prüfskripte gegen die vollständige Datenbank enden mit `rc=0`; kein Fund stammt aus einem
+roten Skript, sondern jeder aus einem eigenen `INSERT` gegen dieselbe Datenbank.
