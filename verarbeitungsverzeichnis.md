@@ -3,7 +3,10 @@
 Der Eintrag für **dieses eine Verfahren**, nicht das Verzeichnis der Schule: Er wird dort
 eingehängt, wo die übrigen Verfahren stehen (ASV-BW, Optigem, M365). Was ein Mensch darüber hinaus
 veranlassen muss, steht in `dsgvo.md`; die technische Grundlage je Punkt in `container.md`,
-`backup.md`, `zugang.md` und im jeweiligen `schema/*.sql`.
+`backup.md`, `zugang.md` und im jeweiligen `schema/*.sql`. Die **Folgenabschätzung nach Art. 35**
+zum Art.-9-Bestand steht in `folgenabschaetzung.md`: Sie bewertet, was hier beschrieben ist, und
+wiederholt es nicht — und sie sperrt den Livegang der fünf Vorgänge, die Gesundheitsangaben
+erheben.
 
 Zwei Sorten Lücke sind ausgeschrieben statt geraten: **`[?]`** liefert die Schule, **`[A]`** ist eine
 Annahme, die die Datenschutzbeauftragte im Termin nach `fragen.md` bestätigt oder verwirft.

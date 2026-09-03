@@ -4,7 +4,7 @@ title: Folgenabschätzung nach Art. 35 schreiben
 status: To Do
 assignee: []
 created_date: '2026-09-03 13:55'
-updated_date: '2026-09-03 18:20'
+updated_date: '2026-09-03 18:35'
 labels:
   - dsgvo
 milestone: m-5
@@ -31,8 +31,14 @@ Niedrige Priorität, weil nichts sie heute aufhält: Sie ist ein Dokument, kein 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Die Fälligkeit hängt am Livegang der Gesundheitsdaten, nicht an einem Kalendertag
-- [ ] #2 Sie wiederholt das Verarbeitungsverzeichnis nicht, sondern bewertet Risiko und Abhilfen
+- [x] #1 Die Fälligkeit hängt am Livegang der Gesundheitsdaten, nicht an einem Kalendertag
+- [x] #2 Sie wiederholt das Verarbeitungsverzeichnis nicht, sondern bewertet Risiko und Abhilfen
 - [ ] #3 Der Datenschutzbeauftragte hat gegengelesen und das schriftlich bestätigt
 - [ ] #4 Kein Vorgang, der Gesundheitsangaben erhebt, ist vorher live gegangen
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Die Folgenabschätzung steht als `folgenabschaetzung.md`: Schwellwert, Fälligkeitsanker am Livegang der fünf erhebenden Vorgänge (08, 09, 10, 19, 21), Notwendigkeit und Verhältnismäßigkeit, neun Risiken mit Abhilfe und Stand, Restrisiko samt Ergebnis zu Art. 36. Sechs der neun Abhilfen sind offene Tickets (157, 205, 206, 162, 183, 007) — sie gehören damit zur Sperre. Offen bleiben AC 3 und 4: die schriftliche Bestätigung des Datenschutzbeauftragten steht als [?] in der Datei, und AC 4 ist ein Zustand der Welt, kein Schreibvorgang.
+<!-- SECTION:NOTES:END -->

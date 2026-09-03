@@ -1,10 +1,10 @@
 ---
 id: TASK-211
 title: Einschätzung zur LogaHR-Schnittstelle schreiben
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-03 14:51'
-updated_date: '2026-09-03 18:20'
+updated_date: '2026-09-03 18:36'
 labels:
   - stammdaten
 milestone: m-5
@@ -31,7 +31,13 @@ Kein Bau in diesem Ticket, nur die Antwort an Jürgen.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Die Liste dessen, was Weltenbaum an Mitarbeitenden führt, steht in der Antwort — samt dem Satz, dass mehr nicht hierher gehört
-- [ ] #2 Benannt, welche Übergabewege LogaHR anbietet und in welche Richtung sie laufen sollen
-- [ ] #3 Der erste und letzte Arbeitstag ist als der tragende Wert benannt
+- [x] #1 Die Liste dessen, was Weltenbaum an Mitarbeitenden führt, steht in der Antwort — samt dem Satz, dass mehr nicht hierher gehört
+- [x] #2 Benannt, welche Übergabewege LogaHR anbietet und in welche Richtung sie laufen sollen
+- [x] #3 Der erste und letzte Arbeitstag ist als der tragende Wert benannt
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Die Einschätzung steht als `logahr.md`. Recherchestand 03.09.2026: P&I nennt öffentlich den HR-Business Connector und eine eventgesteuerte Architektur, Drittsysteme dokumentieren einen Datei-Export, IAM-Konnektoren lesen und schreiben LOGA bidirektional und synchronisieren Ein- und Austrittsdatum nach Entra ID — eine offene REST-API von P&I ist nicht öffentlich belegt. Was der Vertrag der Schule enthält, steht als [?] an die Geschäftsführung in der Datei; ein IAM-Produkt als Zwischenstück fällt auf der Leiter durch. Nicht lieferbar ist die Rolle in Weltenbaum. Das Zurückschreiben der dienstlichen Adresse nach LogaHR ist als [A] verneint.
+<!-- SECTION:NOTES:END -->
