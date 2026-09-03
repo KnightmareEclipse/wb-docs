@@ -1,10 +1,10 @@
 ---
 id: TASK-058.04
 title: 'Frist: Bewerbungen ohne Aufnahme'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-08-27 11:38'
-updated_date: '2026-08-28 15:49'
+updated_date: '2026-09-03 00:43'
 labels:
   - wartet
   - schulleitung
@@ -22,3 +22,9 @@ ordinal: 65000
 <!-- SECTION:DESCRIPTION:BEGIN -->
 Eine der sechs Fristen je Entität, die im Schema als [?] offenstehen. Jede ist eine eigene Antwort, keine folgt aus einer anderen.
 <!-- SECTION:DESCRIPTION:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Beantwortet am 02.09.2026: sechs Monate ab dem Tag, an dem der Endstatus feststeht. Zwei Wochen vorher geht eine Löschankündigung an das Sekretariat, das die Löschung für einen Einzelfall anhalten kann; jedes Anhalten wird der Geschäftsführung gemeldet. Eingetragen am Löschanker in schema/anmeldung-schema.sql.
+<!-- SECTION:NOTES:END -->

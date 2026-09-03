@@ -425,9 +425,18 @@ CREATE INDEX ix_health_trait_values_pair
 -- hat — dann wüsste das ganze Kollegium dauerhaft von jeder Erkrankung.
 -- Bewusst KEINE Spalte für einen eingetippten Grund: Er wäre im Ernstfall nicht
 -- zu tippen und im Missbrauchsfall nicht wahr.
--- [?] Eigene Aufbewahrungsfrist und die Frage, wer das Protokoll ansieht —
--- beides liegt beim Datenschutzbeauftragten (pruefberichte/fragen-datenschutz.txt,
--- Punkt „Die Notfalleinsicht"). Bis dahin geht es mit dem Kind.
+-- Die Konstruktion ist am 02.09.2026 bestätigt worden, mit drei Auflagen: Der
+-- Mitarbeitende sieht im Notfall **alles**, nicht nur einen Ausschnitt; dass ein
+-- ärztliches Attest vorliegt, muss ersichtlich sein, ohne dass das Attest selbst
+-- einsehbar wäre; und **jede Betätigung wird der Geschäftsführung gemeldet**,
+-- nicht nur protokolliert. Adressat und Takt dieser Meldung sollen anpassbar
+-- bleiben — nach der Anlaufzeit womöglich ein Monats- oder Quartalsbericht
+-- statt einer Meldung je Fall; die Zeile hier trägt beides gleich gut, weil sie
+-- den Zeitpunkt führt und nicht den Versand.
+-- [?] Die eigene Aufbewahrungsfrist des Protokolls fehlt weiter. Wer es ansieht,
+-- steht (die Geschäftsführung); wie lange es steht, nicht. Notiert ist „Frist
+-- 1h" — das ist auslegungsbedürftig und meint eher die Dauer der Einsicht als
+-- die Aufbewahrung des Protokolls. Bis zur Klärung geht es mit dem Kind.
 CREATE TABLE health_emergency_accesses (
     health_emergency_access_id uuid NOT NULL DEFAULT gen_random_uuid(),
     child_id                   uuid NOT NULL,
@@ -478,12 +487,17 @@ CREATE TABLE measles_proofs (
 -- ---------------------------------------------------------------------------
 -- Offene Fragen an die Schule
 -- ---------------------------------------------------------------------------
--- [?] Die Aufbewahrungsfrist des Notfallprotokolls und wer es ansieht
---     (`health_emergency_accesses`).
+-- [?] Die Aufbewahrungsfrist des Notfallprotokolls (`health_emergency_accesses`).
+--     Wer es ansieht, ist seit dem 02.09.2026 beantwortet: die
+--     Geschäftsführung, gemeldet je Betätigung. Die Frist nicht.
 -- [?] Der Erhebungsanlass — welche Angabe aus welchem Vorgang stammt, mit
 --     Zweckende und Löschtermin je Angabe statt „geht mit dem Kind". Er setzt
 --     zweierlei voraus, das noch nicht steht: die Domäne der
---     außerunterrichtlichen Veranstaltungen und die Nachweisfrist vom
---     Datenschutzbeauftragten (pruefberichte/fragen-datenschutz.txt, Frage „Nachweisfrist nach einer Veranstaltung"). Bis dahin
---     gilt weiter „die Gesundheitsangaben nach dem letzten bestätigten Ende
---     dieses Kindes" (03).
+--     außerunterrichtlichen Veranstaltungen — die zweite, die Nachweisfrist,
+--     steht seit dem 02.09.2026: **vier Wochen nach dem Ende der Veranstaltung**
+--     für die Gesundheitsangaben, **drei Jahre** für das übrige Anmeldeformular
+--     samt Unterschrift, und **drei Monate** für den Gesundheitsbestand am Kind.
+--     Je Frist die Löschankündigung und das Anhalten im Einzelfall, die
+--     hebel.md gemeinsam beschreibt. Der Bezugstag der drei Monate ist nicht
+--     genannt und noch zu klären. Bis die Domäne steht, gilt weiter „die
+--     Gesundheitsangaben nach dem letzten bestätigten Ende dieses Kindes" (03).

@@ -149,8 +149,10 @@ zugleich Mitarbeitender ist, ist trotzdem **eine** Person und verschwindet erst,
 erreicht sind. Was seinen Namen anderswo trägt, überlebt ihn: ein von ihm freigegebener Beleg
 ([12](12-rechnungsfreigabe.md)) folgt seiner eigenen Frist.
 
-`[?]` Wie lange werden die Daten eines ausgeschiedenen Mitarbeitenden aufbewahrt —
-Datenschutzbeauftragte
+Name und dienstliche Mailadresse werden **nicht aktiv aus nachweispflichtigen Zusammenhängen
+entfernt** (02.09.2026): Eine abgenommene Mitarbeitsstunde, ein freigegebener Beleg und eine
+geführte Klasse behalten ihren Urheber, auch wenn der Eintrag selbst geht. `[?]` Wie lange der
+Eintrag steht, ist damit noch nicht beantwortet — Datenschutzbeauftragte
 
 ## Gehört nicht dazu
 

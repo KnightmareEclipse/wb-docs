@@ -79,6 +79,24 @@ Abgehakt wird als *erledigt* oder als *war nichts zu tun*. Eine Aufgabe hat **ke
 
 Häufen sich bei einem System Aufgaben, die als *war nichts zu tun* abgehakt werden, ist die Zuordnung dort zu weit gefasst.
 
+## Löschankündigung und Anhalten
+
+**Eine Frist läuft nicht still ab.** Bevor der Lösch-Lauf einen Bestand räumt, geht eine
+**Löschankündigung** an eine benannte Stelle — bei Gesundheitsangaben eine Woche vorher, sonst zwei.
+Sie trägt einen **Prüfauftrag**: ob ein Vorgang vorliegt, der die Löschung verzögert — Arztbesuch,
+Unfall, medizinische Ausnahmesituation, drohender Rechtsstreit. Die Stelle kann die Löschung **für
+einen einzelnen Fall anhalten**, und jedes Anhalten wird der **Geschäftsführung** gemeldet.
+
+Welche Stelle das ist, sagt der Block: das Sekretariat bei der Bewerbung (05), die Hortleitung bei
+der Ferienbuchung (10), die Akademieverantwortliche beim Kurs (21), Lehrkraft und Schulleitung bei
+den Angaben zu einer Fahrt (19), Schul- bzw. Hortleitung beim Gesundheitsbestand am Kind.
+
+Das ist der Grund, warum der Lösch-Lauf **nicht** ein Mensch einmal im Jahr anstößt, wie zunächst
+angenommen: Die Routinen laufen regelmäßig, und der Eingriff ist das Anhalten, nicht das Auslösen
+(Datenschutzbeauftragter, 02.09.2026). Der Widerspruch dazu, dass sonst nichts von selbst abläuft
+([Standardantworten](hebel.md#standardantworten)), ist keiner — dort geht es um Vorgänge, hier um
+Fristen, die ohne Lauf nie enden.
+
 ## Unzustellbare Mail
 
 Bleibt eine Mail unzustellbar, ist das im System sichtbar, und das Sekretariat geht dem nach. Das gilt für jede Mail aus jedem Prozess — mit **einer** Ausnahme, dem [Anmeldecode](hebel.md#zugang-und-anmeldecode). Er ist die Antwort auf eine soeben gestellte Anfrage; wer ihn nicht bekommt, fordert einen neuen, und eine Zeile je Anforderung legte dafür jede je eingetippte Fremdadresse ab. Sein Fehlschlag ist deshalb kein Fall fürs Sekretariat, sondern eine Betriebsstörung: Er meldet sich beim Betreiber (`container.md`), nicht in einer Liste.

@@ -109,8 +109,12 @@ Lehrkraft abzusprechen, und die Rückführung organisieren die Eltern selbst.
 - **Storno- und Zusatzkosten** bei Nichtantritt oder vorzeitiger Beendigung trägt die Familie; eine
   Reiserücktrittsversicherung ist ihre eigene Sache.
 - Für die Angaben, die nur zu dieser Fahrt gehören, gilt eine eigene Aufbewahrung, gerechnet **ab
-  dem Ende der Fahrt** und nicht ab dem Austritt des Kindes. Wie lang sie ist, entscheidet der
-  Datenschutzbeauftragte `[?]` — gelöscht wird nicht sofort danach, sondern nach der Nachweisfrist.
+  dem Ende der Fahrt** und nicht ab dem Austritt des Kindes: **vier Wochen** für die
+  Gesundheitsangaben, **drei Jahre** für das übrige Anmeldeformular samt Unterschrift (02.09.2026),
+  mit [Löschankündigung](hebel.md#löschankündigung-und-anhalten) an Lehrkraft und Schulleitung.
+  **Wer die Angaben sehen darf, bestimmt die Lehrkraft** — sie
+  benennt Verantwortlichen und Begleitperson, beides nur interne Mitarbeitende, dazu die
+  Schulleitung.
 
 ## Mails und Schreiben
 

@@ -3,10 +3,10 @@ id: TASK-058.09
 title: >-
   Bestätigen, dass die übrigen Betriebsdaten keiner Aufbewahrungspflicht
   unterliegen
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-08-27 11:38'
-updated_date: '2026-08-28 15:49'
+updated_date: '2026-09-03 00:43'
 labels:
   - wartet
   - schulleitung
@@ -24,3 +24,9 @@ ordinal: 70000
 <!-- SECTION:DESCRIPTION:BEGIN -->
 Die sechste der Fristfragen — hier als Negativbefund.
 <!-- SECTION:DESCRIPTION:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Beantwortet am 02.09.2026: Auf Putzdienst, Elternmitarbeit, Mensa und Rechnungsfreigabe liegt keine Aufbewahrungspflicht. Eine Einschränkung: Aus der Elternmitarbeit entsteht eine Rückzahlung, die noch drei Monate nach dem Schulwechsel abrufbar sein soll. Was das für den Löschzeitpunkt heißt, ist als Rückfrage offen.
+<!-- SECTION:NOTES:END -->

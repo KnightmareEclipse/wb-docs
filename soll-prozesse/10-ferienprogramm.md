@@ -119,8 +119,8 @@ Buchen für dieses Programm ausdrücklich frei und dürfen die Freigabe verweige
 mit, und die Betreuung weiß nichts. Bei einem **fremden Kind** entsteht der Bestand hier, weil es
 keinen anderen Weg gibt, auf dem er entstünde. Er trägt dann seine **eigene Frist**, gerechnet vom
 letzten gebuchten Termin — nicht die des Kindes, das keinen Austritt hat, und nicht die der Buchung:
-Gelöscht wird nicht sofort nach dem Programm, sondern nach der Nachweisfrist, die der
-Datenschutzbeauftragte setzt.
+**vier Wochen**, gegenüber sechs Monaten für die Buchung selbst (02.09.2026), mit [Löschankündigung](hebel.md#löschankündigung-und-anhalten) an die
+verantwortliche Stelle — Hortleitung beim Ferienprogramm, Akademieverantwortliche beim Kurs.
 
 Das ist der Punkt, an dem dieser Block sich geändert hat: Die Ferienprogramme sind interaktiv
 geworden, mit Unternehmungen, bei denen eine Allergie oder eine Medikation zählt. Ein Freitextfeld
@@ -283,9 +283,9 @@ Lösch-Lauf (17). Wer wiederkommt, bevor der Lauf die Familie erfasst hat, finde
 wieder wie jede bekannte Familie ([00](00-zugang-und-portal.md)); danach trägt sie ihre Angaben neu
 ein — eine eigene Wiedererkennung wird dafür nicht gebaut.
 
-`[?]` Wie lange werden Buchung und Kind nach dem letzten Termin aufbewahrt —
-Datenschutzbeauftragte. Zahlungsdaten folgen der offenen Aufbewahrungsfrage aus
-[03](03-irregulaerer-abgang.md).
+Buchung und Kind bleiben **sechs Monate** nach dem letzten gebuchten Termin (02.09.2026), mit
+[Löschankündigung](hebel.md#löschankündigung-und-anhalten) an die Hortleitung. Bei einem schulfremden Kind geht seine Zeile mit der letzten Buchung — es
+hat kein Austrittsdatum, an dem sonst gerechnet würde.
 
 ## Gehört nicht dazu
 

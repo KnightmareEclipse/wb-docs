@@ -694,8 +694,11 @@ CREATE TABLE family_contacts (
 
 -- Herkunft: 08 (Schulvertrag) — „Je Kind das SEPA-Mandat: Kontoinhaber, IBAN,
 -- Kreditinstitut und der Tag der Unterschrift (Pflicht); die BIC nur bei einem
--- nicht-deutschen Konto". Löschanker: geht mit dem Kind, aber erst nach der
--- Aufbewahrungsfrist für Zahlungsdaten, die noch offen ist (siehe [?] unten).
+-- nicht-deutschen Konto". Löschanker: geht mit dem Kind, aber erst **zwei Jahre
+-- nach seinem Austritt** — die eigene Frist des Mandats, kürzer als die des
+-- Vertrags, weil es kein Rechtsdokument über den Schulplatz ist, sondern die
+-- Ermächtigung zum Einzug; was tatsächlich eingezogen wurde, steht in Optigem
+-- und nicht hier (Datenschutzbeauftragter, 02.09.2026).
 -- Bewusst KEINE Änderung an einer bestehenden Zeile: „Geändert wird es nicht,
 -- es wird ersetzt … Das abgelöste Mandat bleibt mit seinem Unterschriftsdatum
 -- stehen."
@@ -1028,11 +1031,18 @@ CREATE TABLE login_sessions (
 -- ---------------------------------------------------------------------------
 -- Offene Fragen an die Schule
 -- ---------------------------------------------------------------------------
--- [?] Der Zweckbeschluss für Konfession, Beruf und Staatsangehörigkeit der
---     Eltern sowie für die Kirchengemeinde des Kindes liegt bei den
---     zuständigen Stellen; einzelne dieser Felder könnten dabei gestrichen
---     werden. Bis dahin werden alle vier gebaut — so die Ansage. Für keines
---     der vier ist bisher ein Zweck benannt.
+-- Für die vier Felder Konfession, Beruf und Staatsangehörigkeit der Eltern und
+-- Kirchengemeinde des Kindes steht die datenschutzrechtliche Antwort seit dem
+-- 02.09.2026: „Wir haben keinen Erlaubnistatbestand, daher können die Felder
+-- nur als freiwillige Felder stehen bleiben. Dies muss beim Ausfüllen
+-- ersichtlich sein." Alle vier bleiben damit `NULL`-fähig, und keines darf je
+-- Pflichtfeld eines Formulars werden — die Freiwilligkeit ist keine Eigenschaft
+-- der Spalte, sondern eine des Formulars, und sie muss dort sichtbar sein, nicht
+-- im Kleingedruckten. Ohne Erlaubnistatbestand trägt allein die Einwilligung;
+-- eine nicht beantwortete Frage bleibt deshalb leer und wird nicht nachgefasst.
+-- [?] Offen ist nur noch der fachliche Teil: Welchen Zweck hat jedes einzelne
+--     Feld, und soll es überhaupt bleiben? Das entscheidet die Schulleitung
+--     (so vermerkt am 02.09.2026), nicht der Datenschutzbeauftragte.
 --     NICHT mehr dazu gehört die Frist der Kirchengemeinde: Sie wird weiter
 --     erhoben, und über sie wird erst einige Monate NACH dem Vollimport
 --     entschieden (05). Sie steht deshalb nicht mehr unter dem, was vor dem
@@ -1042,15 +1052,25 @@ CREATE TABLE login_sessions (
 --     echten Daten, und bei Konfession und Staatsangehörigkeit auf besonders
 --     geschützten. Die Entscheidung gehört deshalb vor den Import, nicht
 --     danach. — Schulleitung und Datenschutzbeauftragte
+-- Für Vertrags- und Zahlungsdaten stehen die Fristen seit dem 02.09.2026:
+-- **Schulvertrag fünf Jahre nach dem Austritt, SEPA-Mandat zwei Jahre nach dem
+-- Austritt** — getrennt, weil das Mandat nur die Ermächtigung ist und der
+-- Vertrag das Rechtsdokument. Der Bezugstag ist beide Male der Austritt des
+-- Kindes, nicht der Tag der Unterschrift.
+-- Nicht mittragend ist die Annahme, mit der diese Frage gestellt wurde: Dass
+-- die aufbewahrungspflichtige Führung in ASV-BW und Optigem liegt, ist
+-- bestätigt — die Pflicht trifft die Arbeitskopie nicht. Daraus folgt aber kein
+-- früheres Löschen: Es gibt keinen Zwang, in der Kopie zu löschen, solange das
+-- Original bleiben muss, und die ausdrückliche Empfehlung lautet, die
+-- Aufbewahrung hier zu erfüllen statt in ASV-BW, weil diese Datenbank in
+-- eigener Hand liegt. Wo teilweise gelöscht wird, muss gesichert bleiben, dass
+-- die Originale in der Schülerakte stehen bleiben.
 -- [?] Wie lange werden die Daten eines ausgeschiedenen Mitarbeitenden
 --     aufbewahrt? Ohne die Antwort hat `employees.last_working_day` als
---     Löschanker kein Ziel (00, 13). — Datenschutzbeauftragte
--- [?] Welche Aufbewahrungsfrist gilt für Vertrags- und Zahlungsdaten? Sie
---     entscheidet, wann `sepa_mandates` mit dem Kind verschwindet (03). —
---     Datenschutzbeauftragte
---     Zu beiden Fristen steht fest, was sie nicht sind: Weltenbaum ist der
---     zentrale Hub und ersetzt die amtlichen Werkzeuge bewusst nicht — die
---     aufbewahrungspflichtige Führung bleibt in ASV-BW und Optigem. Welche
---     Frist deshalb hier gilt, beantwortet trotzdem nur die
---     Datenschutzbeauftragte; geraten wird sie nicht.
+--     Löschanker kein Ziel (00, 13). Beantwortet ist erst die zweite Hälfte der
+--     Frage: Name und dienstliche Mailadresse werden **nicht aktiv aus
+--     nachweispflichtigen Zusammenhängen entfernt** (02.09.2026) — eine
+--     abgenommene Mitarbeitsstunde, ein freigegebener Beleg und eine geführte
+--     Klasse behalten ihren Urheber, auch wenn der Eintrag selbst geht. Die
+--     Frist für den Eintrag fehlt weiter. — Datenschutzbeauftragte
 

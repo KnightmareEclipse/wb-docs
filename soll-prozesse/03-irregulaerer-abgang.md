@@ -166,8 +166,21 @@ hinaus gelten; er übernimmt diese beiden Festlegungen, sobald er geschrieben wi
 > Die Fristen müssen erst stehen, bevor er das erste Mal läuft — nicht bevor das System steht:
 > Solange nichts gelöscht wird, ist nichts verloren.
 
-`[?]` Bestätigen, dass die übrigen Betriebsdaten keiner Aufbewahrungspflicht unterliegen, und die
-Frist für Vertrags- und Zahlungsdaten nennen — Datenschutzbeauftragte
+Beides steht seit dem 02.09.2026: Der **Schulvertrag bleibt fünf Jahre nach dem Austritt**, das
+**SEPA-Mandat zwei Jahre** — getrennt, weil das Mandat nur die Ermächtigung ist und der Vertrag das
+Rechtsdokument; was tatsächlich eingezogen wurde, steht in Optigem und nicht hier. Dieselben fünf
+Jahre trägt ein Vertrag, dessen Kind nie kommt, und ein ersetzter: Ursprungsfassung und Update
+laufen gemeinsam ab dem Austritt, nicht ab der Freigabe des Nachfolgers.
+
+Auf den übrigen Betriebsdaten — Putzdienst, Elternmitarbeit, Mensa, Rechnungsfreigabe — liegt
+**keine Aufbewahrungspflicht**. Eine Einschränkung: Aus der Elternmitarbeit entsteht eine
+Rückzahlung, die noch **drei Monate nach dem Schulwechsel abrufbar** sein soll. `[?]` Was das für
+den Löschzeitpunkt heißt, ist als Rückfrage offen.
+
+Nicht mittragend ist die Annahme, mit der diese Fristen erfragt wurden: Dass die
+aufbewahrungspflichtige Führung in ASV-BW und Optigem liegt, ist bestätigt — die Pflicht trifft die
+Arbeitskopie nicht. Kürzere Fristen folgen daraus aber nicht, denn es gibt keinen Zwang, in der
+Kopie zu löschen, solange das Original bleiben muss.
 
 ## Gehört nicht dazu
 

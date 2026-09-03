@@ -495,8 +495,12 @@ CREATE TABLE admission_day_slots (
 
 -- Herkunft: 05 (Bewerbung) — „Je Bewerbung ihr Ziel — Schulart, Zielstufe und
 -- Zielschuljahr (Pflicht) …, dazu Eingang und Zahlung." Löschanker: der
--- Endstatus — „die Frist beginnt mit dem hier gesetzten Ende" (07); wie lange
--- danach, steht offen (siehe [?] unten). Bewusst KEINE Spalten für Geschwister,
+-- Endstatus — „die Frist beginnt mit dem hier gesetzten Ende" (07) — und
+-- **sechs Monate danach** (Datenschutzbeauftragter, 02.09.2026). Mit der
+-- Bewerbung gehen die Personenzeilen, die allein mit ihr entstanden sind;
+-- sonst wüchse der Stammdatenbestand mit Leuten, die nie an der Schule waren.
+-- Die Löschankündigung davor und das Anhalten im Einzelfall stehen als
+-- gemeinsamer Hebel in hebel.md, hier ist die Stelle das Sekretariat. Bewusst KEINE Spalten für Geschwister,
 -- Hospitationszeitraum, Absagegrund und Notiz der Entscheidungsrunde: alle vier
 -- sind in ihrem Block ausdrücklich ausgeschlossen.
 CREATE TABLE applications (
@@ -769,8 +773,16 @@ CREATE TABLE application_offers (
 
 -- Herkunft: 08 (Schulvertrag) und 09 (Hortvertrag) — „derselbe Vertragsvorgang
 -- mit denselben vier Stationen und derselben Antwort je Erziehungsberechtigtem:
--- eine zweite Vertragstabelle wäre eine Kopie" (grenzkarte.md). Löschanker: die
--- offene Aufbewahrungsfrist für Vertragsdaten (siehe [?] unten). Bewusst KEINE
+-- eine zweite Vertragstabelle wäre eine Kopie" (grenzkarte.md). Löschanker:
+-- **fünf Jahre nach dem Austritt des Kindes** (Datenschutzbeauftragter,
+-- 02.09.2026) — für jede Fassung dieselbe Frist und derselbe Bezugstag. Ein
+-- ersetzter Vertrag rechnet deshalb nicht ab der Freigabe seines Nachfolgers:
+-- Ursprungsfassung und Update laufen gemeinsam ab dem Austritt, weil der alte
+-- Vertrag belegt, was bis zur Ersetzung galt. Ein Vertrag, dessen Kind nie
+-- kommt, fällt nicht heraus — der Rücktritt vor dem ersten Schultag trägt
+-- dieselben fünf Jahre, gerechnet ab dem vereinbarten ersten Schultag: „da wir
+-- eine Kündigung vor Schulbeginn vertraglich ausschließen, gibt es auf jeden
+-- Fall einen Vorgang" und meist auch eine Zahlung. Bewusst KEINE
 -- Spalte für die Kündigungsart: „Das System unterscheidet die Kündigungsarten
 -- nicht, es kennt ein Enddatum und einen Grund in einem Satz" (09).
 CREATE TABLE contracts (
@@ -1067,11 +1079,10 @@ ALTER TABLE payments
 
 
 
--- [?] Wie lange werden Bewerbungen aufbewahrt, die zu keiner Aufnahme geführt
---     haben, und wie lange Vertrags- und Zahlungsdaten? Beide Fristen fehlen
---     den Löschankern dieser Domäne (05, 03). Dass Weltenbaum die amtlichen
---     Werkzeuge bewusst nicht ersetzt, steht an derselben Frage in
---     stammdaten-schema.sql. — Datenschutzbeauftragte
+-- Beide Fristen dieser Domäne stehen seit dem 02.09.2026 und sind an ihren
+-- Ankern eingetragen: Bewerbungen ohne Aufnahme sechs Monate ab dem Endstatus,
+-- Verträge fünf Jahre ab dem Austritt. Was daraus für die Arbeitskopie folgt
+-- und was nicht, steht an derselben Frage in stammdaten-schema.sql.
 -- [?] Der Betreuungsvertragstext braucht drei Anpassungen, bevor er so laufen
 --     kann: das Ende zum Ende der Klasse 4 bzw. 5 ohne Kündigung, die
 --     Schriftform im Portal und die Zusage zur ausschließlichen Kenntnis der

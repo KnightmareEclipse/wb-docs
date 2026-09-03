@@ -91,9 +91,11 @@ Ausnahme von einer harten Sperre und trägt deshalb einen Namen
 > **nach** dem Vollimport, nicht davor. Ein benannter Verarbeitungszweck steht für sie weiterhin
 > aus, und das ist der Punkt, über den dann entschieden wird.
 
-`[?]` Der Zweckbeschluss für Konfession, Beruf und Staatsangehörigkeit der Eltern steht noch aus und
-ist vor dem Vollimport fällig; der für die Kirchengemeinde kommt später und hält bis dahin nichts
-auf — Schulleitung und Datenschutzbeauftragte.
+Für Konfession, Beruf und Staatsangehörigkeit der Eltern steht seit dem 02.09.2026 fest, dass es
+keinen Erlaubnistatbestand gibt: Die Felder bleiben nur **freiwillig**, und die Freiwilligkeit muss
+beim Ausfüllen ersichtlich sein — nicht im Kleingedruckten. `[?]` Welchen Zweck jedes Feld hat und
+ob es bleibt, entscheidet die Schulleitung; fällig vor dem Vollimport. Der Beschluss zur
+Kirchengemeinde kommt später und hält bis dahin nichts auf.
 
 ## Entscheidungen
 
@@ -199,8 +201,9 @@ Eine bezahlte Bewerbung hängt an ihrem Endstatus aus [07](07-aufnahmeentscheidu
 Absage, Rückzug, Warteplatz, Einschreibung —, und was danach mit ihr geschieht, entscheidet der
 Lösch-Lauf (17).
 
-`[?]` Wie lange werden Bewerbungen aufbewahrt, die zu keiner Aufnahme geführt haben —
-Datenschutzbeauftragte.
+Eine Bewerbung, die zu keiner Aufnahme geführt hat, bleibt **sechs Monate** ab dem Tag, an dem ihr
+Endstatus feststeht (02.09.2026), mit [Löschankündigung](hebel.md#löschankündigung-und-anhalten) an das Sekretariat. Mit der Bewerbung gehen die
+Personenzeilen, die allein mit ihr entstanden sind.
 
 ## Gehört nicht dazu
 

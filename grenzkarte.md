@@ -301,12 +301,12 @@ Was diese Karte offenlässt, ist selbst Ergebnis: es sind die Fragen, die vor de
 
 | Was fehlt | Wen fragen | Spätestens vor |
 |---|---|---|
-| Zweck der Voranmeldefelder Beruf, Konfession, Staatsangehörigkeit, Kirchengemeinde — die Spalten stehen (an `children` und `guardians`), der Beschluss dazu nicht (`prozesse.md` Abschnitt 3.3). Fällt er negativ aus, ist es ein `DROP COLUMN` plus ein Feld weniger im Import | Schulleitung, Datenschutzbeauftragte:r | **Vollimport Ende August 2026** |
+| Zweck der Voranmeldefelder Beruf, Konfession, Staatsangehörigkeit, Kirchengemeinde — die Spalten stehen (an `children` und `guardians`), der fachliche Beschluss dazu nicht (`prozesse.md` Abschnitt 3.3). Datenschutzrechtlich entschieden am 02.09.2026: kein Erlaubnistatbestand, also nur freiwillig und beim Ausfüllen sichtbar freiwillig. Fällt der Beschluss negativ aus, ist es ein `DROP COLUMN` plus ein Feld weniger im Import | Schulleitung | **vor dem Vollimport** |
 | Elternfragebogen der GS-Anmeldetag-Checkliste — Inhalt unbekannt, könnte vorab digital laufen (`prozesse.md` Abschnitt 5.2) | Sekretariat, Grundschulleitung | erster Anmeldetag mit Weltenbaum |
 | Welche SharePoint-Bibliotheken die Dateien tragen und wer sie einrichtet — Form ist entschieden (`Sites.Selected`, App-only, je Bibliothek gegrantet), offen sind die konkreten Sites | zweiter Admin | Domäne 4 |
 | Welche Kategorien die Akte in Unterordner teilt und welche Frist jede trägt | Datenschutzbeauftragte:r (`backlog/`) | vor dem Lösch-Job |
 | Welche Kategorien die Akademie führt und wer ein Angebot ausschreiben darf | Geschäftsführung (`fragen.md`) | vor dem Akademie-Schema |
-| Aufbewahrungs- und Löschfristen je Entität, darunter die ungeregelte Frist für Ferienprogramm-Daten schulfremder Kinder | Schulleitung bzw. Datenschutzbeauftragte:r (`backlog/`) | vor dem Lösch-Job |
+| Zwei Restfristen: wie lange der Eintrag eines ausgeschiedenen Mitarbeitenden steht, und wie lange eine versandte Mail, die an keiner Person hängt. Die übrigen stehen seit dem 02.09.2026 an ihren Ankern im Schema | Datenschutzbeauftragte:r (`fragen.md`) | vor dem Lösch-Job |
 | Weitere Excel-Listen, die niemand vollständig kennt | Verwaltung, Hausdienstverwaltung | laufend |
 
 **Ausgewertet:** die vier Anmeldetag-Checklisten (Grundschule Klasse 1, Realschule Klasse 5, Quereinsteiger, Hort), die beiden Wartelisten je Schulform, die Klassenbildungsliste, die Prozesserhebung (`prozesse.md`), das RS-Mittagessen-Anmeldeformular und der Betreuungsvertrag samt Anlagen (Stand 12/2025). Ihre Befunde stecken in dieser Karte.

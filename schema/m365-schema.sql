@@ -59,5 +59,7 @@
 -- ---------------------------------------------------------------------------
 -- [?] Wie lange werden die Daten eines ausgeschiedenen Mitarbeitenden
 --     aufbewahrt? Der Anker steht (`employees.last_working_day`), sein Ziel
---     nicht — dieselbe Frage wie in 00, hier nicht zweitgestellt. —
---     Datenschutzbeauftragte
+--     nicht — dieselbe Frage wie in 00, hier nicht zweitgestellt. Beantwortet
+--     ist seit dem 02.09.2026 allein, was aus seinem Namen an den Nachweisen
+--     wird: Name und dienstliche Mailadresse werden dort nicht aktiv entfernt.
+--     — Datenschutzbeauftragte

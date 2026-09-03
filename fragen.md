@@ -1,6 +1,6 @@
 # Fragen an die Schule — was wen zu fragen ist
 
-Fünfzehn Fragen, die Weltenbaum nicht selbst beantworten kann, sortiert nach dem Gespräch, in das
+Neun Fragen, die Weltenbaum nicht selbst beantworten kann, sortiert nach dem Gespräch, in das
 sie gehören. Je Frage steht hier ihr **Wortlaut**, das **Kriterium**, an dem du erkennst, dass die
 Antwort reicht, und **woran sie hängt**.
 
@@ -26,24 +26,25 @@ die Zahlen mit: die im Vorspann und die in der Überschrift des Gesprächs.
 
 ---
 
-## Datenschutzbeauftragte:r — ein Termin, acht Fragen
+## Datenschutzbeauftragte:r — drei Fragen
 
-Sechs davon sind Löschfristen. **Ohne sie kann Block 17 (Lösch-Lauf) nicht geschrieben werden**, und
-ohne Block 17 löscht Weltenbaum gar nichts — jede Aufbewahrungszusage im System ist bis dahin ein
-Versprechen ohne Mechanik.
+**Die sechs Löschfristen sind beantwortet** (02.09.2026) und stehen an ihren Ankern im Schema; was
+hier bleibt, sind drei Reste. Der Satz, mit dem dieses Gespräch geführt wurde, hat sich dabei nur
+halb bewährt: Dass Weltenbaum ASV-BW und Optigem nicht ersetzt und hier eine Arbeitskopie steht, ist
+bestätigt — die Aufbewahrungspflicht trifft sie nicht. **Kürzere Fristen folgen daraus aber nicht**:
+Es gibt keinen Zwang, in der Kopie zu löschen, solange das Original bleiben muss, und die Empfehlung
+lautet, die Aufbewahrung lieber hier zu erfüllen als in ASV-BW. Wer mit dem alten Satz in die
+nächste Frage geht, bekommt deshalb eine Antwort auf ein Argument, das nicht mehr trägt.
 
-Der Satz, mit dem du in dieses Gespräch gehst, gilt für alle sechs: **Weltenbaum ersetzt ASV-BW und
-Optigem nicht.** Die aufbewahrungspflichtige Führung bleibt dort; hier steht eine Arbeitskopie. Das
-verkürzt die Fristen möglicherweise erheblich — entscheiden muss es trotzdem sie, geraten wird nicht.
+### 1. Zweck der vier Voranmeldefelder — Schulleitung
 
-### 1. Zweck der vier Voranmeldefelder — zusammen mit der Schulleitung
+> „Konfession, Beruf und Staatsangehörigkeit der Eltern und die Kirchengemeinde des Kindes stehen
+> auf der Voranmeldung. Der Datenschutzbeauftragte sagt: kein Erlaubnistatbestand, also nur
+> freiwillig und sichtbar freiwillig. Welchen Zweck hat jedes einzelne Feld — und soll es bleiben?"
 
-> „Auf der Voranmeldung erheben wir vier Angaben, für die bei uns kein Zweck festgehalten ist:
-> Konfession, Beruf und Staatsangehörigkeit der Eltern und die Kirchengemeinde des Kindes. Welchen
-> Zweck hat jede einzelne davon — und soll sie bleiben?"
-
-**Brauchbar ist die Antwort, wenn** je Feld ein benannter Zweck dasteht oder ein klares Nein.
-Konfession ist ein Datum nach Art. 9 DSGVO; „das hatten wir immer schon" trägt dafür nicht.
+**Brauchbar ist die Antwort, wenn** je Feld ein benannter Zweck dasteht oder ein klares Nein. Die
+datenschutzrechtliche Hälfte ist erledigt und steht in `schema/stammdaten-schema.sql`; offen ist
+allein die fachliche, und sie gehört der Schulleitung.
 
 **Daran hängt:** Vor dem Vollimport ist ein Nein ein `DROP COLUMN`. Danach ist es eine Migration auf
 echten und teils besonders geschützten Personendaten. **Deshalb vor dem Vollimport, nicht danach.**
@@ -57,107 +58,43 @@ Wertelisten leer und bekommt keinen Anfangsbestand, solange der Zweck des Feldes
 ist. Bleibt das Feld, ist die zweite Frage, welche Konfessionen darin auswählbar sein sollen; das
 beantwortet dann das Sekretariat, nicht dieses Gespräch. Fällt das Feld, fällt die Liste mit ihm.
 
-*Steht in* `schema/stammdaten-schema.sql:929` · `soll-prozesse/05-bewerbung.md:19` · `backlog/`
+*Steht in* `schema/stammdaten-schema.sql` · `soll-prozesse/05-bewerbung.md:19` · `backlog/`
 
-### 2. Bewerbungen, die zu keiner Aufnahme geführt haben
-
-> „Ein Kind bewirbt sich und bekommt eine Absage, oder es bleibt auf der Warteliste und kommt nie.
-> Wie lange dürfen wir seine Bewerbung behalten?"
-
-**Brauchbar ist die Antwort, wenn** sie eine Frist ab dem Tag nennt, an dem die Absage feststeht.
-
-**Daran hängt:** Der Löschanker steht (`applications`, Endstatus), sein Ziel nicht. Betroffen sind
-auch die Personenzeilen, die mit der Bewerbung entstanden sind — sonst wächst der Stammdatenbestand
-mit Leuten, die nie an der Schule waren.
-
-*Steht in* `schema/anmeldung-schema.sql:1041` · `soll-prozesse/05-bewerbung.md:35`
-
-### 3. Ferienprogramm und Akademie: Buchung und Kind
-
-> „Ein Kind war einmal im Ferienprogramm oder in einem Kurs der Akademie — auch eines, das gar nicht
-> bei uns zur Schule geht. Wie lange behalten wir seine Buchung und seine Daten nach dem letzten
-> gebuchten Termin?"
-
-**Brauchbar ist die Antwort, wenn** sie eine Frist ab dem letzten gebuchten Termin nennt. Sie gilt
-für beide Wege — ein Kurskind ist so fremd wie ein Ferienkind.
-
-**Daran hängt:** Ein schulfremdes Kind hat kein Austrittsdatum, an dem sonst gerechnet würde — bei
-ihm ist der letzte Termin der einzige Anker, den es gibt.
-
-*Steht in* `schema/ferien-schema.sql:481` · `soll-prozesse/10-ferienprogramm.md:37` ·
-`soll-prozesse/21-akademie.md:216`
-
-### 4. Vertrags- und Zahlungsdaten
-
-> „Ein Kind verlässt die Schule. Wie lange behalten wir seinen Vertrag und die Bankverbindung, von
-> der eingezogen wurde?"
-
-**Brauchbar ist die Antwort, wenn** sie eine Frist ab dem bestätigten Ende nennt — und getrennt sagt,
-ob für den Vertrag etwas anderes gilt als für das Mandat.
-
-**Daran hängt:** Sie entscheidet, wann `sepa_mandates` mit dem Kind verschwindet. Ein abgelöstes
-Mandat bleibt bis dahin als Beleg stehen.
-
-*Steht in* `schema/stammdaten-schema.sql:946` · `soll-prozesse/03-irregulaerer-abgang.md:33`
-
-### 5. Daten ausgeschiedener Mitarbeitender
+### 2. Wie lange ein ausgeschiedener Mitarbeitender stehen bleibt
 
 > „Wie lange behalten wir die Daten eines Mitarbeiters, nachdem sein letzter Arbeitstag vorbei ist?
 > Bei uns steht keine Personalakte — nur Name, dienstliche Mailadresse, Haus, erster und letzter
 > Arbeitstag, die Rolle im System und ggf. eine Nachfolgenotiz. Kein Gehalt, kein Arbeitsvertrag,
-> keine Bewerbungsunterlagen. Sein Name hängt aber auch an dem, was er bestätigt hat: eine
-> abgenommene Mitarbeitsstunde, ein freigegebener Beleg, eine geführte Klasse. Bleibt das stehen,
-> wenn sein Eintrag verschwindet?"
+> keine Bewerbungsunterlagen."
 
-**Brauchbar ist die Antwort, wenn** sie eine Frist ab dem letzten Arbeitstag nennt **und** sagt, ob
-der Name auf den bestätigten Nachweisen bleiben darf. **Ohne den Umfangssatz antwortet die
-Datenschutzbeauftragte über die Personalakte** und damit über einen Bestand, den es hier nicht
-gibt — das gilt sinngemäß für jede der sechs Fristen.
+**Brauchbar ist die Antwort, wenn** sie eine Frist ab dem letzten Arbeitstag nennt. **Ohne den
+Umfangssatz wird über die Personalakte entschieden** und damit über einen Bestand, den es hier nicht
+gibt.
 
-**Daran hängt:** Der Anker steht (`employees.last_working_day`), sein Ziel nicht. Was den Namen
-anderswo trägt — ein freigegebener Beleg — überlebt ihn ohnehin.
+**Daran hängt:** Der Anker steht (`employees.last_working_day`), sein Ziel nicht. Die zweite Hälfte
+dieser Frage ist beantwortet — Name und Mailadresse werden aus nachweispflichtigen Zusammenhängen
+nicht aktiv entfernt —, die Frist für den Eintrag selbst fehlt.
 
-*Steht in* `schema/stammdaten-schema.sql:943` · `schema/m365-schema.sql:60` ·
+*Steht in* `schema/stammdaten-schema.sql` · `schema/m365-schema.sql` ·
 `soll-prozesse/00-zugang-und-portal.md:34`
 
-### 6. Versandte Mails an noch unbekannte Familien
+### 3. Versandte Mails an noch unbekannte Familien
 
 > „Wir verschicken Mails an Leute, die wir noch gar nicht als Familie führen — etwa die Bestätigung
-> einer Ferienbuchung. Von dieser Mail bleibt bei uns nur die Adresse stehen, an keiner Person
-> hängend. Wie lange darf sie das?"
+> einer Ferienbuchung an Eltern, die vor dieser Buchung nirgends bei uns standen. Von dieser Mail
+> bleibt bei uns die Adresse, der Anlass in einem Wort, der Versandzeitpunkt und ob sie zustellbar
+> war. **Der Mailtext wird bewusst nicht gespeichert.** Wie lange darf die Adresse stehen?"
 
 **Brauchbar ist die Antwort, wenn** sie eine Frist ab dem Versanddatum nennt.
 
-**Daran hängt:** Diese Zeilen gehen mit keinem Cascade fort. Bis die Frist steht, räumt der Lösch-Lauf
-sie überhaupt nicht — danach ist es eine `WHERE`-Bedingung und keine Migration. Die einzige der sechs
-Fristen, die kein Soll-Block berührt.
+**Beim ersten Anlauf kam sie nicht zustande** — „kann nicht bewertet werden, da wir Kontext nicht
+verstehen. Wer sind die betroffenen Personen / warum kein Text". Beides steht deshalb jetzt in der
+Frage selbst; ohne diese zwei Sätze wird sie wieder zurückgegeben.
 
-*Steht in* `schema/querschnitt-schema.sql:924`
+**Daran hängt:** Diese Zeilen gehen mit keinem Cascade fort. Bis die Frist steht, räumt der
+Lösch-Lauf sie überhaupt nicht — danach ist es eine `WHERE`-Bedingung und keine Migration.
 
-### 7. Was sonst noch aufbewahrungspflichtig ist
-
-> „Außer Vertrag und Zahlungsdaten — gibt es an einem abgegangenen Kind noch etwas, das wir behalten
-> müssen, und wie lange?"
-
-**Brauchbar ist die Antwort, wenn** sie entweder eine Liste nennt oder ein klares Nein. Ein „ich
-schau mal" lässt die Frage offen.
-
-**Daran hängt:** Die Bestätigung, dass die sechs Fristen oben vollständig sind. Fehlt sie, weiß der
-Lösch-Lauf nicht, ob er zu viel räumt.
-
-*Steht in* `soll-prozesse/03-irregulaerer-abgang.md:33`
-
-### 8. Wer den Lösch-Lauf anstößt — zusammen mit der Schulleitung
-
-> „Der Lösch-Lauf läuft nicht von allein los. Wer drückt einmal im Jahr den Knopf, und wer bestätigt
-> hinterher, dass er richtig gelaufen ist?"
-
-**Brauchbar ist die Antwort, wenn** zwei Rollen benannt sind — auslösen und bestätigen, nicht
-dieselbe Person.
-
-**Daran hängt:** Ohne benannte Rolle ist der Lauf gebaut und wird nie ausgelöst.
-
-*Steht in* `soll-prozesse/04-schuljahreswechsel.md:34`
+*Steht in* `schema/querschnitt-schema.sql`
 
 ---
 
@@ -167,7 +104,7 @@ Die Vertragstexte stehen hier nicht mehr: Sie werden künftig anhand dessen nach
 Portal gebaut wird** — sie gehen keinem Ablauf mehr voraus und blockieren keine Domäne. Was daran zu
 tun bleibt, ist eine Aufgabe und keine Frage: `backlog/`, TASK-042.
 
-### 9. Akademie: die Kategorien und wer freigibt
+### 4. Akademie: die Kategorien und wer freigibt
 
 > „Zwei Dinge fehlen mir noch zur Akademie. Welche **Kategorien** gibt es zum Start? Und: Anlegen
 > darf jede und jeder Mitarbeitende, freigegeben werden muss trotzdem jedes Angebot, bevor es
@@ -187,7 +124,7 @@ Geschäftsführung ein Nadelöhr, bei der jeweiligen Leitung ein kurzer Weg, abe
 
 ## Sekretariat — vier Fragen
 
-### 10. Zuordnung der Fremdsysteme — zusammen mit Buchhaltung und Admin
+### 5. Zuordnung der Fremdsysteme — zusammen mit Buchhaltung und Admin
 
 > „Wenn sich bei einem Kind oder einer Familie etwas ändert, muss das teilweise auch in ASV-BW,
 > Optigem oder M365 nachgezogen werden. Wir haben eine Zuordnung erstellt, welche Änderung wohin
@@ -203,7 +140,7 @@ Zuordnung dort zu weit gefasst.
 
 *Steht in* `soll-prozesse/02-datenaenderung.md:32`
 
-### 11. Bescheinigungen beim Abgang
+### 6. Bescheinigungen beim Abgang
 
 > „Wenn ein Kind die Schule verlässt — welche Papiere schreibt ihr routinemäßig? Abgangszeugnis,
 > Schulbescheinigung für die neue Schule, Bestätigung der Abmeldung?"
@@ -215,7 +152,7 @@ oder nur auf Anfrage entsteht.
 
 *Steht in* `soll-prozesse/03-irregulaerer-abgang.md:25`
 
-### 12. Aufgaben des Jahreswechsels
+### 7. Aufgaben des Jahreswechsels
 
 > „Ende Juli zieht der zweite Admin alle Klassen von Hand auf die neue Stufe um, legt die Neuen an
 > und löscht die Abgänger. Was tut ihr in dieser Zeit sonst noch, jedes Jahr wieder?"
@@ -228,7 +165,7 @@ bleibt Zuruf.
 
 *Steht in* `soll-prozesse/04-schuljahreswechsel.md:30`
 
-### 13. Elternfragebogen der Grundschul-Checkliste — zusammen mit der Grundschulleitung
+### 8. Elternfragebogen der Grundschul-Checkliste — zusammen mit der Grundschulleitung
 
 > „Beim Anmeldetag der Grundschule bekommen die Eltern einen Fragebogen auf Papier mit. Was steht
 > darauf — und könnte er künftig vorab im Portal ausgefüllt werden?"
@@ -241,9 +178,9 @@ gebaut.
 
 *Steht in* `soll-prozesse/06-anmeldetag.md:20` · `grenzkarte.md`, Weiße Flecken
 
-## Schulleitung — zwei Fragen
+## Schulleitung — eine Frage
 
-### 14. Unterrichtlicher und außerunterrichtlicher Ausflug — ein Unterschied oder zwei Wörter?
+### 9. Unterrichtlicher und außerunterrichtlicher Ausflug — ein Unterschied oder zwei Wörter?
 
 > „Für die Klassenfahrt gibt es eine mehrseitige Erklärung, die die Eltern unterschreiben —
 > Einverständnis, Vollmacht, Kostenzusage, Belehrung. Für den Unterrichtsgang oder den Wandertag
@@ -262,27 +199,3 @@ Block — und dann darf beim Unterrichtsgang **kein** leeres Einwilligungsfeld s
 aussähe, als hätte jemand vergessen zu fragen.
 
 *Steht in* `soll-prozesse/19-ausfluege-und-fahrten.md` (Kopf, die Tabelle der zwei Arten)
-
-### 15. Was sieht eine Lehrkraft vom Gesundheitsbestand eines Kindes, das sie nicht als Klasse hat? — zusammen mit dem/der Datenschutzbeauftragten
-
-> „Der Gesundheitsbestand eines Kindes ist nach Sichtkreisen geschnitten: Die Klassenlehrkraft sieht
-> ihn ganz, die Küche nur Unverträglichkeit und Allergie, der Hort das Nötige für den Nachmittag.
-> Offen ist der Schnitt für alle anderen Lehrkräfte. Heute sehen sie zu jedem Kind den
-> Handlungshinweis — „bei Anstrengung auf Atemnot achten" — und die Erlaubnisse, aber keinen
-> Diagnosenamen und kein Attest; die Bezeichnung nur beim Notfallmedikament. Reicht euch das für
-> den Fachunterricht, für eine Vertretungsstunde, für die Begleitung eines Ausflugs? Oder muss eine
-> Lehrkraft, die ein Kind nur zwei Stunden in der Woche sieht, auch wissen, **woran** es leidet?"
-
-**Brauchbar ist die Antwort, wenn** je Kategorie feststeht, ob die Bezeichnung mitgeht oder nur der
-Hinweis — und ob dieselbe Antwort für den Hort gilt, der heute den Hinweis jeder Kategorie sieht
-und nicht nur der vier Alltagskategorien.
-
-**Daran hängt:** Ob der gebaute Schnitt bestätigt wird oder ein siebter Sichtkreis dazukommt. Beides
-ist billig — ein Sichtkreis ist eine Seed-Zeile je Paar und keine Migration —, aber es entscheidet,
-was in den Blöcken 08, 09 und 15 steht: Block 08 sagt heute noch, Lehrkräfte und Hort sähen
-Unverträglichkeit, Allergie, Notfallmedikation und Zeckenentfernung **mit** Bezeichnung, und das ist
-weiter als das Gebaute. Solange das offen ist, widersprechen Block und Bestand einander.
-
-*Steht in* `api/gesundheit-api.md` (Zugriffsmodell, die `[A]` zum Sichtkreis `sports`)
-
-

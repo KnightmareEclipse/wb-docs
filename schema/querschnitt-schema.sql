@@ -502,7 +502,15 @@ CREATE TABLE child_file_folders (
 -- die Person; beide Fremdschlüssel kaskadieren, weil die Zeile in keinem der
 -- beiden Fälle stehen bleiben darf — die beiden Anker rechnen verschieden (das
 -- Kind ab seinem Ende (03), der Sorgeberechtigte an der Familie), und es
--- löscht, wessen Frist zuerst abläuft. Bewusst KEIN Boolean und keine
+-- löscht, wessen Frist zuerst abläuft.
+-- Das Fotoeinverständnis ist davon ausgenommen: Es wird **unbegrenzt**
+-- aufbewahrt (Datenschutzbeauftragter, 02.09.2026). Der Grund ist nicht die
+-- Erlaubnis, sondern ihr Nachweis — ein einmal veröffentlichtes Bild
+-- verschwindet nicht mehr, und es muss auch Jahre später ersichtlich bleiben,
+-- dass die Erlaubnis bis zu einem bestimmten Tag galt (Art. 7 Abs. 1 DSGVO).
+-- Der Widerruf steht dem nicht entgegen, er beendet die Nutzung: `revoked_at`
+-- setzen, die weitere Verwendung unterbinden und das Bildmaterial auf Verlangen
+-- löschen. Was unbegrenzt bleibt, ist die Zeile, nicht das Recht daran. Bewusst KEIN Boolean und keine
 -- Werteliste für die Antwort: der Zeitpunkt ist der Nachweis nach Art. 7
 -- Abs. 1 DSGVO.
 CREATE TABLE consents (
@@ -1010,7 +1018,14 @@ CREATE INDEX ix_change_log_row ON change_log (table_name, row_id, changed_at DES
 --     Die Mail an eine noch unbekannte Familie (05, 09, 10) trägt deren
 --     Adresse und sonst nichts; sie geht mit keinem Cascade fort, und ohne eine
 --     Frist ab `sent_at` steht die Adresse unbefristet. Geraten wird sie nicht.
---     — Datenschutzbeauftragte
+--     Am 02.09.2026 vorgelegt und **nicht bewertbar zurückgekommen**: „kann
+--     nicht bewertet werden, da wir Kontext nicht verstehen. Wer sind die
+--     betroffenen Personen / warum kein Text". Die Frist fehlt damit weiter,
+--     und die nächste Vorlage muss zwei Dinge mitliefern, statt nach einer Zahl
+--     zu fragen: dass die Empfänger Eltern sind, die eine Bestätigung bekommen,
+--     bevor sie überhaupt als Familie geführt werden, und dass der Mailtext
+--     bewusst nicht gespeichert wird — die Zeile trägt Adresse, Anlass in einem
+--     Wort, Versandzeitpunkt und Zustellbarkeit. — Datenschutzbeauftragte
 --     Was daran hängt: Bis die Frist steht, räumt der Lösch-Lauf diese Zeilen
 --     gar nicht; danach ist es eine WHERE-Bedingung und keine Migration.
 

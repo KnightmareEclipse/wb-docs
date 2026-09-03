@@ -12,9 +12,13 @@
 -- entsteht der Gesundheitsbestand mit der Ferienbuchung, weil es keinen anderen
 -- Weg gibt, auf dem er entstünde; bei einem Kind der Schule geben die Eltern
 -- den vorhandenen Bestand für dieses Programm frei (`gesundheit-schema.sql`).
--- [?] Die eigene Frist dieses Bestands — gerechnet vom letzten gebuchten Termin
--- und nicht vom Ende des Programms — liegt beim Datenschutzbeauftragten
--- (pruefberichte/fragen-datenschutz.txt, Fragen „Nachweisfrist nach einer Veranstaltung" und „Kinder, die nicht bei uns zur Schule gehen").
+-- Die eigene Frist dieses Bestands steht seit dem 02.09.2026: **vier Wochen
+-- nach dem letzten gebuchten Termin**, gerechnet vom Termin und nicht vom Ende
+-- des Programms. Sie ist damit deutlich kürzer als die der Buchung selbst
+-- (sechs Monate, unten) — die Gesundheitsangabe wird für den Tag gebraucht, die
+-- Buchung als Nachweis darüber hinaus. Löschankündigung und Anhalten im
+-- Einzelfall stehen als gemeinsamer Hebel in hebel.md; die Stelle ist hier die
+-- Hortleitung, beim Kurs die Akademieverantwortliche.
 -- Bewusst KEINE Warteliste und kein Nachrücken: „Ist ein Termin zu,
 -- ist er zu."
 
@@ -340,8 +344,11 @@ CREATE TABLE holiday_cost_coverage_codes (
 -- Herkunft: 10 (Ferienprogramm) — „Je Buchung Kind, Termin, Modul, der gezahlte
 -- Betrag als das, was an diesem Tag galt, der Zahlweg … und die Fassung der
 -- Teilnahmebedingungen, der zugestimmt wurde." Löschanker: der letzte gebuchte
--- Termin dieses Kindes — „der Anker, den es heute nicht gibt"; wie lange danach,
--- ist offen (siehe [?] unten). Bewusst KEINE Löschung beim Storno: „die Buchung
+-- Termin dieses Kindes — „der Anker, den es heute nicht gibt" — und **sechs
+-- Monate danach** (Datenschutzbeauftragter, 02.09.2026), mit der
+-- Löschankündigung an die Hortleitung, die hebel.md gemeinsam beschreibt.
+-- Bei einem schulfremden Kind geht seine Zeile mit der letzten Buchung: Es hat
+-- kein Austrittsdatum, an dem sonst gerechnet würde. Bewusst KEINE Löschung beim Storno: „die Buchung
 -- bleibt stehen und gilt als storniert, sie verschwindet nicht".
 CREATE TABLE holiday_bookings (
     holiday_booking_id      uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -499,7 +506,7 @@ ALTER TABLE payments
 -- ---------------------------------------------------------------------------
 
 
--- [?] Wie lange werden Buchung und Kind nach dem letzten gebuchten Termin
---     aufbewahrt? Ohne die Antwort hat der Löschanker dieser Domäne kein Ziel
---     (10). Dieselbe offene Frist wie in stammdaten-schema.sql, samt der dort
---     notierten Abgrenzung zu den amtlichen Werkzeugen. — Datenschutzbeauftragte
+-- Beide Fristen dieser Domäne stehen seit dem 02.09.2026 und sind an ihren
+-- Ankern eingetragen: Buchung und Kind sechs Monate nach dem letzten gebuchten
+-- Termin, der Gesundheitsbestand des fremden Kindes vier Wochen. Was daraus für
+-- die Arbeitskopie folgt und was nicht, steht in stammdaten-schema.sql.
