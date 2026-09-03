@@ -562,6 +562,28 @@ SELECT pg_temp.expect_reject(
     $q$INSERT INTO holiday_module_prices (holiday_module_id, valid_from, amount_cents, created_by)
        VALUES (1, DATE '2027-01-01', 2500, 'system:check')$q$);
 
+-- 10/17: Die Anmerkung geht vier Wochen nach dem letzten Termin und damit vor
+-- ihrem Kind; sie hält es so lange fest, denn „solange sie angehalten ist, geht
+-- auch das Kind nicht" (10). Eine Cascade nähme sie ungefragt mit.
+INSERT INTO persons (person_id, first_name, last_name, created_by)
+    VALUES ('22222222-2222-2222-2222-222222222224', 'Viert', 'Muster', 'system:check');
+INSERT INTO children (child_id, person_id, family_id, birth_date, created_by)
+    VALUES ('44444444-4444-4444-4444-444444444447',
+            '22222222-2222-2222-2222-222222222224',
+            '33333333-3333-3333-3333-333333333333', DATE '2017-09-01', 'system:check');
+INSERT INTO holiday_care_notes (child_id, holiday_programme_id, note, created_by)
+    VALUES ('44444444-4444-4444-4444-444444444447', 1, 'Braucht eine Pause', 'guardian:x');
+
+SELECT pg_temp.expect_reject(
+    '17 — Kind gelöscht, während seine Anmerkung es festhält',
+    $q$DELETE FROM children WHERE child_id = '44444444-4444-4444-4444-444444444447'$q$);
+
+SELECT pg_temp.expect_accept(
+    '17 — nach der Anmerkung geht das Kind',
+    $q$DELETE FROM holiday_care_notes
+              WHERE child_id = '44444444-4444-4444-4444-444444444447';
+       DELETE FROM children WHERE child_id = '44444444-4444-4444-4444-444444444447'$q$);
+
 -- 10 Z3: „Geprüft wird nur eines: ob die Terminart fremden Kindern offensteht."
 SELECT pg_temp.expect_reject(
     '10 — fremdes Kind an einer Terminart, die keine fremden zulässt',

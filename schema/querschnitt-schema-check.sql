@@ -940,6 +940,9 @@ INSERT INTO loeschlauf (platz, tabelle, im_lauf) VALUES
     -- Stufe 6 an ihr stehen. Dahinter ihr eingelöster Code, wie im
     -- Ferienprogramm.
     ( 6, 'academy_registrations', true),
+    -- Vier Wochen nach dem letzten Termin, und damit vor der Buchung; sie hält
+    -- ihr Kind fest, damit ein Anhalten trägt.
+    ( 5, 'holiday_care_notes', true),
     ( 7, 'academy_cost_coverage_codes', true),
     ( 7, 'meal_subscriptions', true),
     ( 8, 'health_trait_values', true), ( 8, 'consents',           true),

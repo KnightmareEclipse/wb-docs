@@ -287,6 +287,13 @@ Buchung und Kind bleiben **sechs Monate** nach dem letzten gebuchten Termin (02.
 [Löschankündigung](hebel.md#löschankündigung-und-anhalten) an die Hortleitung. Bei einem schulfremden Kind geht seine Zeile mit der letzten Buchung — es
 hat kein Austrittsdatum, an dem sonst gerechnet würde.
 
+**Die Anmerkung für die Betreuung geht mit dem Programm**, nicht mit dem Kind: **vier Wochen** nach
+dem letzten gebuchten Termin, dieselbe Frist wie der Gesundheitsbestand des fremden Kindes und aus
+demselben Grund — sie trägt oft dasselbe, und nach dem Programm gibt es keinen Zweck mehr, sie zu
+halten (Betreiber, 03.09.2026). Sie steht damit im Lösch-Lauf (17) und ist wie jeder andere Bestand
+[anhaltbar](hebel.md#löschankündigung-und-anhalten); solange sie angehalten ist, geht auch das Kind
+nicht.
+
 ## Gehört nicht dazu
 
 - Der **Programminhalt**: Rezepte, Ausflüge, Gruppen, Personaleinsatz, Einkauf, wer heute

@@ -521,7 +521,14 @@ CREATE TRIGGER trg_holiday_bookings_admission
 -- Korrektur erreichte eine davon (rules.md Abschnitt 1). Sie steht deshalb je
 -- Kind und Programm: Erhoben wird sie in einem Zug mit den Terminen eines
 -- Programms (Schritt 3), gelesen auf dessen Teilnehmerliste (Schritt 7).
--- Löschanker: geht mit dem Kind.
+-- Löschanker: der **letzte gebuchte Termin dieses Kindes in diesem Programm**
+-- und **vier Wochen** danach — dieselbe Frist wie der Gesundheitsbestand des
+-- fremden Kindes und aus demselben Grund: „sie trägt oft dasselbe, und nach dem
+-- Programm gibt es keinen Zweck mehr, sie zu halten" (10, Betreiber
+-- 03.09.2026). Sie geht damit **vor** dem Kind und nicht mit ihm; der
+-- Fremdschlüssel darunter hält es fest, statt sie mitzunehmen — sonst räumte
+-- eine Cascade die angehaltene Anmerkung still weg, und „solange sie angehalten
+-- ist, geht auch das Kind nicht" (10).
 -- Je Kind und Programm statt je Kind. — Alternative: eine Zeile je Kind über
 -- alle Jahre; Preis: die Anmerkung aus einem Ferienprogramm von vor drei
 -- Jahren stünde ungefragt auf der Teilnehmerliste von heute, und gelöscht
@@ -536,8 +543,12 @@ CREATE TABLE holiday_care_notes (
     created_by           text NOT NULL,
 
     CONSTRAINT pk_holiday_care_notes PRIMARY KEY (holiday_care_note_id),
+    -- NO ACTION und nicht Cascade: Die Anmerkung hat ihre eigene, kürzere Frist
+    -- und wird vom Lauf selbst geräumt (Stufe 1). Eine Cascade nähme die
+    -- angehaltene Zeile mit dem Kind mit, ohne dass der Lauf sie sieht — genau
+    -- das darf ein Anhalten nicht zulassen.
     CONSTRAINT fk_holiday_care_notes_child
-        FOREIGN KEY (child_id) REFERENCES children (child_id) ON DELETE CASCADE,
+        FOREIGN KEY (child_id) REFERENCES children (child_id),
     CONSTRAINT fk_holiday_care_notes_programme
         FOREIGN KEY (holiday_programme_id) REFERENCES holiday_programmes (holiday_programme_id),
     -- „je Kind eine Anmerkung" — eine, nicht mehrere.

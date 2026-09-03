@@ -63,6 +63,11 @@
 --      Zeile dieser Stufe, die keinem Kind gehört — der nicht eingelöste Code
 --      geht deshalb nicht mit diesem Lauf, sondern nach seiner eigenen Frist
 --      (ferien-schema.sql).
+--      Ebenfalls in dieser Stufe, und vor der Buchung, die länger steht:
+--      `holiday_care_notes` — vier Wochen nach dem letzten gebuchten Termin,
+--      „nach dem Programm gibt es keinen Zweck mehr, sie zu halten" (10). Sie
+--      hält ihr Kind fest, statt mit ihm zu gehen: Eine angehaltene Anmerkung
+--      darf nicht per Cascade verschwinden.
 --      Neben der Ferienbuchung steht `academy_registrations` mit demselben
 --      Abstand zu ihrem Anker, und dahinter ihr eingelöster
 --      `academy_cost_coverage_codes` (akademie-schema.sql). Die Anmeldung des
