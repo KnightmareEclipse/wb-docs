@@ -1,10 +1,10 @@
 ---
 id: TASK-217
 title: Bedarfsabfrage für Brückentage ohne Ferienprogramm
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-03 17:09'
-updated_date: '2026-09-03 18:20'
+updated_date: '2026-09-03 20:49'
 labels:
   - schema
   - anmeldung
@@ -30,8 +30,8 @@ Wer nicht antwortet, bringt sein Kind nicht: Die stille Antwort muss die sichere
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Eine Abfrage je Tag, eine Antwort je Kind — keine Buchung, solange kein Betrag anfällt
-- [ ] #2 Entschieden, ob der Tag gesondert berechnet wird; davon hängt die Bauform ab
-- [ ] #3 Keine Antwort heißt 'kommt nicht' — als Gegenprobe
+- [x] #1 Eine Abfrage je Tag, eine Antwort je Kind — keine Buchung, solange kein Betrag anfällt
+- [x] #2 Entschieden, ob der Tag gesondert berechnet wird; davon hängt die Bauform ab
+- [x] #3 Keine Antwort heißt 'kommt nicht' — als Gegenprobe
 - [ ] #4 Wo ein Ferienprogramm läuft, entsteht keine Abfrage
 <!-- AC:END -->

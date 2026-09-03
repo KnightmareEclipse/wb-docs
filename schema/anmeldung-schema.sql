@@ -37,14 +37,19 @@
 -- Portal, wird jede seiner Fragen ein Feld — das ist ein Nachrüsten und kein
 -- Umbau, aber es beginnt mit der Fragenliste und einem Satz in 06, wer die
 -- Antworten sieht.
--- Bewusst KEINE Struktur für die Notfallbetreuung, obwohl die Preisliste sie
--- führt (8 / 12 / 16 / 20 € je Fall, 20 € je halber Stunde außerhalb der
--- Öffnungszeiten): Sie wird verbal oder telefonisch vereinbart — „im Notfall
--- geht niemand erst ins Portal" —, und ein Vorgang, den
--- niemand im System auslöst, braucht dort keine Zeile. Abgerechnet wird sie
--- außerhalb; die Geschwisterermäßigung nimmt sie ausdrücklich aus
--- (Betreuungsvertrag). Soll sie je hereinkommen, ist sie eine Zeile je Fall
--- und keine Buchung.
+-- Die Notfallbetreuung steht als Tagesbuchung darin (`emergency_care_bookings`,
+-- Werteliste und Preise weiter oben): ein Fall je Kind und Tag, je Fall
+-- berechnet, offen auch für Kinder ohne Betreuungsvertrag. Ein weiteres
+-- `care_module` wäre die falsche Bauform — es hinge an einer Modulanlage, die es
+-- bei diesen Kindern nicht gibt, und kennte nur einen Monatsbeitrag.
+-- Bewusst KEINE Spalte für den Weg, auf dem eine Notfallbetreuung hereinkommt:
+-- Portal und Nachtrag durch den Hort schreiben dieselbe Zeile, und `created_by`
+-- trägt mit `guardian:` oder `entra:` bereits, welcher der beiden es war. Das
+-- ist der offizielle Umweg (hebel.md) mit einer benannten Abweichung: Hier
+-- trägt der Hort stellvertretend ein und nicht das Sekretariat, denn er nimmt
+-- den Anruf entgegen.
+-- Daneben die Brückentage (`care_bridge_days`): eine Abfrage je Tag und eine
+-- Antwort je Kind, keine Buchung — an ihnen fällt kein eigener Betrag an.
 
 
 -- Für `ex_contracts_care_period`: `child_id WITH =` braucht btree_gist, wie in
@@ -189,6 +194,12 @@ CREATE TABLE care_need_levels (
 -- Angabe, ob ein Mittagessen dabei ist, als Werte im System." Kein Löschanker:
 -- keine Personendaten. Bewusst KEINE Preis-Spalte hier: der Preis hängt an der
 -- Zahl der Wochentage und steht deshalb in `care_module_prices`.
+-- Bewusst KEINE Gruppeneinteilung der Hausaufgabenbetreuung: Klasse 1+2 und 3+4
+-- werden in je zwei Gruppen betreut, aber die Einteilung ändert sich, und es
+-- hängt weder eine Zusage noch eine Abrechnung daran (Betreiber, 03.09.2026) —
+-- im Frontend ist sie eine Anzeigeregel, hier wäre sie eine Liste, die niemand
+-- pflegt. Braucht sie je jemand, trägt sie die Bauform der Wahlmodulgruppe
+-- (`klassenorganisation-schema.sql`).
 CREATE TABLE care_modules (
     care_module_id   integer GENERATED ALWAYS AS IDENTITY,
     code             text NOT NULL,
@@ -211,6 +222,15 @@ CREATE TABLE care_modules (
     -- steht in `meal_prices` (mensa-schema.sql) und richtet sich nach der Zahl
     -- der Tage mit einem solchen Modul.
     includes_lunch   boolean NOT NULL DEFAULT false,
+    -- Ein Häkchen aus dem umgekehrten Grund wie sein Nachbar darüber: Das Essen
+    -- ließe sich heute aus der Uhrzeit ableiten und steht trotzdem als Häkchen
+    -- da; die Hausaufgabenbetreuung lässt sich NICHT ableiten — es gibt Module
+    -- über Mittag ohne sie (Betreiber, 03.09.2026), und weder Uhrzeit noch Dauer
+    -- sagen, welches Modul eine trägt. Sie kostet nichts und wird nicht
+    -- gesondert gebucht: Wer sie besucht, ist die Liste der Kinder mit einem
+    -- solchen Modul an diesem Wochentag — ein Filter über diese Spalte und kein
+    -- Datum am Kind.
+    includes_homework_supervision boolean NOT NULL DEFAULT false,
     -- Gesetzt, wo das Modul nur einer Schulart offensteht („nach Mittagsschule"
     -- allein Realschule); leer heißt „für alle".
     school_branch_id integer,
@@ -274,6 +294,78 @@ CREATE TABLE care_module_prices (
     CONSTRAINT ck_care_module_prices_days CHECK (weekday_count BETWEEN 1 AND 5),
     CONSTRAINT ck_care_module_prices_amount CHECK (monthly_amount_cents >= 0),
     CONSTRAINT ck_care_module_prices_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
+);
+
+-- Herkunft: die Preisliste der Schule, geschärft am 03.09.2026 — eine
+-- Notfallbetreuung „entsteht aus einem Notfall — spontan, für einen einzelnen
+-- Tag, abgerechnet je Fall". Vier ihrer fünf Fälle sind dasselbe wie ein
+-- Betreuungsmodul, nur je Tag statt je Monat abgerechnet: Frühbetreuung bzw.
+-- Modul 1 bis 13:00 für 8 €, Modul 2 für 12 €, Modul 3 für 16 €, Modul 4 für
+-- 20 €. Der fünfte — eine halbe Stunde außerhalb der Öffnungszeiten für 20 € —
+-- liegt außerhalb jedes Moduls und hat als Monatsbeitrag kein Gegenstück;
+-- deshalb ist `care_module_id` nullable, und deshalb steht diese Werteliste
+-- neben `care_modules` statt darin: Eine Zeile dort stünde in der
+-- Modul-Wochentag-Matrix von `care_module_bookings` und ließe sich als
+-- Monatsmodul buchen. Kein Löschanker: keine Personendaten.
+CREATE TABLE emergency_care_types (
+    emergency_care_type_id integer GENERATED ALWAYS AS IDENTITY,
+    code                   text NOT NULL,
+    name                   text NOT NULL,
+    -- Gesetzt, wo der Fall ein Betreuungsmodul ist; leer, wo er außerhalb jedes
+    -- Moduls liegt. Am gesetzten Modul hängt zugleich das Mittagessen:
+    -- `care_modules.includes_lunch` sagt, DASS eines dazugehört, und wie beim
+    -- Monatsbeitrag steckt es nicht im Betrag — bei den Modulen 2 bis 4 wird es
+    -- zusätzlich berechnet. Ein eigenes Essens-Häkchen an der Tagesbuchung
+    -- wäre dieselbe Angabe ein zweites Mal.
+    care_module_id         integer,
+    -- Deaktiviert statt gelöscht: „is_active = false" nimmt den Wert aus
+    -- jedem Auswahlfeld, lässt aber jede Zeile stehen, die schon auf ihn
+    -- zeigt (rules.md Abschnitt 3).
+    is_active              boolean NOT NULL DEFAULT true,
+    created_at             timestamptz NOT NULL DEFAULT now(),
+    created_by             text NOT NULL,
+
+    CONSTRAINT pk_emergency_care_types      PRIMARY KEY (emergency_care_type_id),
+    CONSTRAINT uq_emergency_care_types_code UNIQUE (code),
+    CONSTRAINT fk_emergency_care_types_module
+        FOREIGN KEY (care_module_id) REFERENCES care_modules (care_module_id),
+    -- Je Modul höchstens ein Fall. Mehrere modullose bleiben erlaubt, weil NULL
+    -- in einem UNIQUE nicht mit sich selbst kollidiert — außerhalb der
+    -- Öffnungszeiten gibt es kein Modul, an dem sich zählen ließe.
+    CONSTRAINT uq_emergency_care_types_module UNIQUE (care_module_id),
+    CONSTRAINT ck_emergency_care_types_code CHECK (code <> ''),
+    CONSTRAINT ck_emergency_care_types_name CHECK (name <> ''),
+    CONSTRAINT ck_emergency_care_types_created_by CHECK (created_by ~ '^(entra:|system:)')
+);
+
+-- Herkunft: dieselbe Preisliste. Bauform wie `care_module_prices` daneben, nur
+-- ohne die Tagesstaffel: Ein Fall kennt keine Zahl gebuchter Wochentage, und
+-- der Nachlass, der dort im Betrag steckt, hat hier keinen Ort. Jeder Betrag
+-- trägt seinen Gültigkeitstag wie jeder Wert im System, „es gilt immer der Wert,
+-- dessen Datum zuletzt erreicht wurde" (hebel.md); dass ein bereits gültiger
+-- sich nicht mehr ändern lässt, prüft die Anwendung — `now()` ist in keinem
+-- CHECK zulässig (querschnitt-schema.sql). Die Geschwisterermäßigung nimmt die
+-- Notfallbetreuung ausdrücklich aus (Betreuungsvertrag), hier ist also auch
+-- kein Satz danebenzustellen. Kein Löschanker: keine Personendaten.
+-- Welche Werte der Preisliste unsere sind, klärt fragen.md Frage 9 — das
+-- betrifft die Zahlen beim Seed und nicht diese Struktur.
+CREATE TABLE emergency_care_prices (
+    emergency_care_price_id integer GENERATED ALWAYS AS IDENTITY,
+    emergency_care_type_id  integer NOT NULL,
+    valid_from              date NOT NULL,
+    -- Je Fall, nicht je Monat: Der Betrag fällt an dem Tag an, an dem der Fall
+    -- eintritt, und wird nicht auf Raten gelegt.
+    amount_cents            integer NOT NULL,
+    created_at              timestamptz NOT NULL DEFAULT now(),
+    created_by              text NOT NULL,
+
+    CONSTRAINT pk_emergency_care_prices PRIMARY KEY (emergency_care_price_id),
+    CONSTRAINT fk_emergency_care_prices_type
+        FOREIGN KEY (emergency_care_type_id)
+        REFERENCES emergency_care_types (emergency_care_type_id),
+    CONSTRAINT uq_emergency_care_prices UNIQUE (emergency_care_type_id, valid_from),
+    CONSTRAINT ck_emergency_care_prices_amount CHECK (amount_cents >= 0),
+    CONSTRAINT ck_emergency_care_prices_created_by CHECK (created_by ~ '^(entra:|system:)')
 );
 
 -- Herkunft: hebel.md, „Geld im System, alles andere fest" — „Dazu die beiden
@@ -1056,6 +1148,134 @@ CREATE TABLE care_module_bookings (
 
 
 -- ---------------------------------------------------------------------------
+-- Notfallbetreuung und Brückentage
+-- ---------------------------------------------------------------------------
+
+-- Herkunft: die Schärfung vom 03.09.2026 — „Gebraucht wird eine Tagesbuchung:
+-- Kind, Datum, Art des Falls, der Betrag als das, was an diesem Tag galt."
+-- Sie hängt am Kind und nicht am Vertrag: Die Notfallbetreuung steht
+-- Hortkindern wie Nicht-Hortkindern offen, und ein Kind ohne Betreuungsvertrag
+-- hat keine Modulanlage, an der sie hinge. Löschanker: dieselbe offene
+-- Aufbewahrungsfrage wie Vertrag und Modulanlage (17) — die Zeile ist ein
+-- Abrechnungsposten, und sie hält das Kind fest, statt mit ihm zu gehen.
+-- Bewusst KEINE Spalte für das Mittagessen: Es folgt dem Modul des Falls
+-- (`emergency_care_types.care_module_id` → `care_modules.includes_lunch`), wie
+-- es beim Monatsbeitrag dem gebuchten Modul folgt — „Anmelden muss sich dafür
+-- niemand" (09). Der Betrag des einzelnen Essens steht in mensa-schema.sql.
+-- Bewusst KEINE Ablehnung als Zustand: Ob eine Notfallbetreuung überhaupt
+-- abgelehnt werden darf, ist offen (siehe die Frage am Ende dieser Datei); bis
+-- dahin ist ein Nein kein Eintrag, wie beim Hortvertrag selbst (09).
+CREATE TABLE emergency_care_bookings (
+    emergency_care_booking_id uuid NOT NULL DEFAULT gen_random_uuid(),
+    child_id                  uuid NOT NULL,
+    care_date                 date NOT NULL,
+    emergency_care_type_id    integer NOT NULL,
+    -- Eingefroren beim Anlegen der Zeile, nicht beim Lesen: „Was schon
+    -- berechnet oder bezahlt ist, bleibt bei dem Betrag, der damals galt"
+    -- (hebel.md). Buchung und Fall liegen bei einem Notfall am selben oder am
+    -- folgenden Tag; ein gerechneter Betrag aus `emergency_care_prices` fiele
+    -- damit ohnehin gleich aus, aber er stünde nach einer Preisänderung anders
+    -- auf einer Abrechnung, die längst raus ist.
+    amount_cents              integer NOT NULL,
+    -- Die Ankündigung. Gesetzt, wo eine vorausging — im Portal von den Eltern,
+    -- am Telefon vom Hort nachgetragen; wer sie eingetragen hat, steht in
+    -- `created_by`, denn die Zeile entsteht mit ihr. Leer beim unangekündigten
+    -- Kind: Das ist der Papierfall, und er hat nur den Vollzug.
+    booked_at                 timestamptz,
+    -- Der Vollzug. Der Hort hakt ab, wer wirklich da war, und daran hängt die
+    -- Abrechnung: „Abgerechnet wird, was stattgefunden hat." Leer bei einer
+    -- Buchung, die sich erledigt hat. Ein eigener Urheber steht hier, weil der
+    -- Vollzug eine zweite Handlung einer zweiten Stelle ist — bei einer Buchung
+    -- fallen Urheber und `created_by` zusammen und brauchen keine zweite Spalte.
+    attended_at               timestamptz,
+    attended_by               text,
+    created_at                timestamptz NOT NULL DEFAULT now(),
+    created_by                text NOT NULL,
+
+    CONSTRAINT pk_emergency_care_bookings PRIMARY KEY (emergency_care_booking_id),
+    CONSTRAINT fk_emergency_care_bookings_child
+        FOREIGN KEY (child_id) REFERENCES children (child_id),
+    CONSTRAINT fk_emergency_care_bookings_type
+        FOREIGN KEY (emergency_care_type_id)
+        REFERENCES emergency_care_types (emergency_care_type_id),
+    -- [A] Ein Fall je Kind, Tag und Art; zwei halbe Stunden außerhalb der
+    --     Öffnungszeiten sind damit eine Zeile und ein Betrag. — Alternative:
+    --     eine Stückzahl an der Zeile; Preis: eine Spalte, die außer bei genau
+    --     diesem einen Fall niemand über 1 setzt.
+    CONSTRAINT uq_emergency_care_bookings
+        UNIQUE (child_id, care_date, emergency_care_type_id),
+    CONSTRAINT ck_emergency_care_bookings_amount CHECK (amount_cents >= 0),
+    -- Eines von beidem muss dastehen, sonst wäre die Zeile weder angekündigt
+    -- noch geschehen.
+    CONSTRAINT ck_emergency_care_bookings_state
+        CHECK (booked_at IS NOT NULL OR attended_at IS NOT NULL),
+    CONSTRAINT ck_emergency_care_bookings_attended
+        CHECK ((attended_at IS NULL) = (attended_by IS NULL)),
+    -- Abgehakt wird im Haus; die Eltern kündigen an, sie stellen nichts fest.
+    CONSTRAINT ck_emergency_care_bookings_attended_by
+        CHECK (attended_by ~ '^(entra:|system:)'),
+    CONSTRAINT ck_emergency_care_bookings_created_by
+        CHECK (created_by ~ '^(entra:|guardian:|system:)')
+);
+
+-- Herkunft: die Beschreibung vom 03.09.2026 — vor manchen Ferien endet der
+-- Unterricht mitten in der Woche, und für die freien Tage davor fragt der Hort
+-- ab, „wer sein Kind trotzdem bringt und wer nicht". Eine Zeile ist die Abfrage
+-- eines Tages; angestoßen wird sie vom Hort, nie von selbst. Kein Löschanker:
+-- keine Personendaten — die Antworten daneben tragen sie und gehen mit ihr.
+-- [A] Der Brückentag wird nicht gesondert berechnet: Das gebuchte Modul des
+--     Kindes gilt weiter, abgefragt wird allein die Anwesenheit — deshalb eine
+--     Antwort und keine Tagesbuchung wie bei der Notfallbetreuung. —
+--     Alternative: eine Tagesbuchung mit eigenem Betrag; Preis: ein zweiter
+--     Zahlweg neben dem Monatsbeitrag für Tage, die er schon abdeckt.
+-- [A!] Dass an einem Tag mit Ferienprogramm keine Abfrage entsteht, prüft die
+--      Anwendung und kein Trigger. — Alternative: ein Trigger, der
+--      `holiday_session_days` liest; Preis: `anmeldung` läse dann `ferien`,
+--      während `ferien` schon `anmeldung` liest — der Ring bände die
+--      Ladereihenfolge beider Domänen aneinander, die heute frei ist.
+CREATE TABLE care_bridge_days (
+    care_bridge_day_id uuid NOT NULL DEFAULT gen_random_uuid(),
+    care_date          date NOT NULL,
+    created_at         timestamptz NOT NULL DEFAULT now(),
+    created_by         text NOT NULL,
+
+    CONSTRAINT pk_care_bridge_days PRIMARY KEY (care_bridge_day_id),
+    -- Eine Abfrage je Tag; eine zweite wäre eine zweite Liste über dieselben
+    -- Kinder.
+    CONSTRAINT uq_care_bridge_days UNIQUE (care_date),
+    CONSTRAINT ck_care_bridge_days_created_by CHECK (created_by ~ '^(entra:|system:)')
+);
+
+-- Herkunft: dieselbe Beschreibung — „eine Abfrage je Tag, eine Antwort je Kind".
+-- Löschanker: geht mit der Abfrage, und die gehört zum Lösch-Lauf (17).
+-- Eine fehlende Zeile ist keine Antwort und heißt „kommt nicht": „Wer nicht
+-- antwortet, bringt sein Kind nicht — die stille Antwort muss die sichere
+-- sein." Deshalb steht hier kein Vorgabewert und keine Zeile auf Vorrat je
+-- Kind; erwartet wird allein, wer `attending = true` eingetragen hat. Eine
+-- ausdrückliche Absage ist trotzdem etwas anderes als Schweigen — der Hort
+-- sieht daran, wen er gefragt bekommen hat und wer noch offen ist.
+CREATE TABLE care_bridge_day_responses (
+    care_bridge_day_response_id uuid NOT NULL DEFAULT gen_random_uuid(),
+    care_bridge_day_id          uuid NOT NULL,
+    child_id                    uuid NOT NULL,
+    attending                   boolean NOT NULL,
+    created_at                  timestamptz NOT NULL DEFAULT now(),
+    created_by                  text NOT NULL,
+
+    CONSTRAINT pk_care_bridge_day_responses PRIMARY KEY (care_bridge_day_response_id),
+    CONSTRAINT fk_care_bridge_day_responses_day
+        FOREIGN KEY (care_bridge_day_id) REFERENCES care_bridge_days (care_bridge_day_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_care_bridge_day_responses_child
+        FOREIGN KEY (child_id) REFERENCES children (child_id),
+    -- Eine Antwort je Kind; eine geänderte ist dieselbe Zeile mit neuem Wert.
+    CONSTRAINT uq_care_bridge_day_responses UNIQUE (care_bridge_day_id, child_id),
+    CONSTRAINT ck_care_bridge_day_responses_created_by
+        CHECK (created_by ~ '^(entra:|guardian:|system:)')
+);
+
+
+-- ---------------------------------------------------------------------------
 -- Fremdschlüssel des Querschnitts auf diese Domäne
 -- ---------------------------------------------------------------------------
 -- Die Spalten stehen in querschnitt-schema.sql; die Constraints entstehen hier,
@@ -1093,3 +1313,13 @@ ALTER TABLE payments
 --     Betreuungskräfte, die schon heute nicht stimmt (09). Gegen den Stand vom
 --     11.12.2025 geprüft: alle drei stehen weiterhin aus. — Geschäftsführung,
 --     Hortleitung
+-- [?] Drei Dinge an der Notfallbetreuung sind offen und hängen zusammen: der
+--     Nachweis auf dem Telefonweg — wer im Portal bucht, hat `created_by` mit
+--     `guardian:`, wer anruft, hat nichts Schriftliches —, ob eine gebuchte
+--     Notfallbetreuung abgelehnt werden darf, und ob eine gebuchte, aber nicht
+--     wahrgenommene berechnet wird. Denkbar für den ersten Punkt sind eine
+--     Bestätigung an die Familie, eine gezeichnete Tagesliste nach der Bauform
+--     des Putzdienstes (01) oder gar nichts, weil der Streitfall in der Praxis
+--     nicht vorkommt; entschieden ist keiner. Die Struktur trägt alle drei
+--     Antworten: `booked_at` ohne `attended_at` ist die nicht wahrgenommene
+--     Buchung. — Geschäftsführung

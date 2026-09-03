@@ -165,14 +165,19 @@ INSERT INTO persons (person_id, first_name, last_name, created_by) VALUES
     ('22222222-2222-2222-2222-222222222221', 'Kind',   'Muster', 'system:check'),
     ('22222222-2222-2222-2222-222222222222', 'Mutter', 'Muster', 'system:check'),
     ('22222222-2222-2222-2222-222222222223', 'Vater',  'Muster', 'system:check'),
-    ('22222222-2222-2222-2222-222222222224', 'Extern', 'Hortkind', 'system:check');
+    ('22222222-2222-2222-2222-222222222224', 'Extern', 'Hortkind', 'system:check'),
+    ('22222222-2222-2222-2222-222222222225', 'Ohne',   'Vertrag',  'system:check');
 INSERT INTO families (family_id, created_by)
     VALUES ('33333333-3333-3333-3333-333333333333', 'system:check');
 INSERT INTO children (child_id, person_id, family_id, birth_date, created_by) VALUES
     ('44444444-4444-4444-4444-444444444444', '22222222-2222-2222-2222-222222222221',
      '33333333-3333-3333-3333-333333333333', DATE '2020-05-01', 'system:check'),
     ('44444444-4444-4444-4444-444444444445', '22222222-2222-2222-2222-222222222224',
-     '33333333-3333-3333-3333-333333333333', DATE '2019-05-01', 'system:check');
+     '33333333-3333-3333-3333-333333333333', DATE '2019-05-01', 'system:check'),
+    -- Bekommt in diesem Skript keinen Vertrag: die Gegenprobe zur
+    -- Notfallbetreuung eines Kindes ohne Betreuungsvertrag hängt daran.
+    ('44444444-4444-4444-4444-444444444446', '22222222-2222-2222-2222-222222222225',
+     '33333333-3333-3333-3333-333333333333', DATE '2018-05-01', 'system:check');
 
 -- Die Textsorte steht als Wert im System; eine Fassung ohne sie gibt es nicht.
 INSERT INTO contract_text_kinds (code, name, created_by) VALUES
@@ -190,6 +195,14 @@ INSERT INTO care_modules (care_module_id, code, name, includes_lunch,
     (1, 'early',      'Frühbetreuung',      false, NULL, NULL, 'system:check'),
     (2, 'afternoon3', 'Nachmittag bis 15:30', true, NULL, NULL, 'system:check'),
     (3, 'after_noon_school', 'Nach Mittagsschule', true, 2, 5, 'system:check');
+
+-- Vier Fälle hängen an einem Modul, der fünfte an keinem.
+INSERT INTO emergency_care_types (emergency_care_type_id, code, name, care_module_id, created_by)
+    OVERRIDING SYSTEM VALUE VALUES
+    (1, 'emergency_early',     'Notfall Frühbetreuung',   1, 'system:check'),
+    (2, 'emergency_afternoon3', 'Notfall bis 15:30',      2, 'system:check'),
+    (3, 'emergency_after_hours', 'Halbe Stunde außerhalb der Öffnungszeiten',
+        NULL, 'system:check');
 
 INSERT INTO admission_days (admission_day_id, school_branch_id, target_grade_level,
                             first_grade_level, final_grade_level,
@@ -1156,6 +1169,196 @@ BEGIN
     RAISE NOTICE 'ok (erlaubt): Q3 — keine Zahlung überlebt ihren Vorgang';
 END $$;
 
+-- ---------------------------------------------------------------------------
+-- Gegenproben — Notfallbetreuung und Brückentage
+-- ---------------------------------------------------------------------------
+
+-- „Ein Feld für den Weg braucht es nicht: `created_by` trägt schon `guardian:`
+-- oder `entra:`." Die Gegenprobe dazu ist das Fehlen — eine Spalte, die es
+-- nicht gibt, hat keinen anderen Anker.
+DO $$
+DECLARE unexpected text;
+BEGIN
+    SELECT string_agg(column_name, ', ') INTO unexpected
+      FROM information_schema.columns
+     WHERE table_name = 'emergency_care_bookings'
+       AND column_name IN ('source', 'channel', 'booking_channel', 'entry_channel',
+                           'includes_lunch', 'lunch_taken');
+    IF unexpected IS NOT NULL THEN
+        RAISE EXCEPTION 'Die Tagesbuchung trägt einen zweiten Ort für Weg oder Essen: %', unexpected;
+    END IF;
+    RAISE NOTICE 'ok: kein Feld für den Weg und keines für das Essen';
+END $$;
+
+-- „Der Fallpreis hängt an einem Modul oder steht allein."
+INSERT INTO emergency_care_prices (emergency_care_type_id, valid_from, amount_cents, created_by)
+    VALUES (1, DATE '2026-09-03',  800, 'system:check'),
+           (2, DATE '2026-09-03', 1600, 'system:check');
+SELECT pg_temp.expect_accept(
+    '214 — Fallpreis ohne Modul: die halbe Stunde außerhalb der Öffnungszeiten',
+    $q$INSERT INTO emergency_care_prices (emergency_care_type_id, valid_from,
+                                          amount_cents, created_by)
+       VALUES (3, DATE '2026-09-03', 2000, 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    '214 — derselbe Fallpreis zweimal zum selben Gültigkeitstag',
+    $q$INSERT INTO emergency_care_prices (emergency_care_type_id, valid_from,
+                                          amount_cents, created_by)
+       VALUES (1, DATE '2026-09-03', 900, 'system:check')$q$);
+
+-- Die Kennung steht in beiden ausdrücklich da: Die Stammsätze oben setzen sie
+-- mit OVERRIDING SYSTEM VALUE und rücken die Identity nicht vor — ohne sie
+-- fiele die Ablehnung auf den Primärschlüssel und nicht auf die Regel.
+SELECT pg_temp.expect_reject(
+    '214 — zweiter Fall am selben Betreuungsmodul',
+    $q$INSERT INTO emergency_care_types (emergency_care_type_id, code, name,
+                                         care_module_id, created_by)
+       OVERRIDING SYSTEM VALUE
+       VALUES (4, 'emergency_early_2', 'Noch ein Notfall Frühbetreuung', 1,
+               'system:check')$q$);
+
+SELECT pg_temp.expect_accept(
+    '214 — zweiter Fall ohne Modul, weil außerhalb der Öffnungszeiten keines liegt',
+    $q$INSERT INTO emergency_care_types (emergency_care_type_id, code, name,
+                                         care_module_id, created_by)
+       OVERRIDING SYSTEM VALUE
+       VALUES (5, 'emergency_after_hours_2', 'Zweite halbe Stunde außerhalb', NULL,
+               'system:check')$q$);
+
+-- „Ein Kind ohne Betreuungsvertrag kann gebucht werden." Kind …4446 hat in
+-- diesem Skript keinen — die Gegenprobe belegt zuerst das und dann die Buchung.
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM contracts
+                WHERE child_id = '44444444-4444-4444-4444-444444444446') THEN
+        RAISE EXCEPTION 'Die Gegenprobe trägt nicht: das Kind hat doch einen Vertrag';
+    END IF;
+    RAISE NOTICE 'ok: das Kind der nächsten Gegenprobe hat keinen Vertrag';
+END $$;
+SELECT pg_temp.expect_accept(
+    '214 — Notfallbetreuung für ein Kind ohne Betreuungsvertrag',
+    $q$INSERT INTO emergency_care_bookings (child_id, care_date, emergency_care_type_id,
+                                            amount_cents, booked_at, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444446', DATE '2026-09-10', 1, 800,
+               now(), 'guardian:22222222-2222-2222-2222-222222222222')$q$);
+
+-- „Buchung und Vollzug sind zwei Zeitpunkte: ein unangekündigtes Kind hat nur
+-- den zweiten, eine erledigte Buchung nur den ersten."
+SELECT pg_temp.expect_accept(
+    '214 — unangekündigtes Kind: nur der Vollzug, vom Hort eingetragen',
+    $q$INSERT INTO emergency_care_bookings (child_id, care_date, emergency_care_type_id,
+                                            amount_cents, attended_at, attended_by, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444444', DATE '2026-09-10', 1, 800,
+               now(), 'entra:hort', 'entra:hort')$q$);
+
+SELECT pg_temp.expect_accept(
+    '214 — angekündigt und wahrgenommen: beide Zeitpunkte',
+    $q$INSERT INTO emergency_care_bookings (child_id, care_date, emergency_care_type_id,
+                                            amount_cents, booked_at, attended_at,
+                                            attended_by, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444445', DATE '2026-09-10', 2, 1600,
+               now(), now(), 'entra:hort', 'entra:hort')$q$);
+
+SELECT pg_temp.expect_reject(
+    '214 — weder Buchung noch Vollzug',
+    $q$INSERT INTO emergency_care_bookings (child_id, care_date, emergency_care_type_id,
+                                            amount_cents, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444444', DATE '2026-09-11', 1, 800,
+               'entra:hort')$q$);
+
+SELECT pg_temp.expect_reject(
+    '214 — Vollzug ohne die Stelle, die ihn feststellt',
+    $q$INSERT INTO emergency_care_bookings (child_id, care_date, emergency_care_type_id,
+                                            amount_cents, attended_at, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444444', DATE '2026-09-11', 1, 800,
+               now(), 'entra:hort')$q$);
+
+SELECT pg_temp.expect_reject(
+    '214 — Eltern haken den Vollzug ab',
+    $q$INSERT INTO emergency_care_bookings (child_id, care_date, emergency_care_type_id,
+                                            amount_cents, attended_at, attended_by, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444444', DATE '2026-09-11', 1, 800,
+               now(), 'guardian:22222222-2222-2222-2222-222222222222',
+               'guardian:22222222-2222-2222-2222-222222222222')$q$);
+
+SELECT pg_temp.expect_reject(
+    '214 — derselbe Fall zweimal am selben Tag für dasselbe Kind',
+    $q$INSERT INTO emergency_care_bookings (child_id, care_date, emergency_care_type_id,
+                                            amount_cents, booked_at, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444444', DATE '2026-09-10', 1, 800,
+               now(), 'entra:hort')$q$);
+
+SELECT pg_temp.expect_accept(
+    '214 — zweiter Fall anderer Art am selben Tag: erst Modul, dann die halbe Stunde danach',
+    $q$INSERT INTO emergency_care_bookings (child_id, care_date, emergency_care_type_id,
+                                            amount_cents, booked_at, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444444', DATE '2026-09-10', 3, 2000,
+               now(), 'entra:hort')$q$);
+
+-- 216: „care_modules trägt ein Häkchen für die Hausaufgabenbetreuung; die Liste
+-- ist ein Filter darüber und kein Datum am Kind." Und: „Die Gruppeneinteilung
+-- steht nicht in der Datenbank."
+DO $$
+DECLARE unexpected text;
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                    WHERE table_name = 'care_modules'
+                      AND column_name = 'includes_homework_supervision') THEN
+        RAISE EXCEPTION 'Das Häkchen für die Hausaufgabenbetreuung fehlt am Modul';
+    END IF;
+    SELECT string_agg(table_name || '.' || column_name, ', ') INTO unexpected
+      FROM information_schema.columns
+     WHERE table_name IN ('children', 'care_module_agreements', 'care_module_bookings')
+       AND column_name LIKE '%homework%';
+    IF unexpected IS NOT NULL THEN
+        RAISE EXCEPTION 'Die Hausaufgabenbetreuung steht am Kind statt am Modul: %', unexpected;
+    END IF;
+    SELECT string_agg(table_name, ', ') INTO unexpected
+      FROM information_schema.tables
+     WHERE table_schema = 'public' AND table_name LIKE '%homework%';
+    IF unexpected IS NOT NULL THEN
+        RAISE EXCEPTION 'Die Gruppeneinteilung der Hausaufgabenbetreuung steht doch da: %', unexpected;
+    END IF;
+    RAISE NOTICE 'ok: die Hausaufgabenbetreuung ist ein Häkchen am Modul und keine Gruppenliste';
+END $$;
+
+-- 217: „eine Abfrage je Tag, eine Antwort je Kind".
+INSERT INTO care_bridge_days (care_bridge_day_id, care_date, created_by)
+    VALUES ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1', DATE '2026-10-29', 'entra:hort');
+SELECT pg_temp.expect_reject(
+    '217 — zweite Abfrage für denselben Tag',
+    $q$INSERT INTO care_bridge_days (care_date, created_by)
+       VALUES (DATE '2026-10-29', 'entra:hort')$q$);
+
+INSERT INTO care_bridge_day_responses (care_bridge_day_id, child_id, attending, created_by)
+    VALUES ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1',
+            '44444444-4444-4444-4444-444444444444', true,
+            'guardian:22222222-2222-2222-2222-222222222222'),
+           ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1',
+            '44444444-4444-4444-4444-444444444445', false,
+            'guardian:22222222-2222-2222-2222-222222222222');
+SELECT pg_temp.expect_reject(
+    '217 — zweite Antwort desselben Kindes zur selben Abfrage',
+    $q$INSERT INTO care_bridge_day_responses (care_bridge_day_id, child_id, attending, created_by)
+       VALUES ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1',
+               '44444444-4444-4444-4444-444444444444', false, 'entra:hort')$q$);
+
+-- „Wer nicht antwortet, bringt sein Kind nicht: Die stille Antwort muss die
+-- sichere sein." Kind …4446 hat nicht geantwortet und steht deshalb weder unter
+-- den Erwarteten noch unter den Abgesagten — die Liste zählt allein `true`.
+DO $$
+DECLARE expected uuid[];
+BEGIN
+    SELECT array_agg(child_id ORDER BY child_id) INTO expected
+      FROM care_bridge_day_responses
+     WHERE care_bridge_day_id = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1'
+       AND attending;
+    IF expected <> ARRAY['44444444-4444-4444-4444-444444444444'::uuid] THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — die Brückentagsliste erwartet %', expected;
+    END IF;
+    RAISE NOTICE 'ok (erlaubt): 217 — wer nicht antwortet, wird nicht erwartet';
+END $$;
+
 -- Die übrigen Stufen dieser Domäne im Lauf aus 17; die Reihenfolge über alle
 -- Domänen steht im Kopf von querschnitt-schema.sql.
 
@@ -1207,14 +1410,27 @@ SELECT pg_temp.expect_reject(
     '17 — Kind gelöscht, während sein SEPA-Mandat es noch festhält',
     $q$DELETE FROM children$q$);
 
+-- Die Tagesbuchung der Notfallbetreuung ist ein Abrechnungsposten und hält das
+-- Kind ebenso fest; sie geht vor ihm, wie der Vertrag.
+SELECT pg_temp.expect_reject(
+    '17 — Kind gelöscht, während seine Notfallbetreuung es noch festhält',
+    $q$DELETE FROM documents;
+       DELETE FROM child_file_folders;
+       DELETE FROM sepa_mandates;
+       DELETE FROM care_bridge_day_responses;
+       DELETE FROM children$q$);
+
 -- Stufe 2: erst jetzt lässt sich das Kind löschen — vorher hielten es
--- `fk_applications_child`, `fk_contracts_child` und `fk_sepa_mandates_child`
+-- `fk_applications_child`, `fk_contracts_child`, `fk_sepa_mandates_child`,
+-- `fk_emergency_care_bookings_child` und `fk_care_bridge_day_responses_child`
 -- fest, jeder auf seiner eigenen Frist.
 SELECT pg_temp.expect_accept(
     '17 — nach allen Vorgängen am Kind geht das Kind',
     $q$DELETE FROM documents;
        DELETE FROM child_file_folders;
        DELETE FROM sepa_mandates;
+       DELETE FROM emergency_care_bookings;
+       DELETE FROM care_bridge_day_responses;
        DELETE FROM children$q$);
 
 DO $$
@@ -1224,8 +1440,10 @@ BEGIN
     END IF;
     -- Anmeldetage, Anmeldefenster und die Wertelisten tragen keinen
     -- Personenbezug und keinen Anker.
-    IF NOT EXISTS (SELECT 1 FROM admission_days) OR NOT EXISTS (SELECT 1 FROM tuition_fees) THEN
-        RAISE EXCEPTION 'ZU VIEL GELÖSCHT — Anmeldetag oder Schulgeldstaffel ging mit dem Kind';
+    IF NOT EXISTS (SELECT 1 FROM admission_days) OR NOT EXISTS (SELECT 1 FROM tuition_fees)
+       OR NOT EXISTS (SELECT 1 FROM emergency_care_prices)
+       OR NOT EXISTS (SELECT 1 FROM care_bridge_days) THEN
+        RAISE EXCEPTION 'ZU VIEL GELÖSCHT — Anmeldetag, Staffel, Fallpreis oder Brückentagsabfrage ging mit dem Kind';
     END IF;
     RAISE NOTICE 'ok (erlaubt): 17 — die Domäne ist leer bis auf das, was keinen Anker hat';
 END $$;
