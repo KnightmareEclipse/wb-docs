@@ -4,6 +4,7 @@ title: Der Lösch-Lauf nimmt keine Datei mit
 status: To Do
 assignee: []
 created_date: '2026-09-02 07:55'
+updated_date: '2026-09-03 22:12'
 labels:
   - wb-backend
   - dsgvo
@@ -27,3 +28,9 @@ Gefunden im Nachtlauf 02.09.2026 (TASK-192): app/services/retention.py behandelt
 - [ ] #2 Mandat und unterschriebene Zustimmung gehen mit ihrer Datei, ein Test hält die Reihenfolge fest
 - [ ] #3 Ein Graph-Fehler beim Löschen der Datei lässt die Zeile stehen, statt eine verwaiste Datei zurückzulassen
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Wartet auf den Pruefbericht zum neuen Querschnitt-Schema (TASK-009, prompts/schema-pruefen.md in frischer Session). Der Lauf haengt jetzt an zwei neuen Tabellen — retention_holds ueberspringt einen Anker, retention_notice_recipients traegt die Ankuendigung —, und was auf einem ungeprueften Schema gebaut wird, wird zweimal gebaut (prompts/parallel-sitzung.md, Haltepunkt). Die Stufenfolge samt Papierkorb steht im Kopf von querschnitt-schema.sql, die Zusage in Block 17 (Dateien).
+<!-- SECTION:NOTES:END -->

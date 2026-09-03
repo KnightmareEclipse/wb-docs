@@ -1,11 +1,13 @@
 -- Prüfskript zu querschnitt-schema.sql.
 --
--- Sollstand: 15 Tabellen — fünf Wertelisten (consent_purposes,
--- sharepoint_libraries, document_types, sync_targets, contract_text_kinds),
+-- Sollstand: 19 Tabellen — sieben Wertelisten (consent_purposes,
+-- sharepoint_libraries, document_types, sync_targets, contract_text_kinds,
+-- retention_subjects, retention_hold_reasons),
 -- Q2 (contract_texts,
 -- signatures, documents, child_file_folders), Q1 (consents), Q3 (payments),
--- Q5 (sync_tasks) und die drei übrigen Hebel (configured_values, change_log,
--- outbound_emails).
+-- Q5 (sync_tasks), die drei übrigen Hebel (configured_values, change_log,
+-- outbound_emails) und die zwei des Lösch-Laufs
+-- (retention_notice_recipients, retention_holds).
 -- Die vertragsgebundenen Gegenproben zu `signatures` stehen in
 -- anmeldung-schema-check.sql, weil ihr Fremdschlüssel dort entsteht; die
 -- Unterschrift unter dem SEPA-Mandat steht hier, sie kennt keinen Vertrag.
@@ -33,14 +35,16 @@ BEGIN
         'sync_targets', 'signatures', 'documents', 'child_file_folders',
         'consents', 'payments', 'sync_tasks', 'configured_values', 'change_log',
         'contract_text_kinds',
-        'contract_texts', 'outbound_emails'
+        'contract_texts', 'outbound_emails',
+        'retention_subjects', 'retention_hold_reasons',
+        'retention_notice_recipients', 'retention_holds'
     ]) AS t
     WHERE to_regclass('public.' || t) IS NULL;
 
     IF missing IS NOT NULL THEN
         RAISE EXCEPTION 'Fehlende Tabellen: %', missing;
     END IF;
-    RAISE NOTICE 'ok: alle 15 Tabellen vorhanden';
+    RAISE NOTICE 'ok: alle 19 Tabellen vorhanden';
 END $$;
 
 -- ---------------------------------------------------------------------------
@@ -75,7 +79,18 @@ BEGIN
         'pk_contract_texts', 'uq_contract_texts',
         'uq_consent_purposes_requires_child', 'fk_consents_purpose',
         'ck_consents_child',
-        'fk_documents_library', 'fk_consents_document', 'fk_sepa_mandates_document'
+        'fk_documents_library', 'fk_consents_document', 'fk_sepa_mandates_document',
+        'pk_retention_subjects', 'uq_retention_subjects_code',
+        'pk_retention_hold_reasons', 'uq_retention_hold_reasons_code',
+        'pk_retention_notice_recipients', 'uq_retention_notice_recipients',
+        'fk_retention_notice_recipients_subject', 'fk_retention_notice_recipients_employee',
+        'fk_retention_notice_recipients_role', 'fk_retention_notice_recipients_branch',
+        'ck_retention_notice_recipients_kind', 'ck_retention_notice_recipients_branch',
+        'pk_retention_holds', 'fk_retention_holds_subject', 'fk_retention_holds_reason',
+        'fk_retention_holds_child', 'fk_retention_holds_person', 'fk_retention_holds_family',
+        'fk_retention_holds_first', 'uq_retention_holds_original',
+        'ck_retention_holds_single_anchor', 'ck_retention_holds_first_other',
+        'ck_retention_holds_held_until'
     ]) AS c
     WHERE NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = c);
     IF missing IS NOT NULL THEN
@@ -91,7 +106,7 @@ BEGIN
         'ix_sync_tasks_open_academy',
         'ix_sync_tasks_open_slot', 'ix_sync_tasks_open_payment', 'ix_change_log_row',
         'ix_signatures_contract', 'ix_signatures_agreement', 'ix_signatures_mandate',
-        'ix_outbound_emails_undeliverable'
+        'ix_outbound_emails_undeliverable', 'ix_retention_holds_held_until'
     ]) AS i
     WHERE to_regclass('public.' || i) IS NULL;
     IF missing IS NOT NULL THEN
@@ -1019,6 +1034,266 @@ BEGIN
     END IF;
 
     RAISE NOTICE 'ok: 17 — jede festhaltende Tabelle steht in der Reihenfolge, und keine hinter der, die sie festhält';
+END $$;
+
+-- ---------------------------------------------------------------------------
+-- 11. Lösch-Lauf (17) — Empfängerliste und Anhalten
+-- ---------------------------------------------------------------------------
+INSERT INTO houses (code, name, created_by) VALUES ('school', 'Schule', 'system:check');
+INSERT INTO persons (person_id, first_name, last_name, created_by) VALUES
+    ('22222222-2222-2222-2222-222222222223', 'Sekre', 'Tariat', 'system:check'),
+    ('22222222-2222-2222-2222-222222222224', 'Kind B', 'Muster', 'system:check'),
+    ('22222222-2222-2222-2222-222222222225', 'Kind C', 'Muster', 'system:check');
+INSERT INTO employees (employee_id, person_id, house_id, created_by)
+    VALUES ('77777777-7777-7777-7777-777777777777',
+            '22222222-2222-2222-2222-222222222223',
+            (SELECT house_id FROM houses WHERE code = 'school'), 'system:check');
+-- Zwei weitere Kinder: eines mit laufendem, eines mit abgelaufenem Anhalten.
+INSERT INTO children (child_id, person_id, family_id, birth_date, created_by) VALUES
+    ('44444444-4444-4444-4444-444444444445', '22222222-2222-2222-2222-222222222224',
+     '33333333-3333-3333-3333-333333333333', DATE '2019-05-01', 'system:check'),
+    ('44444444-4444-4444-4444-444444444446', '22222222-2222-2222-2222-222222222225',
+     '33333333-3333-3333-3333-333333333333', DATE '2018-05-01', 'system:check');
+
+INSERT INTO retention_subjects (code, name, created_by) VALUES
+    ('child_health_record', 'Gesundheitsbestand am Kind', 'system:check'),
+    ('application',         'Bewerbung ohne Aufnahme',    'system:check');
+INSERT INTO retention_hold_reasons (code, name, created_by) VALUES
+    ('legal_dispute', 'Drohender Rechtsstreit', 'system:check');
+
+-- hebel.md: „je Bestand eine Liste, deren Eintrag eine einzelne Person oder eine
+-- ganze Rollengruppe sein kann" — und nur eines von beidem.
+SELECT pg_temp.expect_reject(
+    '17 — Empfänger, der weder Person noch Rollengruppe noch die Stelle des Vorgangs ist',
+    $q$INSERT INTO retention_notice_recipients (retention_subject_id, created_by)
+       VALUES ((SELECT retention_subject_id FROM retention_subjects WHERE code='application'),
+               'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    '17 — Empfänger, der Person und Rollengruppe zugleich ist',
+    $q$INSERT INTO retention_notice_recipients (retention_subject_id, employee_id, role_id, created_by)
+       VALUES ((SELECT retention_subject_id FROM retention_subjects WHERE code='application'),
+               '77777777-7777-7777-7777-777777777777',
+               (SELECT role_id FROM roles WHERE code='secretariat'), 'system:check')$q$);
+
+-- „eine benannte Person ist schon eingegrenzt" — eine Schulart daran sagt nichts.
+SELECT pg_temp.expect_reject(
+    '17 — Schulart an einer benannten Person statt an einer Rollengruppe',
+    $q$INSERT INTO retention_notice_recipients (retention_subject_id, employee_id,
+                                                school_branch_id, created_by)
+       VALUES ((SELECT retention_subject_id FROM retention_subjects WHERE code='application'),
+               '77777777-7777-7777-7777-777777777777',
+               (SELECT school_branch_id FROM school_branches WHERE code='GS'), 'system:check')$q$);
+
+SELECT pg_temp.expect_accept(
+    '17 — Rollengruppe mit Schulart: „die Lehrkräfte" ohne Zusatz wären beide Zweige',
+    $q$INSERT INTO retention_notice_recipients (retention_subject_id, role_id,
+                                                school_branch_id, created_by)
+       VALUES ((SELECT retention_subject_id FROM retention_subjects WHERE code='child_health_record'),
+               (SELECT role_id FROM roles WHERE code='secretariat'),
+               (SELECT school_branch_id FROM school_branches WHERE code='GS'), 'system:check')$q$);
+
+SELECT pg_temp.expect_accept(
+    '17 — zweiter Empfänger desselben Bestands, diesmal eine benannte Person',
+    $q$INSERT INTO retention_notice_recipients (retention_subject_id, employee_id, created_by)
+       VALUES ((SELECT retention_subject_id FROM retention_subjects WHERE code='child_health_record'),
+               '77777777-7777-7777-7777-777777777777', 'system:check')$q$);
+
+-- Ohne `NULLS NOT DISTINCT` ginge genau diese zweite Zeile durch: leere Schulart
+-- ist derselbe Empfänger und nicht ein anderer.
+SELECT pg_temp.expect_accept(
+    '17 — Empfänger, der aus dem Vorgang folgt (Lehrkraft einer Fahrt, Leitung eines Angebots)',
+    $q$INSERT INTO retention_notice_recipients (retention_subject_id, from_the_case, created_by)
+       VALUES ((SELECT retention_subject_id FROM retention_subjects WHERE code='application'),
+               true, 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    '17 — derselbe Empfänger ein zweites Mal am selben Bestand',
+    $q$INSERT INTO retention_notice_recipients (retention_subject_id, from_the_case, created_by)
+       VALUES ((SELECT retention_subject_id FROM retention_subjects WHERE code='application'),
+               true, 'system:check')$q$);
+
+-- „Empfänger sind immer mindestens zwei … Ein Empfänger, der im Urlaub ist, ist
+-- kein Empfänger." Die Zahl zählt über die Zeilen einer Gruppe und trägt deshalb
+-- kein CHECK; sie steht als Abfrage hier — dieselbe, die der Betrieb laufen
+-- lässt. `application` hat oben genau einen Empfänger bekommen und muss darin
+-- auftauchen, `child_health_record` mit zweien nicht.
+DO $$
+DECLARE zu_wenige text;
+BEGIN
+    SELECT string_agg(s.code, ', ' ORDER BY s.code) INTO zu_wenige
+      FROM retention_subjects s
+      LEFT JOIN retention_notice_recipients r USING (retention_subject_id)
+     WHERE s.is_active
+     GROUP BY s.retention_subject_id, s.code
+    HAVING count(r.retention_notice_recipient_id) < 2;
+
+    IF zu_wenige IS DISTINCT FROM 'application' THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — der Ein-Empfänger-Fall wird nicht gemeldet: %',
+            coalesce(zu_wenige, '(nichts)');
+    END IF;
+    RAISE NOTICE 'ok (gemeldet): 17 — Bestand mit nur einem Empfänger';
+END $$;
+
+-- „Ein Anhalten gilt bis zu einem Datum, nie unbefristet."
+SELECT pg_temp.expect_reject(
+    '17 — Anhalten ohne Enddatum',
+    $q$INSERT INTO retention_holds (retention_subject_id, child_id, retention_hold_reason_id,
+                                    original_delete_on, created_by)
+       VALUES ((SELECT retention_subject_id FROM retention_subjects WHERE code='child_health_record'),
+               '44444444-4444-4444-4444-444444444445',
+               (SELECT retention_hold_reason_id FROM retention_hold_reasons WHERE code='legal_dispute'),
+               current_date - 1, 'entra:hortleitung')$q$);
+
+-- „dem Grund aus einer Werteliste" — ein Freitext stünde daneben.
+SELECT pg_temp.expect_reject(
+    '17 — Anhalten ohne Grund aus der Werteliste',
+    $q$INSERT INTO retention_holds (retention_subject_id, child_id,
+                                    original_delete_on, held_until, created_by)
+       VALUES ((SELECT retention_subject_id FROM retention_subjects WHERE code='child_health_record'),
+               '44444444-4444-4444-4444-444444444445',
+               current_date - 1, current_date + 30, 'entra:hortleitung')$q$);
+
+SELECT pg_temp.expect_reject(
+    '17 — Anhalten ohne Anker',
+    $q$INSERT INTO retention_holds (retention_subject_id, retention_hold_reason_id,
+                                    original_delete_on, held_until, created_by)
+       VALUES ((SELECT retention_subject_id FROM retention_subjects WHERE code='child_health_record'),
+               (SELECT retention_hold_reason_id FROM retention_hold_reasons WHERE code='legal_dispute'),
+               current_date - 1, current_date + 30, 'entra:hortleitung')$q$);
+
+SELECT pg_temp.expect_reject(
+    '17 — Anhalten mit zwei Ankern',
+    $q$INSERT INTO retention_holds (retention_subject_id, child_id, family_id,
+                                    retention_hold_reason_id, original_delete_on, held_until, created_by)
+       VALUES ((SELECT retention_subject_id FROM retention_subjects WHERE code='child_health_record'),
+               '44444444-4444-4444-4444-444444444445',
+               '33333333-3333-3333-3333-333333333333',
+               (SELECT retention_hold_reason_id FROM retention_hold_reasons WHERE code='legal_dispute'),
+               current_date - 1, current_date + 30, 'entra:hortleitung')$q$);
+
+SELECT pg_temp.expect_reject(
+    '17 — Anhalten, das vor dem Löschtermin endet und damit nichts aufhält',
+    $q$INSERT INTO retention_holds (retention_subject_id, child_id, retention_hold_reason_id,
+                                    original_delete_on, held_until, created_by)
+       VALUES ((SELECT retention_subject_id FROM retention_subjects WHERE code='child_health_record'),
+               '44444444-4444-4444-4444-444444444445',
+               (SELECT retention_hold_reason_id FROM retention_hold_reasons WHERE code='legal_dispute'),
+               current_date - 1, current_date - 2, 'entra:hortleitung')$q$);
+
+SELECT pg_temp.expect_accept(
+    '17 — das erste Anhalten, mit Grund, Enddatum und ursprünglichem Löschtermin',
+    $q$INSERT INTO retention_holds (retention_hold_id, retention_subject_id, child_id,
+                                    retention_hold_reason_id, original_delete_on, held_until, created_by)
+       VALUES ('88888888-8888-8888-8888-888888888881',
+               (SELECT retention_subject_id FROM retention_subjects WHERE code='child_health_record'),
+               '44444444-4444-4444-4444-444444444445',
+               (SELECT retention_hold_reason_id FROM retention_hold_reasons WHERE code='legal_dispute'),
+               current_date - 10, current_date + 30, 'entra:hortleitung')$q$);
+
+-- „Der ursprüngliche Löschtermin bleibt beim Verlängern stehen — sonst begänne
+-- die Zählung mit jedem Anhalten von vorn." Der zusammengesetzte Fremdschlüssel
+-- auf die erste Zeile hält ihn: Wer verlängert, kommt nur mit demselben Tag
+-- herein.
+SELECT pg_temp.expect_reject(
+    '17 — Verlängerung, die den ursprünglichen Löschtermin neu setzt',
+    $q$INSERT INTO retention_holds (retention_subject_id, child_id, retention_hold_reason_id,
+                                    first_hold_id, original_delete_on, held_until, created_by)
+       VALUES ((SELECT retention_subject_id FROM retention_subjects WHERE code='child_health_record'),
+               '44444444-4444-4444-4444-444444444445',
+               (SELECT retention_hold_reason_id FROM retention_hold_reasons WHERE code='legal_dispute'),
+               '88888888-8888-8888-8888-888888888881',
+               current_date + 20, current_date + 60, 'entra:hortleitung')$q$);
+
+SELECT pg_temp.expect_accept(
+    '17 — Verlängerung mit demselben ursprünglichen Löschtermin',
+    $q$INSERT INTO retention_holds (retention_hold_id, retention_subject_id, child_id,
+                                    retention_hold_reason_id, first_hold_id,
+                                    original_delete_on, held_until, created_by)
+       VALUES ('88888888-8888-8888-8888-888888888882',
+               (SELECT retention_subject_id FROM retention_subjects WHERE code='child_health_record'),
+               '44444444-4444-4444-4444-444444444445',
+               (SELECT retention_hold_reason_id FROM retention_hold_reasons WHERE code='legal_dispute'),
+               '88888888-8888-8888-8888-888888888881',
+               current_date - 10, current_date + 60, 'entra:hortleitung')$q$);
+
+-- Das dritte Kind: ein Anhalten, das gestern abgelaufen ist.
+SELECT pg_temp.expect_accept(
+    '17 — abgelaufenes Anhalten am dritten Kind',
+    $q$INSERT INTO retention_holds (retention_subject_id, child_id, retention_hold_reason_id,
+                                    original_delete_on, held_until, created_by)
+       VALUES ((SELECT retention_subject_id FROM retention_subjects WHERE code='child_health_record'),
+               '44444444-4444-4444-4444-444444444446',
+               (SELECT retention_hold_reason_id FROM retention_hold_reasons WHERE code='legal_dispute'),
+               current_date - 40, current_date - 1, 'entra:hortleitung')$q$);
+
+-- Die drei Zusagen aus 17 an einer Abfrage: Der Lauf nimmt heute, was fällig und
+-- nicht angehalten ist; ein angehaltener Anker wird übersprungen; und ein
+-- abgelaufenes Anhalten löscht nicht am nächsten Morgen, sondern beginnt die
+-- Ankündigung von vorn — der Termin rechnet dann ab dem Ende des Anhaltens plus
+-- den vierzehn Tagen der ersten Ankündigung.
+DO $$
+DECLARE heute text;
+        termin_gehalten date;
+        termin_abgelaufen date;
+BEGIN
+    CREATE TEMP TABLE kandidaten (child_id uuid, delete_on date) ON COMMIT DROP;
+    INSERT INTO kandidaten VALUES
+        ('44444444-4444-4444-4444-444444444444', current_date - 1),
+        ('44444444-4444-4444-4444-444444444445', current_date - 10),
+        ('44444444-4444-4444-4444-444444444446', current_date - 40);
+
+    -- GREATEST übergeht ein NULL: ohne Anhalten bleibt der Termin der eigene.
+    CREATE TEMP TABLE faellig ON COMMIT DROP AS
+        SELECT k.child_id,
+               GREATEST(k.delete_on, max(h.held_until) + 14) AS termin
+          FROM kandidaten k
+          LEFT JOIN retention_holds h ON h.child_id = k.child_id
+         GROUP BY k.child_id, k.delete_on;
+
+    SELECT string_agg(child_id::text, ', ' ORDER BY child_id::text) INTO heute
+      FROM faellig WHERE termin <= current_date;
+    IF heute IS DISTINCT FROM '44444444-4444-4444-4444-444444444444' THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — der Lauf nimmt heute die falschen Anker: %',
+            coalesce(heute, '(keinen)');
+    END IF;
+
+    SELECT termin INTO termin_gehalten FROM faellig
+     WHERE child_id = '44444444-4444-4444-4444-444444444445';
+    IF termin_gehalten <> current_date + 74 THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — das laufende Anhalten verschiebt nicht bis %, sondern auf %',
+            current_date + 74, termin_gehalten;
+    END IF;
+
+    SELECT termin INTO termin_abgelaufen FROM faellig
+     WHERE child_id = '44444444-4444-4444-4444-444444444446';
+    IF termin_abgelaufen <> current_date + 13 THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — nach dem Anhalten wird sofort gelöscht statt angekündigt: %',
+            termin_abgelaufen;
+    END IF;
+    RAISE NOTICE 'ok: 17 — angehaltener Anker übersprungen, abgelaufener kündigt von vorn an';
+END $$;
+
+-- „Die Liste der angehaltenen Löschungen zeigt je Fall, seit wann er fällig ist
+-- und wie oft er geschoben wurde" — frisch erzeugt, aus dem ursprünglichen
+-- Termin und der Zahl der Zeilen je Anker.
+DO $$
+DECLARE faellig_seit date;
+        alter_tage   integer;
+        geschoben    integer;
+BEGIN
+    SELECT min(h.original_delete_on),
+           current_date - min(h.original_delete_on),
+           count(*) - 1
+      INTO faellig_seit, alter_tage, geschoben
+      FROM retention_holds h
+     WHERE h.child_id = '44444444-4444-4444-4444-444444444445';
+
+    IF faellig_seit <> current_date - 10 OR alter_tage <> 10 OR geschoben <> 1 THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — die Liste zeigt % / % / % statt % / 10 / 1',
+            faellig_seit, alter_tage, geschoben, current_date - 10;
+    END IF;
+    RAISE NOTICE 'ok: 17 — die Liste trägt Fälligkeit, Alter und Zahl der Verlängerungen';
 END $$;
 
 DO $$ BEGIN RAISE NOTICE 'querschnitt-schema-check: alle Gegenproben bestanden'; END $$;

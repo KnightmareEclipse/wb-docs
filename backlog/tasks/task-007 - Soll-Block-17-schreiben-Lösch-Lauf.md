@@ -1,10 +1,10 @@
 ---
 id: TASK-007
 title: 'Soll-Block 17 schreiben: Lösch-Lauf'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 11:35'
-updated_date: '2026-09-03 12:16'
+updated_date: '2026-09-03 22:11'
 labels:
   - wb-docs
   - soll-block
@@ -43,4 +43,11 @@ Zwei Domänen fallen aus dieser Rechnung heraus, obwohl DS9f sie mit aufzählt:
 - [ ] #4 Entschieden, wer die Spur lesen darf: change_log trägt in old_value überschriebene Gesundheitsangaben und damit Art.-9-Daten
 - [ ] #5 Die zwei Fristen stehen im Block: drei Monate ab Austritt für den Bestand, vier Wochen ab der Veranstaltung für den Anlass
 - [ ] #6 Die Vorwarnung eine Woche vorher steht mit ihrem Adressaten je Anlass — Sekretariat beim Austritt, sonst die Stelle der Veranstaltung samt Leitung
+- [ ] #7 1,2,3,4,5,6
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Block steht als soll-prozesse/17-loesch-lauf.md, Haken und Link in soll-prozesse/README.md. Entschieden: die ankerlose change_log-Zeile faellt drei Jahre nach der Aenderung ([A] im Block), loeschen darf sie allein der Lauf, lesen weiterhin nur Sekretariat und Schulleitung — kein Sichtkreis der Gesundheitsdomaene bekommt die Vorgeschichte einer Angabe. Der Empfaengerkreis steht als generelle Regel im Block; die derzeit besetzten bleiben in hebel.md.
+<!-- SECTION:NOTES:END -->

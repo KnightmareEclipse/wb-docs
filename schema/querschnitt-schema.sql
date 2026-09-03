@@ -1,12 +1,15 @@
 -- Querschnitt — was in mehr als einer Domäne vorkommt und deshalb keiner
 -- gehört: Zustimmung (Q1), Dokument und Signatur (Q2), Zahlungsvorgang (Q3),
--- Nachzieh-Aufgabe (Q5) und die vier Hebel aus hebel.md, die jede Domäne
+-- Nachzieh-Aufgabe (Q5), die vier Hebel aus hebel.md, die jede Domäne
 -- braucht — die Änderungsspur, die versandte Mail, die Werte im System und die
--- Vertragstexte. Q4 (Mitarbeitende) steht als `employees` in
--- stammdaten-schema.sql.
+-- Vertragstexte —, und der Lösch-Lauf (17), der wie sie keiner Domäne gehört.
+-- Q4 (Mitarbeitende) steht als `employees` in stammdaten-schema.sql.
 -- Lesepfad: `signatures` und `documents` zuerst — beide hängen am Kind bzw. am
 -- Vertragsvorgang; `consents` zeigt optional auf eine Signatur. `payments`,
 -- `sync_tasks`, `configured_values` und `change_log` stehen unabhängig daneben.
+-- Der Lösch-Lauf am Ende ist zweigeteilt: `retention_notice_recipients` sagt,
+-- wer je Bestand die Ankündigung bekommt, `retention_holds`, welcher Anker
+-- gerade übersprungen wird.
 --
 -- [A!] Q1–Q5 stehen in einer eigenen Datei statt in der ersten Domäne, die sie
 -- braucht. — Alternative: Q3 im Putzdienst, Q1/Q2/Q5 in der Anmeldung, wie im
@@ -39,7 +42,8 @@
 --   1. Die Vorgänge am Kind, jeder erst, wenn seine eigene Frist abgelaufen
 --      ist: `child_file_folders` (die Datei in SharePoint zuerst, „eine
 --      verwaiste Datei … ist genauso ein DSGVO-Verstoß wie eine verwaiste
---      Zeile"), `sepa_mandates`, `contracts`, dann `applications` — der Vertrag
+--      Zeile" — und mit ihr beide Papierkorb-Stufen, sonst liegt sie noch
+--      93 Tage da, grenzkarte.md Q2), `sepa_mandates`, `contracts`, dann `applications` — der Vertrag
 --      hält seine Bewerbung fest und geht ihr voraus —, `holiday_bookings`,
 --      `meal_subscriptions`, `emergency_care_bookings` und
 --      `care_bridge_day_responses` — beide hängen am Kind und an keinem
@@ -128,9 +132,10 @@
 --      `application_unlocks` und `holiday_cost_coverage_codes` eine Mailadresse,
 --      `expense_claims` Name, Zweck und Fremd-IBAN, dazu `expense_claim_items`
 --      und `travel_details`), bei den übrigen ein Fremdschlüssel auf eine Zeile,
---      die längst fort ist. Das Recht dazu hat heute niemand: `backend_runtime`
---      liest und schreibt die Spur und löscht sie nicht — welche Rolle dieser
---      Lauf benutzt, entscheidet Block 17 mit der Frist.
+--      die längst fort ist. Frist und Recht stehen seit Block 17: **drei Jahre
+--      nach der Änderung**, und löschen darf sie allein der Lauf — nicht
+--      `backend_runtime`, das sie liest und schreibt, und kein Mensch. Eine
+--      Stelle, die die Spur löschen kann, kann auch ihre eigene löschen.
 --
 -- Gebaut ist daran nichts — die Reihenfolge folgt aus den Fremdschlüsseln, die
 -- schon stehen. Damit sie es bleibt, prüft `querschnitt-schema-check.sql` sie
@@ -474,7 +479,8 @@ CREATE UNIQUE INDEX ix_signatures_mandate ON signatures (sepa_mandate_id)
 -- Herkunft: grenzkarte.md, Q2 — „Dokument: Typ, Bezug (Kind bzw. Vorgang),
 -- Ablageort, Erzeugungszeitpunkt — dazu, ob es angefordert wurde." Löschanker:
 -- geht mit dem Kind, aber bewusst OHNE Cascade — der Lösch-Lauf muss die Datei
--- in SharePoint zuerst mitentfernen, und „eine verwaiste Datei in SharePoint
+-- in SharePoint zuerst mitentfernen, samt beiden Papierkorb-Stufen und dem
+-- Versionsverlauf (grenzkarte.md, Q2), und „eine verwaiste Datei in SharePoint
 -- ist genauso ein DSGVO-Verstoß wie eine verwaiste Zeile". Bewusst KEIN Pfad,
 -- sondern die Graph-Kennung: „Ein Pfad bräche bei jedem Verschieben, und das
 -- ist der real belegte Fehlermodus dieser Schule."
@@ -532,7 +538,8 @@ ALTER TABLE sepa_mandates
 -- Anker in der Datenbank: dort legen Menschen frei ab, und ohne ihn erreichte
 -- der Lösch-Job das nicht." Löschanker: geht mit dem Kind, aber bewusst OHNE
 -- Cascade — wie bei `documents` muss der Lösch-Lauf den Ordner in SharePoint
--- zuerst mitentfernen; er erwischt damit auch, was Weltenbaum nie gesehen hat.
+-- zuerst mitentfernen, mit Papierkorb und Versionsverlauf; er erwischt damit
+-- auch, was Weltenbaum nie gesehen hat.
 -- Je Kind genau einer, seit alles in derselben Bibliothek liegt.
 CREATE TABLE child_file_folders (
     child_file_folder_id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -1094,6 +1101,204 @@ CREATE TABLE change_log (
 -- Anwendung. Eine vergessene Stelle fällt hier nicht auf.
 
 CREATE INDEX ix_change_log_row ON change_log (table_name, row_id, changed_at DESC);
+
+
+-- ---------------------------------------------------------------------------
+-- Lösch-Lauf (17)
+-- ---------------------------------------------------------------------------
+
+-- Herkunft: hebel.md, „Löschankündigung und Anhalten" — „je Bestand eine Liste,
+-- deren Eintrag eine einzelne Person oder eine ganze Rollengruppe sein kann".
+-- Kein Löschanker: keine Personendaten. Audit-Spalten, weil eine Zeile hier
+-- entscheidet, wer eine Löschung überhaupt anhalten kann.
+CREATE TABLE retention_subjects (
+    retention_subject_id integer GENERATED ALWAYS AS IDENTITY,
+    -- Ein Bestand ist **eine Frist mit einem Anker**, nicht eine Tabelle:
+    -- Vertrag und Mandat rechnen verschieden und sind deshalb zwei, der
+    -- Gesundheitsbestand am Kind und die anlassbezogene Angabe ebenso (17). Die
+    -- Codes, die die Blöcke heute nennen: „application" (05),
+    -- „child_health_record" und „health_occasion" (17), „holiday_booking" (10),
+    -- „holiday_care_note" (10), „academy_registration" (21), „excursion" (19),
+    -- „contract" und „sepa_mandate" (08), „child_file" (08), „care_file" (09),
+    -- „employee" (13), „change_log" (17). Der Code ist die Verankerung im
+    -- Anwendungscode; wächst die Liste, ist das eine Zeile und keine Migration.
+    code                 text NOT NULL,
+    name                 text NOT NULL,
+    -- Deaktiviert statt gelöscht: „is_active = false" nimmt den Wert aus jedem
+    -- Auswahlfeld, lässt aber jede Zeile stehen, die schon auf ihn zeigt
+    -- (rules.md Abschnitt 3).
+    is_active            boolean NOT NULL DEFAULT true,
+    created_at           timestamptz NOT NULL DEFAULT now(),
+    created_by           text NOT NULL,
+
+    CONSTRAINT pk_retention_subjects      PRIMARY KEY (retention_subject_id),
+    CONSTRAINT uq_retention_subjects_code UNIQUE (code),
+    CONSTRAINT ck_retention_subjects_code CHECK (code <> ''),
+    CONSTRAINT ck_retention_subjects_name CHECK (name <> ''),
+    CONSTRAINT ck_retention_subjects_created_by CHECK (created_by ~ '^(entra:|system:)')
+);
+
+-- Herkunft: hebel.md, „Löschankündigung und Anhalten" — „Empfänger sind immer
+-- mindestens zwei … Sie stehen als Wert im System und nicht im Code."
+-- Kein Löschanker: die Zeile nennt eine Zuständigkeit, keine Person im Bestand;
+-- sie geht mit der Mitarbeitendenzeile, auf die sie zeigt.
+-- Bewusst KEINE Tabelle für die versandten Ankündigungen daneben: Der Lauf
+-- läuft täglich und schickt am Tag vor dem Termin minus vierzehn und minus
+-- sieben — „ein festes Datum schlägt ein gerechnetes" (hebel.md); was er
+-- geschickt hat, steht als Zeile in `outbound_emails`.
+CREATE TABLE retention_notice_recipients (
+    retention_notice_recipient_id integer GENERATED ALWAYS AS IDENTITY,
+    retention_subject_id          integer NOT NULL,
+    -- Die benannte Person, als Mitarbeitendenzeile und nicht als Person —
+    -- dieselbe Form wie die Freigabeberechtigten der Akademie
+    -- (akademie-schema.sql).
+    employee_id                   uuid,
+    -- Oder die ganze Rollengruppe.
+    role_id                       integer,
+    -- Oder: der Empfänger folgt aus dem Vorgang selbst — die Lehrkraft einer
+    -- Fahrt (19), die Verantwortlichen eines Angebots (21). Ohne diesen dritten
+    -- Fall wären genau die zwei Bestände nicht eintragbar, deren zuständige
+    -- Stelle je Instanz eine andere ist; eine Rolle träfe dort alle Lehrkräfte.
+    from_the_case                 boolean NOT NULL DEFAULT false,
+    -- Grenzt eine Rollengruppe auf eine Schulart ein: „die Lehrkräfte" ohne
+    -- Zusatz wären beide Zweige, und manche Lehrkraft ist nur für einen
+    -- zuständig. Leer heißt beide. Nur bei einer Rollengruppe zulässig — eine
+    -- benannte Person ist schon eingegrenzt.
+    school_branch_id              integer,
+    created_at                    timestamptz NOT NULL DEFAULT now(),
+    created_by                    text NOT NULL,
+
+    CONSTRAINT pk_retention_notice_recipients PRIMARY KEY (retention_notice_recipient_id),
+    CONSTRAINT fk_retention_notice_recipients_subject
+        FOREIGN KEY (retention_subject_id) REFERENCES retention_subjects (retention_subject_id),
+    -- Cascade wie bei den Freigabeberechtigten: Wer geht, ist kein Empfänger
+    -- mehr; dass dann nur noch einer übrig ist, meldet die Prüfung unten.
+    CONSTRAINT fk_retention_notice_recipients_employee
+        FOREIGN KEY (employee_id) REFERENCES employees (employee_id) ON DELETE CASCADE,
+    CONSTRAINT fk_retention_notice_recipients_role
+        FOREIGN KEY (role_id) REFERENCES roles (role_id),
+    CONSTRAINT fk_retention_notice_recipients_branch
+        FOREIGN KEY (school_branch_id) REFERENCES school_branches (school_branch_id),
+    -- Genau eine Art je Zeile: Person, Rollengruppe oder „die Stelle dieses
+    -- Vorgangs".
+    CONSTRAINT ck_retention_notice_recipients_kind CHECK (
+        (employee_id IS NOT NULL)::int
+      + (role_id     IS NOT NULL)::int
+      + (from_the_case)::int = 1),
+    CONSTRAINT ck_retention_notice_recipients_branch
+        CHECK (school_branch_id IS NULL OR role_id IS NOT NULL),
+    -- Ein Empfänger steht je Bestand einmal. `NULLS NOT DISTINCT` (Postgres 15+,
+    -- Ziel ist 18) statt vier partieller Indizes: Hier ist die ganze Zeile die
+    -- Kennung, und zwei gleiche Zeilen wären zwei gleiche Mails.
+    CONSTRAINT uq_retention_notice_recipients UNIQUE NULLS NOT DISTINCT
+        (retention_subject_id, employee_id, role_id, school_branch_id, from_the_case),
+    CONSTRAINT ck_retention_notice_recipients_created_by
+        CHECK (created_by ~ '^(entra:|system:)')
+);
+
+-- Die Mindestzahl zwei steht bewusst NICHT als Constraint: Sie zählt über die
+-- Zeilen einer Gruppe, und das trüge nur ein Trigger, den dieses Schema
+-- nirgends kennt (dieselbe begründete Auslassung wie beim Ratelimit an
+-- `login_codes`). Sie hält die Schreibschicht, und
+-- `querschnitt-schema-check.sql` weist den Ein-Empfänger-Fall mit genau dieser
+-- Abfrage nach — sie ist zugleich die, die der Betrieb regelmäßig laufen lässt.
+
+-- Herkunft: hebel.md, „Löschankündigung und Anhalten" — „ob ein Vorgang
+-- vorliegt, der die Löschung verzögert — Arztbesuch, Unfall, medizinische
+-- Ausnahmesituation, drohender Rechtsstreit". Kein Löschanker: keine
+-- Personendaten. Werteliste und kein CHECK, weil sie wächst: „wer einen Grund
+-- findet, den es geben muss, bekommt eine fünfte Zeile und keinen Freitext"
+-- (17) — ein Freitext stünde daneben, und danach ließe sich nicht mehr zählen,
+-- warum angehalten wird.
+CREATE TABLE retention_hold_reasons (
+    retention_hold_reason_id integer GENERATED ALWAYS AS IDENTITY,
+    code                     text NOT NULL,
+    name                     text NOT NULL,
+    -- Deaktiviert statt gelöscht: „is_active = false" nimmt den Wert aus jedem
+    -- Auswahlfeld, lässt aber jede Zeile stehen, die schon auf ihn zeigt
+    -- (rules.md Abschnitt 3).
+    is_active                boolean NOT NULL DEFAULT true,
+    created_at               timestamptz NOT NULL DEFAULT now(),
+    created_by               text NOT NULL,
+
+    CONSTRAINT pk_retention_hold_reasons      PRIMARY KEY (retention_hold_reason_id),
+    CONSTRAINT uq_retention_hold_reasons_code UNIQUE (code),
+    CONSTRAINT ck_retention_hold_reasons_code CHECK (code <> ''),
+    CONSTRAINT ck_retention_hold_reasons_name CHECK (name <> ''),
+    CONSTRAINT ck_retention_hold_reasons_created_by CHECK (created_by ~ '^(entra:|system:)')
+);
+
+-- Herkunft: hebel.md, „Löschankündigung und Anhalten" — „Die Stelle kann die
+-- Löschung für einen einzelnen Fall anhalten … Ein Anhalten gilt bis zu einem
+-- Datum, nie unbefristet." Löschanker: geht mit dem Anker, den es hält
+-- (Cascade) — ist der Bestand geräumt, ist die Zeile gegenstandslos, und der
+-- Beleg, dass angehalten wurde, steht in `change_log` (17).
+-- Bewusst KEINE Spalte für die Zahl der Verlängerungen: Verlängern ist eine
+-- weitere Zeile mit demselben `first_hold_id`, und die Zahl ist deren Anzahl
+-- (rules.md Abschnitt 1).
+CREATE TABLE retention_holds (
+    retention_hold_id        uuid NOT NULL DEFAULT gen_random_uuid(),
+    retention_subject_id     integer NOT NULL,
+    -- Genau einer der drei Anker, dieselbe Bauform wie an `change_log` und
+    -- `sync_tasks`: „ein Anhalten muss der Lauf finden, bevor er die Zeilen
+    -- überhaupt gesammelt hat" — Tabellenname plus Schlüssel als Text fände er
+    -- erst danach.
+    child_id                 uuid,
+    person_id                uuid,
+    family_id                uuid,
+    retention_hold_reason_id integer NOT NULL,
+    -- Der Tag, an dem ohne dieses Anhalten gelöscht worden wäre. Er wird beim
+    -- Verlängern **mitgenommen und nicht neu gesetzt**: „sonst begänne die
+    -- Zählung mit jedem Anhalten von vorn, und genau die Zahl, um die es geht,
+    -- wäre fort" (hebel.md). Der Fremdschlüssel unten hält ihn daran.
+    original_delete_on       date NOT NULL,
+    -- Bis wann angehalten ist. Danach beginnt die Ankündigung von vorn, nicht
+    -- die Löschung (17) — der Lauf rechnet den neuen Termin ab hier und nicht
+    -- ab `original_delete_on`, der allein die Fälligkeit trägt.
+    held_until               date NOT NULL,
+    -- Die erste Zeile dieses Falls; bei ihr selbst leer. Sie ist es, die den
+    -- ursprünglichen Termin festhält: Eine Verlängerung kommt nur herein, wenn
+    -- sie denselben trägt.
+    first_hold_id            uuid,
+    created_at               timestamptz NOT NULL DEFAULT now(),
+    -- Wer angehalten hat. Eine zweite Spalte daneben wäre der zweite Ort für
+    -- dieselbe Tatsache (rules.md Abschnitt 1).
+    created_by               text NOT NULL,
+
+    CONSTRAINT pk_retention_holds PRIMARY KEY (retention_hold_id),
+    CONSTRAINT fk_retention_holds_subject
+        FOREIGN KEY (retention_subject_id) REFERENCES retention_subjects (retention_subject_id),
+    CONSTRAINT fk_retention_holds_reason
+        FOREIGN KEY (retention_hold_reason_id)
+        REFERENCES retention_hold_reasons (retention_hold_reason_id),
+    CONSTRAINT fk_retention_holds_child
+        FOREIGN KEY (child_id)  REFERENCES children (child_id) ON DELETE CASCADE,
+    CONSTRAINT fk_retention_holds_person
+        FOREIGN KEY (person_id) REFERENCES persons (person_id) ON DELETE CASCADE,
+    CONSTRAINT fk_retention_holds_family
+        FOREIGN KEY (family_id) REFERENCES families (family_id) ON DELETE CASCADE,
+    CONSTRAINT ck_retention_holds_single_anchor CHECK (
+        (child_id  IS NOT NULL)::int
+      + (person_id IS NOT NULL)::int
+      + (family_id IS NOT NULL)::int = 1),
+    -- Trägt den Fremdschlüssel darunter und ist deshalb zusätzlich zum
+    -- Primärschlüssel nötig (rules.md Abschnitt 1).
+    CONSTRAINT uq_retention_holds_original UNIQUE (retention_hold_id, original_delete_on),
+    CONSTRAINT fk_retention_holds_first
+        FOREIGN KEY (first_hold_id, original_delete_on)
+        REFERENCES retention_holds (retention_hold_id, original_delete_on),
+    -- Eine Zeile ist nicht ihre eigene erste; sonst ginge der Fremdschlüssel
+    -- oben für jede beliebige Verlängerung auf.
+    CONSTRAINT ck_retention_holds_first_other
+        CHECK (first_hold_id IS NULL OR first_hold_id <> retention_hold_id),
+    -- Ein Anhalten, das vor dem Löschtermin endet, hält nichts auf.
+    CONSTRAINT ck_retention_holds_held_until CHECK (held_until > original_delete_on),
+    CONSTRAINT ck_retention_holds_created_by CHECK (created_by ~ '^(entra:|system:)')
+);
+
+-- Trägt beide Fragen des Laufs: welche Anhaltungen laufen ab, und was steht
+-- heute in der Liste der angehaltenen Löschungen.
+CREATE INDEX ix_retention_holds_held_until ON retention_holds (held_until);
 
 
 -- ---------------------------------------------------------------------------

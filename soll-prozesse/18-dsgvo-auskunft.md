@@ -59,6 +59,13 @@ Zwischennachricht. Sonst keine.
 Der Anfragen-Log (wer, wann, wofür, beantwortet wann). Die verschickte Auskunft selbst wird nicht
 gesondert abgelegt — sie ist aus dem gespeicherten Bestand jederzeit neu erzeugbar.
 
+Herausgegeben wird jede Datei in ihrer **heutigen Fassung**. Ein fortgeschriebenes Dokument — die
+Hortakte ist eines ([09](09-hortvertrag.md)) — trägt frühere Fassungen im Versionsverlauf, und
+solange sie dort stehen, gehören sie zum Bestand (`grenzkarte.md`, Q2).
+`[A]` Frühere Fassungen gehen nur auf ausdrückliches Verlangen mit, dann als Ausdruck aus dem
+Versionsverlauf. — Alternative: ungefragt alle; Preis: eine über sieben Jahre fortgeschriebene
+Akte wird zu dreißig fast gleichen Seiten, und die Auskunft wird unlesbar, ohne mehr zu zeigen.
+
 ## Sonderfälle
 
 Endet der Zugang der anfragenden Person bereits, ändert das am Ablauf nichts: Der Kanal war immer

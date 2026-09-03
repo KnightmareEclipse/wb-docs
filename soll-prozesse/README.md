@@ -53,7 +53,7 @@ Bewusst hinter die Anmeldekette gestellt, obwohl die Termine früher liegen: Bei
 
 **Querschnitt — leicht zu vergessen, tragen aber die Zusagen**
 
-- [ ] 17. Lösch-Lauf (was verschwindet wann, in welcher Reihenfolge)
+- [x] 17. [Lösch-Lauf](17-loesch-lauf.md) (was verschwindet wann, in welcher Reihenfolge)
 - [x] 18. [DSGVO-Auskunft](18-dsgvo-auskunft.md) (wer bekommt was, in welcher Frist)
 
 **Neu aus dem Gespräch vom 01.09.2026 — beides zusammen ein Vorgang und sein Geld**

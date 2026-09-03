@@ -4,6 +4,7 @@ title: Der Lösch-Lauf muss Papierkorb und Versionsverlauf in SharePoint mitnehm
 status: To Do
 assignee: []
 created_date: '2026-09-01 19:42'
+updated_date: '2026-09-03 22:12'
 labels:
   - dsgvo
   - sharepoint
@@ -33,4 +34,11 @@ Die Grenzkarte führt 'Versionierung ist eingebaut' bisher nur als Vorteil (Q2);
 - [ ] #1 Der Lösch-Lauf leert nach dem Löschen den Papierkorb für dieses Element — beide Stufen
 - [ ] #2 In grenzkarte.md Q2 steht, dass Versionsverlauf und Papierkorb zum Löschen gehören
 - [ ] #3 Entschieden, ob frühere Fassungen zur Auskunft gehören und wie sie herausgegeben werden
+- [ ] #4 2,3
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+AC 2 und 3 sind zu: grenzkarte.md Q2 traegt jetzt einen eigenen Absatz — Versionsverlauf und Papierkorb gehoeren zum Loeschen, ein Loeschen ist erst vollstaendig, wenn beide Papierkorb-Stufen geleert sind. Block 17 (Dateien) und die Kommentare an documents/child_file_folders sagen dasselbe. AC 3 entschieden als [A] in Block 18: Die Auskunft gibt die heutige Fassung heraus, fruehere nur auf ausdrueckliches Verlangen als Ausdruck aus dem Versionsverlauf. AC 1 ist wb-backend (app/services/retention.py) und wartet mit TASK-194 auf den gruenen Pruefbericht zum Querschnitt-Schema.
+<!-- SECTION:NOTES:END -->

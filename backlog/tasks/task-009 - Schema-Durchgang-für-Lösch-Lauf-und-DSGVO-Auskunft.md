@@ -1,10 +1,10 @@
 ---
 id: TASK-009
 title: Schema-Durchgang für Lösch-Lauf und DSGVO-Auskunft
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 11:35'
-updated_date: '2026-09-03 18:18'
+updated_date: '2026-09-03 22:12'
 labels:
   - wb-docs
   - schema
@@ -45,4 +45,11 @@ Die Mindestzahl zwei ist der einzige Punkt, der nicht in einen CHECK passt: Sie 
 - [ ] #7 Das Verlängern setzt den ursprünglichen Löschtermin nicht zurück — als Gegenprobe: zweimal anhalten, die Fälligkeit bleibt die erste
 - [ ] #8 Es gibt eine frisch erzeugte Liste der angehaltenen Löschungen mit Fälligkeit, Alter und Anzahl der Verlängerungen
 - [ ] #9 Jede Tabelle, die seit dem 03.09.2026 dazugekommen ist, hat ihren Löschanker — Notizfeld, Notfallbetreuung, Akademie, Unterrichtsverhältnis, Newsletter
+- [ ] #10 1,2,3,4,5,6,7,8,9
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Vier Tabellen in schema/querschnitt-schema.sql: retention_subjects und retention_hold_reasons als Wertelisten, retention_notice_recipients (Person, Rollengruppe oder 'die Stelle dieses Vorgangs', Schulart nur an der Rollengruppe, UNIQUE NULLS NOT DISTINCT) und retention_holds (drei Anker wie change_log, Verlaengerung als zweite Zeile). Der urspruengliche Loeschtermin haengt per zusammengesetztem Fremdschluessel an der ersten Zeile — eine Verlaengerung mit neuem Termin kommt nicht herein. Die Mindestzahl zwei traegt kein CHECK (zaehlt ueber Zeilen); das Pruefskript meldet den Ein-Empfaenger-Fall mit derselben Abfrage, die der Betrieb laufen laesst. Sollstand 15 -> 19 Tabellen; 20 neue Gegenproben, jede einzeln rot gezeigt. Alle 14 Pruefskripte rc=0 gegen Postgres 18. AC 9: jede seit dem 03.09.2026 dazugekommene Tabelle traegt ihren Anker (Notfallbetreuung, Bruecketage, Akademie, Wahlmodule/Unterrichtsverhaeltnis); Notizfeld und Newsletter gibt es noch nicht.
+<!-- SECTION:NOTES:END -->

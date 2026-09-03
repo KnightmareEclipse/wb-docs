@@ -1012,6 +1012,9 @@ CREATE INDEX ix_login_codes_email_created ON login_codes (email, created_at);
 
 -- Die offene Sitzung eines Elternteils. Sie entsteht mit dem eingelösten Code
 -- und endet mit dem Abmelden oder mit dem Ablauf der 30 Tage (hebel.md).
+-- Löschanker: keiner — die Zeile ist eine kurzlebige Marke und verfällt von
+-- selbst (hebel.md, „Kein Vorgang läuft ab"), wie der Code darüber; abgeräumt
+-- wird sie 30 Tage nach ihrer Entstehung und nicht vom Lösch-Lauf (17).
 -- Zwei Sätze aus 00 tragen diese Tabelle, und ohne sie wären beide unhaltbar:
 -- „Die Rollen selbst liest das System bei jedem Aufruf frisch, nicht einmalig
 -- beim Anmelden" und „Es gilt sofort, auch mitten in einer laufenden Sitzung".
