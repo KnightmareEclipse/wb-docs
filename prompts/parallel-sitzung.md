@@ -16,6 +16,7 @@ niemand muss wissen, was die anderen gerade tun.
 | **2** | Akademie und Ferien: TASK-176, 177, 178, 179, 180 | `schema/ferien-*`, `schema/akademie-*` (neu), `api/ferien-api.md`, `api/akademie-api.md` (neu), `soll-prozesse/10`, `21` |
 | **3** | Hort: TASK-214, 216, 217 | `schema/anmeldung-*`, `soll-prozesse/09` — **nur lesend, 09 gehört Sitzung 1** |
 | **4** | Prosa ohne Schema: TASK-209, 211, 119, 121 | `verarbeitungsverzeichnis.md`, `runbook.md`, neue Dokumente |
+| **6** | Lösch-Lauf: TASK-007, 009, 183, 194 — **läuft allein, siehe unten** | `schema/querschnitt-*`, `soll-prozesse/17` (neu), und die Löschanker jeder Domäne |
 | **5** | Prüflauf für etwas, das eine andere Sitzung **fertig** hat — `prompts/schema-pruefen.md` nach einem Schema, `prompts/api-pruefen.md` nach gebauten Routen | keine — ein Prüflauf schreibt einen Bericht und ändert nichts |
 
 Fehlt deine Nummer in der Tabelle, frag mich; rate nicht.
@@ -51,11 +52,11 @@ Halbänderung an einer Datei, die gleichzeitig jemand anders schreibt, kostet me
 `backlog/` gehört allen: Jede Sitzung legt und ändert dort ihre eigenen Tickets. Zwei Sitzungen
 fassen nie dasselbe Ticket an, weil kein Ticket in zwei Strängen steht.
 
-## Der Lösch-Lauf läuft nie parallel
+## Sitzung 6 läuft nie parallel
 
-TASK-007, 009, 183 und 194 fassen `querschnitt` an **und** die Löschanker-Kommentare jeder Domäne —
-sie kollidieren mit jedem anderen Strang. Und sie kommen zuletzt: Jeder der Stränge oben erzeugt
-neue Tabellen, die einen Löschanker brauchen. Wer den Lauf vorher schreibt, schreibt ihn zweimal.
+Sie fasst `querschnitt` an **und** die Löschanker-Kommentare jeder Domäne — sie kollidiert mit jedem
+anderen Strang. Und sie kommt zuletzt: Jeder Strang oben erzeugt neue Tabellen, die einen Löschanker
+brauchen. Wer den Lauf vorher schreibt, schreibt ihn zweimal. Läuft sie, läuft sonst nichts.
 
 ## Commit
 
