@@ -174,6 +174,11 @@ INSERT INTO children (child_id, person_id, family_id, birth_date, created_by) VA
     ('44444444-4444-4444-4444-444444444445', '22222222-2222-2222-2222-222222222224',
      '33333333-3333-3333-3333-333333333333', DATE '2019-05-01', 'system:check');
 
+-- Die Textsorte steht als Wert im System; eine Fassung ohne sie gibt es nicht.
+INSERT INTO contract_text_kinds (code, name, created_by) VALUES
+    ('school_contract_gs', 'Schulvertrag Grundschule', 'system:check'),
+    ('care_contract',      'Hortvertrag',             'system:check');
+
 INSERT INTO contract_texts (contract_text_id, code, valid_from, body, created_by)
     OVERRIDING SYSTEM VALUE VALUES
     (1, 'school_contract_gs', DATE '2026-08-01', 'Schulvertrag GS', 'system:check'),

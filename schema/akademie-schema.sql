@@ -140,7 +140,9 @@ CREATE TABLE academy_offerings (
     -- damit er einen Gültigkeitstag trägt und eine angekündigte Fassung neben
     -- der geltenden stehen kann (hebel.md). Das System rechnet aus ihm nichts:
     -- Es zeigt ihn, und die anbietende Stelle trägt den einbehaltenen Betrag
-    -- ein.
+    -- ein. Gewählt wird die Sorte aus `contract_text_kinds` und nicht getippt
+    -- (querschnitt-schema.sql): „Kein Freitext beim Einbinden von fixen Texten,
+    -- die die Geschäftsführung vorgibt" (Betreiber, 03.09.2026).
     cancellation_terms_code text NOT NULL,
     -- Die Freigabe: „Bis zur Freigabe steht das Angebot nirgends … und niemand
     -- kann sich anmelden." Zwei Zeitpunkte tragen die drei Zustände
@@ -176,6 +178,8 @@ CREATE TABLE academy_offerings (
     CONSTRAINT ck_academy_offerings_title       CHECK (title <> ''),
     CONSTRAINT ck_academy_offerings_description CHECK (description <> ''),
     CONSTRAINT ck_academy_offerings_schedule    CHECK (schedule_text <> ''),
+    CONSTRAINT fk_academy_offerings_terms
+        FOREIGN KEY (cancellation_terms_code) REFERENCES contract_text_kinds (code),
     CONSTRAINT ck_academy_offerings_terms       CHECK (cancellation_terms_code <> ''),
     CONSTRAINT ck_academy_offerings_period      CHECK (ends_on >= starts_on),
     CONSTRAINT ck_academy_offerings_window

@@ -1,7 +1,8 @@
 -- Prüfskript zu querschnitt-schema.sql.
 --
--- Sollstand: 14 Tabellen — vier Wertelisten (consent_purposes,
--- sharepoint_libraries, document_types, sync_targets), Q2 (contract_texts,
+-- Sollstand: 15 Tabellen — fünf Wertelisten (consent_purposes,
+-- sharepoint_libraries, document_types, sync_targets, contract_text_kinds),
+-- Q2 (contract_texts,
 -- signatures, documents, child_file_folders), Q1 (consents), Q3 (payments),
 -- Q5 (sync_tasks) und die drei übrigen Hebel (configured_values, change_log,
 -- outbound_emails).
@@ -31,6 +32,7 @@ BEGIN
         'consent_purposes', 'sharepoint_libraries', 'document_types',
         'sync_targets', 'signatures', 'documents', 'child_file_folders',
         'consents', 'payments', 'sync_tasks', 'configured_values', 'change_log',
+        'contract_text_kinds',
         'contract_texts', 'outbound_emails'
     ]) AS t
     WHERE to_regclass('public.' || t) IS NULL;
@@ -38,7 +40,7 @@ BEGIN
     IF missing IS NOT NULL THEN
         RAISE EXCEPTION 'Fehlende Tabellen: %', missing;
     END IF;
-    RAISE NOTICE 'ok: alle 14 Tabellen vorhanden';
+    RAISE NOTICE 'ok: alle 15 Tabellen vorhanden';
 END $$;
 
 -- ---------------------------------------------------------------------------
@@ -157,6 +159,10 @@ INSERT INTO consent_purposes (code, name, requires_child, self_consent_age, crea
 -- zweimal zum selben Gültigkeitstag" weiter unten legt ohne Schlüssel an — sie
 -- scheiterte dann an `pk_contract_texts` statt an `uq_contract_texts`, den sie
 -- zu prüfen behauptet.
+-- Die Textsorte steht als Wert im System; eine Fassung ohne sie gibt es nicht.
+INSERT INTO contract_text_kinds (code, name, created_by) VALUES
+    ('school_contract_gs', 'Schulvertrag Grundschule', 'system:check');
+
 INSERT INTO contract_texts (code, valid_from, body, created_by)
     VALUES ('school_contract_gs', DATE '2026-08-01', 'Vertragstext GS', 'system:check');
 INSERT INTO sync_targets (code, name, role_id, created_by)

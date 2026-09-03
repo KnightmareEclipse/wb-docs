@@ -289,6 +289,38 @@ CREATE TABLE sync_targets (
 -- Herkunft: hebel.md, „Geld im System, alles andere fest" — „Dasselbe gilt für
 -- die Texte, an denen ein Vertrag hängt … Es gilt die Fassung, deren
 -- Gültigkeitstag zuletzt erreicht wurde, geändert von der Geschäftsführung."
+-- Welche Textsorten es gibt, ist damit eine Werteliste und kein Freitext
+-- (Betreiber, 03.09.2026): Die Geschäftsführung pflegt die Fassungen, und wer
+-- einen Text an ein Angebot oder eine Terminart bindet, wählt aus dieser Liste
+-- — ein Tippfehler ließe die Bedingungen sonst still verschwinden, obwohl sie
+-- „sichtbar sein müssen, bevor angemeldet wird" (10, 21).
+-- Kein Löschanker: keine Personendaten.
+CREATE TABLE contract_text_kinds (
+    contract_text_kind_id integer GENERATED ALWAYS AS IDENTITY,
+    -- Der Code ist die Verankerung im Anwendungscode und wird nie umbenannt;
+    -- der Name darf jederzeit wandern (rules.md Abschnitt 3). Er trägt hier
+    -- ausnahmsweise auch die Fremdschlüssel: `contract_texts` und die Spalten
+    -- der Domänen suchen die Sorte als Code, und ein zweiter Weg über die
+    -- Kennung stünde daneben, ohne etwas zu tragen.
+    code                  text NOT NULL,
+    name                  text NOT NULL,
+    -- Deaktiviert statt gelöscht: „is_active = false" nimmt den Wert aus jedem
+    -- Auswahlfeld, lässt aber jede Zeile stehen, die schon auf ihn zeigt
+    -- (rules.md Abschnitt 3).
+    is_active             boolean NOT NULL DEFAULT true,
+    created_at            timestamptz NOT NULL DEFAULT now(),
+    created_by            text NOT NULL,
+
+    CONSTRAINT pk_contract_text_kinds      PRIMARY KEY (contract_text_kind_id),
+    CONSTRAINT uq_contract_text_kinds_code UNIQUE (code),
+    CONSTRAINT ck_contract_text_kinds_code CHECK (code <> ''),
+    CONSTRAINT ck_contract_text_kinds_name CHECK (name <> ''),
+    CONSTRAINT ck_contract_text_kinds_created_by CHECK (created_by ~ '^(entra:|system:)')
+);
+
+-- Herkunft: hebel.md, „Geld im System, alles andere fest" — „Dasselbe gilt für
+-- die Texte, an denen ein Vertrag hängt … Es gilt die Fassung, deren
+-- Gültigkeitstag zuletzt erreicht wurde, geändert von der Geschäftsführung."
 -- Löschanker: keiner, keine Personendaten — eine Fassung überlebt jeden
 -- Vertrag, der sie trägt. Bewusst KEIN Gültigkeits-Ende und kein
 -- Freigabevermerk: das Ende folgt aus der nächsten Fassung, und „wie ein
@@ -307,6 +339,8 @@ CREATE TABLE contract_texts (
     created_by       text NOT NULL,
 
     CONSTRAINT pk_contract_texts PRIMARY KEY (contract_text_id),
+    CONSTRAINT fk_contract_texts_kind
+        FOREIGN KEY (code) REFERENCES contract_text_kinds (code),
     CONSTRAINT uq_contract_texts UNIQUE (code, valid_from),
     CONSTRAINT ck_contract_texts_code CHECK (code <> ''),
     CONSTRAINT ck_contract_texts_body CHECK (body <> ''),

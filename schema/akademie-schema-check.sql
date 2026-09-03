@@ -54,7 +54,7 @@ BEGIN
         'ck_academy_registrations_recorded_by',
         'ck_academy_registrations_adult_payment',
         'ck_academy_offerings_surcharge_label',
-        'uq_academy_cost_coverage_codes_id_offering',
+        'uq_academy_cost_coverage_codes_id_offering', 'fk_academy_offerings_terms',
         'fk_payments_academy_registration', 'fk_sync_tasks_academy_registration'
     ]) AS c
     WHERE NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = c);
@@ -198,6 +198,10 @@ INSERT INTO employees (employee_id, person_id, house_id, created_by) VALUES
     ('44444444-4444-4444-4444-444444444402', '11111111-1111-1111-1111-111111111202',
      1, 'system:check');
 
+-- Die Textsorte steht als Wert im System; eine Fassung ohne sie gibt es nicht.
+INSERT INTO contract_text_kinds (code, name, created_by) VALUES
+    ('academy_cancellation_cooking', 'Abmeldebedingungen Kochwerkstatt', 'system:check');
+
 INSERT INTO contract_texts (contract_text_id, code, valid_from, body, created_by)
     OVERRIDING SYSTEM VALUE VALUES
     (1, 'academy_cancellation_cooking', DATE '2026-01-01',
@@ -255,6 +259,18 @@ SELECT pg_temp.expect_reject(
                                       registration_opens_at, created_by)
        VALUES (1, 'Chor', DATE '2027-02-01', DATE '2027-07-31', 0, 3000,
                'academy_cancellation_cooking', TIMESTAMPTZ '2027-01-01 08:00+01',
+               'entra:lehrkraft')$q$);
+
+-- 21: „Kein Freitext beim Einbinden von fixen Texten, die die Geschäftsführung
+-- vorgibt" (Betreiber, 03.09.2026) — die anbietende Stelle wählt die Sorte aus
+-- der Liste, sonst stünde das Angebot ohne Abmeldebedingungen draußen.
+SELECT pg_temp.expect_reject(
+    '21 — Angebot mit einer Textsorte, die es nicht gibt',
+    $q$INSERT INTO academy_offerings (academy_category_id, title, starts_on, ends_on,
+                                      places, amount_cents, cancellation_terms_code,
+                                      registration_opens_at, created_by)
+       VALUES (1, 'Chor', DATE '2027-02-01', DATE '2027-07-31', 12, 3000,
+               'academy_cancellation_cookng', TIMESTAMPTZ '2026-01-01 08:00+01',
                'entra:lehrkraft')$q$);
 
 -- 21: „bis 9 Uhr am Kurstag kostenlos" ist null Tage und eine Uhrzeit; eine

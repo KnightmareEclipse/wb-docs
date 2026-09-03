@@ -69,7 +69,8 @@ CREATE TABLE holiday_session_types (
     -- was zur Buchung galt. Derselbe Weg wie bei der Nachbarangabe, den
     -- Teilnahmebedingungen (`holiday_bookings.terms_contract_text_id`).
     -- Das System rechnet aus ihnen weiterhin nichts: es zeigt sie, und die
-    -- Hortleitung trägt den einbehaltenen Betrag ein.
+    -- Hortleitung trägt den einbehaltenen Betrag ein. Gewählt wird die Sorte
+    -- aus `contract_text_kinds` und nicht getippt (querschnitt-schema.sql).
     cancellation_terms_code text NOT NULL,
     -- Die Sperre der Eltern als Zahl und nicht als `if` über die drei bekannten
     -- `code`-Werte: „bis 3 Tage davor … ab 3 Tagen ist ein Storno nicht mehr
@@ -90,6 +91,8 @@ CREATE TABLE holiday_session_types (
 
     CONSTRAINT pk_holiday_session_types      PRIMARY KEY (holiday_session_type_id),
     CONSTRAINT uq_holiday_session_types_code UNIQUE (code),
+    CONSTRAINT fk_holiday_session_types_terms
+        FOREIGN KEY (cancellation_terms_code) REFERENCES contract_text_kinds (code),
     CONSTRAINT ck_holiday_session_types_terms CHECK (cancellation_terms_code <> ''),
     CONSTRAINT ck_holiday_session_types_code  CHECK (code <> ''),
     CONSTRAINT ck_holiday_session_types_name  CHECK (name <> ''),

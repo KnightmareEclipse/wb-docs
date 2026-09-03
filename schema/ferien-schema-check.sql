@@ -114,6 +114,12 @@ INSERT INTO children (child_id, person_id, family_id, birth_date, created_by)
     VALUES ('44444444-4444-4444-4444-444444444445',
             '22222222-2222-2222-2222-222222222222',
             '33333333-3333-3333-3333-333333333333', DATE '2018-06-01', 'system:check');
+-- Die Textsorte steht als Wert im System; eine Fassung ohne sie gibt es nicht.
+INSERT INTO contract_text_kinds (code, name, created_by) VALUES
+    ('holiday_terms',             'Teilnahmebedingungen',          'system:check'),
+    ('holiday_cancellation_day',  'Stornobedingungen Ferientag',   'system:check'),
+    ('holiday_cancellation_week', 'Stornobedingungen Ferienwoche', 'system:check');
+
 INSERT INTO contract_texts (contract_text_id, code, valid_from, body, created_by)
     OVERRIDING SYSTEM VALUE
     VALUES (1, 'holiday_terms', DATE '2026-01-01', 'Teilnahmebedingungen', 'system:check');
@@ -354,6 +360,14 @@ BEGIN
     END IF;
     RAISE NOTICE 'ok (abgewiesen): 10 — die Stornobedingungen stehen als Text mit Gültigkeitstag';
 END $$;
+
+-- 10/21: „Kein Freitext beim Einbinden von fixen Texten, die die
+-- Geschäftsführung vorgibt" (Betreiber, 03.09.2026) — eine Terminart kann sich
+-- ihre Stornobedingungen nicht ausdenken.
+SELECT pg_temp.expect_reject(
+    '10 — Terminart mit einer Textsorte, die es nicht gibt',
+    $q$INSERT INTO holiday_session_types (code, name, cancellation_terms_code, created_by)
+       VALUES ('holiday_typo', 'Vertippt', 'holiday_cancellation_dya', 'system:check')$q$);
 
 -- 10, „Fristen und Termine": „ab 3 Tagen ist ein Storno nicht mehr möglich" ist
 -- eine Maschinenregel und steht deshalb als Zahl an der Terminart, nicht als
