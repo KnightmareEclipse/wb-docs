@@ -4,8 +4,8 @@ title: Trennung der Eltern im laufenden Vertrag
 status: To Do
 assignee: []
 created_date: '2026-09-03 17:29'
+updated_date: '2026-09-03 17:37'
 labels:
-  - wartet
   - anmeldung
   - stammdaten
 dependencies: []
@@ -20,24 +20,22 @@ ordinal: 232000
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Wörtlich aus [M2]: ob berücksichtigt ist, dass es im laufenden Vertrag zu Trennungen kommt und dann Änderungen vorgenommen werden können. Das ist keine Randfrage — es berührt drei Dinge auf einmal: **Sorgerecht**, **Vertragspartnerschaft** und **wer künftig unterschreibt**.
+Wörtlich aus [M2]: ob berücksichtigt ist, dass es im laufenden Vertrag zu Trennungen kommt und dann Änderungen vorgenommen werden können.
 
-**Was schon steht und vermutlich trägt:** `family_guardians` führt je Person eine Einsichtsstufe, „vom Sekretariat auf Vorlage eines Beschlusses gesetzt", und daneben das Häkchen, ob jemand in die Post einzubeziehen ist — „die Stufe nimmt jemandem den Zugriff, dieses Häkchen nur die Post". Für den Sorgerechtsteil ist damit die Mechanik da; Block 02 beschreibt den Vorgang, das Sekretariat trägt die neue Lage nach Vorlage des Nachweises ein.
+**Beantwortet am 03.09.2026, und es ändert sich fast nichts:**
 
-**Was nicht steht, ist der Vertrag.** Wer Vertragspartner ist und wer unterschreibt, hängt an `contracts`, `contract_responses` und `signatures` — und ob eine Trennung daran etwas ändert, ist nirgends beschrieben. Zwei Lesarten mit sehr verschiedenem Umfang:
+- **Der Vertrag bleibt.** Es wird kein neuer geschlossen, keine Unterschrift neu eingeholt, kein Vertragspartner ausgetauscht. Was sich ändert, sind Daten — der Wohnort vor allem.
+- **Der Vorgang startet im Sekretariat**, nicht im Portal. Er ist damit eine gewöhnliche Datenänderung nach [02](../../soll-prozesse/02-datenaenderung.md), angestoßen von der Stelle, der die Trennung mitgeteilt wird.
+- **Wird es schwierig** — darf ein Sorgeberechtigter etwas nicht mehr sehen oder nicht mehr tun —, wird es je Person eingeschränkt. **Das Modell steht bereits:** `family_guardians` führt die Einsichtsstufe, „vom Sekretariat auf Vorlage eines Beschlusses gesetzt", und daneben das Häkchen, ob jemand in die Post einzubeziehen ist — „die Stufe nimmt jemandem den Zugriff, dieses Häkchen nur die Post. Wer beides hat, bekommt nichts."
 
-- **Es ist ein Feld.** Der Vertrag läuft weiter, nur die Zuordnung, wer in seiner Sache handelt, verschiebt sich — dann genügt, was in `family_guardians` schon steht, und der Vertrag bleibt unberührt.
-- **Es ist ein Vorgang.** Der Vertrag wird neu geschlossen oder ergänzt, mit Unterschrift der verbliebenen Partei — dann ist es die Bauform des Schulvertragsupdates (TASK-126) mit eigenem Anlass.
+Zu tun bleibt damit fast nichts: **prüfen, ob Block 02 den Fall ausdrücklich nennt.** Nennt er ihn, ist dieses Ticket erledigt; nennt er ihn nicht, fehlt ihm ein Satz — die Trennung ist der häufigste Anlass, aus dem eine Einsichtsstufe überhaupt gesetzt wird, und wer das nicht liest, hält die Stufe für einen Sonderfall.
 
-**Blockiert von fragen.md Frage 7.** Vor der Antwort wird nichts gebaut: Die beiden Lesarten liegen zwei Größenordnungen auseinander, und die Wahl ist keine, die wir treffen können — sie hängt daran, wie die Schule ihre Verträge führt.
-
-`[?]` Mitzuklären, weil es an derselben Antwort hängt: Was geschieht mit dem SEPA-Mandat, wenn der Kontoinhaber auszieht?
+`[?]` **Offen bleibt eine Sache, die niemand gefragt hat:** Was geschieht mit dem SEPA-Mandat, wenn der Kontoinhaber auszieht? Es hängt an der Familie, nicht an der Person, und ein Einzug von einem Konto, über das der Zahlende nicht mehr verfügt, scheitert spätestens beim nächsten Lauf. Vermutlich ein neues Mandat, also derselbe Weg wie bei jedem Kontowechsel — zu bestätigen, nicht anzunehmen.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Entschieden, ob die Trennung ein Feld verschiebt oder einen Vertragsvorgang auslöst
-- [ ] #2 Der Weg für den Nachweis steht: wer legt was vor, wer trägt ein
+- [x] #1 Entschieden: die Trennung verschiebt Daten und löst keinen Vertragsvorgang aus
+- [ ] #2 Block 02 nennt die Trennung ausdrücklich als Anlass für eine Einsichtsstufe — oder es steht begründet, warum nicht
 - [ ] #3 Geklärt, was mit dem SEPA-Mandat geschieht, wenn der Kontoinhaber auszieht
-- [ ] #4 Erst nach der Antwort auf fragen.md Frage 7
 <!-- AC:END -->
