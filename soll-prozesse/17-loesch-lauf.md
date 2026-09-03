@@ -92,11 +92,20 @@ Block gehören:
   Ferienprogramm, Akademie. Das gilt für **alles**, was allein über den Anlass hereinkommt, auch für
   Impfschutz, Schwimmfähigkeit und Haftpflicht (03.09.2026): In den Bestand am Kind kommt nur, was
   der Vertrag erhebt ([19](19-ausfluege-und-fahrten.md)).
-- **Eine Zeile der Änderungsspur, die keinen Anker trägt: drei Jahre nach der Änderung.** Rund
-  siebzig Tabellen erreichen ihren Anker nur über einen Join; ihre Spur hängt an keinem Menschen und
-  geht mit keinem mit. `[A]` Drei Jahre ab der Änderung. — Alternative: die Frist der Tabelle, auf
-  die die Zeile zeigt; Preis: die rechnet je Zeile an einem Anker, den genau diese Spur nicht hat —
-  der Lauf müsste die Zeile nachschlagen, die er gerade gelöscht hat.
+- **Die [Änderungsspur](hebel.md#änderungsspur) bekommt keine eigene Frist.** Sie lebt genau so
+  lange wie das, worüber sie Auskunft gibt. Eine feste Frist wäre in beide Richtungen falsch: Wer vor
+  Gericht nachweisen muss, wer den Vermerk „kein Epileptiker" entfernt hat, braucht sie, solange das
+  Kind an der Schule ist — und danach keinen Tag länger.
+
+  Daraus folgt, **wo der Anker herkommt**: Jede Spurzeile trägt Kind, Person oder Familie, an der die
+  geänderte Zeile hängt — auch dort, wo das erst über zwei, drei Tabellen hinweg zu finden ist. Dann
+  geht sie mit ihrem Menschen, ohne dass der Lauf sie je einzeln ansieht. Zwei Drittel aller Tabellen
+  liegen so; heute setzt die Schreibschicht den Anker nur, wo er unmittelbar danebensteht, und das
+  reicht nicht.
+
+  Hängt die geänderte Zeile an **keinem** der drei — ein Wert im System, eine Werteliste, ein
+  Kostenübernahme-Code an einer bloßen Mailadresse —, geht ihre Spur **mit dieser Zeile**: Wer sie
+  löscht, hält ihren Schlüssel in der Hand und nimmt die Spur im selben Schritt mit.
 
 **Ausgespart bleibt die Rechnungsfreigabe** ([12](12-rechnungsfreigabe.md)): Dort läuft keine Frist
 ab, die etwas auslöst, die Belege stehen zehn Jahre, und was danach mit einem Jahrgang geschieht,

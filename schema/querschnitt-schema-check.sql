@@ -633,8 +633,10 @@ SELECT pg_temp.expect_reject(
 -- „Läuft eine Änderung maschinell, steht der Lauf als Urheber darin."
 SELECT pg_temp.expect_accept(
     'hebel.md — Jahreslauf als Urheber',
-    $q$INSERT INTO change_log (table_name, row_id, column_name, old_value, new_value, changed_by)
-       VALUES ('children', '44444444-4444-4444-4444-444444444444', 'grade_level', '1', '2',
+    $q$INSERT INTO change_log (table_name, row_id, child_id, column_name, old_value, new_value,
+                               changed_by)
+       VALUES ('children', '44444444-4444-4444-4444-444444444444',
+               '44444444-4444-4444-4444-444444444444', 'grade_level', '1', '2',
                'system:rollover')$q$);
 
 -- 00: „je Mitarbeitendem seine Rollen, samt wer sie wann vergeben oder entzogen
@@ -642,14 +644,16 @@ SELECT pg_temp.expect_accept(
 -- Zeile und tragen keinen Spaltennamen.
 SELECT pg_temp.expect_accept(
     '00 — vergebene Rolle als angelegte Zeile',
-    $q$INSERT INTO change_log (table_name, row_id, operation, new_value, changed_by)
-       VALUES ('employee_roles', '55555555-5555-5555-5555-555555555551', 'insert',
+    $q$INSERT INTO change_log (table_name, row_id, person_id, operation, new_value, changed_by)
+       VALUES ('employee_roles', '55555555-5555-5555-5555-555555555551',
+               '22222222-2222-2222-2222-222222222222', 'insert',
                'Sekretariat', 'entra:1')$q$);
 
 SELECT pg_temp.expect_accept(
     '00 — entzogene Rolle als gelöschte Zeile',
-    $q$INSERT INTO change_log (table_name, row_id, operation, old_value, changed_by)
-       VALUES ('employee_roles', '55555555-5555-5555-5555-555555555551', 'delete',
+    $q$INSERT INTO change_log (table_name, row_id, person_id, operation, old_value, changed_by)
+       VALUES ('employee_roles', '55555555-5555-5555-5555-555555555551',
+               '22222222-2222-2222-2222-222222222222', 'delete',
                'Sekretariat', 'entra:1')$q$);
 
 SELECT pg_temp.expect_reject(
@@ -708,9 +712,10 @@ SELECT pg_temp.expect_accept(
 -- gesehen hat — der Nachweis selbst kommt nicht ins System."
 SELECT pg_temp.expect_accept(
     '02 — Rechteänderung mit gesehenem Nachweis',
-    $q$INSERT INTO change_log (table_name, row_id, column_name, old_value, new_value,
+    $q$INSERT INTO change_log (table_name, row_id, family_id, column_name, old_value, new_value,
                                proof_seen_at, changed_by)
        VALUES ('family_guardians', '33333333-3333-3333-3333-333333333333',
+               '33333333-3333-3333-3333-333333333333',
                'access_level_id', '1', '2', now(), 'entra:sekretariat')$q$);
 
 -- hebel.md, „Geld im System": jeder Wert trägt einen Gültigkeitstag, und je
@@ -1294,6 +1299,53 @@ BEGIN
             faellig_seit, alter_tage, geschoben, current_date - 10;
     END IF;
     RAISE NOTICE 'ok: 17 — die Liste trägt Fälligkeit, Alter und Zahl der Verlängerungen';
+END $$;
+
+-- „Die Spur lebt genau so lange wie das, worüber sie Auskunft gibt" (17). Sie
+-- trägt deshalb keine eigene Frist, sondern den Anker der geänderten Zeile —
+-- auch wo er erst über einen Join zu finden ist. Ein CHECK kann das nicht
+-- halten: Ob eine Tabelle bei Kind, Person oder Familie ankommt, steht in den
+-- Fremdschlüsseln und nicht in der Zeile. Die Abfrage darunter rechnet es aus
+-- und meldet jede Spurzeile, die ihren Anker schuldig bleibt — sie ist zugleich
+-- die, die der Betrieb laufen lässt, und sie wächst von selbst mit: Eine neue
+-- Tabelle mit Personenbezug fällt hier auf, ohne dass jemand eine Liste pflegt.
+SELECT pg_temp.expect_accept(
+    '17 — Spureintrag einer Tabelle ohne jeden Personenbezug bleibt ohne Anker',
+    $q$INSERT INTO change_log (table_name, row_id, column_name, old_value, new_value, changed_by)
+       VALUES ('holiday_module_prices', '1', 'amount_cents', '2200', '2400', 'entra:gf')$q$);
+
+-- Die herausgenommene Sicherung: eine Zeile, die über zwei Tabellen hinweg bei
+-- einem Kind ankommt, und trotzdem ohne Anker eingetragen.
+SELECT pg_temp.expect_accept(
+    '17 — Spureintrag zu einer Tabelle mit Personenbezug, aber ohne Anker (wird unten gemeldet)',
+    $q$INSERT INTO change_log (table_name, row_id, column_name, old_value, new_value, changed_by)
+       VALUES ('sepa_mandates', '66666666-6666-6666-6666-666666666666', 'iban',
+               'DE02120300000000202051', 'DE02120300000000202052', 'entra:sekretariat')$q$);
+
+DO $$
+DECLARE ohne_anker text;
+BEGIN
+    CREATE TEMP TABLE mit_personenbezug ON COMMIT DROP AS
+    WITH RECURSIVE erreicht (tabelle) AS (
+        SELECT unnest(ARRAY['children', 'persons', 'families'])
+        UNION
+        SELECT c.conrelid::regclass::text
+          FROM pg_constraint c
+          JOIN erreicht e ON e.tabelle = c.confrelid::regclass::text
+         WHERE c.contype = 'f'
+    )
+    SELECT tabelle FROM erreicht;
+
+    SELECT string_agg(DISTINCT l.table_name, ', ') INTO ohne_anker
+      FROM change_log l
+      JOIN mit_personenbezug p ON p.tabelle = l.table_name
+     WHERE l.person_id IS NULL AND l.child_id IS NULL AND l.family_id IS NULL;
+
+    IF ohne_anker IS DISTINCT FROM 'sepa_mandates' THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — die ankerlose Spur wird nicht gemeldet: %',
+            coalesce(ohne_anker, '(nichts)');
+    END IF;
+    RAISE NOTICE 'ok (gemeldet): 17 — Spureintrag mit Personenbezug, dem der Anker fehlt';
 END $$;
 
 DO $$ BEGIN RAISE NOTICE 'querschnitt-schema-check: alle Gegenproben bestanden'; END $$;

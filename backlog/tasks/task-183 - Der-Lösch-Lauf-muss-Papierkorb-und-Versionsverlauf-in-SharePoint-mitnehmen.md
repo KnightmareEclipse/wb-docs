@@ -4,7 +4,7 @@ title: Der Lösch-Lauf muss Papierkorb und Versionsverlauf in SharePoint mitnehm
 status: To Do
 assignee: []
 created_date: '2026-09-01 19:42'
-updated_date: '2026-09-03 22:12'
+updated_date: '2026-09-03 22:26'
 labels:
   - dsgvo
   - sharepoint
@@ -40,5 +40,9 @@ Die Grenzkarte führt 'Versionierung ist eingebaut' bisher nur als Vorteil (Q2);
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
-AC 2 und 3 sind zu: grenzkarte.md Q2 traegt jetzt einen eigenen Absatz — Versionsverlauf und Papierkorb gehoeren zum Loeschen, ein Loeschen ist erst vollstaendig, wenn beide Papierkorb-Stufen geleert sind. Block 17 (Dateien) und die Kommentare an documents/child_file_folders sagen dasselbe. AC 3 entschieden als [A] in Block 18: Die Auskunft gibt die heutige Fassung heraus, fruehere nur auf ausdrueckliches Verlangen als Ausdruck aus dem Versionsverlauf. AC 1 ist wb-backend (app/services/retention.py) und wartet mit TASK-194 auf den gruenen Pruefbericht zum Querschnitt-Schema.
+AC 2 und 3 sind zu: grenzkarte.md Q2 traegt jetzt einen eigenen Absatz — Versionsverlauf und Papierkorb gehoeren zum Loeschen, ein Loeschen ist erst vollstaendig, wenn beide Papierkorb-Stufen geleert sind. Block 17 (Dateien) und die Kommentare an documents/child_file_folders sagen dasselbe.
+
+AC 3 entschieden am 04.09.2026, und zwar gegen einen Mechanismus: Weltenbaum sagt nur, **wo** es Dateien gibt. Herausholen und endgueltiges Zusammenstellen macht ein Mensch (Block 18, Schritt 2) — damit ist der Versionsverlauf keine Frage an das System, sondern eine Entscheidung dessen, der die Akte herausgibt.
+
+AC 1 ist wb-backend (app/services/retention.py) und wartet mit TASK-194 auf den gruenen Pruefbericht zum Querschnitt-Schema.
 <!-- SECTION:NOTES:END -->

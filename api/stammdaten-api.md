@@ -240,9 +240,10 @@ Kein Eingriff, das Schema führt `wb-backend`:
 - **Die Anschrift vor einem Umzug steht in der Spur, aber nicht in einer Zeile.** `change_log` trägt
   an der Person `address_id` alt→neu — zwei Kennungen —, und *was* dort stand, trägt die
   `insert`-Zeile der alten `addresses`-Zeile. Beide zusammen beantworten „was vorher dastand"; die
-  erste hängt an der Person, die zweite ist ankerlos (Stufe 8 des Lösch-Laufs) und verfällt nach der
-  Frist ihrer eigenen Tabelle. **Laufen die zwei Fristen auseinander, bleibt ein Paar Kennungen
-  übrig, das niemand mehr auflöst** — eine Bedingung an Block 17, keine Schemaänderung.
+  erste hängt an der Person, die zweite an keinem der drei Anker. **Block 17 hat das geschlossen:**
+  Die Spur trägt keine eigene Frist, sondern geht mit dem, worüber sie Auskunft gibt — die erste mit
+  der Person (Stufe 6), die zweite mit ihrer `addresses`-Zeile (Stufe 7). Sie laufen damit nicht mehr
+  auseinander, und ein Paar Kennungen ohne Auflösung bleibt nicht übrig.
 - **`employees.entra_object_id` hat keinen benannten Schreibpfad.** Block 13 zählt sechs Angaben am
   Mitarbeitendeneintrag auf, und diese ist ausdrücklich keine siebte, sondern die Anmeldeidentität —
   eingetragen wird sie trotzdem von jemandem.

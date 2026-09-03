@@ -37,7 +37,7 @@
 -- Löschanker; die Abfolge über alle Domänen nennt keine, und ohne sie kommt der
 -- Lauf beim ersten Versuch nicht durch: `DELETE FROM children` scheitert an
 -- zwölf Fremdschlüsseln, die das Kind mit Absicht festhalten. Sie steht
--- deshalb hier, weil sie keiner Domäne gehört. Acht Stufen:
+-- deshalb hier, weil sie keiner Domäne gehört. Sieben Stufen:
 --
 --   1. Die Vorgänge am Kind, jeder erst, wenn seine eigene Frist abgelaufen
 --      ist: `child_file_folders` (die Datei in SharePoint zuerst, „eine
@@ -115,27 +115,32 @@
 --      Anschrift verschwindet mit der letzten Person, die auf sie zeigt",
 --      stammdaten-schema.sql), und keine Cascade bringt sie dorthin:
 --      `persons.address_id` und `sepa_mandates.account_holder_address_id`
---      zeigen vorwärts auf sie. Deshalb folgt sie — wie Stufe 8 — nicht aus
+--      zeigen vorwärts auf sie. Deshalb folgt sie als einzige nicht aus
 --      einem Fremdschlüssel, sondern allein aus ihrem Löschanker, und der Lauf
 --      muss sie selbst berechnen. Ohne sie läuft er über
 --      alle sechs Stufen davor sauber durch und lässt genau eine Zeile stehen:
 --      Straße, Hausnummer, PLZ und Ort.
---   8. Die `change_log`-Zeilen ohne Anker. Wo der Löschanker einer Tabelle erst
---      über einen Join zu finden ist, trägt ihre Spur keinen: Die Schreibschicht
---      setzt ihn aus einem direkten Attribut der geänderten Zeile, und was dort
---      nicht steht, kann sie nicht setzen (`wb-backend/app/db/base.py`). Keine
---      Cascade erreicht diese Zeilen, weil sie an keiner Person, keinem Kind und
---      keiner Familie hängen. Sie gehen deshalb nach der Aufbewahrungsfrist der
---      Tabelle, auf die ihr `table_name` zeigt — nicht mit einem Menschen.
---      Betroffen sind rund siebzig der hundert Tabellen; bei sechs steht
---      in der Spur ein unmittelbares Personendatum (`addresses` die Anschrift,
---      `application_unlocks` und `holiday_cost_coverage_codes` eine Mailadresse,
---      `expense_claims` Name, Zweck und Fremd-IBAN, dazu `expense_claim_items`
---      und `travel_details`), bei den übrigen ein Fremdschlüssel auf eine Zeile,
---      die längst fort ist. Frist und Recht stehen seit Block 17: **drei Jahre
---      nach der Änderung**, und löschen darf sie allein der Lauf — nicht
---      `backend_runtime`, das sie liest und schreibt, und kein Mensch. Eine
---      Stelle, die die Spur löschen kann, kann auch ihre eigene löschen.
+--   Eine achte Stufe für die `change_log`-Zeilen gibt es **nicht**, und das ist
+--   das Ergebnis von Block 17: Die Spur bekommt keine eigene Frist, sondern
+--   ihren Anker. Sie lebt genau so lange wie das, worüber sie Auskunft gibt —
+--   wer nachweisen muss, wer eine Gesundheitsangabe entfernt hat, braucht sie,
+--   solange das Kind da ist, und danach keinen Tag. Daraus folgen zwei Fälle:
+--     * Die geänderte Zeile hängt an Kind, Person oder Familie — bei 66 der
+--       hundert Tabellen, meist über zwei oder drei Tabellen hinweg. Dann trägt
+--       die Spur diesen Anker und geht per Cascade mit ihm, in Stufe 2, 4 oder
+--       6, ohne dass der Lauf sie einzeln sieht. **Die Schreibschicht muss ihn
+--       über den Join setzen**, nicht nur aus einem direkten Attribut der
+--       geänderten Zeile (`wb-backend/app/db/base.py`); heute tut sie das
+--       nicht, und genau das ist die Lücke, die Block 17 schließt.
+--     * Die geänderte Zeile hängt an keinem der drei — ein Wert im System, eine
+--       Werteliste, `addresses` als Anschrift ohne Bewohner, die drei Marken an
+--       einer bloßen Mailadresse (`application_unlocks`,
+--       `holiday_cost_coverage_codes`, `academy_cost_coverage_codes`), `payees`.
+--       Dann geht ihre Spur **mit dieser Zeile**: Wer die Zeile löscht, hält
+--       ihren Schlüssel und nimmt die Spur im selben Schritt mit.
+--   Löschen darf sie allein der Lauf — nicht `backend_runtime`, das sie liest
+--   und schreibt, und kein Mensch: Eine Stelle, die die Spur löschen kann, kann
+--   auch ihre eigene löschen (17).
 --
 -- Gebaut ist daran nichts — die Reihenfolge folgt aus den Fremdschlüsseln, die
 -- schon stehen. Damit sie es bleibt, prüft `querschnitt-schema-check.sql` sie
@@ -1035,8 +1040,12 @@ CREATE TABLE change_log (
     -- ist ein Personendatum. Gesetzt wird der Anker von derselben
     -- Schreibschicht, die die Spur ohnehin schreibt (siehe die Warnung im Kopf
     -- dieser Datei), auf das Kind, die Person oder die Familie, an der die
-    -- geänderte Zeile hängt. Dieselbe Bauform wie an `sync_tasks`, deren
-    -- Löschanker aus demselben Satz aus 02 stammt.
+    -- geänderte Zeile hängt — **auch wo das erst über einen Join zu finden
+    -- ist**: Die Spur trägt keine Frist und lebt allein von diesem Anker (17).
+    -- Leer heißt deshalb nicht „Anker nicht gefunden", sondern „die geänderte
+    -- Zeile hat keinen"; die Gegenprobe im Prüfskript hält die beiden
+    -- auseinander. Dieselbe Bauform wie an `sync_tasks`, deren Löschanker aus
+    -- demselben Satz aus 02 stammt.
     person_id     uuid,
     child_id      uuid,
     family_id     uuid,

@@ -4,7 +4,7 @@ title: Schema-Durchgang für Lösch-Lauf und DSGVO-Auskunft
 status: Done
 assignee: []
 created_date: '2026-08-27 11:35'
-updated_date: '2026-09-03 22:12'
+updated_date: '2026-09-03 22:26'
 labels:
   - wb-docs
   - schema
@@ -51,5 +51,7 @@ Die Mindestzahl zwei ist der einzige Punkt, der nicht in einen CHECK passt: Sie 
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
+
 Vier Tabellen in schema/querschnitt-schema.sql: retention_subjects und retention_hold_reasons als Wertelisten, retention_notice_recipients (Person, Rollengruppe oder 'die Stelle dieses Vorgangs', Schulart nur an der Rollengruppe, UNIQUE NULLS NOT DISTINCT) und retention_holds (drei Anker wie change_log, Verlaengerung als zweite Zeile). Der urspruengliche Loeschtermin haengt per zusammengesetztem Fremdschluessel an der ersten Zeile — eine Verlaengerung mit neuem Termin kommt nicht herein. Die Mindestzahl zwei traegt kein CHECK (zaehlt ueber Zeilen); das Pruefskript meldet den Ein-Empfaenger-Fall mit derselben Abfrage, die der Betrieb laufen laesst. Sollstand 15 -> 19 Tabellen; 20 neue Gegenproben, jede einzeln rot gezeigt. Alle 14 Pruefskripte rc=0 gegen Postgres 18. AC 9: jede seit dem 03.09.2026 dazugekommene Tabelle traegt ihren Anker (Notfallbetreuung, Bruecketage, Akademie, Wahlmodule/Unterrichtsverhaeltnis); Notizfeld und Newsletter gibt es noch nicht.
+Nachtrag 04.09.2026: Die ankerlose change_log-Zeile bekommt keine Frist, sondern ihren Anker (TASK-007, TASK-224). Das Pruefskript rechnet ueber die Fremdschluessel aus, welche Tabellen bei Kind, Person oder Familie ankommen, und meldet jede Spurzeile ohne Anker; vier vorhandene Proben tragen ihren Anker jetzt selbst. 22 neue Gegenproben, jede einzeln rot gezeigt.
 <!-- SECTION:NOTES:END -->

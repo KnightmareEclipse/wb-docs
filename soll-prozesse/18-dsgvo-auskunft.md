@@ -59,12 +59,12 @@ Zwischennachricht. Sonst keine.
 Der Anfragen-Log (wer, wann, wofür, beantwortet wann). Die verschickte Auskunft selbst wird nicht
 gesondert abgelegt — sie ist aus dem gespeicherten Bestand jederzeit neu erzeugbar.
 
-Herausgegeben wird jede Datei in ihrer **heutigen Fassung**. Ein fortgeschriebenes Dokument — die
-Hortakte ist eines ([09](09-hortvertrag.md)) — trägt frühere Fassungen im Versionsverlauf, und
-solange sie dort stehen, gehören sie zum Bestand (`grenzkarte.md`, Q2).
-`[A]` Frühere Fassungen gehen nur auf ausdrückliches Verlangen mit, dann als Ausdruck aus dem
-Versionsverlauf. — Alternative: ungefragt alle; Preis: eine über sieben Jahre fortgeschriebene
-Akte wird zu dreißig fast gleichen Seiten, und die Auskunft wird unlesbar, ohne mehr zu zeigen.
+**Weltenbaum sagt nur, wo es Dateien gibt** — welche Unterlagen zu dieser Person liegen und in
+welcher Akte. Das Herausholen und die endgültige Zusammenstellung macht ein Mensch, wie Schritt 2 es
+beschreibt; es gibt dafür keinen Knopf und keinen Export. Damit ist auch der **Versionsverlauf** eines
+fortgeschriebenen Dokuments — die Hortakte ist eines ([09](09-hortvertrag.md)) — keine Frage an das
+System: Er gehört zum Bestand (`grenzkarte.md`, Q2), und wer die Akte herausgibt, entscheidet beim
+Zusammenstellen, was davon mitgeht.
 
 ## Sonderfälle
 

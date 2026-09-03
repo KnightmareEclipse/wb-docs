@@ -189,8 +189,9 @@ Je eine Zeile, benannt und nicht mitgeplant:
   Stücke eine Bewerbung braucht, folgt aus Schulart und Klassenstufe, und die Domäne legt sie an.
   Sie braucht dafür ihre eigene Regel „je Ziel einmal" — `documents` ist bewusst nicht eindeutig,
   ein zweiter Aufruf legte den ganzen Satz daneben — Anmeldung.
-- **Der Lösch-Lauf** (17), der `documents`, `child_file_folders` und die ankerlosen
-  `change_log`-Zeilen mitnimmt: Er ist kein Endpunkt und hat noch keinen Block.
+- **Der Lösch-Lauf** ([17](../soll-prozesse/17-loesch-lauf.md)), der `documents`,
+  `child_file_folders` und die `change_log`-Zeilen ohne Personenbezug mitnimmt: Er ist kein Endpunkt.
+  Seine zwei Tabellen — Empfängerliste und Anhalten — stehen im Querschnitt-Schema.
 
 ## Am Schema aufgefallen
 
@@ -204,9 +205,11 @@ Kein Eingriff, das Schema führt `wb-backend`:
   Seed-Datei sagt das ausdrücklich; die vier Fälle (12, 14, 09, 10) tragen ihre Aufgabe in der
   eigenen Tabelle. `GET /tasks` liefert sie deshalb **nicht** — wer alle seine offenen Punkte sehen
   will, ruft zwei Routen.
-- **`change_log` hat kein `UPDATE` und kein `DELETE` für die Laufzeit-Rolle**, und der Lösch-Lauf
-  braucht beides für die ankerlosen Zeilen (Stufe 8). Welche Rolle er benutzt, entscheidet Block 17
-  mit der Frist — heute hat niemand das Recht.
+- **`change_log` hat kein `UPDATE` und kein `DELETE` für die Laufzeit-Rolle.** Block 17 hat beides
+  entschieden: Die Spur bekommt keine Frist, sondern ihren Anker und geht per Cascade mit ihm; das
+  `DELETE` braucht allein der Lauf, für die Zeilen zu Tabellen ohne Personenbezug — nicht
+  `backend_runtime` und kein Mensch. Was daran zu bauen bleibt, ist die Schreibschicht: Sie muss den
+  Anker auch über einen Join setzen, nicht nur aus einem direkten Attribut der geänderten Zeile.
 - **`outbound_emails` hat keine Audit-Spalten** und trägt `sent_at` als einzigen Zeitpunkt. Wer eine
   Zeile als unzustellbar markiert, steht damit nirgends; der Lauf ist der einzige Schreiber, und
   das trägt, solange es dabei bleibt.

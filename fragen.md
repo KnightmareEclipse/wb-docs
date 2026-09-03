@@ -41,7 +41,7 @@ in einer Handlung freizugeben; es ist strenger als die Vorgabe vom 02.09.2026 un
 Mitteilung, keine Frage. Drittens, dass **Teilnehmer der Erwachsenen-Seminare dieselbe Frist tragen
 wie schulfremde Kinder**. Und viertens: Erstens die Antwort auf seine Rückfrage, ob der
 Lösch-Lauf ohne Datenleichen gebaut werden kann: ja — die Reihenfolge über alle Domänen steht als
-achtstufige Kaskade im Kopf von `schema/querschnitt-schema.sql`, und ihr Prüfskript weist eine
+siebenstufige Kaskade im Kopf von `schema/querschnitt-schema.sql`, und ihr Prüfskript weist eine
 verwaiste Zeile ab. Zweitens die Kenntnisnahme, dass ein Anhalten der Löschung **unbegrenzt
 verlängerbar** ist, solange sein Grund trägt (Art. 17 Abs. 3 lit. e) — an die Stelle einer
 Obergrenze tritt Sichtbarkeit: Jeder Fall trägt seinen Grund aus einer Werteliste, und die Liste

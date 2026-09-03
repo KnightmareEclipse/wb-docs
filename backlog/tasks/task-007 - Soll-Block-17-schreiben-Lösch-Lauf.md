@@ -4,7 +4,7 @@ title: 'Soll-Block 17 schreiben: Lösch-Lauf'
 status: Done
 assignee: []
 created_date: '2026-08-27 11:35'
-updated_date: '2026-09-03 22:11'
+updated_date: '2026-09-03 22:26'
 labels:
   - wb-docs
   - soll-block
@@ -49,5 +49,9 @@ Zwei Domänen fallen aus dieser Rechnung heraus, obwohl DS9f sie mit aufzählt:
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
-Block steht als soll-prozesse/17-loesch-lauf.md, Haken und Link in soll-prozesse/README.md. Entschieden: die ankerlose change_log-Zeile faellt drei Jahre nach der Aenderung ([A] im Block), loeschen darf sie allein der Lauf, lesen weiterhin nur Sekretariat und Schulleitung — kein Sichtkreis der Gesundheitsdomaene bekommt die Vorgeschichte einer Angabe. Der Empfaengerkreis steht als generelle Regel im Block; die derzeit besetzten bleiben in hebel.md.
+Block steht als soll-prozesse/17-loesch-lauf.md, Haken und Link in soll-prozesse/README.md.
+
+Zur Aenderungsspur (AC 1, 2, 4) nach Rueckmeldung vom 04.09.2026: **keine feste Frist**. Die Spur lebt genau so lange wie das, worueber sie Auskunft gibt — eine feste Frist loeschte sie mitten im Schulbesuch, und wer nachweisen muss, wer den Vermerk 'kein Epileptiker' entfernt hat, steht dann ohne da. Jede Spurzeile traegt deshalb den Anker der geaenderten Zeile, auch ueber einen Join (66 von hundert Tabellen; TASK-224 baut das in der Schreibschicht). Wo die geaenderte Zeile an keinem der drei Anker haengt, geht ihre Spur mit dieser Zeile. Stufe 8 des Lösch-Laufs entfaellt damit ersatzlos, die Kaskade hat sieben Stufen. Loeschen darf die Spur allein der Lauf; lesen weiterhin nur Sekretariat und Schulleitung — kein Sichtkreis der Gesundheitsdomaene bekommt die Vorgeschichte einer Angabe.
+
+Der Empfaengerkreis steht als generelle Regel im Block; die derzeit besetzten bleiben in hebel.md. Offen als [A] bleibt allein die Taktung: nachts und taeglich.
 <!-- SECTION:NOTES:END -->
