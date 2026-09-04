@@ -249,8 +249,8 @@ keine Frist — er ist der einzige Bestand des ganzen Systems ohne eine.
 
 ## Gehört nicht dazu
 
-- **Die Rechnungsfreigabe** ([12](12-rechnungsfreigabe.md)) — siehe oben, sie hat keine Frist,
-  die abläuft.
+- **Das Räumen der Rechnungsfreigabe** ([12](12-rechnungsfreigabe.md)) — die **Ankündigung** gehört
+  sehr wohl dazu, siehe oben; gelöscht wird dort von Hand.
 - **Die kurzlebigen Marken**, die von selbst verfallen ([hebel.md](hebel.md#standardantworten)):
   Anmeldecode, Freischaltung, Kostenübernahme-Code, Tauschangebot. Dass ihre Zeilen danach
   abgeräumt werden, ist Hausputz und keine Aufbewahrungsfrist.

@@ -181,12 +181,23 @@ CREATE TABLE claim_template_shares (
 
 -- Herkunft: 12 (Rechnungsfreigabe) — „Zwei Belegarten und keine dritte:
 -- Rechnung und Fahrtkosten, letztere als Ticket oder als gefahrene Strecke."
--- Löschanker: keiner — „Es verschwindet nichts von selbst … die Angaben zum
--- Beleg bleiben zehn Jahre in Weltenbaum, die Anhänge in SharePoint, und was
--- danach mit einem Jahrgang geschieht, entscheidet die Geschäftsführung von
--- Hand." Der Beleg überlebt
--- seinen Einreicher. Bewusst KEINE Frist und keine Eskalationsstufe: „Kein
--- Beleg verfällt, keine Aufgabe verfällt, es wird nicht eskaliert."
+-- Löschanker: **einer, der nur ankündigt** — „Es verschwindet nichts von selbst
+-- … die Angaben zum Beleg bleiben zehn Jahre in Weltenbaum, die Anhänge in
+-- SharePoint, und was danach mit einem Jahrgang geschieht, entscheidet die
+-- Geschäftsführung von Hand." Der Lösch-Lauf schickt darauf seine beiden
+-- Ankündigungen an Buchhaltung und Geschäftsführung, **räumt hier aber nicht**
+-- (12, 17): Anders als überall sonst wäre bei diesen Zeilen das zu frühe
+-- Löschen der Fehler und nicht das zu späte (§ 379 AO, § 257 HGB).
+-- **Und die Frist rechnet anders als jede andere im System:** ab dem Schluss
+-- des Kalenderjahres, in dem der letzte Eintrag fiel (§ 147 Abs. 4 AO), nicht
+-- ab einem Ereignistag — ein Beleg vom März 2026 ist Ende 2036 fällig. Das
+-- Kalenderjahr steht unten ohnehin als Spalte; sie ist damit zugleich der
+-- Anker. Der Wert selbst steht in `configured_values` und wird von der
+-- Buchhaltung gepflegt, die als Einzige weiß, wenn etwas länger liegen muss.
+-- Der Beleg überlebt
+-- seinen Einreicher. Bewusst KEINE Frist am Einreichen und keine
+-- Eskalationsstufe: „Kein Beleg verfällt, keine Aufgabe verfällt, es wird nicht
+-- eskaliert." — das ist etwas anderes als die Aufbewahrung oben.
 CREATE TABLE expense_claims (
     expense_claim_id  uuid NOT NULL DEFAULT gen_random_uuid(),
     -- Der Einreicher als Mitarbeitender, nicht als Person: „Einreicher ist jede
