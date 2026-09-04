@@ -178,8 +178,16 @@ gestellt. Was seinen Namen anderswo trägt, überlebt ihn — ein von ihm freige
 
 ## Gehört nicht dazu
 
-- Das **Schreiben in den Tenant**: keine Schnittstelle, kein Abgleich, keine gelesenen Gruppen; ihre
-  Unordnung ist damit kein Vorprojekt ([00](00-zugang-und-portal.md)).
+- Das **Schreiben in den Tenant** — heute: keine Schnittstelle, kein Abgleich, keine gelesenen
+  Gruppen; ihre Unordnung ist damit kein Vorprojekt ([00](00-zugang-und-portal.md)).
+  **Ausgeschlossen ist es aber nicht mehr, nur zurückgestellt** (Geschäftsführung, 04.09.2026):
+  Konten, Gruppen und Mailverteiler sollen künftig von hier aus entstehen, und langfristig gehört
+  auch die Geräteverwaltung dazu — Weltenbaum ist die Plattform für alles, nicht eine neben anderen.
+  Priorität hat es vorerst nicht, und deshalb steht hier weiterhin, was heute gilt und nicht, was
+  einmal kommt. Der Weg bis dahin ist die
+  [Nachzieh-Aufgabe](hebel.md#nachzieh-aufgabe-und-wochenmail): **Weltenbaum sagt der zuständigen
+  Stelle, dass etwas zu tun ist, statt es selbst zu tun** — das ist die Hälfte, an der heute der
+  Faden reißt, und sie kostet keinen einzigen Grant. Was daran hängt, steht in `backlog/`.
 - **Personalverwaltung im eigentlichen Sinn**: Verträge, Gehälter, Stundenkonten, Urlaub, Krankheit
   — die Rolle heißt so, führt hier aber sechs Angaben und keine siebte.
 - Die **Rollenvergabe** selbst ([00](00-zugang-und-portal.md)) und was eine Rolle darf.

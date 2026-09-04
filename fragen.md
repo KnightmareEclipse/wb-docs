@@ -1,6 +1,6 @@
 # Fragen an die Schule — was wen zu fragen ist
 
-Vierundzwanzig Fragen, die Weltenbaum nicht selbst beantworten kann, sortiert nach dem Gespräch, in
+Dreiundzwanzig Fragen, die Weltenbaum nicht selbst beantworten kann, sortiert nach dem Gespräch, in
 das sie gehören. **Sie stehen nur hier** — das Arbeitspapier in `pruefberichte/` trägt, was die
 Mails gesagt haben und was wir daraus bauen, aber keine Frage mehr. Je Frage steht hier ihr **Wortlaut**, das **Kriterium**, an dem du erkennst, dass die
 Antwort reicht, und **woran sie hängt**.
@@ -157,7 +157,7 @@ Frage der Aufbewahrung und keine der Sichtbarkeit.
 
 ---
 
-## Geschäftsführung — dreizehn Fragen
+## Geschäftsführung — zwölf Fragen
 
 Die Vertragstexte stehen hier nicht mehr: Sie werden künftig anhand dessen nachgezogen, **was im
 Portal gebaut wird** — sie gehen keinem Ablauf mehr voraus und blockieren keine Domäne. Was daran zu
@@ -165,6 +165,11 @@ tun bleibt, ist eine Aufgabe und keine Frage: `backlog/`, TASK-042.
 
 **Die ersten beiden sind Nachfragen, keine Entscheidungen** — sie standen schon in der letzten Mail
 und blieben ohne Antwort. Eine davon hat eine Frist.
+
+**Der öffentliche Teil des Portals steht hier nicht mehr.** Sein Umfang ist offen, aber er ist keine
+Frage an die Geschäftsführung: Was Kalender und Kostenrechner am Ende tragen, entscheidet sich beim
+Bauen und nicht in einem Termin. Der offene Punkt lebt als `backlog/` TASK-175 weiter — dort steht
+er, und nur dort.
 
 ### 6. Stripe-Konto und Auftragsverarbeitungsvertrag
 
@@ -346,24 +351,7 @@ Diese Frage ist die dritte Achse und die einzige, die der Schule gehört.
 
 *Steht in* `grenzkarte.md` · `oberflaechen.md` · `backlog/` TASK-184
 
-### 16. Der öffentliche Teil des Portals: Umfang von Kalender und Kostenrechner
-
-> „Das Portal bekommt drei Teile — intern, Elternteil und einen **öffentlichen ohne Anmeldung**. Der
-> Schnitt steht: hinter die Anmeldung gehört alles Verwaltungstechnische, öffentlich steht, was
-> jemanden interessiert, der die Schule kennenlernen will. Offen ist der Umfang: **Was soll der
-> Kalender können** — nur Termine anzeigen, oder auch Anmeldungen zu einem Tag der offenen Tür?
-> **Und was rechnet der Kostenrechner** — Schulgeld nach Geschwisterrang, Betreuungsmodule, Essen,
-> alles zusammen?"
-
-**Brauchbar ist die Antwort, wenn** beide je einen Satz haben, der sagt, was sie tun. Erst danach
-lohnt ein Soll-Block.
-
-**Daran hängt:** `backlog/` TASK-175. Das Format der Beiträge ist bereits entschieden — eine
-Canva-Vorlage, die jemand ausfüllt und hochlädt; Weltenbaum baut kein Layout-System (TASK-210).
-
-*Steht in* `soll-prozesse/19-ausfluege-und-fahrten.md` · `backlog/` TASK-175
-
-### 17. Wer welche Rolle vergeben darf — eine Bestätigung, keine offene Frage
+### 16. Wer welche Rolle vergeben darf — eine Bestätigung, keine offene Frage
 
 > „Die Regel steht und ist bestätigt: **jede Führungskraft vergibt die Rollen ihres Bereichs**, das
 > **Personalwesen alle übrigen**, und der **Admin jede**, damit niemand feststeckt. Was fehlt, ist
@@ -381,7 +369,7 @@ Wer den Bereich wechselt, bekommt die Rolle von der neuen Führungskraft und ver
 
 *Steht in* `soll-prozesse/hebel.md` · `glossar.md` · `backlog/` TASK-190
 
-### 18. Betreuungsvertragstext: drei Anpassungen — zusammen mit der Hortleitung
+### 17. Betreuungsvertragstext: drei Anpassungen — zusammen mit der Hortleitung
 
 > „Der Betreuungsvertrag in der Fassung vom 11.12.2025 passt an drei Stellen nicht zu dem, was
 > künftig läuft. **Erstens** endet die Betreuungsberechtigung mit dem Ende der Klasse 4 bzw. 5, ohne
@@ -406,7 +394,7 @@ kann** — der lässt sich nicht durch Bauen auflösen.
 
 ## Sekretariat — vier Fragen
 
-### 19. Zuordnung der Fremdsysteme — zusammen mit Buchhaltung und Admin
+### 18. Zuordnung der Fremdsysteme — zusammen mit Buchhaltung und Admin
 
 > „Wenn sich bei einem Kind oder einer Familie etwas ändert, muss das teilweise auch in ASV-BW,
 > Optigem oder M365 nachgezogen werden. Wir haben eine Zuordnung erstellt, welche Änderung wohin
@@ -422,7 +410,7 @@ Zuordnung dort zu weit gefasst.
 
 *Steht in* `soll-prozesse/02-datenaenderung.md:32`
 
-### 20. Bescheinigungen beim Abgang
+### 19. Bescheinigungen beim Abgang
 
 > „Wenn ein Kind die Schule verlässt — welche Papiere schreibt ihr routinemäßig? Abgangszeugnis,
 > Schulbescheinigung für die neue Schule, Bestätigung der Abmeldung?"
@@ -434,7 +422,7 @@ oder nur auf Anfrage entsteht.
 
 *Steht in* `soll-prozesse/03-irregulaerer-abgang.md:25`
 
-### 21. Aufgaben des Jahreswechsels
+### 20. Aufgaben des Jahreswechsels
 
 > „Ende Juli zieht der zweite Admin alle Klassen von Hand auf die neue Stufe um, legt die Neuen an
 > und löscht die Abgänger. Was tut ihr in dieser Zeit sonst noch, jedes Jahr wieder?"
@@ -447,7 +435,7 @@ bleibt Zuruf.
 
 *Steht in* `soll-prozesse/04-schuljahreswechsel.md:30`
 
-### 22. Elternfragebogen der Grundschul-Checkliste — zusammen mit der Grundschulleitung
+### 21. Elternfragebogen der Grundschul-Checkliste — zusammen mit der Grundschulleitung
 
 > „Beim Anmeldetag der Grundschule bekommen die Eltern einen Fragebogen auf Papier mit. Was steht
 > darauf — und könnte er künftig vorab im Portal ausgefüllt werden?"
@@ -462,7 +450,7 @@ gebaut.
 
 ## Schulleitung — zwei Fragen
 
-### 23. Unterrichtlicher und außerunterrichtlicher Ausflug — ein Unterschied oder zwei Wörter?
+### 22. Unterrichtlicher und außerunterrichtlicher Ausflug — ein Unterschied oder zwei Wörter?
 
 > „Für die Klassenfahrt gibt es eine mehrseitige Erklärung, die die Eltern unterschreiben —
 > Einverständnis, Vollmacht, Kostenzusage, Belehrung. Für den Unterrichtsgang oder den Wandertag
@@ -482,7 +470,7 @@ aussähe, als hätte jemand vergessen zu fragen.
 
 *Steht in* `soll-prozesse/19-ausfluege-und-fahrten.md` (Kopf, die Tabelle der zwei Arten)
 
-### 24. Geburtsurkunde: wie prüft das Sekretariat künftig?
+### 23. Geburtsurkunde: wie prüft das Sekretariat künftig?
 
 > „Die Geburtsurkunde wird künftig nur noch **eingesehen** und nicht mehr kopiert — das ist
 > entschieden. Offen ist der Ablauf: Wann wird sie vorgelegt, wer sieht sie an, und was wird

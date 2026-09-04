@@ -69,6 +69,10 @@ Bewusst hinter die Anmeldekette gestellt, obwohl die Termine früher liegen: Bei
 
 - [x] 22. [Ehemalige](22-ehemalige.md) (die drei Verteilerkreise, die Zugehörigkeit zum Jahrgang, der Rückkehrer) — **Liste und Verteiler, nicht ihre Nutzung**: Wer die Rundbriefe schreibt und verschickt, wird getrennt entschieden. Der Jahrgang ist **nur beim Weggang** zu haben, fünf Jahre später ist die Kindzeile fort
 
+**Als Nächstes, vorgezogen am 04.09.2026**
+
+- [ ] 23. **Der öffentliche Teil des Portals** (Kalender, News, Kostenrechner, die Ausschreibung der Akademie) — der Schnitt steht seit dem 01.09.2026, **der Umfang ist offen und bleibt es vorerst**: Was Kalender und Kostenrechner am Ende tragen, entscheidet sich beim Bauen und ist ausdrücklich **keine Frage an die Geschäftsführung**. Der offene Punkt lebt als `backlog/` TASK-175, der Block entsteht daraus
+
 Reihenfolge nach dieser Liste — nicht nach Lust, sondern nach Termin. **Die Nummer ist die Kennung eines Blocks, nicht sein Rang:** Sie steht im Dateinamen und in den Verweisen der fertigen Blöcke und bleibt deshalb, wo sie ist, auch wenn ein Prozess vorgezogen wird. Die Liste läuft von oben nach unten, nicht der Zahl nach.
 
 **Bewusst nicht in der Liste:** Die Krankmeldung entfällt ganz (`../prozesse.md` Abschnitt 19).

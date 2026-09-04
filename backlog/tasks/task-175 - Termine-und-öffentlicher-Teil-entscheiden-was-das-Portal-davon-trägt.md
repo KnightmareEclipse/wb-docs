@@ -4,7 +4,7 @@ title: 'Termine und öffentlicher Teil: entscheiden, was das Portal davon trägt
 status: To Do
 assignee: []
 created_date: '2026-09-01 18:45'
-updated_date: '2026-09-03 14:34'
+updated_date: '2026-09-04 18:33'
 labels:
   - wartet
   - geschaeftsfuehrung
@@ -12,6 +12,7 @@ labels:
 dependencies: []
 references:
   - soll-prozesse/21-akademie.md
+priority: high
 ordinal: 187000
 ---
 
@@ -27,6 +28,8 @@ Der Zuschnitt ist am 01.09.2026 entschieden: Das Portal hat **drei Teile** — i
 **Das feste Format ist eine Canva-Vorlage** (03.09.2026, mit Corrado): Wer etwas bewerben will, füllt eine Vorlage in Canva und lädt das Ergebnis hoch; Weltenbaum baut kein Layout-System. Wie sich Text, Bild und Preis darin aufteilen — und warum das BFSG die Antwort mitbestimmt — steht in **TASK-210** und wird hier nicht wiederholt. Damit ist auch Kriterium 3 beantwortet: Die Bilder liegen außerhalb der Schülerakte und werden ohne Anmeldung ausgeliefert.
 
 Offen bleibt der übrige Umfang: Was ist ein Kalender, was rechnet der Kostenrechner. Erst danach lohnt ein Block.
+
+**Nachtrag 04.09.2026 (Geschäftsführung): vorgezogen, und aus dem Fragenkatalog heraus.** Der öffentliche Teil bekommt Priorität vor dem Schreiben in den M365-Tenant (TASK-248, TASK-249), das zurückgestellt ist. Zugleich steht er **nicht mehr in `fragen.md`**: Sein Umfang ist offen, aber er ist keine Frage an die Geschäftsführung — was Kalender und Kostenrechner tragen, entscheidet sich beim Bauen und nicht in einem Termin. Der offene Punkt lebt ab jetzt nur hier.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
