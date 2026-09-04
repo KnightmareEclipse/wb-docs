@@ -52,8 +52,8 @@ der Spalte „Worauf eingeschränkt" nicht in die Query schreibt, ist grün und 
 4. **Router**, einer je Domäne, registriert in `main.py`.
 5. **Tests**, je Route mindestens einer auf die Ownership-Bedingung — nicht auf die Rolle. Der Test,
    der zählt, ist der, in dem ein Berechtigter eine fremde Id rät und eine Absage bekommt.
-6. **Die Prüfskripte aus `wb-docs/schema/`** gegen die neu abgespielte Datenbank, alle dreizehn und
-   nicht nur die der Domäne (`wb-docs/CLAUDE.md`, Abschnitt Schemaarbeit). In den Bericht kommt der
+6. **Die Prüfskripte aus `wb-docs/schema/`** gegen die neu abgespielte Datenbank, alle und
+   nicht nur das der Domäne (`wb-docs/CLAUDE.md`, Abschnitt Schemaarbeit). In den Bericht kommt der
    Rückgabewert je Datei, nicht der Text auf dem Schirm.
 
 ## Wenn der Plan falsch ist

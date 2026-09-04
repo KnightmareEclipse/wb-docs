@@ -10,7 +10,7 @@ Wir überführen die Fachdomäne **DOMÄNE** ins Datenmodell. Ergebnis ist eine 
 
 Es gelten [`gemeinsam.md`](gemeinsam.md) (die `[A]`-Marke, wie du fragst, wie du mit mir redest, kein Subagent urteilt) und `CLAUDE.md`. Beides liest du zuerst und ich wiederhole es hier nicht.
 
-**Du baust in einen bestehenden, geprüften Stand hinein.** In `schema/` liegen dreizehn Domänen, aus denselben Blöcken abgeleitet und durch fünf Prüfzyklen gegangen. Das ist kein Vorentwurf, sondern der Bestand: Was dort schon jemandem gehört, referenzierst du und baust es nicht nach. Was du dort ändern müsstest, ist eine Frage an mich und keine stille Korrektur — und der Stammdaten-Freeze (`grenzkarte.md`) gilt ab dem Vollimport für alles, was `schema/stammdaten-schema.sql` berührt.
+**Du baust in einen bestehenden, geprüften Stand hinein.** In `schema/` liegen die gebauten Domänen, aus denselben Blöcken abgeleitet und gegengeprüft. Das ist kein Vorentwurf, sondern der Bestand: Was dort schon jemandem gehört, referenzierst du und baust es nicht nach. Was du dort ändern müsstest, ist eine Frage an mich und keine stille Korrektur — und der Stammdaten-Freeze (`grenzkarte.md`) gilt ab dem Vollimport für alles, was `schema/stammdaten-schema.sql` berührt.
 
 ## Was du vorher liest, und wozu
 
@@ -156,7 +156,7 @@ CREATE TABLE employees (
 
 ## Die Randliste
 
-Deine Domäne stößt an dreizehn gebaute. Was dabei über ihren Rand hinausreicht, kommt auf diese Liste statt in den Entwurf — je Eintrag eine Zeile: was du gefunden hast, wo, dein Vorschlag.
+Deine Domäne stößt an die gebauten. Was dabei über ihren Rand hinausreicht, kommt auf diese Liste statt in den Entwurf — je Eintrag eine Zeile: was du gefunden hast, wo, dein Vorschlag.
 
 Darauf gehört genau dreierlei:
 

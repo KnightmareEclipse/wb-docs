@@ -25,13 +25,9 @@ Es gelten [`gemeinsam.md`](gemeinsam.md) (wie du mit mir redest, kein Subagent u
 Wir schließen Funde aus `pruefberichte/aktuell.md` im Datenmodell unter `schema/`. Der Bericht ist
 die Arbeitsliste, nicht die Anweisung.
 
-**Derzeit gibt es hier nichts zu tun.** Kein Fund wurde verworfen. Was aus den Zyklen weiterträgt,
-steht als Satz an seiner Stelle im Schema und nicht in einer Liste daneben — offen sind allein die
-zwei `[?]` am Ende von `schema/querschnitt-schema.sql`: die Frist, nach der eine versandte Mail ohne
-Person verfällt, und ob der Nachweis des Fotoeinverständnisses das Kind überdauern muss.
-
-Ein neuer Prüflauf legt `pruefberichte/aktuell.md` frisch an; erst dann gibt es hier wieder etwas zu
-tun. **Am Ende des Zyklus wird die Datei gelöscht** — der Beleg, dass ein Fund geschlossen ist, ist
+**Liegt die Datei nicht, gibt es hier nichts zu tun** — ein Prüflauf legt sie an, und was aus
+einem geschlossenen Zyklus weiterträgt, steht als Satz an seiner Stelle im Schema und nicht in einer
+Liste daneben. **Am Ende des Zyklus wird die Datei gelöscht** — der Beleg, dass ein Fund geschlossen ist, ist
 die reparierte `.sql` samt grünem Prüfskript, und die Git-Historie hält den Bericht. Die Kennungen
 `[F1]`, `[F2]`, … gehören zu ihrem Lauf und nicht zu einem neuen.
 
@@ -84,8 +80,8 @@ Drei Dinge, sonst ist sie nicht fertig:
 Für die Löschanker gilt zusätzlich: Wo ein Kommentar „geht mit X" sagt und der Fremdschlüssel
 festhält, entscheidest du einmal — CASCADE, oder NO ACTION mit dem Grund daneben, wie
 `documents` es vormacht — und wendest dieselbe Entscheidung auf alle Fundstellen an. Ein
-Lösch-Lauf je Domäne als Gegenprobe schließt die Klasse dauerhaft; `gesundheit` und
-`klassenorganisation` haben ihn schon.
+Lösch-Lauf je Domäne als Gegenprobe schließt die Klasse dauerhaft; welche ihn schon haben,
+steht in ihrem `-schema-check.sql`.
 
 ## Wie du läufst
 

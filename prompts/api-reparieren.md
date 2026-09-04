@@ -3,13 +3,13 @@
 Gegenstück zu [`api-pruefen.md`](api-pruefen.md). Dort wird gemeldet, hier wird repariert. **Der
 Reparateur baut, was der Block hergibt — und fragt, was er nicht hergibt.**
 
-**Dreizehn Berichte, dreizehn Läufe.** Zuerst `wb-docs/pruefberichte/routen.md`: was keine einzelne
+**Ein Bericht, ein Lauf.** Zuerst `wb-docs/pruefberichte/routen.md`: was keine einzelne
 Domäne sieht und deshalb in gemeinsamem Code landet. Danach `stammdaten` und `querschnitt`, weil
-ihre Korrekturen in die übrigen zehn durchschlagen. **Diese drei nacheinander und im Hauptbaum** —
+ihre Korrekturen in die übrigen durchschlagen. **Diese drei nacheinander und im Hauptbaum** —
 sie fassen `app/core/`, `app/db/`, `tests/conftest.py` und `wb-docs/api/gemeinsam.md` an, und das
 ist dieselbe Stelle für alle drei.
 
-**Die zehn Fachdomänen danach laufen nebeneinander.** Jede fasst nur ihre Routendatei, ihre
+**Die Fachdomänen danach laufen nebeneinander.** Jede fasst nur ihre Routendatei, ihre
 Testdatei und ihre `-api.md` an; getrennt werden muss trotzdem bis zur Datenbank hinunter, weil
 `tests/conftest.py` vor und nach jeder Suite truncatet. Das erledigt `spuren.sh`: je offenem Bericht
 ein Baumpaar mit eigenem Compose-Stack und eine Session darauf, Effort `xhigh`. Es liest die
@@ -89,8 +89,8 @@ den er nennt. Zwei Ergänzungen:
   Route** — auch den kürzeren. Eine Route, die den Hebel nachbaut, war im Prüflauf ein Fund; sie
   darf es nicht durch die Reparatur werden.
 - **Braucht ein Fund DDL, ist er kein Routen-Fund mehr.** Er wird ein Ticket in `wb-docs/backlog/`, keine
-  Migration im Vorbeigehen: Das Schema ist durch fünf Prüfzyklen gegangen, und eine Spalte, die
-  nebenbei in einem Reparaturlauf entsteht, ist durch keinen.
+  Migration im Vorbeigehen: Das Schema ist gegengeprüft, und eine Spalte, die
+  nebenbei in einem Reparaturlauf entsteht, ist durch keine Prüfung gegangen.
 
 **Es gilt „Ein Lauf ohne Rückfrage" aus [`gemeinsam.md`](gemeinsam.md).** Auch im Hauptbaum: Der
 Lauf überlebt seinen eigenen Kontext nicht, und die Antwort käme später als sein Ende. Was sonst
@@ -125,7 +125,7 @@ ihn zitiert. Das Zitat ist der Stand einer fremden Session, nicht der Stand der 
 Je Fund die Testdatei der Domäne, nach dem Bau, wie in `api-pruefen.md`. Am Ende des Laufs einmal
 der volle: `pytest`, `ruff check`, `ruff format --check`, `mypy app`, `./schema-check.sh`. In die
 Meldung kommt der Rückgabewert je Aufruf, nicht der Text auf dem Schirm. Die Zahl der Tests ist die
-des dreizehnten Prüflaufs plus deine neuen — weicht sie anders ab, hast du eine Datei verloren.
+des Gesamtlaufs plus deine neuen — weicht sie anders ab, hast du eine Datei verloren.
 
 ## Der Commit
 

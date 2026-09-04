@@ -160,7 +160,7 @@ Nach diesen suchst du, in dieser Reihenfolge.
    gelaufen ist, nie eine Spalte sein, die einen benachbarten Vorgang führt. Zweimal hintereinander
    aufgerufen: Passiert beim zweiten Mal wirklich nichts?
 8. **Plan und Router weichen ab** — Methode, Pfad, Rolle, Einschränkung. Nur, was dir in deiner
-   Domäne auffällt; gezählt wird es über alle Domänen im dreizehnten Lauf.
+   Domäne auffällt; gezählt wird es über alle Domänen im Gesamtlauf.
 
 ## Was du meldest
 
@@ -175,8 +175,8 @@ Gemessen: Bedingung entfernt, tests/test_anmeldung.py bleibt grün.
 Vorschlag: person_id gegen den Token prüfen, dazu ein Test mit fremder person_id.
 ```
 
-- **Die Nummer trägt deine Domäne als Präfix** und läuft in deiner Datei durch. Zwölf Sessions, die
-  alle bei `R1` anfangen, geben zwölf `[R1]`, und dann ist kein Fund mehr ansprechbar.
+- **Die Nummer trägt deine Domäne als Präfix** und läuft in deiner Datei durch. Sessions, die
+  alle bei `R1` anfangen, geben denselben `[R1]` mehrfach, und dann ist kein Fund mehr ansprechbar.
 - **Die Zeile „Gemessen" ist Pflicht, wo du gemessen hast**, und fehlt, wo du nur gelesen hast. Ein
   Fund ohne sie wiegt weniger, und das soll man ihm ansehen.
 - **Gewicht zuerst**: was eine fremde Zeile erreichbar macht, vor allem anderen; danach, was Daten
@@ -220,22 +220,22 @@ wurden, und die vier Gegenproben oben.
 
 ---
 
-## Der dreizehnte Lauf: was keine einzelne Domäne sieht
+## Der Gesamtlauf: was keine einzelne Domäne sieht
 
-Eigene Session, **nachdem alle zwölf Berichte liegen**. Kein Arbeitsbaum, keine eigene Datenbank,
+Eigene Session, **nachdem alle Domänenberichte liegen**. Kein Arbeitsbaum, keine eigene Datenbank,
 keine Messung — im Hauptbaum, lesend und zählend. Effort `high` genügt.
 
 Es gelten `gemeinsam.md` und `CLAUDE.md` beider Repos.
 
-1. **Plan gegen Router über alle zwölf auf einmal**: Methode, Pfad, Rolle, Einschränkung, in beide
+1. **Plan gegen Router über alle Domänen auf einmal**: Methode, Pfad, Rolle, Einschränkung, in beide
    Richtungen. Die ersten beiden zählt jeder Bau schon nach, die letzten beiden niemand — und dort
    liegt der Unterschied zwischen „gebaut" und „richtig gebaut".
-2. **Zwei Zahlen**: wie viele der 235 Routen überhaupt einen Test haben, und wie viele einen Test
+2. **Zwei Zahlen**: wie viele Routen überhaupt einen Test haben, und wie viele einen Test
    auf die **fremde Id** — nicht auf die falsche Rolle. Die Differenz ist die eigentliche Aussage
    dieses Prüfzyklus.
 3. **Der volle Lauf**: `pytest`, `ruff check`, `ruff format --check`, `mypy app`,
    `./schema-check.sh`. In den Bericht kommt der Rückgabewert, nicht der Text auf dem Schirm. Die
-   Zahl der Tests muss die sein, mit der die zwölf Läufe angefangen haben — weicht sie ab, hat eine
+   Zahl der Tests muss die sein, mit der die Domänenläufe angefangen haben — weicht sie ab, hat eine
    Session etwas liegen lassen.
 4. **Die Gegenprobe aufs Aufräumen**: `git status` sauber, `git worktree list` nur der Hauptbaum,
    `podman ps -a` und `podman volume ls` ohne `wbp-`.
