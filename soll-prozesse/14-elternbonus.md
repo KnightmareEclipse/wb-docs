@@ -30,7 +30,7 @@ leistet nichts und bekommt keine der Mails dieses Prozesses.
 - Die Buchhaltung verrechnet die Rückzahlung mit dem Schulgeld und bekommt dafür eine
   [Aufgabe](hebel.md#nachzieh-aufgabe-und-wochenmail).
 - Die Geschäftsführung pflegt Monatsbetrag und Pflichtstunden als
-  [Werte im System](hebel.md#geld-im-system-alles-andere-fest).
+  [Werte im System](hebel.md#geld-und-fristen-im-system-alles-andere-fest).
 - Das Sekretariat hat hier **keine laufende Arbeit**: es korrigiert, wo es klemmt, und trägt für die
   Familie ohne Portal stellvertretend ein.
 
@@ -96,7 +96,7 @@ ist ein Zug der Umfrageplattform, keine Anforderung. Änderungen tragen die
 Die Eltern sehen jederzeit ihren Stand und was er voraussichtlich zurückbrächte; eine Mail je
 Eintrag gibt es nicht.
 
-Drei [Werte im System](hebel.md#geld-im-system-alles-andere-fest) gehören der Geschäftsführung: der
+Drei [Werte im System](hebel.md#geld-und-fristen-im-system-alles-andere-fest) gehören der Geschäftsführung: der
 Monatsbetrag (derzeit 10 €) und die beiden Pflichtstundenzahlen (derzeit 15 und 10); sie ändert sie
 mit Gültigkeit zum 1. August, damit keine mitten im Schuljahr greift. Was berechnet wurde, wird
 nicht erhoben, sondern gezählt: **jeder Monat, in dem die Familie mindestens einen Tag ein

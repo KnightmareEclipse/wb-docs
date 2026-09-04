@@ -91,7 +91,7 @@ entscheidet hier nichts und schlägt nichts vor.
   Grund und **auch nachdem sie verstrichen ist** — dann läuft sie weiter, als wäre sie nie gerissen,
   und Kulanz ist ein Datum statt eines Sonderfalls —, oder die Ablehnung eintragen und freigeben;
   erst damit endet die Bewerbung, und erst damit geht eine Mail. Die 14 Tage sind
-  [fest](hebel.md#geld-im-system-alles-andere-fest), das einzelne Fristende ist es nicht.
+  [fest](hebel.md#geld-und-fristen-im-system-alles-andere-fest), das einzelne Fristende ist es nicht.
 - Der **Warteplatz trägt keine Frist**: er bindet keinen Platz, wer schweigt, kostet niemanden
   etwas, und die Liste zeigt nur, wann er zuletzt bestätigt wurde — die Schulleitung ruft an oder
   streicht ihn von Hand.

@@ -1389,6 +1389,26 @@ CREATE UNIQUE INDEX ix_sync_tasks_open_payment ON sync_tasks (sync_target_id, pa
 -- oder Schulart verschieden ist — Hortbeitrag, Ferienaufschlag, Schulgeld,
 -- Vertragstext —, trägt seine eigene Tabelle in der zuständigen Domäne, dort
 -- aber mit demselben `valid_from` und derselben Auswahlregel.
+-- **Seit dem 04.09.2026 stehen auch die Löschfristen hier** (Geschäftsführung):
+-- „Generell soll es möglich sein, die Löschfristen dynamisch anzupassen durch
+-- die Geschäftsführung, und sie sollen nicht fix im Code stehen." Das kehrt um,
+-- was hebel.md vorher trug — eine Frist war eine feste Zahl, weil „je weniger
+-- jemand einstellen muss, desto weniger geht schief". Für die Aufbewahrung gilt
+-- das nicht mehr: Eine Frist, die eine Aufsichtsbehörde beanstandet, kostet
+-- sonst einen Bau statt einer Eingabe.
+-- Drei Dinge folgen daraus für diese Tabelle, und zwei davon sind noch nicht
+-- gebaut (backlog/):
+--   * `valid_from` trägt die Umkehrung schon: Eine Änderung wirkt ab einem
+--     Datum und nie rückwirkend.
+--   * **Eine Untergrenze fehlt.** Wo eine Aufbewahrungspflicht dahintersteht —
+--     die zehn Jahre der Belege aus § 147 AO und § 257 HGB (12) —, darf auch
+--     die Geschäftsführung nicht darunter. Heute weist nichts das ab.
+--   * **Der Lösch-Lauf muss die Ankündigung nachholen**, wenn eine Senkung den
+--     Ankündigungstermin überholt hat (17). Ohne das räumt er am Morgen nach
+--     der Eingabe, was am Abend niemand mehr prüfen konnte.
+-- `value` ist bewusst `integer` geblieben: Eine Frist ist eine Zahl von Tagen
+-- oder Monaten, kein eigener Typ — welche Einheit gilt, sagt der `code`.
+
 CREATE TABLE configured_values (
     configured_value_id integer GENERATED ALWAYS AS IDENTITY,
     -- Der Code ist die Verankerung im Anwendungscode („cleaning_buyout_cents",

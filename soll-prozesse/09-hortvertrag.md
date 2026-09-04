@@ -45,7 +45,7 @@ Ausgelesen werden:
 - Einschreibung und Klassenstufe ([04](04-schuljahreswechsel.md), [08](08-schulvertrag.md)).
 - Die Kontaktdaten samt Abholberechtigten aus [02](02-datenaenderung.md).
 - Gesundheitsangaben, Fotoeinverständnis und SEPA-Mandat aus [08](08-schulvertrag.md).
-- Beiträge und Vertragstext als [Werte im System](hebel.md#geld-im-system-alles-andere-fest).
+- Beiträge und Vertragstext als [Werte im System](hebel.md#geld-und-fristen-im-system-alles-andere-fest).
 - Das Betreuungsinteresse aus [05](05-bewerbung.md) und der Betreuungsbedarf aus
   [06](06-anmeldetag.md): Sie sind keine Buchung, aber die einzige Vorschau darauf, mit wie vielen
   Kindern die Hortleitung im nächsten Jahr rechnen muss — erhoben werden sie dort und hier nur
@@ -70,7 +70,7 @@ Ausgelesen werden:
 - Die Module — Frühbetreuung, vier Nachmittagsstufen bis 13:00, 14:30, 15:30 und 17:00, dazu „nach
   Mittagsschule" allein für Realschule Klasse 5 — stehen mit Zeit, Abholzeit, Schulart und der
   Angabe, **ob ein Mittagessen dabei ist**, als
-  [Werte im System](hebel.md#geld-im-system-alles-andere-fest) und werden gepflegt wie jeder Preis,
+  [Werte im System](hebel.md#geld-und-fristen-im-system-alles-andere-fest) und werden gepflegt wie jeder Preis,
   nicht im Code — derzeit trägt jedes Modul über 13 Uhr eines, aber das ist ein Häkchen und keine
   Zeitregel, dieselbe Angabe wie am Ferienmodul ([10](10-ferienprogramm.md)).
 - Der **Preis hängt am Modul und an der Zahl der gebuchten Wochentage** — je Modul also fünf
@@ -126,7 +126,7 @@ die einzelne Kraft.
   Schul- oder Hortvertrag ([02](02-datenaenderung.md)).
 - Der **Monatsbeitrag** ergibt sich aus den gebuchten Modulen, elf Raten von September bis Juli; die
   Beträge selbst stehen in der Preisliste, die der Erhebung nie vorlag
-  ([Werte im System](hebel.md#geld-im-system-alles-andere-fest)).
+  ([Werte im System](hebel.md#geld-und-fristen-im-system-alles-andere-fest)).
 - Das **Mittagessen wird zuzüglich berechnet** und steckt nicht im Modulpreis: Wer ein Modul bucht,
   das ein Essen trägt, isst an diesen Tagen mit, und berechnet wird es für jeden, der länger als 13
   Uhr betreut wird — nach derselben Staffel je Esstag und Monat wie das Abo der Realschule
@@ -141,7 +141,7 @@ die einzelne Kraft.
   Mahngebühr und Bankkosten. Die eine, die es derzeit gibt, ist die **Geschwisterermäßigung**: Ab
   dem zweiten Kind einer Familie, das Betreuung bucht, bekommt das älteste Kind 10 % auf die
   Betreuungskosten, ausgenommen Notfall- und Ferienbetreuung. Der Satz ist ein
-  [Wert im System](hebel.md#geld-im-system-alles-andere-fest), damit die Geschäftsführung ihn ändern
+  [Wert im System](hebel.md#geld-und-fristen-im-system-alles-andere-fest), damit die Geschäftsführung ihn ändern
   kann — angewendet wird er trotzdem in Optigem, hier steht er nur neben dem Beitrag.
 
 Eltern sehen ihr eigenes nach ihrer [Einsichtsstufe](hebel.md#einsichtsstufe), Hortleitung und
@@ -246,7 +246,7 @@ in der Akte. Der fertige Vertrag liegt im Portal, solange er läuft, und die Elt
 nach ihrer [Einsichtsstufe](hebel.md#einsichtsstufe). Die übrigen Anlagen — Fotoeinwilligung,
 Infektionsschutz, Betreuungsordnung — gelten laut Vertrag **in ihrer jeweils gültigen Fassung**:
 eine geänderte Betreuungsordnung erzeugt deshalb keine neue Unterschrift, sie wird wie ein
-[Preis](hebel.md#geld-im-system-alles-andere-fest) gepflegt und gilt ab ihrem Tag.
+[Preis](hebel.md#geld-und-fristen-im-system-alles-andere-fest) gepflegt und gilt ab ihrem Tag.
 
 Dazu die **Betreuungsliste**: wer heute in welchem Modul ist, mit der Abholzeit des Moduls und der
 Heimweg-Erlaubnis, [frisch erzeugt](hebel.md#frisch-erzeugte-liste), sichtbar für Hortkräfte,
@@ -337,13 +337,13 @@ Modul bis 13:00, 12 € bis 14:30, 16 € bis 15:30, 20 € bis 17:00, dazu 20 �
 außerhalb der Öffnungszeiten, die als einzige zu keinem Modul gehört, weil es sie als Monatsbeitrag
 nicht gibt. Wie beim Monatsbeitrag gehört zu den Modulen über Mittag **ein Essen, das zusätzlich
 berechnet wird** und in keinem dieser Preise steckt ([11](11-mensa.md)). Die
-[Geschwisterermäßigung](hebel.md#geld-im-system-alles-andere-fest) gilt für die Notfallbetreuung
+[Geschwisterermäßigung](hebel.md#geld-und-fristen-im-system-alles-andere-fest) gilt für die Notfallbetreuung
 nicht.
 
 **Gebucht wird im Portal nur bis zu einer Uhrzeit, danach nur noch am Telefon**
 (Geschäftsführung, 04.09.2026). Der Schluss hängt **am Fall und nicht am Vorgang** — die
 Frühbetreuung endet früher als der Nachmittag desselben Tages, jede Art trägt also ihren eigenen.
-Die Uhrzeiten selbst stehen als [Wert im System](hebel.md#geld-im-system-alles-andere-fest) und
+Die Uhrzeiten selbst stehen als [Wert im System](hebel.md#geld-und-fristen-im-system-alles-andere-fest) und
 nicht hier: Sie sind Vorlaufzeiten und ändern sich, ohne dass jemand etwas baut. `[?]` Welche es
 sind, ist offen — Hortleitung Danach verschwindet die Schaltfläche nicht, sondern **sagt, dass jetzt nur noch der
 Anruf geht**: Eine Familie, die um 11:20 vor einer toten Seite steht, ruft sonst nirgends an. Der
@@ -449,8 +449,11 @@ sondern ein Betriebsdatum am Kind ohne Aufbewahrungspflicht, und sie verschwinde
 bestätigten Ende dieses Kindes — dieselbe Rechnung wie beim Mittagessen
 ([03](03-irregulaerer-abgang.md), [11](11-mensa.md)). Ebenso die Antworten auf eine
 Brückentagsabfrage. Die **Hortakte** hängt an demselben Ende —
-bei einem externen Kind ohne Austrittsdatum ist das sein letzter Betreuungstag —, trägt
-aber eine eigene Frist: `[?]` wie lang, entscheidet der Datenschutzbeauftragte. Endet der Vertrag eines externen Kindes,
+bei einem externen Kind ohne Austrittsdatum ist das sein letzter Betreuungstag —, trägt aber eine
+eigene Frist: **zwei Jahre** (Geschäftsführung, 04.09.2026). Sie ist damit kürzer als die des
+Vertrags und länger als die der Gesundheitsangaben; der Lösch-Lauf räumt den Ordner in SharePoint
+über seinen Anker in der Datenbank mit (17). Wie jede Frist steht sie
+[als Wert im System](hebel.md#geld-und-fristen-im-system-alles-andere-fest). Endet der Vertrag eines externen Kindes,
 endet damit die letzte [laufende Verbindung](hebel.md#laufende-verbindung) seiner Familie und ihr
 Zugang ([00](00-zugang-und-portal.md)), sofern kein Geschwisterkind eine hat.
 

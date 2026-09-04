@@ -87,6 +87,12 @@ Die **Dauern** stehen seit dem 02./03.09.2026, bis auf zwei. Art. 30 Abs. 1 lit.
 dieser Stelle; begründet sind sie je Bestand am Löschanker im Schema, und dort und nicht hier wird
 geändert:
 
+**Die Fristen stehen als Wert im System und nicht im Code** (Geschäftsführung, 04.09.2026): Geändert
+werden sie von der Geschäftsführung, wirksam ab einem Datum und nie rückwirkend. Wo eine
+Aufbewahrungspflicht dahintersteht — die zehn Jahre der Belege —, trägt der Wert eine Untergrenze,
+die niemand unterschreiten kann. Die Tabelle nennt deshalb den **heutigen** Stand, nicht eine
+unveränderliche Zahl.
+
 | Bestand | Frist | steht in |
 |---|---|---|
 | Schulvertrag | fünf Jahre nach dem Austritt | `soll-prozesse/03` |
@@ -94,6 +100,7 @@ geändert:
 | Bewerbung ohne Aufnahme | sechs Monate ab dem Endstatus | `schema/anmeldung-schema.sql` |
 | Ferienbuchung samt schulfremdem Kind | sechs Monate nach dem letzten gebuchten Termin | `schema/ferien-schema.sql` |
 | Gesundheitsbestand am Kind | drei Monate nach dem Austritt | `schema/gesundheit-schema.sql` |
+| Hortakte | **zwei Jahre** nach dem letzten bestätigten Ende des Kindes — bei einem externen Hortkind ab seinem letzten Betreuungstag (Geschäftsführung, 04.09.2026) | `soll-prozesse/09` |
 | Nachweis der Fotoerlaubnis je Kind | **unbegrenzt** — er belegt, bis zu welchem Tag sie galt (Datenschutzbeauftragter, 04.09.2026). Er entsteht erst beim Löschen des Kindes und trägt dann Name, Geburtsdatum, Abgangsdatum, Schulzweig und die beiden Zeitpunkte; die Zustimmungszeile selbst geht mit dem Kind | `soll-prozesse/08` |
 | Newsletter-Einwilligung je Person | **unbegrenzt**, bis widersprochen wird; danach mit dem nächsten Lösch-Lauf. Die Person bleibt so lange mit Anrede und Namen stehen, ohne Anschrift und Telefonnummer | `soll-prozesse/00` |
 | Zugehörigkeit der Ehemaligen (`alumni`) | dieselbe Frist wie die Einwilligung, an der sie hängt — sie entsteht nicht ohne Zustimmung und geht mit dem Widerruf | `soll-prozesse/22` |

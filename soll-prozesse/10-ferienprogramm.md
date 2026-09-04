@@ -33,7 +33,7 @@ Schulbeziehung hereinkommt; sie führen in denselben Bestand.
 - Die **Hortleitung** legt Termine an, setzt die Platzzahl, trägt Stornierungen ein, sagt ab und
   schließt die Anmeldung; eine neue [Rolle](hebel.md#rollen) entsteht dafür nicht.
 - Die **Geschäftsführung** pflegt Module, Beträge, Stornobedingungen und Teilnahmebedingungen als
-  [Werte im System](hebel.md#geld-im-system-alles-andere-fest).
+  [Werte im System](hebel.md#geld-und-fristen-im-system-alles-andere-fest).
 - Das **Sekretariat** handelt hier nur an zwei Stellen mit: Es erzeugt Kostenübernahme-Codes und
   bucht wie überall stellvertretend ([offizieller Umweg](hebel.md#der-offizielle-umweg)).
 - **Hortkräfte** lesen am Termin die Teilnehmerliste; wer ohne eigenen Zugang mitbetreut, bekommt
@@ -67,7 +67,7 @@ Ausgelesen werden:
 
 ## Was dabei erhoben wird
 
-Die **Terminart** ist ein [Wert im System](hebel.md#geld-im-system-alles-andere-fest) wie das
+Die **Terminart** ist ein [Wert im System](hebel.md#geld-und-fristen-im-system-alles-andere-fest) wie das
 Betreuungsmodul in [09](09-hortvertrag.md) und trägt dreierlei:
 
 - ihre **zwei Module** mit Uhrzeiten und je einem festen Betrag,

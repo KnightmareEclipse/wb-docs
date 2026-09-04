@@ -101,7 +101,7 @@ geht**. Weltenbaum hält nur das Datum fest. Alles Übrige ist Ableitung:
 Abgangstag — eine Frist ist das nicht, es verfällt nichts, wenn sie später geschieht. Die Frist
 gehört dem Konto: Es **wird sechs Monate danach gelöscht**, einheitlich für Schüler und
 Mitarbeitende — eine Zahl, nicht zwei, weil niemand einen Unterschied benannt hat. Sie ist
-[fest](hebel.md#geld-im-system-alles-andere-fest) und nirgends einstellbar.
+[fest](hebel.md#geld-und-fristen-im-system-alles-andere-fest) und nirgends einstellbar.
 [Aufgaben](hebel.md#nachzieh-aufgabe-und-wochenmail) haben wie überall keine Frist und verfallen
 nicht.
 

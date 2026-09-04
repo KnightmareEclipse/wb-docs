@@ -22,7 +22,7 @@ das Ziel.
   Putzdienst.
 - Das Sekretariat öffnet und schließt die Voranmeldung je Schulart, schaltet Verspätete einzeln frei
   und nimmt die Bewerbungen entgegen.
-- Die Geschäftsführung pflegt die [Anmeldegebühr](hebel.md#geld-im-system-alles-andere-fest).
+- Die Geschäftsführung pflegt die [Anmeldegebühr](hebel.md#geld-und-fristen-im-system-alles-andere-fest).
 - Die Schulleitung handelt hier nicht mit, sieht aber jede Bewerbung; die Lehrkräfte sehen keine —
   ihr Teil des Anmeldetags läuft außerhalb des Systems ([06](06-anmeldetag.md)).
 
@@ -117,7 +117,7 @@ Sonst keine — wer bezahlt hat, ist im Feld; ob er aufgenommen wird, entscheide
   freischaltet: Die Freischaltung nennt das Ziel, gilt für alle Kinder dieser Adresse und läuft nach
   **14 Tagen** ab; die Zahl ist fest und nirgends einstellbar. Dasselbe gilt vor dem Öffnen — noch
   zu und schon zu sind derselbe Fall.
-- Die [Gebühr](hebel.md#geld-im-system-alles-andere-fest) ist vorher sichtbar — am Anfang des
+- Die [Gebühr](hebel.md#geld-und-fristen-im-system-alles-andere-fest) ist vorher sichtbar — am Anfang des
   Formulars und auf der Webseite.
 
 Weitere Fristen gibt es nicht: Ausfüllen und Bezahlen sind ein Zug, ein abgebrochenes Formular

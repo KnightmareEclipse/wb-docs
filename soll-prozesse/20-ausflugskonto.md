@@ -8,7 +8,7 @@ der die Ausflüge des Jahres bezahlt werden. Was davon übrig bleibt, wird ins n
 der Stadt: Für sie holt die Schule die Ausflugskosten beim Amt zurück und schreibt sie den Eltern
 gut.
 
-Der Betrag der Pauschale ist ein [Wert im System](hebel.md#geld-im-system-alles-andere-fest) und
+Der Betrag der Pauschale ist ein [Wert im System](hebel.md#geld-und-fristen-im-system-alles-andere-fest) und
 ändert sich jedes Jahr. Er ist die **zweite benannte Ausnahme** von der Regel, dass die
 Geschäftsführung Werte setzt: Hier setzt ihn die **Schulleitung**, mit Gültigkeit zum 1. August —
 sie weiß, was im kommenden Jahr an Ausflügen ansteht, und sie gibt jeden einzelnen davon frei

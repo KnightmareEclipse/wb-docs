@@ -40,7 +40,7 @@ Im System arbeiten drei Parteien: Eltern, Sekretariat, Schulleitung; die Geschä
 den Vertragstext, das Schulgeld und die Vertretung dazu. Ausgelesen wird die Bewerbung samt Ziel
 ([05](05-bewerbung.md)), was die Verwaltungsspur offen ließ ([06](06-anmeldetag.md)), die
 Kontaktdaten aus [02](02-datenaenderung.md) und Schulgeld wie Vertragstext als
-[Werte im System](hebel.md#geld-im-system-alles-andere-fest).
+[Werte im System](hebel.md#geld-und-fristen-im-system-alles-andere-fest).
 
 ## Ablauf
 
@@ -231,7 +231,7 @@ Bilder verschwinden mit der Bewerbung.
 
 Der **Vertragstext** hängt an der Schulart — Grundschule und Realschule haben je einen eigenen, und
 das Schulgeld darin ist verschieden. Er wird von der Geschäftsführung gepflegt wie ein
-[Preis](hebel.md#geld-im-system-alles-andere-fest) und trägt denselben Gültigkeitstag, weicht davon
+[Preis](hebel.md#geld-und-fristen-im-system-alles-andere-fest) und trägt denselben Gültigkeitstag, weicht davon
 aber **zweimal** ab.
 
 - Die **Fassung friert mit der Zusage ein** und nicht erst mit der einzelnen Unterschrift — sonst

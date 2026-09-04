@@ -104,7 +104,7 @@ werden dürfen:
 
 - Die **gemeinsame** — künftig sind es vielleicht nicht mehr 5+1 — ändert die Geschäftsführung nur
   zum Beginn eines Putzdienstjahres: Sie trägt diesen Tag als
-  [Gültigkeit](hebel.md#geld-im-system-alles-andere-fest) ein, damit sie nie mitten im laufenden
+  [Gültigkeit](hebel.md#geld-und-fristen-im-system-alles-andere-fest) ein, damit sie nie mitten im laufenden
   Jahr greift.
 - Die **abweichende Zahl je Familie** dagegen gilt sofort, auch mitten im Jahr — ein
   Schicksalsschlag im Februar muss die Pflicht dieses Jahres senken können und nicht die des
@@ -119,7 +119,7 @@ Verschiebung, Absage — ist dort sichtbar, sobald sie eingetragen ist, und tauc
 Erinnerungsmail entsprechend auf. Wer sonst an einem Termin eingeteilt ist, wird ihnen nicht
 angezeigt.
 
-Gepflegt werden zwei Preise, [beide im System](hebel.md#geld-im-system-alles-andere-fest): Freikauf
+Gepflegt werden zwei Preise, [beide im System](hebel.md#geld-und-fristen-im-system-alles-andere-fest): Freikauf
 eines einzelnen Termins und Strafe bei Abwesenheit. Einen eigenen Jahrespreis gibt es nicht — der
 Freikauf des ganzen Jahres ist die Summe der offenen Pflichttermine, bei 5+1 also derzeit 210 €, und
 passt sich mit, wenn sich Preis oder Pflichtzahl ändern.

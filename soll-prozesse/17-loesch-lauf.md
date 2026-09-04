@@ -119,7 +119,16 @@ Geschäftsführung — nicht dem System.
 ## Fristen und Termine
 
 **Jede Frist steht in dem Block, dem ihr Bestand gehört**, und wird hier nicht wiederholt; dieser
-Block trägt die Reihenfolge, nicht die Zahlen. Drei stehen trotzdem hier, weil sie keinem einzelnen
+Block trägt die Reihenfolge, nicht die Zahlen.
+
+**Sie stehen als Wert im System und nicht im Code** (Geschäftsführung, 04.09.2026) —
+[geändert wird von der Geschäftsführung](hebel.md#geld-und-fristen-im-system-alles-andere-fest), und
+eine Änderung wirkt ab einem Datum, nie rückwirkend. Für diesen Lauf folgt daraus **eine** Regel, und
+sie ist der ganze Unterschied: **Wird eine Frist gesenkt, holt er die beiden Ankündigungen nach.**
+Ein Bestand, dessen Ankündigungstermin durch die Senkung schon vergangen ist, wird nicht am nächsten
+Morgen geräumt, sondern bekommt zwei Wochen ab der Änderung — sonst löschte eine Eingabe am
+Nachmittag, was am Abend niemand mehr prüfen konnte. Verlängert jemand eine Frist, ist nichts zu
+tun; nach oben ist eine Frist harmlos. Drei stehen trotzdem hier, weil sie keinem einzelnen
 Block gehören:
 
 - **Der Gesundheitsbestand am Kind: drei Monate nach dem Austritt.** Ein schulfremdes Kind hat

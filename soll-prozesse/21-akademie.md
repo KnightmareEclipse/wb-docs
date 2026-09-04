@@ -69,7 +69,7 @@ ihn ausgeschrieben hat.
 - Die **Buchhaltung** zieht die Beiträge ein und kommt sonst nicht vor.
 
 Ausgelesen werden Kind, Klasse und Sorgeberechtigte ([02](02-datenaenderung.md)), das
-[SEPA-Mandat](hebel.md#geld-im-system-alles-andere-fest) der Familie ([08](08-schulvertrag.md)), das
+[SEPA-Mandat](hebel.md#geld-und-fristen-im-system-alles-andere-fest) der Familie ([08](08-schulvertrag.md)), das
 Fotoeinverständnis und der Gesundheitsbestand ([08](08-schulvertrag.md)).
 
 ## Ablauf
@@ -95,7 +95,7 @@ Abmeldung** als Text samt Beträgen und, wenn es dazu kommt, dass es **abgesagt*
 einem Satz. Ein abgesagtes Angebot bleibt sichtbar stehen, damit hinterher unterscheidbar ist, ob es
 lief oder ausfiel.
 
-**Die Kategorie ist ein [Wert im System](hebel.md#geld-im-system-alles-andere-fest)**, gepflegt von
+**Die Kategorie ist ein [Wert im System](hebel.md#geld-und-fristen-im-system-alles-andere-fest)**, gepflegt von
 der Geschäftsführung. Sie gliedert das Verzeichnis und sonst nichts: An ihr hängt kein Ablauf, keine
 Berechtigung und kein Preis, und deshalb kostet eine neue Kategorie nichts als eine Zeile. Sie ist
 am Angebot **Pflicht**, und die Liste ist **zunächst leer**: Welche Kategorien es gibt, entscheidet
@@ -152,7 +152,7 @@ zurückgibt, sagt warum, und die anbietende Person legt geändert wieder vor. Ei
 bleibt ein Entwurf und wird nirgends gezählt.
 
 **Den Betrag setzt die anbietende Stelle selbst** und nicht die Geschäftsführung — die dritte
-benannte Ausnahme vom [Geld-Hebel](hebel.md#geld-im-system-alles-andere-fest), aus demselben Grund
+benannte Ausnahme vom [Geld-Hebel](hebel.md#geld-und-fristen-im-system-alles-andere-fest), aus demselben Grund
 wie die erste: Wer den Kurs führt, kennt seinen Einkauf. Was die Lebensmittel einer Kochwerkstatt
 kosten, weiß niemand ein Jahr im Voraus, und deshalb steht der Betrag am einzelnen Angebot statt in
 einer Preisliste. **Die Freigabe ist die Gegenprobe dazu:** Anlegen darf jede und jeder

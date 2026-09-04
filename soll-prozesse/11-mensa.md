@@ -67,7 +67,7 @@ Ausgelesen werden:
   die ein Essen enthalten ([21](21-akademie.md)).
 - Die Gesundheitsangaben ([08](08-schulvertrag.md), [09](09-hortvertrag.md)).
 - Das SEPA-Mandat ([08](08-schulvertrag.md)).
-- Betrag und Bedingungen als [Werte im System](hebel.md#geld-im-system-alles-andere-fest).
+- Betrag und Bedingungen als [Werte im System](hebel.md#geld-und-fristen-im-system-alles-andere-fest).
 
 ## Ablauf
 
@@ -116,7 +116,7 @@ Der **Beitrag hängt an der Zahl der Esstage in der Woche**, gestaffelt und nich
 - 84,50 € für vier
 - und 105 € für fünf,
 
-je Monat und je ein [Wert im System](hebel.md#geld-im-system-alles-andere-fest) der
+je Monat und je ein [Wert im System](hebel.md#geld-und-fristen-im-system-alles-andere-fest) der
 Geschäftsführung.
 
 Der Nachlass steckt damit im Betrag und nicht in einer Regel, wie beim Hortbeitrag

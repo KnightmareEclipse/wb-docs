@@ -56,7 +56,7 @@ keine Klasse** — er ist der einzige, der ohne sie auskommt.
   zweiten Fall gibt es keinen Anhang, weil es keinen gibt**, und die Strecke ist auf 2000 km je
   Fahrt begrenzt.
 
-Zwei [Werte im System](hebel.md#geld-im-system-alles-andere-fest) gehören der Geschäftsführung,
+Zwei [Werte im System](hebel.md#geld-und-fristen-im-system-alles-andere-fest) gehören der Geschäftsführung,
 beide mit Gültigkeitsdatum:
 
 - der **Kilometersatz**, derzeit 0,30 € je km,
