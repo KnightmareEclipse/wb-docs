@@ -1,14 +1,18 @@
 -- Prüfskript zu stammdaten-schema.sql.
 --
--- Sollstand: 26 Tabellen — 12 Wertelisten (salutations, genders, denominations,
+-- Sollstand: 28 Tabellen — 13 Wertelisten (salutations, genders, denominations,
 -- languages, countries, guardian_relations, access_levels, previous_schools,
 -- school_branches,
--- houses, roles, phone_types), Person und Erreichbarkeit (addresses, persons,
+-- houses, roles, phone_types, alumni_kinds), Person und Erreichbarkeit (addresses, persons,
 -- phone_numbers),
 -- Familie und Kind (families, classes, children, guardians, family_guardians,
--- family_contacts, sepa_mandates), Q4 (employees, employee_roles) und der
+-- family_contacts, sepa_mandates), Q4 (employees, employee_roles), die
+-- Ehemaligen (alumni) und der
 -- Zugang (login_codes, login_sessions); die Klassenlehrkraft steht als Spalte
 -- an `classes`.
+-- `alumni` steht neben `persons` wie `employees`: eine Zugehoerigkeit, die eine
+-- Person zusaetzlich zu ihren anderen traegt — je Person und Art eine Zeile,
+-- und ein Jahr genau dort, wo die Art es verlangt.
 -- `guardians` trägt die personenweiten Angaben eines Sorgeberechtigten,
 -- `family_guardians` daneben allein, was an einer einzelnen Sorgeberechtigung
 -- hängt.
@@ -38,7 +42,8 @@ BEGIN
         'roles', 'addresses', 'persons', 'phone_numbers', 'families', 'classes',
         'children', 'guardians', 'family_guardians', 'family_contacts',
         'sepa_mandates',
-        'employees', 'employee_roles', 'login_codes', 'login_sessions', 'phone_types'
+        'employees', 'employee_roles', 'login_codes', 'login_sessions', 'phone_types',
+        'alumni_kinds', 'alumni'
     ]) AS t
     WHERE to_regclass('public.' || t) IS NULL;
 
@@ -69,6 +74,9 @@ BEGIN
         'ck_sepa_mandates_holder', 'ck_sepa_mandates_holder_contact',
         'ck_sepa_mandates_bic', 'ck_sepa_mandates_iban',
         'ck_employees_working_days', 'ck_school_branches_grades',
+        'pk_alumni_kinds', 'uq_alumni_kinds_code', 'uq_alumni_kinds_exit_year',
+        'pk_alumni', 'fk_alumni_person', 'fk_alumni_kind', 'fk_alumni_branch',
+        'uq_alumni_person_kind', 'ck_alumni_exit_year', 'ck_alumni_exit_year_range',
         'ck_login_codes_purpose', 'ck_login_codes_attempts',
         'fk_login_codes_person', 'ck_login_codes_person',
         'uq_login_sessions_token_hash', 'fk_login_sessions_person',
@@ -996,6 +1004,97 @@ SELECT pg_temp.expect_accept(
 SELECT pg_temp.expect_reject(
     '13 — Person gelöscht, während ihr Mitarbeitendeneintrag noch steht',
     $q$DELETE FROM persons WHERE person_id = '22222222-2222-2222-2222-222222222226'$q$);
+
+-- ---------------------------------------------------------------------------
+-- Die Ehemaligen: eine Zugehörigkeit neben der Person, nicht ihr Rest
+-- ---------------------------------------------------------------------------
+INSERT INTO alumni_kinds (code, name, requires_exit_year, created_by) VALUES
+    ('former_pupil',    'Ehemaliges Kind',         true,  'system:check'),
+    ('former_guardian', 'Ehemaliges Elternteil',   false, 'system:check'),
+    ('former_employee', 'Ehemalige:r Mitarbeitende:r', true, 'system:check');
+INSERT INTO persons (person_id, first_name, last_name, created_by) VALUES
+    ('88888888-8888-8888-8888-888888888881', 'Rueck', 'Kehrer', 'system:check'),
+    ('88888888-8888-8888-8888-888888888882', 'Ehe', 'Maligeltern', 'system:check');
+
+-- Das ehemalige Kind traegt Jahr und Zweig: „Realschule 2026" und nicht „2026".
+SELECT pg_temp.expect_accept(
+    '00 — das ehemalige Kind mit Jahrgang und Zweig',
+    $q$INSERT INTO alumni (person_id, alumni_kind_id, requires_exit_year,
+                           exit_year, school_branch_id, created_by)
+       VALUES ('88888888-8888-8888-8888-888888888881',
+               (SELECT alumni_kind_id FROM alumni_kinds WHERE code='former_pupil'),
+               true, 2010,
+               (SELECT school_branch_id FROM school_branches WHERE code='GS'),
+               'system:check')$q$);
+
+-- „Eltern brauchen keinen Jahrgang": ihr letztes Kind ging in einem Jahr, ein
+-- frueheres vielleicht vier Jahre davor.
+SELECT pg_temp.expect_accept(
+    '00 — das ehemalige Elternteil ohne Jahrgang',
+    $q$INSERT INTO alumni (person_id, alumni_kind_id, created_by)
+       VALUES ('88888888-8888-8888-8888-888888888882',
+               (SELECT alumni_kind_id FROM alumni_kinds WHERE code='former_guardian'),
+               'system:check')$q$);
+
+-- Wo die Art ein Jahr verlangt, steht eines — sonst waere requires_exit_year
+-- eine Absichtserklaerung.
+SELECT pg_temp.expect_reject(
+    '00 — ehemaliges Kind ohne Jahrgang',
+    $q$INSERT INTO alumni (person_id, alumni_kind_id, requires_exit_year, created_by)
+       VALUES ('88888888-8888-8888-8888-888888888882',
+               (SELECT alumni_kind_id FROM alumni_kinds WHERE code='former_pupil'),
+               true, 'system:check')$q$);
+
+-- Und das mitgefuehrte Flag muss zu seiner Art passen.
+SELECT pg_temp.expect_reject(
+    '00 — Art und mitgefuehrtes Jahrgangs-Flag widersprechen sich',
+    $q$INSERT INTO alumni (person_id, alumni_kind_id, requires_exit_year,
+                           exit_year, created_by)
+       VALUES ('88888888-8888-8888-8888-888888888882',
+               (SELECT alumni_kind_id FROM alumni_kinds WHERE code='former_guardian'),
+               true, 2010, 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    '00 — ein Jahrgang, der ein Zahlendreher ist',
+    $q$INSERT INTO alumni (person_id, alumni_kind_id, requires_exit_year,
+                           exit_year, created_by)
+       VALUES ('88888888-8888-8888-8888-888888888882',
+               (SELECT alumni_kind_id FROM alumni_kinds WHERE code='former_employee'),
+               true, 1899, 'system:check')$q$);
+
+-- Dieselbe Art zweimal an derselben Person waere zwei Antworten auf eine Frage.
+SELECT pg_temp.expect_reject(
+    '00 — dieselbe Person zweimal in derselben Art',
+    $q$INSERT INTO alumni (person_id, alumni_kind_id, requires_exit_year,
+                           exit_year, created_by)
+       VALUES ('88888888-8888-8888-8888-888888888881',
+               (SELECT alumni_kind_id FROM alumni_kinds WHERE code='former_pupil'),
+               true, 2011, 'system:check')$q$);
+
+-- Zwei Arten dagegen sind zwei Zugehoerigkeiten: Wer als Kind ging und Jahre
+-- spaeter als Mitarbeitende ausschied, steht zweimal da — mit zwei Jahren, die
+-- beide stimmen.
+SELECT pg_temp.expect_accept(
+    '00 — dieselbe Person als ehemaliges Kind und als ehemalige Mitarbeitende',
+    $q$INSERT INTO alumni (person_id, alumni_kind_id, requires_exit_year,
+                           exit_year, created_by)
+       VALUES ('88888888-8888-8888-8888-888888888881',
+               (SELECT alumni_kind_id FROM alumni_kinds WHERE code='former_employee'),
+               true, 2024, 'system:check')$q$);
+
+-- Der Kern des Ganzen: Die Zugehoerigkeit haelt ihre Person fest. Ein
+-- Ehemaliger im Verteiler ist kein Rest, sondern ein Empfaenger.
+SELECT pg_temp.expect_reject(
+    '17 — die Person mit einer Alumni-Zeile laesst sich nicht loeschen',
+    $q$DELETE FROM persons WHERE person_id = '88888888-8888-8888-8888-888888888881'$q$);
+
+-- Stufe 6 raeumt sie deshalb selbst, vor der Person — die Zugehoerigkeit
+-- besteht, weil jemand zugestimmt hat, und ist ohne die Zustimmung
+-- gegenstandslos.
+DELETE FROM alumni;
+SELECT pg_temp.expect_accept(
+    '17 — nach der Alumni-Zeile geht die Person',
+    $q$DELETE FROM persons WHERE person_id = '88888888-8888-8888-8888-888888888881'$q$);
 
 -- 02: „Löschanker: geht mit der Person" — die Nummern gehen mit ihr.
 SELECT pg_temp.expect_accept(

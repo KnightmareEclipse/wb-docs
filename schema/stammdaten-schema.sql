@@ -867,6 +867,120 @@ CREATE TABLE employees (
     CONSTRAINT ck_employees_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
+-- ---------------------------------------------------------------------------
+-- Ehemalige
+-- ---------------------------------------------------------------------------
+
+-- Herkunft: 00 (Zugang und Portal) — der Verteiler der Ehemaligen, in drei
+-- Kreisen: das ehemalige **Kind**, das **Elternteil**, dessen letztes Kind
+-- gegangen ist, und der ehemalige **Mitarbeitende**. Kein Löschanker im
+-- eigenen Recht: Die Zeile lebt, solange die Einwilligung offen ist, an der sie
+-- hängt, und geht mit deren Widerruf (17).
+--
+-- **Warum sie neben `persons` steht und nicht darin.** Die Zugehörigkeit zu
+-- einem Jahrgang ist eine eigene Tatsache über eine Person und **nicht der Rest
+-- einer gelöschten** — genau das ist der Fall, der jede andere Bauform bricht:
+-- Ein Ehemaliger, der sein eigenes Kind an die Schule bringt, ist wieder ein
+-- vollständiges Elternteil mit Familie und Vertrag. Seine Kindzeile von damals
+-- ist längst fort (fünf Jahre nach dem Austritt), und in einer reduzierten
+-- Personenzeile wäre sein Jahrgang nicht unterzubringen, weil an dieser Person
+-- nichts zu reduzieren ist. Die Tabelle steht deshalb neben `persons` wie
+-- `employees` auch: eine Rolle, die eine Person zusätzlich zu ihren anderen
+-- trägt.
+--
+-- **Eine Zeile je Person und Art, nicht je Person.** Dieselbe Person kann als
+-- Kind gegangen und Jahre später als Mitarbeitende ausgeschieden sein; das sind
+-- zwei Zugehörigkeiten und nicht eine mit zwei Werten.
+--
+-- **Sie entsteht allein mit der Einwilligung** („Alles unter Zustimmung",
+-- Geschäftsführung 04.09.2026). Ein Bestand über Ehemalige, die nie zugestimmt
+-- haben, wäre eine Adressliste ohne Rechtsgrundlage — deshalb legt der
+-- Juni-Lauf sie erst an, wenn jemand geantwortet hat (04), und der Widerruf
+-- nimmt sie wieder mit. Was den Widerspruch belegt, bleibt an der Einwilligung
+-- stehen und nicht hier: `consents.revoked_at` ist die Sperre, diese Zeile ist
+-- die Zugehörigkeit.
+--
+-- **Was hier bewusst NICHT steht** — der Zweck ist der Verteiler und das
+-- Jahrgangstreffen, und er trägt nicht mehr als das: kein Abschluss, keine
+-- Note, keine Klassenlehrkraft, kein Grund des Ausscheidens, keine Angabe aus
+-- dem Mitarbeitendeneintrag. Wer daraus eine Ehemaligen-Akte machte, brauchte
+-- eine zweite Rechtsgrundlage.
+CREATE TABLE alumni_kinds (
+    alumni_kind_id     integer GENERATED ALWAYS AS IDENTITY,
+    code               text NOT NULL,
+    name               text NOT NULL,
+    -- Deaktiviert statt gelöscht (rules.md Abschnitt 3).
+    is_active          boolean NOT NULL DEFAULT true,
+    -- Wahr, wo das Jahr des Weggangs zur Art gehört: beim ehemaligen Kind sein
+    -- Abgangsjahr, beim ehemaligen Mitarbeitenden das Jahr des letzten
+    -- Arbeitstags. **Falsch beim Elternteil** — dessen letztes Kind ging in
+    -- einem bestimmten Jahr, ein früheres vielleicht vier Jahre davor; ein
+    -- Jahrgang wäre dort eine Zahl, die nichts benennt (Geschäftsführung,
+    -- 04.09.2026: „Eltern brauchen keinen Jahrgang").
+    requires_exit_year boolean NOT NULL DEFAULT false,
+    created_at         timestamptz NOT NULL DEFAULT now(),
+    created_by         text NOT NULL,
+
+    CONSTRAINT pk_alumni_kinds      PRIMARY KEY (alumni_kind_id),
+    CONSTRAINT uq_alumni_kinds_code UNIQUE (code),
+    -- Trägt den zusammengesetzten Fremdschlüssel von `alumni` (rules.md
+    -- Abschnitt 1) — dieselbe Bauform wie `uq_consent_purposes_requires_child`.
+    CONSTRAINT uq_alumni_kinds_exit_year UNIQUE (alumni_kind_id, requires_exit_year),
+    CONSTRAINT ck_alumni_kinds_code CHECK (code <> ''),
+    CONSTRAINT ck_alumni_kinds_name CHECK (name <> ''),
+    -- Ohne `guardian:`: eine Werteliste legt kein Elternteil an.
+    CONSTRAINT ck_alumni_kinds_created_by CHECK (created_by ~ '^(entra:|system:)')
+);
+
+CREATE TABLE alumni (
+    alumni_id          uuid NOT NULL DEFAULT gen_random_uuid(),
+    -- **Hält die Person fest** (NO ACTION), wie die Newsletter-Einwilligung
+    -- daneben: Solange jemand im Verteiler steht, ist er kein Rest, sondern ein
+    -- Empfänger (querschnitt-schema.sql, Stufe 6 des Lösch-Laufs).
+    person_id          uuid NOT NULL,
+    alumni_kind_id     integer NOT NULL,
+    -- Das Flag der Artzeile, hier mitgeführt, damit der CHECK unten es sehen
+    -- kann; `fk_alumni_kind` hält beide zusammen (rules.md Abschnitt 1).
+    requires_exit_year boolean NOT NULL DEFAULT false,
+    -- Nur das **Jahr** und kein Datum: Ein Jahrgangstreffen rechnet in Jahren,
+    -- und der Tag des Weggangs gehört dem Vertrag bzw. dem
+    -- Mitarbeitendeneintrag — beide sind fort, wenn diese Zeile noch steht.
+    exit_year          smallint,
+    -- „Realschule 2026" und nicht „2026": Die Grundschule geht meist intern
+    -- weiter, ein Jahrgang ohne Zweig benennt deshalb keine Gruppe. Leer beim
+    -- Elternteil und beim Mitarbeitenden, die keinem Zweig angehören.
+    -- [A] Der Zweig bleibt ohne eigenes Pflichtflag an der Art. — Alternative:
+    -- ein zweites `requires_school_branch` wie oben; Preis: eine Zeile aus dem
+    -- Bestand vor 2026, deren Zweig niemand mehr weiß, ließe sich nicht mehr
+    -- eintragen.
+    school_branch_id   integer,
+    created_at         timestamptz NOT NULL DEFAULT now(),
+    created_by         text NOT NULL,
+
+    CONSTRAINT pk_alumni        PRIMARY KEY (alumni_id),
+    CONSTRAINT fk_alumni_person FOREIGN KEY (person_id) REFERENCES persons (person_id),
+    CONSTRAINT fk_alumni_kind
+        FOREIGN KEY (alumni_kind_id, requires_exit_year)
+        REFERENCES alumni_kinds (alumni_kind_id, requires_exit_year),
+    CONSTRAINT fk_alumni_branch
+        FOREIGN KEY (school_branch_id) REFERENCES school_branches (school_branch_id),
+    -- Eine Zeile je Person und Art: Wer als Kind ging und später als
+    -- Mitarbeitende, steht zweimal da — mit zwei Jahren, die beide stimmen.
+    CONSTRAINT uq_alumni_person_kind UNIQUE (person_id, alumni_kind_id),
+    -- Wo die Art ein Jahr verlangt, steht eines. Ohne diesen CHECK wäre
+    -- `requires_exit_year` eine Absichtserklärung.
+    CONSTRAINT ck_alumni_exit_year
+        CHECK (NOT requires_exit_year OR exit_year IS NOT NULL),
+    -- Ein grober Rahmen gegen den Zahlendreher, keine Fachregel: 1899 und 21260
+    -- sind Tippfehler, 2019 und 2031 sind beide plausibel. Bewusst **keine**
+    -- Grenze am heutigen Jahr — die wäre ein Ausdruck über `now()` und in einem
+    -- CHECK nicht erlaubt, weil Postgres dort nur Unveränderliches duldet; eine
+    -- Zeile, die morgen ungültig würde, wäre ohnehin die falsche Bauform.
+    CONSTRAINT ck_alumni_exit_year_range
+        CHECK (exit_year IS NULL OR exit_year BETWEEN 1900 AND 2200),
+    CONSTRAINT ck_alumni_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
+);
+
 -- Herkunft: 00 (Zugang und Portal) — „je Mitarbeitendem seine Rollen, samt wer
 -- sie wann vergeben oder entzogen hat …, sichtbar für Admins und
 -- Geschäftsführung". Löschanker: geht mit dem Mitarbeitendeneintrag, also mit

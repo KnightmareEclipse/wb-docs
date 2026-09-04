@@ -1581,6 +1581,11 @@ INSERT INTO loeschlauf (platz, tabelle, im_lauf) VALUES
     (17, 'families', true),
     -- Stufe 5
     (18, 'employees', true),
+    -- Stufe 6, und vor der Person: Die Zugehoerigkeit der Ehemaligen besteht,
+    -- weil jemand zugestimmt hat, und ist ohne die Zustimmung gegenstandslos.
+    -- Sie haelt ihre Person fest wie die Einwilligung daneben — ein Ehemaliger
+    -- im Verteiler ist kein Rest, sondern ein Empfaenger.
+    (18, 'alumni', true),
     -- Stufe 6
     (19, 'persons', true),
     -- Stufe 7. Sie folgt als einzige nicht aus einem Fremdschlüssel; hier steht

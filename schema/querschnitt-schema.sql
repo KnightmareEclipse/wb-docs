@@ -122,7 +122,8 @@
 --   5. `employees`, ab `last_working_day` (13). Die Rollen gehen mit; was
 --      seinen Namen anderswo trägt, überlebt ihn (Beleg 12) und braucht den
 --      Namen vorher gesetzt.
---   6. Die kindlosen Zustimmungen, dann `persons`. Beide sieht der Lauf jetzt
+--   6. Die kindlosen Zustimmungen, die Zugehörigkeit der Ehemaligen
+--      (`alumni`, stammdaten-schema.sql), dann `persons`. Alle drei sieht der Lauf jetzt
 --      einzeln, seit `fk_consents_person` die Person festhält, statt mit ihr zu
 --      gehen: Er räumt jede Zustimmung ohne Kind selbst und **lässt dabei genau
 --      die stehen, die abbestellbar und nicht widerrufen ist**. Eine Person, an
@@ -133,7 +134,14 @@
 --      Mehr braucht der Versand nicht — die Zustelladresse steht ohnehin an der
 --      Einwilligung (`consents.delivery_address`) und nicht an der Person, und
 --      „Name und Mailadresse dürfen bleiben, bis widersprochen wird" ist damit
---      wörtlich erfüllt. Das ist der einzige Reduktionsschritt des Laufs, er
+--      wörtlich erfüllt.
+--      **`alumni` geht mit der Einwilligung und nicht mit der Person:** Die
+--      Zugehörigkeit besteht, weil jemand zugestimmt hat; ist die letzte offene
+--      Zustimmung dieser Person fort, ist auch sie gegenstandslos, und dann
+--      hält nichts mehr die Person auf. Sie hält deshalb ihrerseits die Person
+--      fest und wird vor ihr geräumt — ein Ehemaliger, der sein eigenes Kind an
+--      die Schule bringt, wird davon nicht berührt: Bei ihm hält die Familie
+--      die Person längst. Das ist der einzige Reduktionsschritt des Laufs, er
 --      trifft eine Tabelle und eine Spaltenliste; beim Kind gibt es ihn nicht,
 --      dafür steht `photo_consent_records` daneben.
 --      Telefonnummern, die Sorgeberechtigten-Angaben (`guardians`), versandte

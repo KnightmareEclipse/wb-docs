@@ -109,6 +109,40 @@ Abgewählt wird im Portal oder über den Link in der Mail selbst. **Der Widerspr
 er setzt einen Zeitpunkt: Sonst wäre später nicht belegbar, dass ab diesem Tag nichts mehr
 geschrieben wurde, und die Adresse käme beim nächsten Import zurück.
 
+### Die Ehemaligen
+
+**Drei Kreise, drei Themen, ein Bauteil** — jedes ist ein Newsletter-Thema wie jedes andere und
+kostet eine Zeile: das **ehemalige Kind**, das **Elternteil**, dessen letztes Kind gegangen ist, und
+der **ehemalige Mitarbeitende**. Sie bekommen Verschiedenes zu lesen und werden deshalb getrennt
+geführt, nicht in einem Verteiler mit einer Filterregel.
+
+Wer zustimmt, bekommt neben seiner Einwilligung eine **Zugehörigkeit**: welcher der drei Kreise,
+und bei Kind und Mitarbeitendem das **Jahr des Weggangs** — beim Kind dazu der Schulzweig, denn ein
+Jahrgangstreffen ist „Realschule 2026" und nicht „2026". **Eltern tragen keinen Jahrgang:** Ihr
+letztes Kind ging in einem bestimmten Jahr, ein früheres vielleicht vier Jahre davor, und eine Zahl,
+die nichts benennt, ist schlechter als keine.
+
+**Warum das neben der Person steht und nicht darin** — der Fall, an dem jede andere Form bricht:
+Ein Ehemaliger bringt Jahre später sein **eigenes Kind** an die Schule. Dann ist er wieder ein
+vollständiges Elternteil mit Familie und Vertrag, seine eigene Kindzeile von damals ist längst
+gelöscht, und in einer „reduzierten" Personenzeile wäre sein Jahrgang nicht unterzubringen — an
+dieser Person ist nichts zu reduzieren. Dieselbe Person kann außerdem als Kind gegangen und Jahre
+später als Mitarbeitende ausgeschieden sein: **zwei Zugehörigkeiten, zwei Jahre, die beide
+stimmen.**
+
+**Alles unter Zustimmung, und die Zugehörigkeit entsteht nicht ohne sie.** Ein Bestand über
+Ehemalige, die nie zugestimmt haben, wäre eine Adressliste ohne Rechtsgrundlage. Der Widerruf nimmt
+die Zugehörigkeit wieder mit; was den Widerspruch belegt, bleibt an der Einwilligung stehen.
+
+**Was der Bestand nicht trägt:** keinen Abschluss, keine Note, keine Klassenlehrkraft, keinen Grund
+des Ausscheidens und nichts aus dem Mitarbeitendeneintrag. Der Zweck ist der Verteiler und das
+Jahrgangstreffen; wer daraus eine Ehemaligen-Akte machte, bräuchte eine zweite Rechtsgrundlage.
+
+`[A]` Der ehemalige Mitarbeitende wird **beim Ausscheiden** gefragt, wie das Kind im Juni vor dem
+Abgang ([04](04-schuljahreswechsel.md)). — Alternative: gar nicht aktiv fragen, sondern nur auf
+Zuruf eintragen; Preis: Nach dem letzten Arbeitstag ist die dienstliche Adresse fort und die private
+stand nie im System.
+
 ## Dateien
 
 Keine.

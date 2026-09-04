@@ -48,6 +48,10 @@ Der Widerspruch löscht nicht, er setzt einen Zeitpunkt. Sonst ist später nicht
 **Zweitens hätte Stufe 6 des Lösch-Laufs den Verteiler still abgeräumt.** `fk_consents_person` stand auf `ON DELETE CASCADE` — die Einwilligung ging mit der Person, statt sie festzuhalten, und niemand hätte widersprochen. Sie steht jetzt auf NO ACTION, der Lauf räumt die kindlosen Zustimmungen selbst und lässt genau die stehen, die abbestellbar und nicht widerrufen ist; die Person wird dann reduziert statt gelöscht (Anrede und Name bleiben, Anschrift und Telefon gehen). Die Regel dafür steht in `soll-prozesse/17`: Was seinen Anker überdauern muss, hält ihn fest.
 
 **Wie die Schule erfährt, wer Alumni werden will, ist ebenfalls beantwortet:** eine Mail am 1. Juni, vor dem Abgang im Juli — an die Zehntklässler selbst und an die Sorgeberechtigten, deren letztes Kind geht (`soll-prozesse/04`). Nachher wäre niemand erreichbar, weil die Adresse drei Monate nach dem Austritt fällt.
+
+**Drittens: drei Kreise, drei Themen, und eine Zugehörigkeit daneben.** Ehemaliges Kind, ehemaliges Elternteil und ehemalige:r Mitarbeitende:r bekommen Verschiedenes zu lesen — das sind drei Zeilen in `consent_purposes` und kein Bau. Was der Verteiler allein nicht trägt, ist der **Jahrgang**: Er steht heute an `children.exit_date` und ist fünf Jahre nach dem Austritt fort, also bevor das erste Jubiläum ansteht. Er liegt deshalb in `alumni` (stammdaten-schema.sql), je Person und Art eine Zeile.
+
+**Der Fall, an dem jede andere Bauform bricht:** Ein Ehemaliger bringt Jahre später sein eigenes Kind an die Schule. Dann ist er wieder ein vollständiges Elternteil mit Familie und Vertrag — an dieser Person ist nichts zu reduzieren, und in einer reduzierten Zeile wäre sein Jahrgang nicht unterzubringen. Dieselbe Person kann außerdem als Kind gegangen und später als Mitarbeitende ausgeschieden sein: zwei Zugehörigkeiten, zwei Jahre. Eltern tragen keinen Jahrgang, weil ihr letztes Kind in einem Jahr ging und ein früheres vielleicht vier Jahre davor.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
@@ -62,6 +66,8 @@ Der Widerspruch löscht nicht, er setzt einen Zeitpunkt. Sonst ist später nicht
 - [ ] #8 Entschieden, ab welcher Menge der Versand aus dem Portal an die Grenzen des Tenants stößt
 - [x] #9 Die drei Sorten Mail stehen als Werteliste; eine Untergrenze an einer nicht abwählbaren Kategorie wird abgewiesen
 - [ ] #10 Die Schreibschicht weist die Abwahl der letzten Schulinformation einer Familie ab (TASK-246)
+- [x] #11 Die Zugehörigkeit steht neben der Person: je Person und Art eine Zeile, Jahrgang wo die Art ihn verlangt, und sie hält die Person fest
+- [ ] #12 Die drei Themen und die drei Arten stehen als Anfangsbestand der Wertelisten (TASK-246)
 <!-- AC:END -->
 
 ## Implementation Notes

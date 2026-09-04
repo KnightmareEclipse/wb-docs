@@ -91,8 +91,10 @@ Fünf, sonst keine.
   an Ehemalige und geht an zwei Kreise: an die **Schülerinnen und Schüler der Klasse 10**, die
   selbst antworten, und an die **Sorgeberechtigten, deren letztes Kind** zum 31. Juli abgeht — bei
   ihnen für Mitteilungen an Ehemaligen-Eltern. Wer nicht antwortet, bekommt nichts; eine Erinnerung
-  gibt es nicht. Die Einwilligung trägt danach die Adresse und keine Personenzeile mit Anschrift
-  ([00](00-zugang-und-portal.md)).
+  gibt es nicht. Wer antwortet, bekommt die Einwilligung mit seiner privaten Adresse und daneben
+  seine **Zugehörigkeit** — beim Kind mit Abgangsjahr und Schulzweig, beim Elternteil ohne Jahrgang
+  ([00](00-zugang-und-portal.md)). Das ist der einzige Moment, in dem der Jahrgang noch zu haben
+  ist: Fünf Jahre nach dem Austritt ist die Kindzeile fort, und das erste Jubiläum kommt später.
 - Am 1. Juli die Erinnerungen an Sekretariat und Geschäftsführung, jede mit ihrer Sache; die ans
   Sekretariat genau einmal, es wird nicht nachgefasst.
 - Am 1. August die Mail an alle Sorgeberechtigten eines abgehenden Kindes: welches Kind, zu welchem

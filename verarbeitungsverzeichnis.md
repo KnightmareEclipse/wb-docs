@@ -52,7 +52,7 @@ in `schema/` liegt.
 | Erziehungsberechtigte | Name, Anschrift, Telefon, E-Mail, Familienzugehörigkeit, Vertrags- und Zahlungsbezug, Arbeitsstundenkonto |
 | Notfallkontakte | Name und Telefonnummer, sonst nichts |
 | Bewerber ohne Aufnahme | die Voranmeldedaten bis zum Ablauf ihrer Frist |
-| Newsletter-Empfänger ohne Vertragsverhältnis | Anrede, Name und die Zustelladresse an der Einwilligung je Thema — mehr nicht; sie hängen an keiner Familie und an keinem Kind. Ihre Frist läuft ab dem Widerspruch: bis dahin unbegrenzt, danach mit dem nächsten Lösch-Lauf (`soll-prozesse/17`) |
+| Newsletter-Empfänger ohne Vertragsverhältnis | Anrede, Name und die Zustelladresse an der Einwilligung je Thema, dazu die Zugehörigkeit — welcher der drei Kreise, bei Kind und Mitarbeitendem das Jahr des Weggangs, beim Kind der Schulzweig. **Kein Abschluss, keine Note, kein Grund des Ausscheidens.** Mehr nicht; sie hängen an keiner Familie und an keinem Kind. Ihre Frist läuft ab dem Widerspruch: bis dahin unbegrenzt, danach mit dem nächsten Lösch-Lauf (`soll-prozesse/17`) |
 | Mitarbeitende | Entra-Object-ID, Name, Rolle; kein Personalaktendatum — das bleibt außerhalb (`grenzkarte.md`) |
 | Kinder im Hort | dazu die **Betreuungsakte** des Horts — Absprachen, Verhalten, Beobachtungsbögen. Sie enthält eine Bewertung, liegt in einer eigenen SharePoint-Bibliothek und wird allein vom Hort gelesen (`grenzkarte.md`, Q2) |
 | **Besondere Kategorien (Art. 9)** | Gesundheitsmerkmale und Masernnachweis (`schema/gesundheit-schema.sql`), Konfession (`schema/stammdaten-schema.sql`) |
@@ -96,6 +96,7 @@ geändert:
 | Gesundheitsbestand am Kind | drei Monate nach dem Austritt | `schema/gesundheit-schema.sql` |
 | Nachweis der Fotoerlaubnis je Kind | **unbegrenzt** — er belegt, bis zu welchem Tag sie galt (Datenschutzbeauftragter, 04.09.2026). Er entsteht erst beim Löschen des Kindes und trägt dann Name, Geburtsdatum, Abgangsdatum, Schulzweig und die beiden Zeitpunkte; die Zustimmungszeile selbst geht mit dem Kind | `soll-prozesse/08` |
 | Newsletter-Einwilligung je Person | **unbegrenzt**, bis widersprochen wird; danach mit dem nächsten Lösch-Lauf. Die Person bleibt so lange mit Anrede und Namen stehen, ohne Anschrift und Telefonnummer | `soll-prozesse/00` |
+| Zugehörigkeit der Ehemaligen (`alumni`) | dieselbe Frist wie die Einwilligung, an der sie hängt — sie entsteht nicht ohne Zustimmung und geht mit dem Widerruf | `soll-prozesse/00` |
 | Gesundheitsangaben eines schulfremden Kindes | vier Wochen nach dem letzten gebuchten Termin | `schema/ferien-schema.sql` |
 | Gesundheitsangaben einer Veranstaltung | vier Wochen nach ihrem Ende | `soll-prozesse/19`, `21` |
 | Anmeldeformular einer Fahrt samt Unterschrift | drei Jahre nach dem Ende der Fahrt | `soll-prozesse/19` |
