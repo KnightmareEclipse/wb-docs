@@ -130,5 +130,3 @@ Keine neuen. Die zwei des Blocks stehen dort und im Schema, unverändert durch d
 
 `[?]` Ist der Text der Anlage anzupassen — Eintragung im Portal statt Zettel und Frist 31. Juli? —
 Geschäftsführung.
-
-`[?]` Wird der Bonus in Optigem als eigene Position geführt? — Buchhaltung.

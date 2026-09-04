@@ -19,6 +19,9 @@ ordinal: 208000
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
 Aus TASK-192 (Nachtlauf 02.09.2026): Eine Datei entsteht dort, wo eine Unterschrift entsteht — beim Signaturlink des Kindes ab 14. Die Antwort der Eltern per PUT /children/{id}/consents/photo trägt keine Unterschrift und bekommt keine Datei; sie steht allein als Zeile mit granted_at (Art. 7 Abs. 1). 08 sagt „eine Unterlage, eine Datei" und TASK-192 „erzeugt, unterschrieben und abgelegt wie der Vertrag" — das passt für die Eltern nur, wenn ihre Antwort ebenfalls unterschrieben wird (image_base64 am PUT, Signature mit child_id, Datei wie beim Kind). Zu entscheiden, nicht nachts.
+
+**Nachtrag 04.09.2026 (Datenschutzbeauftragter):** Die Fotoerlaubnis bleibt **unbegrenzt** — sie belegt, bis zu welchem Tag sie galt. Das entscheidet diese Frage nicht, schaerft sie aber: Eine Datei, die unbegrenzt liegt, traegt den Namen des Einwilligenden unbegrenzt mit. Ob die Elternantwort eine Unterschrift und damit eine Datei bekommt, haengt deshalb an TASK-244 — dort steht die Frage, ob der Name im PDF genuegt oder die Personenzeile selbst bleiben muss.
+
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria

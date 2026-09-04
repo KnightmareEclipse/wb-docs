@@ -218,6 +218,13 @@ Abweichung zeigt — auch an der Fassung, die eine Familie vorlegt.
 > die Kopie, die jede Familie selbst bekommt. Nachrüsten ließe es sich später an genau dieser
 > Stelle: gesiegelt würde beim Bauen des Dokuments, an allem anderen änderte sich nichts.
 
+**Wozu die Dateien da sind, wo die Daten ohnehin im System stehen:** Sie sind die formatierte
+Fassung — in der Schülerakte liegt etwas, das man ansehen kann, ohne die Oberfläche zu bedienen, und
+die Familie sieht darin, was sie angegeben hat. Das ist der Gegenpol zur
+[sparsamen Ansicht](hebel.md#sparsame-ansicht), die die Angaben nach der Freigabe nicht mehr als
+Formular zeigt: Was die Familie eingetragen hat, bleibt ihr als Unterlage erhalten, nicht als
+Eingabemaske.
+
 Der Vertrag geht an die Eltern, liegt im Portal, solange das Kind eingeschrieben ist, und wird von
 Weltenbaum in die Schülerakte gelegt. Kommt es nicht zur Freigabe, entsteht nie ein PDF, und die
 Bilder verschwinden mit der Bewerbung.
@@ -272,6 +279,16 @@ Grundschule und 150 / 130 / 110 € in der Realschule, ab dem vierten Kind beitr
 führt. Das SEPA-Mandat gehört zum Vertrag und wird nicht eigens geschlossen — als Datei steht es
 trotzdem für sich, wie das Fotoeinverständnis auch: eine Unterlage, eine Datei. Sonst trüge es die
 Frist des Vertrags mit, und aus einem Bündel ist nichts einzeln zu löschen.
+
+**Der Vertragsvorgang besteht damit aus mehreren Unterlagen, und jede trägt ihre eigene Frist**
+(Geschäftsführung, 04.09.2026). Heute ist der Vertrag ein einziges Dokument, in dem Schulvertrag,
+Gesundheitsangaben, Fotoeinverständnis und SEPA-Mandat zusammenstehen; das ist der Grund, aus dem
+nichts davon einzeln gelöscht werden kann, und die Geschäftsführung trägt den Schnitt mit. Wie viele
+Unterlagen es am Ende sind, folgt aus dem überarbeiteten Vertragstext; **wie lange jede läuft,
+ist dagegen nicht eigens zu entscheiden — die Datei geht mit den Daten, aus denen sie entstand.**
+Das Vertrags-PDF trägt die Frist des Vertrags, das Mandat seine eigene, das Gesundheitsblatt die des
+Gesundheitsbestands, und der läuft kürzer. Dasselbe Argument gilt hier wie bei der Akte: „eine
+gemeinsame längste Frist behielte jedes Blatt so lange wie das langlebigste".
 
 Die **digitale Schülerakte** legt Weltenbaum selbst an: ein Ordner je Kind unter der
 Kohorten-Kennung wie heute, **darin ein Unterordner je Kategorie**, und der Link darauf steht am
@@ -362,8 +379,17 @@ die Akte legt Weltenbaum selbst an.
 
 ## Löschen
 
-Kein eigener Vorgang. Gesundheitsangaben und Fotoeinverständnis hängen am Kind und verschwinden mit
-ihm im Lösch-Lauf (17); die Unterschriftsbilder sind schon mit der Gegenzeichnung weg. **Vertrag und
+Kein eigener Vorgang. Die **Gesundheitsangaben** hängen am Kind und verschwinden mit ihm im
+Lösch-Lauf (17) — genauer: drei Monate nach dem Austritt, also lange vor dem Vertrag.
+
+**Das Fotoeinverständnis dagegen bleibt unbegrenzt** (Datenschutzbeauftragter, 04.09.2026), und das
+ist kein Versehen: Ein Widerruf nimmt die Einwilligung für die Zukunft (Art. 7 Abs. 3), aber ein
+veröffentlichtes Bild verschwindet damit nicht — nachweisbar bleiben muss, **bis zu welchem Tag sie
+galt** (Art. 7 Abs. 1). Daran hängt zweierlei: Der Widerruf muss die weitere Nutzung unterbinden und
+das Löschen vorhandener Bilder anstoßen können, und die Zeile darf nicht mit dem Kind verschwinden,
+wie sie es heute täte. Sie ist damit der einzige Bestand dieses Blocks ohne Löschtermin.
+
+Die Unterschriftsbilder sind schon mit der Gegenzeichnung weg. **Vertrag und
 Mandat nicht:** Sie tragen die Fristen aus [03](03-irregulaerer-abgang.md) — der Vertrag **fünf
 Jahre nach dem Austritt**, das SEPA-Mandat **zwei** — und gehören zum Lösch-Lauf (17). Dieselben
 fünf Jahre trägt ein Vertrag, dessen Kind nie kommt, und ein ersetzter. Für die Gesundheitsangaben

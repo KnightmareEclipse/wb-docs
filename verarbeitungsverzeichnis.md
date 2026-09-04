@@ -94,6 +94,7 @@ geändert:
 | Bewerbung ohne Aufnahme | sechs Monate ab dem Endstatus | `schema/anmeldung-schema.sql` |
 | Ferienbuchung samt schulfremdem Kind | sechs Monate nach dem letzten gebuchten Termin | `schema/ferien-schema.sql` |
 | Gesundheitsbestand am Kind | drei Monate nach dem Austritt | `schema/gesundheit-schema.sql` |
+| Fotoerlaubnis je Person | **unbegrenzt** — sie belegt, bis zu welchem Tag sie galt (Datenschutzbeauftragter, 04.09.2026) | `soll-prozesse/08` |
 | Gesundheitsangaben eines schulfremden Kindes | vier Wochen nach dem letzten gebuchten Termin | `schema/ferien-schema.sql` |
 | Gesundheitsangaben einer Veranstaltung | vier Wochen nach ihrem Ende | `soll-prozesse/19`, `21` |
 | Anmeldeformular einer Fahrt samt Unterschrift | drei Jahre nach dem Ende der Fahrt | `soll-prozesse/19` |

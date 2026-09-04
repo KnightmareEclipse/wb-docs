@@ -4,7 +4,7 @@ title: Notfallbetreuung als buchbarer Vorgang
 status: In Progress
 assignee: []
 created_date: '2026-09-03 16:38'
-updated_date: '2026-09-03 20:58'
+updated_date: '2026-09-04 13:49'
 labels:
   - schema
   - anmeldung
@@ -34,7 +34,11 @@ Der Hort sieht die Buchungen des Tages als [frisch erzeugte Liste](../../soll-pr
 
 Berührt die Mensa: Wer über Mittag da ist, isst, und das Tagesessen kostet 5,90 € je Fall (11). Es hängt an dem Tag, an dem es anfällt, und wird nicht im Fallpreis versteckt.
 
-`[?]` **Der Nachweis auf dem Telefonweg ist offen.** Wer im Portal klickt, hat selbst gebucht — `created_by` trägt `guardian:`, und mehr braucht es nicht. Wer anruft, hat nichts Schriftliches: Weigert sich eine Familie später zu zahlen, weil ihr Kind an dem Tag angeblich nicht da war, steht Aussage gegen Aussage. Drei Stufen wären denkbar, entschieden ist keine — eine Bestätigung an die Familie, eine gezeichnete Tagesliste nach der Bauform des Putzdienstes (01), oder gar nichts, weil der Fall in der Praxis nicht vorkommt. **Vor dem Bau mit der Geschäftsführung zu klären**, zusammen mit der Frage, ob eine Notfallbetreuung überhaupt abgelehnt werden darf und ob eine gebuchte, aber nicht wahrgenommene berechnet wird.
+**Beantwortet am 04.09.2026 (Geschaeftsfuehrung), und anders als die drei vorgeschlagenen Stufen:** Der Nachweis am Telefonweg ist die **Sichtbarkeit im Portal**. Die Familie sieht den Eintrag, sobald er steht, und meldet sich, "bevor es auf einer Rechnung landet" — keine Unterschrift, keine gezeichnete Tagesliste. Korrigiert wird ueber den Hort; das Fenster ist der Monat bis zur Abrechnung.
+
+**Vier Regeln kommen dazu:** ein **Buchungsschluss je Fall-Art** — die Fruehbetreuung endet frueher als der Nachmittag desselben Tages; die genannten Uhrzeiten waren **Beispiele und keine Werte**, die echten stehen aus (Hortleitung) und gehoeren als Vorlaufzeit in die Datenbank (`rules.md` Abschnitt 2) —, nach dem das Portal auf den Anruf verweist statt die Schaltflaeche zu entfernen — `emergency_care_types` traegt dafuer heute keine Spalte; eine **Mail ins Hortpostfach** je Buchung, damit die Betreuung es weiss; die **Sichtbarkeit** oben; und die **Abrechnung ueber die Hortrechnung** — Sammelaufstellung zum Monatsende an die Buchhaltung fuer den naechsten Zahlungslauf, kein Einzug je Fall.
+
+**Offen bleiben zwei:** ob eine Notfallbetreuung abgelehnt werden darf, und ob eine gebuchte, aber nicht wahrgenommene berechnet wird.
 
 **Die Preise stehen seit dem 03.09.2026**, und sie hängen an denselben Modulen wie die Monatsbeiträge — der Fall ist also ein Modul, nur je Tag statt je Monat abgerechnet:
 
@@ -63,6 +67,12 @@ Damit ist auch der Fund E2 erledigt: Die Spalte mit 8/8/12/16/20 war doch unsere
 - [x] #4 Beide Eingänge schreiben dieselbe Zeile; der Weg ist an created_by ablesbar und braucht kein Feld
 - [x] #5 Buchung und Vollzug sind zwei Zeitpunkte: ein unangekündigtes Kind hat nur den zweiten, eine erledigte Buchung nur den ersten
 - [x] #6 Der Hort sieht die Buchungen des Tages als frisch erzeugte Liste
-- [ ] #7 Entschieden mit der Geschäftsführung: Nachweis auf dem Telefonweg, Ablehnung einer Buchung, Berechnung einer nicht wahrgenommenen
-- [x] #8 Bei den Modulen 2 bis 4 wird das Essen zusätzlich berechnet — es steckt in keinem Fallpreis
+- [x] #7 Bei den Modulen 2 bis 4 wird das Essen zusätzlich berechnet — es steckt in keinem Fallpreis
+- [ ] #8 Nach dem Schluss zeigt das Portal den Hinweis auf den Anruf, statt die Schaltflaeche zu entfernen
+- [ ] #9 Jede Buchung geht als Mail ins Hortpostfach, gleich ueber welchen Eingang sie kam
+- [ ] #10 Die Familie sieht den Eintrag im Portal, sobald er steht — das ist der Nachweis am Telefonweg und ersetzt Unterschrift und gezeichnete Tagesliste
+- [ ] #11 Zum Monatsende geht eine Sammelaufstellung an die Buchhaltung; einzeln eingezogen wird nichts
+- [ ] #12 Offen bleibt mit der Geschaeftsfuehrung: Ablehnung einer Buchung und Berechnung einer nicht wahrgenommenen
+- [ ] #13 Geklaert, wie ein Kind ohne SEPA-Mandat abgerechnet wird — der Zahlungslauf setzt eines voraus, die Notfallbetreuung steht aber Nicht-Hortkindern offen
+- [ ] #14 Jede Fall-Art traegt ihren eigenen Buchungsschluss als Wert im System — die Uhrzeiten stehen nicht im Code und nicht in der Doku
 <!-- AC:END -->

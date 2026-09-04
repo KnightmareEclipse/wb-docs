@@ -181,9 +181,6 @@ ihre Aufgabe abarbeitet.
 `[?]` Ist der Text der Anlage anzupassen — Eintragung im Portal statt Zettel und Frist 31. Juli? —
 Geschäftsführung.
 
-`[?]` Wird der Bonus in Optigem als eigene Position geführt, damit Aufschlag und Rückzahlung dort
-buchbar sind? — Buchhaltung
-
 ## Was heute schiefgeht
 
 Zwei Prozesse, beide von Hand. Die **Stunden**: Zettel gehen verloren oder kommen zu spät, niemand

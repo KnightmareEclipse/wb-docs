@@ -340,12 +340,35 @@ berechnet wird** und in keinem dieser Preise steckt ([11](11-mensa.md)). Die
 [Geschwisterermäßigung](hebel.md#geld-im-system-alles-andere-fest) gilt für die Notfallbetreuung
 nicht.
 
-`[?]` Drei Dinge daran sind offen und hängen zusammen: der **Nachweis auf dem Telefonweg** — wer im
-Portal bucht, hat seine Buchung, wer anruft, hat nichts Schriftliches —, ob eine Notfallbetreuung
-**abgelehnt** werden darf, und ob eine gebuchte, aber **nicht wahrgenommene** berechnet wird. Für
-den ersten wären eine Bestätigung an die Familie, eine gezeichnete Tagesliste nach der Bauform des
-Putzdienstes ([01](01-putzdienst.md)) oder gar nichts denkbar, weil der Streitfall in der Praxis
-nicht vorkommt — Geschäftsführung
+**Gebucht wird im Portal nur bis zu einer Uhrzeit, danach nur noch am Telefon**
+(Geschäftsführung, 04.09.2026). Der Schluss hängt **am Fall und nicht am Vorgang** — die
+Frühbetreuung endet früher als der Nachmittag desselben Tages, jede Art trägt also ihren eigenen.
+Die Uhrzeiten selbst stehen als [Wert im System](hebel.md#geld-im-system-alles-andere-fest) und
+nicht hier: Sie sind Vorlaufzeiten und ändern sich, ohne dass jemand etwas baut. `[?]` Welche es
+sind, ist offen — Hortleitung Danach verschwindet die Schaltfläche nicht, sondern **sagt, dass jetzt nur noch der
+Anruf geht**: Eine Familie, die um 11:20 vor einer toten Seite steht, ruft sonst nirgends an. Der
+Hort trägt die telefonische Buchung nach wie jede andere.
+
+**Jede Buchung geht als Mail ins Hortpostfach**, gleich woher sie kam — die Betreuung erfährt sonst
+erst aus der Tagesliste, dass ein Kind kommt, und die sieht nicht, wer gerade in der Gruppe steht.
+
+**Die Familie sieht den Eintrag im Portal, sobald er steht** — und das ist zugleich die Antwort auf
+den Nachweis am Telefon (Geschäftsführung, 04.09.2026): Wer nichts gebucht hat und trotzdem eine
+Zeile sieht, meldet sich, **bevor sie auf einer Rechnung landet**. Es braucht dafür keine
+Unterschrift und keine gezeichnete Tagesliste; der Widerspruch läuft über den Hort, der die Zeile
+korrigiert, und nicht über einen eigenen Knopf. Der Monat zwischen Eintrag und Abrechnung ist das
+Fenster dafür.
+
+**Abgerechnet wird über die Hortrechnung, nicht je Fall eingezogen:** Zum Monatsende geht eine
+Sammelaufstellung an die Buchhaltung, die sie im nächsten Zahlungslauf berücksichtigt. Damit
+ersetzt sie die Liste, auf der die Fälle heute von Hand mit ihren Beträgen landen. Sie ist deshalb
+**keine [Sofortzahlung](hebel.md#sofortzahlung)** — die gilt für vier andere Vorgänge und nicht für
+diesen. `[?]` Offen bleibt dabei, wovon bei einem Kind **ohne Mandat** eingezogen wird: Der
+Zahlungslauf setzt eines voraus, und die Notfallbetreuung steht gerade auch Kindern offen, die
+keinen Betreuungsvertrag haben — Geschäftsführung und Buchhaltung
+
+`[?]` Zwei Dinge bleiben offen: ob eine Notfallbetreuung **abgelehnt** werden darf, und ob eine
+gebuchte, aber **nicht wahrgenommene** berechnet wird — Geschäftsführung
 
 Vor manchen Ferien endet der Unterricht mitten in der Woche: Bis Mittwoch ist Schule, Donnerstag und
 Freitag sind schon frei. Für diese **Brückentage** fragt der Hort ab, wer sein Kind trotzdem bringt
@@ -417,14 +440,16 @@ Kindes** ([03](03-irregulaerer-abgang.md)) — damit ist die Zusage des Vertrags
 Austritt aus dem Hort zu löschen, eingehalten, ohne dass dieser Block eine eigene Frist braucht.
 Vertrag, Modulanlagen und Mandat tragen dieselben Fristen wie in
 [08](08-schulvertrag.md) — fünf Jahre nach dem Austritt, das Mandat zwei
-([03](03-irregulaerer-abgang.md)) — und gehören zum Lösch-Lauf (17). **Beim externen Kind ist der
-Austritt das Ende seines Hortvertrags**, denn ein Austrittsdatum hat es nicht. Die
+([03](03-irregulaerer-abgang.md)) — und gehören zum Lösch-Lauf (17). **Beim externen Kind rechnet
+die Frist ab dem Ende seines Hortvertrags, solange es kein Austrittsdatum trägt** — eines bekommt es
+allein dort, wo die Kündigung zugleich sein Abgang ist, weil der Hortvertrag seine letzte Verbindung
+war (oben, und [03](03-irregulaerer-abgang.md)); dann gilt dieses. Die
 **Notfallbetreuung** trägt diese Frist nicht: Sie ist keine Urkunde und hängt an keinem Vertrag,
 sondern ein Betriebsdatum am Kind ohne Aufbewahrungspflicht, und sie verschwindet mit dem letzten
 bestätigten Ende dieses Kindes — dieselbe Rechnung wie beim Mittagessen
 ([03](03-irregulaerer-abgang.md), [11](11-mensa.md)). Ebenso die Antworten auf eine
 Brückentagsabfrage. Die **Hortakte** hängt an demselben Ende —
-bei einem externen Kind ist das sein letzter Betreuungstag, ein Austrittsdatum hat es nicht —, trägt
+bei einem externen Kind ohne Austrittsdatum ist das sein letzter Betreuungstag —, trägt
 aber eine eigene Frist: `[?]` wie lang, entscheidet der Datenschutzbeauftragte. Endet der Vertrag eines externen Kindes,
 endet damit die letzte [laufende Verbindung](hebel.md#laufende-verbindung) seiner Familie und ihr
 Zugang ([00](00-zugang-und-portal.md)), sofern kein Geschwisterkind eine hat.
