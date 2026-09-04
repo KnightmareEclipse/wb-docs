@@ -904,8 +904,12 @@ CREATE TABLE application_offers (
 -- 02.09.2026) — für jede Fassung dieselbe Frist und derselbe Bezugstag.
 -- **Der Bezugstag ist zweigeteilt, weil es zwei Sorten Kind gibt:**
 -- `children.exit_date` beim eingeschriebenen, `contracts.end_date` beim
--- externen Hortkind — „Beim externen Kind ist der Austritt das Ende seines
--- Hortvertrags, denn ein Austrittsdatum hat es nicht" (09). Ohne die zweite
+-- externen Hortkind — „Beim externen Kind rechnet die Frist ab dem Ende seines
+-- Hortvertrags, solange es kein Austrittsdatum trägt" (09). Die Reihenfolge ist
+-- damit `exit_date` zuerst und `end_date` nur ersatzweise, nicht die eine oder
+-- die andere Spalte je Sorte: Ein externes Kind bekommt sehr wohl ein
+-- Austrittsdatum, wo seine Kündigung zugleich sein Abgang ist, weil der
+-- Hortvertrag seine letzte Verbindung war (09, 03). Ohne die zweite
 -- Hälfte erreichte der Lauf ausgerechnet die Verträge nie, für die diese
 -- Tabelle den Typ `care` überhaupt trägt: Ein externes Kind bekommt nie ein
 -- `exit_date`, und eine Frist, die auf ein leeres Feld zeigt, läuft nicht ab.

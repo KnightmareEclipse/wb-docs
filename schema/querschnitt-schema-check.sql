@@ -14,7 +14,9 @@
 -- `contract_text_kinds` definiert die Dokumentsorte vollständig: Klasse,
 -- Dokumentart und die Graph-Kennung der Arbeitsfassung. `contract_texts` trägt
 -- die eingefrorene Vorlagendatei samt Prüfsumme und Einfrierzeitpunkt, und für
--- sie trägt die Änderungsspur die Prüfsumme statt des Werts. `child_file_folders`
+-- sie trägt die Änderungsspur die Prüfsumme statt des Werts — in beiden
+-- Richtungen geprüft: als Spaltenänderung und im Zeilen-Schnappschuss des
+-- Anlegens, wo `column_name` leer ist und der erste CHECK nicht greift. `child_file_folders`
 -- führt eine Zeile je Kind, Bibliothek und Kategorie; `documents` zeigt auf den
 -- Ordner statt auf die Bibliothek, trägt eine Pflicht-Bezeichnung und eine
 -- freiwillige Art.
@@ -1052,6 +1054,28 @@ SELECT pg_temp.expect_accept(
                               changed_by)
        VALUES ('contract_texts', '1', 'template_docx',
                'sha256:' || repeat('a', 64), 'sha256:' || repeat('b', 64),
+               'entra:gf')$q$);
+
+-- Und derselbe Fall über das Anlegen: Dort trägt die Spur die ganze Zeile als
+-- JSON und keinen Spaltennamen, der erste CHECK greift also nicht. Ohne den
+-- zweiten käme die Vorlagendatei über den Vorgang herein, der sie erzeugt.
+SELECT pg_temp.expect_reject(
+    'TASK-232 — Vorlagendatei im Zeilen-Schnappschuss des Anlegens',
+    $q$INSERT INTO change_log (table_name, row_id, operation, new_value, changed_by)
+       VALUES ('contract_texts', '1', 'insert',
+               '{"code":"school_contract_gs","template_docx":"PK0304"}',
+               'entra:gf')$q$);
+SELECT pg_temp.expect_reject(
+    'TASK-232 — Vorlagendatei im Schnappschuss des Löschens',
+    $q$INSERT INTO change_log (table_name, row_id, operation, old_value, changed_by)
+       VALUES ('contract_texts', '1', 'delete',
+               '{"code":"school_contract_gs","template_docx":"PK0304"}',
+               'entra:gf')$q$);
+SELECT pg_temp.expect_accept(
+    'TASK-232 — Schnappschuss ohne die Vorlagendatei, mit ihrer Prüfsumme',
+    $q$INSERT INTO change_log (table_name, row_id, operation, new_value, changed_by)
+       VALUES ('contract_texts', '1', 'insert',
+               '{"code":"school_contract_gs","template_checksum":"sha256:aa"}',
                'entra:gf')$q$);
 
 -- Eine Werteliste legt kein Elternteil an: Zweck, Bibliothek, Dokumentart,

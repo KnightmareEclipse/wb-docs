@@ -1454,6 +1454,23 @@ CREATE TABLE change_log (
         CHECK (NOT (table_name = 'contract_texts' AND column_name = 'template_docx')
                OR (coalesce(old_value, 'sha256:' || repeat('0', 64)) ~ '^sha256:[0-9a-f]{64}$'
                AND coalesce(new_value, 'sha256:' || repeat('0', 64)) ~ '^sha256:[0-9a-f]{64}$')),
+    -- **Dieselbe Ausnahme für das Anlegen und das Löschen einer Fassung**, und
+    -- ohne sie trägt der CHECK darüber nichts: Dort hält die Spur die ganze
+    -- Zeile als JSON in einem der beiden Wertfelder, und `column_name` ist nach
+    -- `ck_change_log_column_scope` zwingend leer — die Bedingung oben ist damit
+    -- nie erfüllt, und die Vorlagendatei käme ausgerechnet über den Vorgang
+    -- herein, der sie erzeugt. Die Spalte gehört deshalb in die geschützten
+    -- Spalten ihres Modells und gar nicht erst in den Schnappschuss; dieser
+    -- CHECK ist die Gegenprobe dazu.
+    -- Geprüft wird auf den Schlüsselnamen im JSON und **nicht** über einen Cast
+    -- nach `jsonb`: Ein Wertfeld, das einmal kein gültiges JSON trägt — beim
+    -- Update steht dort ein roher Wert —, ließe den Cast werfen statt abweisen,
+    -- und ein CHECK, der wirft, hält einen Schreibvorgang mit einem Fehler auf,
+    -- den niemand liest.
+    CONSTRAINT ck_change_log_template_row
+        CHECK (table_name <> 'contract_texts'
+               OR (coalesce(old_value, '') NOT LIKE '%"template_docx":%'
+               AND coalesce(new_value, '') NOT LIKE '%"template_docx":%')),
     CONSTRAINT ck_change_log_changed_by CHECK (changed_by ~ '^(entra:|guardian:|system:)')
 );
 -- Siehe die Warnung im Kopf dieser Datei: diese Tabelle füllt allein die

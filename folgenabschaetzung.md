@@ -82,7 +82,7 @@ etwas.
 
 ## c) Risiken und Abhilfen (Art. 35 Abs. 7 lit. c und d)
 
-Neun, jedes mit seiner Abhilfe und deren Stand. **Was hier als Ticket steht, ist offen und gehört
+Zehn, jedes mit seiner Abhilfe und deren Stand. **Was hier als Ticket steht, ist offen und gehört
 damit zur Sperre oben** — die Abhilfe muss vor dem Livegang stehen, nicht die Absicht.
 
 **R1 — Ein Merkmal erreicht die falsche Rolle im Kollegium.** Ein Kind wird über eine Diagnose
@@ -134,6 +134,22 @@ damit ausdruckbar; die Notfallnummern liegen zusätzlich in der Telefonanlage (T
 das. *Abhilfe:* keine — das ist die **Vertrauensgrenze** (`rules.md` Abschnitt 2), getragen von
 Bus-Faktor- und Offboarding-Regeln, einem Credential je Person und der AVV mit Hetzner. Als
 akzeptiertes Risiko benannt, nicht als gelöstes.
+
+**R10 — Die Dokumenterzeugung trägt Merkmale in eine Datei mit eigenem Leserkreis, und ihr Weg
+dorthin hinterlässt Kopien.** Zwei getrennte Wege, ein Mechanismus (`dokumente.md`). Erstens
+entsteht mit dem **Gesundheitsblatt** eine Urkunde, die Art.-9-Merkmale abdruckt; wer Dokumente
+dieser Art liest, liest sie alle, und der Maßstab ist damit der Leserkreis der Datei und nicht der
+der Zeile. Zweitens konvertiert Graph nur ein Element und keinen Rumpf: Jede Ansicht und jede
+Erzeugung lädt eine vollständig gefüllte `.docx` in die Bibliothek und entfernt sie wieder — ein
+über Graph entferntes Element liegt danach im Papierkorb der Site und anschließend in dem der
+Sammlung, ohne Zeile und damit außerhalb des Lösch-Laufs, der über Zeilen geht. *Abhilfe:* Die
+Freigabe je Vorlagensorte läuft über den bestehenden Sichtkreis und nicht über eine zweite
+Feldliste, und wer sie verbreitern kann, schreibt die Vorlage nicht (`dokumente.md`, TASK-227,
+offen) — dass ihr Torwächter heute an Unterfeldern nichts prüft, ist gemessen und liegt als
+TASK-239; der Zwischenstand gehört an einen Ort, den kein Bestand als Ablage führt, und beide
+Papierkorbstufen gehören zum Entfernen (TASK-238, offen); die Ansicht des gefüllten Vertrags ist
+eine Route mit einer Rolle und folgt der Einsichtsstufe (`api/anmeldung-api.md`,
+`GET /contracts/{contract_id}/document`).
 
 ## Restrisiko und Ergebnis
 

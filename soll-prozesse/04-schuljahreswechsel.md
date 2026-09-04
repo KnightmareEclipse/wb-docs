@@ -155,8 +155,6 @@ Kein eigener Vorgang, der Lauf löscht nichts. Die Enden, die er setzt, sind die
 der Festlegungen aus [03](03-irregulaerer-abgang.md); die Putzdienstdaten folgen
 [01](01-putzdienst.md).
 
-`[?]` Wer stößt den Lösch-Lauf an und bestätigt ihn? — Schulleitung und Datenschutzbeauftragte
-
 ## Gehört nicht dazu
 
 - Wer in welche Klasse kommt und wie sie heißt: [15](15-klassenbildung.md).

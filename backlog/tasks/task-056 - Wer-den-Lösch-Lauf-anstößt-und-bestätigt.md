@@ -1,12 +1,11 @@
 ---
 id: TASK-056
 title: Wer den Lösch-Lauf anstößt und wer ihn bestätigt
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-08-27 11:37'
-updated_date: '2026-09-03 00:44'
+updated_date: '2026-09-04 12:47'
 labels:
-  - wartet
   - schulleitung
   - dsgvo
 milestone: m-1
@@ -19,13 +18,14 @@ ordinal: 59000
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Von Hand anstoßen ist beschlossen — die Geschäftsführung hat bestätigt, dass der Lauf nicht automatisch greifen muss. Offen bleibt, welche zwei Rollen ihn tragen: auslösen und hinterher bestätigen, nicht dieselbe Person. Das klärt die Geschäftsführung mit dem Datenschutzbeauftragten. Ohne benannte Rolle ist der Lauf gebaut und wird nie ausgelöst. Gehört in dasselbe Gespräch wie die Fristen, vor Block 17.
+Beantwortet am 02.09.2026, aber anders als gefragt: Es gibt keinen Handlauf und keine zwei Rollen, die ihn tragen. Der Lauf laeuft von selbst, und der menschliche Eingriff ist das **Anhalten** — je Einzelfall, befristet, mit Meldung an die Geschaeftsfuehrung (`soll-prozesse/17-loesch-lauf.md`, `soll-prozesse/hebel.md`, Abschnitt "Loeschankuendigung und Anhalten"). Bestaetigt vom Betreiber am 04.09.2026: der Handloeschlauf ist raus.
+
+Die Rueckfrage aus den Notizen — ob das ohne Datenleichen geht — ist damit ebenfalls beantwortet: Ein Anhalten gilt bis zu einem Datum und nie unbefristet, danach beginnt die Ankuendigung von vorn, und die Liste der angehaltenen Loeschungen zeigt je Fall, seit wann er faellig ist und wie oft er geschoben wurde.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [x] #1 Entschieden, ob von Hand angestoßen werden darf oder automatisch gelöscht werden muss
-- [ ] #2 Zwei Rollen benannt: wer anstößt und wer bestätigt
 <!-- AC:END -->
 
 ## Implementation Notes

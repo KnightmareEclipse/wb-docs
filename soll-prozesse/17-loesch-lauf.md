@@ -44,7 +44,16 @@ löschen könnte, könnte auch ihre eigene Spur löschen.
 
 Was zusammengehört, geht in einem Zug: Der Lauf räumt einen Anker vollständig oder gar nicht.
 Scheitert unterwegs etwas — ein Graph-Fehler beim Entfernen der Datei —, bleibt der ganze Anker
-stehen und kommt in der nächsten Nacht wieder dran. **Eine Zeile ohne Datei ist der harmlosere
+stehen und kommt in der nächsten Nacht wieder dran. **Die Grenze ist damit der Anker und nicht der
+Lauf:** Ein Fehler beim zweihundertsten Kind darf die hundertneunundneunzig davor nicht mitnehmen.
+
+**Weiterlaufen heißt nicht schweigen.** Ein Anker, der scheitert, wird abgefangen, damit der Lauf
+weiterkommt — gemeldet wird er trotzdem, denn „ein stiller Fehlschlag zählt als nicht vorhanden"
+(`rules.md` Abschnitt 3), und der Weg dafür steht schon: Der Dienst pingt `/fail` auf seinen eigenen
+Check (`container.md`). Das ist eine **Betriebsstörung und kein Fall fürs Sekretariat** — dort kann
+sie niemand beheben, und dieselbe Trennung zieht der Anmeldecode
+([hebel.md](hebel.md#unzustellbare-mail)). Ohne sie scheitert der Lauf Nacht für Nacht am selben
+Anker, heilt sich scheinbar selbst und niemand erfährt es. **Eine Zeile ohne Datei ist der harmlosere
 Fehler als eine Datei ohne Zeile**, und deshalb geht die Datei zuerst.
 
 ## Was dabei erhoben wird
@@ -123,6 +132,10 @@ Die beiden [Löschankündigungen](hebel.md#löschankündigung-und-anhalten) und 
 Anhaltens an die Geschäftsführung. Sonst keine — insbesondere **nichts an die Familie**: Sie hat
 nichts zu entscheiden, die Löschung ist ihr Recht und nicht ihr Risiko, und eine Ankündigung an sie
 wäre eine Aufforderung, dem eigenen Löschen zu widersprechen.
+
+Der **Fehlschlag an einem Anker** ist keine dieser Mails: Er geht nicht an eine Stelle in der
+Schule, sondern über den Alarmweg des Dienstes an den Betreiber (`container.md`) — eine
+Betriebsstörung, kein Vorgang.
 
 ## Dateien
 

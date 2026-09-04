@@ -192,6 +192,10 @@ Je eine Zeile, benannt und nicht mitgeplant:
 - **Der Lösch-Lauf** ([17](../soll-prozesse/17-loesch-lauf.md)), der `documents`,
   `child_file_folders` und die `change_log`-Zeilen ohne Personenbezug mitnimmt: Er ist kein Endpunkt.
   Seine zwei Tabellen — Empfängerliste und Anhalten — stehen im Querschnitt-Schema.
+  **Seine beiden Listen sind dagegen sehr wohl Routen**, und beide fehlen hier noch: die
+  [frisch erzeugte](../soll-prozesse/hebel.md#frisch-erzeugte-liste) Liste der **angehaltenen Löschungen** — je
+  Fall seit wann fällig und wie oft geschoben — und die der **Ordner ohne Anker**, die der Lauf
+  nicht zuordnen kann. Beide sagt 17 zu; „kein Endpunkt" gilt dem Lauf und nicht dem, was er zeigt.
 
 ## Am Schema aufgefallen
 

@@ -4,7 +4,7 @@ title: api/querschnitt-api.md auf Hortakte und Aktenkategorien nachziehen
 status: To Do
 assignee: []
 created_date: '2026-09-01 19:25'
-updated_date: '2026-09-01 19:45'
+updated_date: '2026-09-04 13:14'
 labels:
   - api
   - querschnitt
@@ -37,4 +37,5 @@ PUT /children/{child_id}/class zieht nur den Ordner der Schülerakte um; die Hor
 - [ ] #2 Der Klassenumzug rührt die Hortakte nicht an — als Prüfung, nicht als Satz
 - [ ] #3 Die Zugriffsregel für die Hortleitung ist richtiggestellt
 - [ ] #4 Eine Route legt die Hortakte eines Kindes an — nur der Hort ruft sie, und sie ist der einzige Weg, auf dem der Ordner entsteht
+- [ ] #5 Die zwei Listen des Loesch-Laufs stehen als Routen: angehaltene Loeschungen und Ordner ohne Anker — beide sagt Block 17 zu, die Datei kannte keine
 <!-- AC:END -->
