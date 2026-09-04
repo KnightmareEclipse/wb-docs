@@ -182,19 +182,27 @@ Bedingungen keine Verschlüsselung der Festplatten fordern (TASK-087).
 
 *Steht in* `verarbeitungsverzeichnis.md` · `backlog/` TASK-034
 
-### 7. Zieht der Mailversand mit meinCLEMENS mit?
+### 7. Eine Absenderadresse für alles oder eine je Mailkategorie? — zwischen Corrado und Jürgen
 
-> „Die Domain **meinclemens.schule** ist beauftragt. Soll die Absenderadresse künftig auch von dort
-> kommen — und wie soll das Postfach heißen, aus dem die Mails gehen? Beides ist von außen sichtbar
-> und zieht Arbeit nach sich: DNS, SPF, DKIM und DMARC hängen an der Absenderdomain, und die
-> Verschärfung von DMARC auf `reject` kommt mit."
+> „Der Versand läuft künftig über **meinclemens.schule**, das ist entschieden. Offen ist nur noch,
+> wie viele Absender es dahinter gibt: **eine Adresse für alles**, oder **eine je Mailkategorie** —
+> Vorgangsmail, Schulinformation, Newsletter, und später womöglich Ferienprogramm und Akademie
+> einzeln? Das ist von außen sichtbar und zieht Arbeit nach sich: Jede zusätzliche Absenderadresse
+> ist ein Postfach mehr, das jemand anlegt und überwacht, und SPF, DKIM und DMARC hängen an ihr —
+> die Verschärfung von DMARC auf `reject` kommt mit. Dafür trennt sie, was der Empfänger sonst nur
+> am Betreff auseinanderhält, und ein Spamfilter, der den Newsletter aussortiert, nimmt die
+> Vertragsfrist nicht mit."
 
-**Brauchbar ist die Antwort, wenn** feststeht, ob der Versand mitwandert, und wie das Postfach heißt.
-Der Name der Domain selbst ist entschieden (03.09.2026) und nicht mehr Teil der Frage.
+**Brauchbar ist die Antwort, wenn** feststeht, ob es eine Adresse ist oder mehrere — und bei
+mehreren, wie sie heißen. Die Zahl muss nicht endgültig sein: Eine weitere Adresse ist später ein
+Wert und kein Bau, die **Struktur** dafür steht bereits.
 
-**Daran hängt:** `backlog/` TASK-188 und TASK-088; gekauft wird die Domain unter TASK-213.
+**Daran hängt:** `backlog/` TASK-188 (AC #4) und TASK-088. Die Spalte für die Absenderadresse je
+Mail steht schon leer da (`schema/querschnitt-schema.sql`, `outbound_emails.from_address`); leer
+heißt „die eine, die der Versand ohnehin nimmt". Es wird also nichts gebaut, nur befüllt — aber die
+Postfächer legt jemand an, und das ist der Teil mit dem Vorlauf.
 
-*Steht in* `zugang.md` · `host.md`
+*Steht in* `zugang.md` · `host.md` · `backlog/` TASK-188
 
 ### 8. AGFEO: Anlagentyp und der Weg hinein
 
