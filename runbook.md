@@ -19,7 +19,7 @@ Reihenfolge für einen kompletten Neuaufbau der VPS von Grund auf (z. B. bei Tot
 
     **Und den Admin-Key dem SSH-Client anbieten**, einmal je Sitzung: `ssh-add <pfad-zum-key>`. Jeder Schritt unten spricht den Server über seine **IP** an, und ein Schlüssel, der nicht `~/.ssh/id_ed25519` heißt, wird dabei nur angeboten, wenn ein Agent ihn hält oder ein `Host`-Eintrag ihn nennt — ein Eintrag auf einen Alias greift nicht, wenn das Skript eine IP übergibt. Ohne das scheitern `deploy-secrets.sh`, `redeploy.sh`, der `ansible-playbook`-Lauf und der Deploy-Push gleichermaßen an `Permission denied (publickey)`, obwohl der Schlüssel in `admins.yml` steht und auf dem Server liegt.
 
-2. **DNS** (einmalig bzw. bei IP-Wechsel): A/AAAA-Records für `api.clemens.schule`, `portal.clemens.schule` und `intern.clemens.schule` beim DNS-Provider der Schule (All-Inkl, KAS-Panel unter Tools → DNS-Verwaltung) auf dieselbe Server-IP setzen. `api.` ist reiner Backend-Endpunkt und wird nie als Seite aufgerufen; die beiden anderen tragen Eltern- und Personaloberfläche und rufen die API unter ihrem eigenen Namen (`oberflaechen.md`). Die Namenswahl ist ohne Sicherheitsrelevanz — Certificate-Transparency-Logs machen jeden Hostnamen öffentlich, sobald ein Zertifikat ausgestellt wird. Caddy holt je Name ein eigenes Zertifikat, ein Wildcard und damit ein DNS-Zugang für den Proxy sind nicht nötig. Bei einem Neuaufbau auf demselben Server bleibt die IP erhalten und der Schritt entfällt.
+2. **DNS** (einmalig bzw. bei IP-Wechsel): A/AAAA-Records für die drei Namen aus `wb_app_domain`, `wb_portal_domain` und `wb_intern_domain` (`oberflaechen.md`) beim DNS-Provider der Schule (All-Inkl, KAS-Panel unter Tools → DNS-Verwaltung) auf dieselbe Server-IP setzen. Der API-Name ist reiner Backend-Endpunkt und wird nie als Seite aufgerufen; die beiden anderen tragen Eltern- und Personaloberfläche und rufen die API unter ihrem eigenen Namen. Die Namenswahl ist ohne Sicherheitsrelevanz — Certificate-Transparency-Logs machen jeden Hostnamen öffentlich, sobald ein Zertifikat ausgestellt wird. Caddy holt je Name ein eigenes Zertifikat, ein Wildcard und damit ein DNS-Zugang für den Proxy sind nicht nötig. Bei einem Neuaufbau auf demselben Server bleibt die IP erhalten und der Schritt entfällt.
 3. **healthchecks.io-Bootstrap** (nur beim allerersten Setup): ein Admin legt den Hobbyist-Account und den Check an, aktiviert MFA auf dem Konto (`rules.md` Abschnitt 2), trägt die Account-Zugangsdaten in den gemeinsamen Passwortmanager und die Ping-URL in die Secrets-Datei dort ein. Bei einem Neuaufbau mit bestehendem Account/Check entfällt der Schritt.
 4. **Server und Host-Konfiguration** (`host.md` und `container.md`) — ein Befehl:
 
@@ -32,7 +32,7 @@ Reihenfolge für einen kompletten Neuaufbau der VPS von Grund auf (z. B. bei Tot
 
     Danach die lokale Kopie löschen: `rm -f setup/secrets.env`.
 
-5. **Identitätsanbieter-Registrierung-Bootstrap** (einmalig bzw. bei Wechsel, `zugang.md`): App-/Rollen-Registrierung beim M365/Entra-ID-Tenant der Schule anlegen, Redirect-URI auf `https://intern.clemens.schule` setzen — die Origin des internen Frontends, nicht die des Backend-Endpunkts aus Schritt 2 (`oberflaechen.md`), Tenant-Restriktion konfigurieren (kein Multi-Tenant-Fallstrick). Client-ID/Tenant-ID/Client-Secret vor Schritt 6 in die Secrets-Datei im Passwortmanager übernehmen und wie unten beschrieben auf den Host bringen — das Backend braucht sie beim ersten Start.
+5. **Identitätsanbieter-Registrierung-Bootstrap** (einmalig bzw. bei Wechsel, `zugang.md`): App-/Rollen-Registrierung beim M365/Entra-ID-Tenant der Schule anlegen, Redirect-URI auf `https://<wb_intern_domain>` setzen — die Origin des internen Frontends, nicht die des Backend-Endpunkts aus Schritt 2 (`oberflaechen.md`), Tenant-Restriktion konfigurieren (kein Multi-Tenant-Fallstrick). Client-ID/Tenant-ID/Client-Secret vor Schritt 6 in die Secrets-Datei im Passwortmanager übernehmen und wie unten beschrieben auf den Host bringen — das Backend braucht sie beim ersten Start.
 
     Rotation eines einzelnen Secrets (auch der DB-Rollen-Passwörter, `container.md`) läuft **ohne** Neuaufbau: Wert beim Anbieter bzw. in der Datenbank ändern, in der Secrets-Datei ersetzen, dann
 
@@ -50,7 +50,7 @@ Reihenfolge für einen kompletten Neuaufbau der VPS von Grund auf (z. B. bei Tot
 
     **Nur `refs/heads/deploy` löst aus** — ein `git push prod main` legt den Commit ab und ändert auf der VPS nichts. Der auslösende Push führt Auschecken, Secret-Dateien, Build, Migration, Neustart und Smoke-Test aus; die Ausgabe kommt beim Push zurück. Ein fehlgeschlagener Build oder eine fehlgeschlagene Migration bricht ab, ohne die laufenden Container anzufassen. Zurück geht es über denselben Zeiger (`deploy.md`, Rollback).
 
-**Fertig, wenn** `curl https://api.clemens.schule/health` über IPv4 und IPv6 mit `{"status":"ok"}` antwortet — das setzt Firewall, Runtime, Datenbank, Backend, Reverse-Proxy und automatisches HTTPS gemeinsam voraus. Nach einem Reboot muss dasselbe ohne Handanlegen wieder gelten.
+**Fertig, wenn** `curl https://<wb_app_domain>/health` über IPv4 und IPv6 mit `{"status":"ok"}` antwortet — das setzt Firewall, Runtime, Datenbank, Backend, Reverse-Proxy und automatisches HTTPS gemeinsam voraus. Nach einem Reboot muss dasselbe ohne Handanlegen wieder gelten.
 
 ## Runbook — Server bootet nicht mehr
 
@@ -67,7 +67,7 @@ Führt das nicht zum Erfolg oder ist der Datenträger endgültig defekt: komplet
 
 Der häufige Fall, und der einzige, bei dem draußen jemand wartet. Drei Sätze gelten für alle vier:
 
-- **Erst messen, dann anfassen.** `curl https://api.clemens.schule/health` über IPv4 und IPv6 trennt „alles steht" von „ein Teil steht"; healthchecks.io sagt, seit wann — der Host-Herzschlag alle 15 Minuten (`host.md`), der eigene Check des Lauf-Dienstes daneben, und Image-GC wie NAS-Backup melden dorthin nur Fehlschläge (`container.md`, `backup.md`).
+- **Erst messen, dann anfassen.** `curl https://<wb_app_domain>/health` über IPv4 und IPv6 trennt „alles steht" von „ein Teil steht"; healthchecks.io sagt, seit wann — der Host-Herzschlag alle 15 Minuten (`host.md`), der eigene Check des Lauf-Dienstes daneben, und Image-GC wie NAS-Backup melden dorthin nur Fehlschläge (`container.md`, `backup.md`).
 - **Keine Störung meldet sich von selbst bei den Eltern.** Der Betreiber sagt dem Sekretariat, was gilt und bis wann; hinaus geht es über `post@clemens.schule` wie jede andere Mail (`zugang.md`). Was unten unter *nach draußen* steht, ist der Inhalt und nicht der Wortlaut.
 - **Eine Frist, die während der Störung abläuft, ist Handarbeit und kein Fall fürs System.** Anmeldefenster, Freikauf-Frist und Termin lassen sich von Hand zuteilen, verschieben oder erlassen (`soll-prozesse/01-putzdienst.md` Z5); ein Nachlauf, der Versäumtes selbst einholt, wird dafür nicht gebaut.
 

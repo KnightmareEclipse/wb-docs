@@ -2,8 +2,8 @@
 title: Weltenbaum
 ---
 
-Konzept- und Architektur-Doku für die Schulprozesse der Clemens-Schule. Hier wird entschieden und
-begründet; gebaut wird in `wb-vps` und `wb-backend`.
+Konzept- und Architektur-Doku für die Prozesse einer Schule ohne eigenes IT-Personal. Hier wird
+entschieden und begründet; gebaut wird in `wb-vps` und `wb-backend`.
 
 Diese Seite ist die Tür, nicht der Inhalt — **wer welche Frage entscheidet, steht einmal in
 [CLAUDE.md](CLAUDE.md)**, und diese Liste schreibt es nicht ab. Vier Einstiege für Menschen:

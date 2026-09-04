@@ -214,7 +214,7 @@ Kritischer Pfad bis dahin:
 
 *Auth/Zugriff für Eltern:*
 - OTP-Fallback (gebaut, `wb-backend/app/routers/auth.py`) — offen bleibt allein die Application Access Policy auf das Absenderpostfach (`zugang.md`, `backlog/`): ohne sie sendet die Anwendung tenantweit, und der Pfad darf nicht live gehen
-- Elternportal (`portal.clemens.schule`, `oberflaechen.md`) erstmals aufsetzen — samt den beiden DNS-Records und dem Ausliefern durch den Reverse-Proxy
+- Elternportal (`wb_portal_domain`, `oberflaechen.md`) erstmals aufsetzen — samt den beiden DNS-Records und dem Ausliefern durch den Reverse-Proxy
 
 *Fachlich:*
 - Stammdaten- und Putzdienst-Schema als Grundlage — beide stehen samt Prüfskript in `schema/`, Fachbeschreibungen `schema/stammdaten-schema.sql` und `schema/putzdienst-schema.sql`
