@@ -26,8 +26,9 @@ Ausgelesen, nicht gepflegt: Abgangsdatum und Schulzweig stehen am Kind ([03](03-
 ([00](00-zugang-und-portal.md)). Dieser Vorgang liest sie **einmal ab und schreibt sie fest** — er
 ist der einzige Moment, in dem sie noch da sind.
 
-`[?]` Wer verfasst und verschickt die Rundbriefe an die Ehemaligen, und wie oft? —
-Geschäftsführung
+**Dieser Block führt die Liste, nicht ihre Nutzung.** Wer schreibt, was drinsteht und wie oft etwas
+hinausgeht, gehört nicht hierher (unten) — und muss nicht entschieden sein, damit der Verteiler
+entsteht.
 
 ## Ablauf
 
@@ -38,8 +39,9 @@ Geschäftsführung
 | 3 | System | legt bei einem Ja Einwilligung und **Zugehörigkeit** an: welcher der drei Kreise, das Jahr des Weggangs, beim Kind der Schulzweig | wer zu welchem Jahrgang gehört — die einzige Stelle, an der das je festgehalten wird |
 | 4 | der Ehemalige | meldet sich später über den Abmeldelink in jeder Mail wieder ab | dass ab diesem Tag nichts mehr geschrieben wurde |
 
-Ein eigener Schritt für den Versand steht hier nicht: Ein Rundbrief ist eine Mail an ein Thema wie
-jede andere ([00](00-zugang-und-portal.md)).
+**Vier Schritte, und der Versand ist keiner davon** (unten). Was hinausgeht, ist eine Mail an ein
+Thema wie jede andere ([00](00-zugang-und-portal.md)) — dieser Vorgang sorgt dafür, dass es ein
+Thema und einen Empfänger gibt.
 
 ## Was dabei erhoben wird
 
@@ -59,9 +61,8 @@ Ehemalige, die nie zugestimmt haben, wäre eine Adressliste ohne Rechtsgrundlage
 Ausscheidens, nichts aus dem Mitarbeitendeneintrag. Der Zweck ist der Verteiler und das
 Jahrgangstreffen; wer daraus eine Ehemaligen-Akte machte, bräuchte eine zweite Rechtsgrundlage.
 
-`[A]` Sichtbar ist der Verteiler für **Sekretariat und Geschäftsführung**. — Alternative: auch für
-die Schulleitung, die ihre Jahrgänge kennt; Preis: ein vierter Leserkreis für einen Bestand, in dem
-nichts Schulisches steht.
+Sichtbar ist der Verteiler für **Sekretariat und Geschäftsführung**, sonst niemanden — auch nicht
+für die Schulleitung, die ihre Jahrgänge kennt: In diesem Bestand steht nichts Schulisches.
 
 ## Entscheidungen
 
@@ -80,10 +81,13 @@ Die Einwilligung selbst hat **keine Frist**: Sie gilt, bis jemand widerspricht.
 
 ## Mails und Schreiben
 
-Die **Anfrage**, einmal, ohne Erinnerung — Text und Zeitpunkt stehen für die beiden Jahrgangskreise
-in [04](04-schuljahreswechsel.md). Danach die **Rundbriefe** selbst, je Kreis ein eigenes Thema mit
-eigenem Abmeldelink: Die drei bekommen Verschiedenes zu lesen und werden deshalb getrennt geführt,
-nicht in einem Verteiler mit einer Filterregel.
+Eine, und es ist die **Anfrage**: einmal, ohne Erinnerung — Text und Zeitpunkt stehen für die beiden
+Jahrgangskreise in [04](04-schuljahreswechsel.md).
+
+Was danach an die Ehemaligen hinausgeht, ist **kein Bestandteil dieses Blocks** (unten). Fest steht
+hier nur, wohin es liefe: **je Kreis ein eigenes Thema mit eigenem Abmeldelink**, weil die drei
+Verschiedenes zu lesen bekommen — ein Verteiler mit einer Filterregel wäre dieselbe Trennung, nur an
+der schlechteren Stelle.
 
 ## Dateien
 
@@ -98,8 +102,8 @@ die den Ehemaligen als Rest eines gelöschten Menschen führt: An dieser Person 
 reduzieren, und ihre eigene Kindzeile von damals ist längst fort. Die Zugehörigkeit steht deshalb
 **neben** der Person und nicht in ihr.
 
-`[A]` Sie bleibt dabei bestehen und wird nicht neu erfragt. — Alternative: beim Wiedereintritt
-zurücksetzen; Preis: Der Jahrgang wäre weg, und niemand könnte ihn noch einmal beschaffen.
+Sie **bleibt dabei bestehen** und wird nicht neu erfragt. Zurückzusetzen wäre der einzige Weg, den
+Jahrgang endgültig zu verlieren — beschaffen könnte ihn danach niemand mehr.
 
 **Zwei Zugehörigkeiten an einer Person.** Wer als Kind ging und Jahre später als Mitarbeitende
 ausschied, steht zweimal da — mit zwei Jahren, die beide stimmen. Das ist kein Sonderfall im System,
@@ -110,8 +114,10 @@ meldet („ich hätte den Rundbrief doch gern"), wird von Hand eingetragen; wer 
 Abmeldelink nicht findet, schreibt hin. Einen Portalzugang gibt es nach dem Weggang nicht mehr, und
 ein Link, der unbegrenzt gilt, wäre ein Zugang ohne Anmeldung.
 
-`[?]` Wie ändert ein Ehemaliger seine Mailadresse, wenn er umzieht — nur über das Sekretariat, oder
-soll die Abmeldeseite auch das Ändern erlauben? — Geschäftsführung
+**Auch die neue Mailadresse nach einem Umzug läuft über das Sekretariat** und über keine
+Selbstbedienung. Der Abmeldelink kann deshalb genau eines: abmelden. Wäre er zugleich ein
+Änderungsformular, könnte jeder, der eine weitergeleitete Mail in die Finger bekommt, die Adresse
+eines anderen umbiegen — beim Abmelden ist derselbe Fehlgriff harmlos.
 
 ## Was heute schiefgeht
 
@@ -139,6 +145,10 @@ berührt; bei ihm hält die Familie die Person längst.
 
 ## Gehört nicht dazu
 
+- **Der Versand selbst.** Dieser Block führt **Liste und Verteiler**, nicht ihre Nutzung: Wer die
+  Rundbriefe verfasst, was darin steht, wie oft sie hinausgehen und wer sie freigibt, ist ein
+  eigener Schritt und wird getrennt entschieden. Der Verteiler steht auch ohne ihn — und er ist die
+  Voraussetzung, nicht die Folge.
 - **Der Förderkreis und die Interessenten** ([00](00-zugang-und-portal.md)): auch Themen, aber ohne
   jede Zugehörigkeit — wer nie hier war, hat keinen Jahrgang.
 - **Das Jahrgangstreffen selbst.** Der Verteiler trägt, wer eingeladen werden darf; Einladung,
