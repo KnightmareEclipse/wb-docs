@@ -71,12 +71,17 @@ Paar, die immer alle Paare enthält.
 
 **Zwei Angaben liegen neben den Sichtkreisen**, weil sie am Bestand und nicht am Merkmal stehen:
 
-- **Der handlungsrelevante Hinweis** (`child_health_records.action_note`), von der
-  Klassenlehrkraft formuliert, „den alle unterrichtenden Personen sehen" (`grenzkarte.md`): geht an
-  `full` (Personal), `school` und `emergency`. Nicht an den Hort — er unterrichtet
-  nicht — und nicht an die Eltern. — Alternative: ihn im Portal mitliefern; Preis: die fachliche
-  Einschätzung der Klassenlehrkraft wird ein Feld, das sie der Familie gegenüber begründen muss.
-  `backend_health_note` ist eine *Schreib*beschränkung; `backend_runtime` liest die Spalte
+- **Der handlungsrelevante Hinweis** (`child_health_action_notes`) steht **je Sichtkreis**, seit
+  der Hort ihn ebenfalls braucht (Geschäftsführung, 04.09.2026): Die Klassenlehrkraft formuliert
+  den für `school`, „den alle unterrichtenden Personen sehen" (`grenzkarte.md`), die Hortleitung
+  den für `care`. Gelesen wird der eigene, dazu von `full` (Personal) und `emergency` jeder. **Der
+  frühere Satz „nicht an den Hort — er unterrichtet nicht" ist damit überholt:** Der Hort hat das
+  Kind stundenlang und oft draußen, und er hakt seine Tagesliste auf Papier ab, auf der genau
+  dieser Satz als Marke erscheint ([09](../soll-prozesse/09-hortvertrag.md)). Nicht an die Eltern,
+  und nicht von ihnen. — Alternative: ein Hinweis für beide Kreise; Preis: zwei Verfasser mit
+  verschiedenem Alltag überschreiben einander lautlos, und für ein externes Hortkind bliebe er
+  leer, weil es keine Klassenlehrkraft hat.
+  `backend_health_note` ist eine *Schreib*beschränkung; `backend_runtime` liest die Tabelle
   tabellenweit.
 - **Der Zustand je Kategorie** (`child_health_answers`: beantwortet, abgelehnt, nie gefragt) geht
   an jeden Sichtkreis für die Kategorien, von denen er mindestens ein Feld sieht. Er ist keine
@@ -135,8 +140,9 @@ Rollen sind Lesegrenzen.
   Tageslicht; bis dahin ist ein neuer Sichtkreis eine Zeile **und** eine Sicht. — Alternative: eine
   Sicht mit `scope_code`-Spalte und dem Sichtkreis als Parameter der Route; Preis: die Grenze läge
   im Anwendungscode, und dieselbe DB-Rolle könnte jeden Kreis lesen.
-- **`backend_health_note`** — unverändert: `SELECT`, `INSERT`, `UPDATE` auf
-  `child_health_records.action_note` samt Schlüssel, **kein `DELETE`**.
+- **`backend_health_note`** — `SELECT`, `INSERT`, `UPDATE` auf `child_health_action_notes`,
+  **kein `DELETE`**. Welche Zeile eine Rolle schreiben darf, entscheidet ihr Sichtkreis und nicht
+  dieses GRANT: Die Hortleitung schreibt den für `care`, die Klassenlehrkraft den für `school`.
 - **`backend_kitchen`** bekommt statt `kitchen_health_traits` die Sicht `health_values_kitchen`;
   `kitchen_health_traits` und `everyday_health_traits` bleiben als **abgeleitete Sichten** mit
   ihrer alten Form (`child_id, description`) stehen, damit Tagesliste und Teilnehmerliste

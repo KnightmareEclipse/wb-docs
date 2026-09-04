@@ -251,7 +251,19 @@ eine geänderte Betreuungsordnung erzeugt deshalb keine neue Unterschrift, sie w
 Dazu die **Betreuungsliste**: wer heute in welchem Modul ist, mit der Abholzeit des Moduls und der
 Heimweg-Erlaubnis, [frisch erzeugt](hebel.md#frisch-erzeugte-liste), sichtbar für Hortkräfte,
 Hortleitung und Sekretariat; sie ersetzt den Teil der Hort-Excel, der nur „wer ist gebucht"
-beantwortet. Derselbe Bestand, anders gezählt, ist die **Belegung**, mit der die Hortleitung
+beantwortet.
+
+**Sie ist zum Ausdrucken gebaut, und das ist keine Nebensache.** Der Hort druckt sie für jeden Tag
+frisch aus und hakt auf Papier ab, wer da ist — im Trubel zwischen Kindern trägt ein Blatt, ein
+Bildschirm nicht. Zwei Dinge folgen daraus. Erstens bleibt **die Anwesenheit draußen**: Was auf dem
+Blatt abgehakt wird, kommt nicht zurück ins System, und das ist eine Entscheidung und keine Lücke —
+der laufende Hort-Alltag gehört dem Hort (unten). Zweitens trägt die Liste **direkt hinter dem
+Namen eine Marke**, wo es beim Kind etwas zu beachten gibt: ein Zeichen, kein Inhalt. Auf einem
+Blatt, das in der Gruppe herumliegt, steht keine Diagnose. Die Marke folgt aus dem
+handlungsrelevanten Hinweis für den Hort — steht einer da, steht sie da, sonst nicht. **Ein leeres
+Feld ist dabei kein Mangel:** Die Gesundheitsangaben sind freiwillig, niemand fordert sie ein, und
+worüber die Eltern nichts sagen, darüber weiß der Hort nichts — auch nicht, dass es etwas gäbe. Die **Klassen sind farbig unterschieden**, damit sich ein
+Kind schneller findet. Derselbe Bestand, anders gezählt, ist die **Belegung**, mit der die Hortleitung
 entscheidet: je Wochentag, wie viele Kinder bis wann da sind — eine zweite Liste daneben gibt es
 nicht.
 
@@ -259,7 +271,8 @@ Die **Hort-Belegungsliste**, die der Hort heute in Excel führt, ist damit keine
 ein Satz [frisch erzeugter](hebel.md#frisch-erzeugte-liste) Sichten auf denselben Bestand: die
 Gesamtübersicht mit Kind, Klasse, Wochentagen und Modul, dieselbe nach Tag und nach Klasse
 gruppiert, die **Auslastung** je Modul und Wochentag, die Kinder mit dem, **was zu beachten ist** —
-der Hinweis am Kind im Sichtkreis des Horts ([08](08-schulvertrag.md)) —, die
+der handlungsrelevante Hinweis für den Hort im Wortlaut, die Liste dazu liegt im Hortbüro und nicht
+in der Gruppe ([08](08-schulvertrag.md)) —, die
 **Notfallbetreuungen des Tages**, die der Hort abhakt, und die **Abrechnungsliste**: Beitrag je Kind
 und Monat aus den gebuchten Modulen, dazu die Fälle des Monats. Sie **stellt zusammen und rechnet
 keine Ermäßigung** — die Geschwisterermäßigung und alles, was die Beitragssatzung sonst gewährt,
@@ -322,7 +335,14 @@ eine Modulbuchung.
 Die **Notfallbetreuung** entsteht aus einem Notfall — spontan, für einen einzelnen Tag, abgerechnet
 je Fall statt je Monat. Sie steht **Hortkindern wie Nicht-Hortkindern** offen und passt deshalb in
 kein Betreuungsmodul: Ein Modul hinge an einer Modulanlage, die ein Kind ohne Betreuungsvertrag
-nicht hat. Gebucht wird sie im Portal; wer stattdessen anruft, ist damit nicht draußen — dann trägt
+nicht hat. **Das Kind muss dem Haus aber bekannt sein** (Geschäftsführung, 04.09.2026): entweder
+eingeschrieben oder externes Kind mit laufendem Betreuungsvertrag — ein anderes bucht nicht. Der
+Grund ist nicht das Geld, sondern der Bestand dahinter: Gesundheitsangaben, Notfallnummer und
+Abholberechtigte entstehen mit einem Vertrag ([08](08-schulvertrag.md), oben), und sie für einen
+einzelnen Tag zu erheben wäre unverhältnismäßig. In `children` zu stehen genügt deshalb nicht — eine
+Zeile dort legt auch eine [Ferienbuchung](10-ferienprogramm.md) oder eine
+[Akademie-Anmeldung](21-akademie.md) an. **KITA-Kinder sind ausdrücklich draußen**: Sie gelten in
+diesem Sinn nicht als bekannt. Gebucht wird sie im Portal; wer stattdessen anruft, ist damit nicht draußen — dann trägt
 sie der Hort nach. Das ist der [offizielle Umweg](hebel.md#der-offizielle-umweg) mit einer benannten
 Abweichung: Hier trägt der **Hort** stellvertretend ein und nicht das Sekretariat, denn er nimmt den
 Anruf entgegen. Ein Feld für den Weg gibt es nicht — er steht am Urheber der Zeile.
@@ -344,13 +364,17 @@ nicht.
 (Geschäftsführung, 04.09.2026). Der Schluss hängt **am Fall und nicht am Vorgang** — die
 Frühbetreuung endet früher als der Nachmittag desselben Tages, jede Art trägt also ihren eigenen.
 Die Uhrzeiten selbst stehen als [Wert im System](hebel.md#geld-und-fristen-im-system-alles-andere-fest) und
-nicht hier: Sie sind Vorlaufzeiten und ändern sich, ohne dass jemand etwas baut. `[?]` Welche es
-sind, ist offen — Hortleitung Danach verschwindet die Schaltfläche nicht, sondern **sagt, dass jetzt nur noch der
+nicht hier: Sie gelten am Betreuungstag, sind aus einem halben Jahr Interimsleitung des Horts
+beschlossen (Geschäftsführung, 04.09.2026) und ändern sich künftig, ohne dass jemand etwas baut.
+Danach verschwindet die Schaltfläche nicht, sondern **sagt, dass jetzt nur noch der
 Anruf geht**: Eine Familie, die um 11:20 vor einer toten Seite steht, ruft sonst nirgends an. Der
 Hort trägt die telefonische Buchung nach wie jede andere.
 
-**Jede Buchung geht als Mail ins Hortpostfach**, gleich woher sie kam — die Betreuung erfährt sonst
-erst aus der Tagesliste, dass ein Kind kommt, und die sieht nicht, wer gerade in der Gruppe steht.
+**Jede Buchung und jeder Storno gehen als Mail ins Hortpostfach**, gleich woher sie kamen — die
+Betreuung erfährt sonst erst aus der Tagesliste, dass ein Kind kommt, und die sieht nicht, wer
+gerade in der Gruppe steht. Das ist auch der Grund, aus dem der Storno vor der Frist im Portal
+erklärt wird und nicht als Mail von Hand: Die Mail entsteht daraus ohnehin, und die Tagesliste
+stimmt ohne den Handgriff dazwischen.
 
 **Die Familie sieht den Eintrag im Portal, sobald er steht** — und das ist zugleich die Antwort auf
 den Nachweis am Telefon (Geschäftsführung, 04.09.2026): Wer nichts gebucht hat und trotzdem eine
@@ -359,16 +383,30 @@ Unterschrift und keine gezeichnete Tagesliste; der Widerspruch läuft über den 
 korrigiert, und nicht über einen eigenen Knopf. Der Monat zwischen Eintrag und Abrechnung ist das
 Fenster dafür.
 
+**Storniert wird kostenlos** (Geschäftsführung, 04.09.2026), und die Frist dafür ist dieselbe wie
+für die Buchung: **bis zum Buchungsschluss im Portal, danach telefonisch über den Hort** — aus
+demselben Grund, aus dem nach dem Schluss nicht mehr gebucht wird: Bis dahin sitzt im Hort noch
+jemand am Rechner, danach steht die Betreuung in der Gruppe und das Telefon ist der einzige Weg,
+der noch ankommt. Ein Storno kostet nichts, weil
+ohnehin nur abgerechnet wird, was stattgefunden hat; er nimmt dem Hort die Planung ab und nicht der
+Familie einen Betrag. Damit ist auch die zweite Frage beantwortet: Eine gebuchte, aber **nicht
+wahrgenommene** Notfallbetreuung wird **nicht berechnet** — sie läuft über die monatliche
+Hortrechnung und entsteht nie als eigene Forderung, die jemand stornieren müsste.
+
+**Ablehnen dürfte der Hort, hatte aber noch nie einen Grund dazu** (Geschäftsführung, 04.09.2026).
+Ein Nein bleibt deshalb wie beim Hortvertrag selbst **kein Eintrag**: Es gibt keinen Zustand dafür,
+und der Hort greift zum Telefon.
+
 **Abgerechnet wird über die Hortrechnung, nicht je Fall eingezogen:** Zum Monatsende geht eine
 Sammelaufstellung an die Buchhaltung, die sie im nächsten Zahlungslauf berücksichtigt. Damit
 ersetzt sie die Liste, auf der die Fälle heute von Hand mit ihren Beträgen landen. Sie ist deshalb
 **keine [Sofortzahlung](hebel.md#sofortzahlung)** — die gilt für vier andere Vorgänge und nicht für
-diesen. `[?]` Offen bleibt dabei, wovon bei einem Kind **ohne Mandat** eingezogen wird: Der
-Zahlungslauf setzt eines voraus, und die Notfallbetreuung steht gerade auch Kindern offen, die
-keinen Betreuungsvertrag haben — Geschäftsführung und Buchhaltung
+diesen. **Sie weist jeden Fall einzeln aus** — Kind, Tag, Fall-Art und Betrag —, damit die
+Buchhaltung auch den Fall sieht, den der Hort erst nachträglich eingetragen hat: Wer unangekündigt
+kommt, steht auf keiner Buchung und käme sonst auf keiner Rechnung an.
 
-`[?]` Zwei Dinge bleiben offen: ob eine Notfallbetreuung **abgelehnt** werden darf, und ob eine
-gebuchte, aber **nicht wahrgenommene** berechnet wird — Geschäftsführung
+Ein Kind **ohne SEPA-Mandat** gibt es dabei nicht mehr: Wer bucht, ist eingeschrieben oder hat einen
+Betreuungsvertrag, und beide bringen das Mandat mit ([08](08-schulvertrag.md), oben).
 
 Vor manchen Ferien endet der Unterricht mitten in der Woche: Bis Mittwoch ist Schule, Donnerstag und
 Freitag sind schon frei. Für diese **Brückentage** fragt der Hort ab, wer sein Kind trotzdem bringt
@@ -461,7 +499,8 @@ Zugang ([00](00-zugang-und-portal.md)), sofern kein Geschwisterkind eine hat.
 
 - **Der laufende Hort-Alltag**: wer heute tatsächlich da war, Krankmeldungen und Fehlzeiten,
   Vorfälle, Ordnungsmaßnahmen samt Anhörung — bleibt beim Hort und kommt in Weltenbaum nicht vor,
-  auch nicht halb. Die Notfallbetreuung gehört seit dem 03.09.2026 nicht mehr dazu: Sie steht als
+  auch nicht halb. Die Anwesenheit wird auf dem ausgedruckten Blatt abgehakt und **nicht
+  zurückgetragen**: Weltenbaum liefert die Liste, der Hort führt den Tag. Die Notfallbetreuung gehört seit dem 03.09.2026 nicht mehr dazu: Sie steht als
   eigener Vorgang oben.
 - Aufsichtspflicht, Haftung und Versicherung: Vertragstext, kein Vorgang.
 - Das **Ferienprogramm** samt Ferienbetreuung: [10](10-ferienprogramm.md).

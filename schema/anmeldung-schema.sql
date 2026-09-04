@@ -39,7 +39,8 @@
 -- Antworten sieht.
 -- Die Notfallbetreuung steht als Tagesbuchung darin (`emergency_care_bookings`,
 -- Werteliste und Preise weiter oben): ein Fall je Kind und Tag, je Fall
--- berechnet, offen auch für Kinder ohne Betreuungsvertrag. Ein weiteres
+-- berechnet, offen auch für Kinder ohne Betreuungsvertrag — aber nur für die,
+-- die das Haus schon kennt (`enforce_emergency_care_booking`). Ein weiteres
 -- `care_module` wäre die falsche Bauform — es hinge an einer Modulanlage, die es
 -- bei diesen Kindern nicht gibt, und kennte nur einen Monatsbeitrag.
 -- Bewusst KEINE Spalte für den Weg, auf dem eine Notfallbetreuung hereinkommt:
@@ -320,6 +321,21 @@ CREATE TABLE emergency_care_types (
     -- zusätzlich berechnet. Ein eigenes Essens-Häkchen an der Tagesbuchung
     -- wäre dieselbe Angabe ein zweites Mal.
     care_module_id         integer,
+    -- Bis wann das Portal an diesem Tag noch eine Buchung annimmt — 09: „Der
+    -- Schluss hängt am Fall und nicht am Vorgang", die Frühbetreuung endet
+    -- früher als der Nachmittag desselben Tages. Eine Uhrzeit am Betreuungstag
+    -- und keine Vorlauf-Spanne: Die Werte sind als Uhrzeiten beschlossen
+    -- (Geschäftsführung, 04.09.2026, aus einem halben Jahr Interimsleitung des
+    -- Horts), und eine Spanne müsste erst wissen, wann der Fall beginnt — das
+    -- steht am Modul und nicht hier. Pflicht, weil jede Fall-Art einen Schluss
+    -- hat; ohne ihn wäre die Frage „geht das noch?" im Portal unbeantwortbar.
+    -- **Keine Gültigkeitsstaffel wie an den Preisen**: Eine Änderung wirkt ab
+    -- der nächsten Buchung, und rückwirkend gibt es hier nichts einzufrieren —
+    -- ein Buchungsschluss steht auf keiner Rechnung. Geändert wird er als Wert
+    -- im System (hebel.md), ohne dass jemand etwas baut.
+    -- Derselbe Wert trägt den Storno: Bis dahin nimmt ihn das Portal entgegen,
+    -- danach geht beides nur noch am Telefon (09).
+    booking_cutoff_time    time NOT NULL,
     -- Deaktiviert statt gelöscht: „is_active = false" nimmt den Wert aus
     -- jedem Auswahlfeld, lässt aber jede Zeile stehen, die schon auf ihn
     -- zeigt (rules.md Abschnitt 3).
@@ -1357,7 +1373,10 @@ CREATE TABLE care_module_bookings (
 -- — spontan, für einen einzelnen Tag, abgerechnet je Fall statt je Monat."
 -- Sie hängt am Kind und nicht am Vertrag: Die Notfallbetreuung steht
 -- Hortkindern wie Nicht-Hortkindern offen, und „ein Modul hinge an einer
--- Modulanlage, die ein Kind ohne Betreuungsvertrag nicht hat" (09).
+-- Modulanlage, die ein Kind ohne Betreuungsvertrag nicht hat" (09). Wer
+-- „Nicht-Hortkind" ist, ist dabei eng gefasst — „das Kind muss uns bekannt
+-- sein" (Geschäftsführung, 04.09.2026) —, und der Trigger unten weist alles
+-- Weitere ab.
 -- Löschanker: **das letzte bestätigte Ende dieses Kindes**, wie das Essensabo
 -- in mensa-schema.sql. Die fünf Jahre des Vertrags trägt sie nicht: Sie ist
 -- keine Urkunde und hängt an keinem Vertrag, sondern zählt zu den
@@ -1368,9 +1387,17 @@ CREATE TABLE care_module_bookings (
 -- (`emergency_care_types.care_module_id` → `care_modules.includes_lunch`), wie
 -- es beim Monatsbeitrag dem gebuchten Modul folgt — „Anmelden muss sich dafür
 -- niemand" (09). Der Betrag des einzelnen Essens steht in mensa-schema.sql.
--- Bewusst KEINE Ablehnung als Zustand: Ob eine Notfallbetreuung überhaupt
--- abgelehnt werden darf, ist offen (siehe die Frage am Ende dieser Datei); bis
--- dahin ist ein Nein kein Eintrag, wie beim Hortvertrag selbst (09).
+-- Bewusst KEINE Ablehnung als Zustand: Ablehnen dürfte der Hort, „es gab
+-- bisher noch nie einen Grund das zu tun" (Geschäftsführung, 04.09.2026) — ein
+-- Nein bleibt damit kein Eintrag, wie beim Hortvertrag selbst (09).
+-- Bewusst KEIN Storno-Zustand: Ein Storno kostet nichts, weil nichts berechnet
+-- wird, was nicht stattgefunden hat (ebenda) — ohne Betrag gibt es nichts
+-- festzuhalten. Das ist der Unterschied zur Ferienbuchung, wo die stornierte
+-- Zeile den Einbehalt trägt und deshalb stehenbleibt (ferien-schema.sql).
+-- Ein Storno löscht die Zeile (Betreiber, 04.09.2026). Ein `cancelled_at` wie
+-- an der Ferienbuchung wäre eine Spalte, die nur die Tagesliste filtert, dazu
+-- ein partieller Unique-Index, damit dasselbe Kind denselben Fall am selben Tag
+-- erneut buchen kann — beides für einen Zustand, den niemand liest.
 CREATE TABLE emergency_care_bookings (
     emergency_care_booking_id uuid NOT NULL DEFAULT gen_random_uuid(),
     child_id                  uuid NOT NULL,
@@ -1390,7 +1417,11 @@ CREATE TABLE emergency_care_bookings (
     booked_at                 timestamptz,
     -- Der Vollzug. Der Hort hakt ab, wer wirklich da war, und daran hängt die
     -- Abrechnung: „Abgerechnet wird, was stattgefunden hat." Leer bei einer
-    -- Buchung, die sich erledigt hat. Ein eigener Urheber steht hier, weil der
+    -- Buchung, die sich erledigt hat — und die kostet dann auch nichts:
+    -- „sofern das Kind nie da war, wird nichts berechnet", denn der Betrag
+    -- läuft über die monatliche Hortrechnung und nicht als eigene Forderung
+    -- (Geschäftsführung, 04.09.2026). Diese Spalte allein entscheidet also,
+    -- was auf die Sammelaufstellung kommt. Ein eigener Urheber steht hier, weil der
     -- Vollzug eine zweite Handlung einer zweiten Stelle ist — bei einer Buchung
     -- fallen Urheber und `created_by` zusammen und brauchen keine zweite Spalte.
     attended_at               timestamptz,
@@ -1423,6 +1454,50 @@ CREATE TABLE emergency_care_bookings (
     CONSTRAINT ck_emergency_care_bookings_created_by
         CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
+
+-- 09: „Das Kind muss uns bekannt sein" (Geschäftsführung, 04.09.2026) — die
+-- Notfallbetreuung steht eigenen Schülerinnen und Schülern offen und externen
+-- Kindern mit laufendem Betreuungsvertrag, sonst niemandem. Der Grund ist nicht
+-- das Geld, sondern der Bestand dahinter: Gesundheitsangaben, Notfallnummer und
+-- Abholberechtigte entstehen erst mit einem Vertrag (08, 09), und sie für einen
+-- einzelnen Tag zu erheben wäre „für eine Notfallbetreuung zu viel". Ohne diese
+-- Prüfung genügte eine Zeile in `children` — die legt aber auch eine
+-- Ferienbuchung oder eine Akademie-Anmeldung an, und deren Kinder haben nichts
+-- davon. **KITA-Kinder sind ausdrücklich draußen** (ebenda): Sie gelten nicht
+-- als bekannt, und sie stehen ohnehin in keiner Zeile dieser Datenbank — die
+-- KITA kommt hier allein als Betrieb und als Mitarbeiterrolle vor
+-- (rechnungsfreigabe-schema.sql, m365-schema.sql).
+-- Bauform und Begründung wie `enforce_holiday_booking` (ferien-schema.sql), das
+-- Prädikat ist dasselbe wie dort, in `enforce_academy_registration`
+-- (akademie-schema.sql) und an `ex_contracts_care_period` oben. **Ein
+-- Unterschied zum Ferienprogramm:** Es gilt für beide Eingänge, nicht nur für
+-- die Selbstbuchung. Der offizielle Umweg trägt hier den Weg und nicht den
+-- Kreis — auch der Hort trägt telefonisch nur ein bekanntes Kind nach, sonst
+-- stünde die Regel in dem Eingang, den niemand sieht.
+CREATE FUNCTION enforce_emergency_care_booking() RETURNS trigger AS $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM children
+                    WHERE child_id = NEW.child_id
+                      AND entry_date IS NOT NULL
+                      AND (exit_date IS NULL OR exit_date >= current_date))
+       AND NOT EXISTS (SELECT 1 FROM contracts
+                        WHERE child_id = NEW.child_id
+                          AND contract_type = 'care'
+                          AND released_at IS NOT NULL
+                          AND daterange(admission_date, coalesce(end_date, runs_until), '[]')
+                              @> current_date) THEN
+        RAISE EXCEPTION 'Kind % ist weder eingeschrieben noch im Hort — keine Notfallbetreuung',
+                        NEW.child_id
+              USING ERRCODE = 'check_violation';
+    END IF;
+
+    RETURN NEW;
+END $$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_emergency_care_bookings_admission
+    BEFORE INSERT ON emergency_care_bookings
+    FOR EACH ROW EXECUTE FUNCTION enforce_emergency_care_booking();
+
 
 -- Herkunft: 09 (Hortvertrag) — „Vor manchen Ferien endet der Unterricht mitten
 -- in der Woche … Für diese Brückentage fragt der Hort ab, wer sein Kind

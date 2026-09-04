@@ -1,10 +1,12 @@
 -- Prüfskript zu gesundheit-schema.sql.
 --
--- Sollstand: 15 Tabellen — die Konfiguration health_trait_types,
+-- Sollstand: 16 Tabellen — die Konfiguration health_trait_types,
 -- health_value_kinds, health_fields, health_type_fields,
 -- health_visibility_scopes, health_field_visibility und
 -- measles_presentation_types; die Antworten child_health_records,
--- child_health_answers, health_traits und health_trait_values; die zwei
+-- child_health_answers, health_traits und health_trait_values; den
+-- handlungsrelevanten Hinweis child_health_action_notes, eine Zeile je Bestand
+-- und Sichtkreis; die zwei
 -- Freigaben child_health_releases und health_trait_releases; dazu
 -- health_emergency_accesses und measles_proofs. Ein partieller Unique-Index
 -- gegen die zweite Zeile einer Kategorie, die nur eine erlaubt, ein Index
@@ -25,6 +27,7 @@ BEGIN
                       'health_field_visibility', 'measles_presentation_types',
                       'child_health_records', 'child_health_answers',
                       'health_traits', 'health_trait_values',
+                      'child_health_action_notes',
                       'child_health_releases', 'health_trait_releases',
                       'health_emergency_accesses', 'measles_proofs']) AS t
     WHERE to_regclass('public.' || t) IS NULL;
@@ -51,7 +54,9 @@ BEGIN
         'pk_health_field_visibility', 'fk_health_field_visibility_pair',
         'fk_health_field_visibility_kind', 'ck_health_field_visibility_presence',
         'ck_health_field_visibility_emergency',
-        'ck_child_health_records_action_note', 'ck_health_traits_answered',
+        'pk_child_health_action_notes', 'fk_child_health_action_notes_record',
+        'ck_child_health_action_notes_note',
+        'ck_child_health_action_notes_created_by', 'ck_health_traits_answered',
         'pk_child_health_records', 'uq_child_health_records',
         'ck_child_health_records_answer',
         'pk_child_health_answers', 'uq_child_health_answers',
@@ -313,10 +318,44 @@ SELECT pg_temp.expect_reject(
     $q$UPDATE child_health_records SET declined_at = now()
         WHERE child_health_record_id = '55555555-5555-5555-5555-555555555551'$q$);
 
+-- grenzkarte.md: „Der kurze handlungsrelevante Hinweis … ein Feld am Bestand,
+-- nicht am Merkmal." Seit dem 04.09.2026 eine Zeile je Sichtkreis: Schule und
+-- Hort schreiben je für ihren eigenen Alltag, und ein externes Hortkind hat
+-- gar keine Klassenlehrkraft, die schriebe.
+SELECT pg_temp.expect_accept(
+    '09 — je Instanz ein eigener Hinweis, beide nebeneinander',
+    $q$INSERT INTO child_health_action_notes (child_health_record_id,
+                                              health_visibility_scope_id, note, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555551', 3,
+               'Epilepsie — im Anfall nicht festhalten, Zeit notieren', 'entra:lehrkraft'),
+              ('55555555-5555-5555-5555-555555555551', 2,
+               'Epilepsie — auf Ausflüge das Notfallmedikament mitnehmen',
+               'entra:hortleitung')$q$);
+
 SELECT pg_temp.expect_reject(
     'grenzkarte.md — leerer Handlungshinweis',
-    $q$UPDATE child_health_records SET action_note = ''
-        WHERE child_health_record_id = '55555555-5555-5555-5555-555555555551'$q$);
+    $q$INSERT INTO child_health_action_notes (child_health_record_id,
+                                              health_visibility_scope_id, note, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555551', 4, '', 'entra:lehrkraft')$q$);
+
+-- Ein Kreis, ein Hinweis: Der zweite ersetzt den ersten, statt sich daneben zu
+-- stellen — sonst stünden auf demselben Blatt zwei Sätze und niemand wüsste,
+-- welcher gilt.
+SELECT pg_temp.expect_reject(
+    '09 — zweiter Hinweis desselben Kreises',
+    $q$INSERT INTO child_health_action_notes (child_health_record_id,
+                                              health_visibility_scope_id, note, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555551', 2, 'Noch ein Satz',
+               'entra:hortleitung')$q$);
+
+-- api/gesundheit-api.md: der Hinweis geht „nicht an die Eltern" — und kommt
+-- erst recht nicht von ihnen. Er ist die Einschätzung der betreuenden Stelle.
+SELECT pg_temp.expect_reject(
+    'api/gesundheit-api.md — die Eltern schreiben den Hinweis',
+    $q$INSERT INTO child_health_action_notes (child_health_record_id,
+                                              health_visibility_scope_id, note, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555551', 4, 'Von den Eltern',
+               'guardian:mutter')$q$);
 
 SELECT pg_temp.expect_reject(
     '09 — zweiter Gesundheitsbestand desselben Kindes',
@@ -953,8 +992,8 @@ SELECT pg_temp.expect_reject(
     $q$DELETE FROM children WHERE child_id = '44444444-4444-4444-4444-444444444441'$q$);
 
 -- Und in der Reihenfolge des Laufs geht beides: erst der Bestand, der Antwort,
--- Merkmal, Wert und Freigabe per Cascade mitnimmt, dann das Kind mit dem, was
--- unmittelbar an ihm hängt.
+-- Merkmal, Wert, Freigabe und den handlungsrelevanten Hinweis per Cascade
+-- mitnimmt, dann das Kind mit dem, was unmittelbar an ihm hängt.
 SELECT pg_temp.expect_accept(
     '03 — erst der Bestand, dann das Kind',
     $q$DELETE FROM child_health_records
@@ -969,7 +1008,8 @@ BEGIN
        OR EXISTS (SELECT 1 FROM child_health_releases)
        OR EXISTS (SELECT 1 FROM health_trait_releases)
        OR EXISTS (SELECT 1 FROM measles_proofs)
-       OR EXISTS (SELECT 1 FROM health_emergency_accesses) THEN
+       OR EXISTS (SELECT 1 FROM health_emergency_accesses)
+       OR EXISTS (SELECT 1 FROM child_health_action_notes) THEN
         RAISE EXCEPTION 'REGEL NICHT GEBAUT — Gesundheitsdaten überleben ihr Kind';
     END IF;
     RAISE NOTICE 'ok (abgewiesen): 03 — kein Gesundheitsdatum überlebt sein Kind';

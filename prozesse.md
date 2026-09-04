@@ -325,9 +325,11 @@ Modul × Wochentag ist damit die Buchungseinheit, nicht das Modul allein.
 
 **Getrenntlebende Sorgeberechtigte** bevollmächtigen sich laut Vertrag gegenseitig zur Entgegennahme aller Informationen des Hortträgers.
 
-Der Vertrag erwähnt daneben eine **Notfall- und Ferienbetreuung** (nur als Rabatt-Ausnahme): die Ferienbetreuung ist das Ferienprogramm (Domäne 3), die Notfallbetreuung gehört zum Hort-Alltag und bleibt out of scope (`fachdomaenen.md` Abschnitt 6).
+Der Vertrag erwähnt daneben eine **Notfall- und Ferienbetreuung** (nur als Rabatt-Ausnahme): die Ferienbetreuung ist das Ferienprogramm (Domäne 3), die Notfallbetreuung ein eigener buchbarer Vorgang (`soll-prozesse/09-hortvertrag.md`). Heute läuft sie über den Anruf im Hort und landet von Hand auf einer Liste mit ihren Beträgen.
 
 **Laufender Hort-Alltag bleibt draußen** (`fachdomaenen.md` Abschnitt 6): Der Hort führt eigene, sehr umfangreiche Excel-Dateien darüber, wer wann gebucht ist, und notiert dort auch Vorfälle und Verhalten.
+
+**Wofür der Hort diese Listen wirklich braucht, ist der Ausdruck.** Für jeden Tag wird eine Liste aller Kinder frisch ausgedruckt, und auf ihr wird abgehakt, wer da ist. Ein Bildschirm ist dafür kein Weg — im Trubel zwischen Kindern trägt Papier, ein iPad nicht. Auf dieser Liste steht direkt hinter dem Namen eine eigene Spalte mit einem **Ausrufezeichen**, wenn es beim Kind Gesundheitsangaben gibt, die im Betreuungsalltag zu beachten sind: Epilepsie und Vergleichbares, **nicht** eine erteilte Handlungserlaubnis wie „Zecke darf entfernt werden". Der Inhalt steht nicht auf dem Blatt, das in der Gruppe liegt — es ist ein Quickcheck, mehr nicht. Die Details dazu stehen auf einer zweiten Liste im **Hortbüro**: alle Kinder, bei denen es etwas zu beachten gibt, dort mit der Angabe selbst. Die **Klassen sind farbcodiert**, damit sich ein Kind schneller finden lässt.
 
 ---
 

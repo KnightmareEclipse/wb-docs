@@ -82,7 +82,7 @@ etwas.
 
 ## c) Risiken und Abhilfen (Art. 35 Abs. 7 lit. c und d)
 
-Zehn, jedes mit seiner Abhilfe und deren Stand. **Was hier als Ticket steht, ist offen und gehört
+Elf, jedes mit seiner Abhilfe und deren Stand. **Was hier als Ticket steht, ist offen und gehört
 damit zur Sperre oben** — die Abhilfe muss vor dem Livegang stehen, nicht die Absicht.
 
 **R1 — Ein Merkmal erreicht die falsche Rolle im Kollegium.** Ein Kind wird über eine Diagnose
@@ -150,6 +150,20 @@ TASK-239; der Zwischenstand gehört an einen Ort, den kein Bestand als Ablage f�
 Papierkorbstufen gehören zum Entfernen (TASK-238, offen); die Ansicht des gefüllten Vertrags ist
 eine Route mit einer Rolle und folgt der Einsichtsstufe (`api/anmeldung-api.md`,
 `GET /contracts/{contract_id}/document`).
+
+**R11 — Der handlungsrelevante Hinweis wird zur Abkürzung um die Freigabe.** Er steht seit dem
+04.09.2026 **je Sichtkreis** (`child_health_action_notes`), weil der Hort einen eigenen braucht:
+Er hakt seine Tagesliste auf Papier ab, und die Marke darauf sagt allein, *dass* es etwas zu
+beachten gibt (`soll-prozesse/09-hortvertrag.md`). Der Hort ist damit ein **neuer Empfänger** —
+bewertet und getragen, weil er das Kind stundenlang und oft ohne Lehrkraft betreut. Das Risiko
+liegt nicht darin, sondern daneben: Der Satz ist Freitext und wird von einem Menschen geschrieben,
+der über die **Notfalleinsicht** jedes Merkmal jedes Kindes sehen kann (R2). Wer von dort
+abschreibt, macht eine protokollierte Einzeleinsicht zu einer dauerhaften Angabe, die keine
+Freigabe deckt. *Abhilfe:* Der Hinweis entsteht in derselben Ansicht, die auch die Merkmale zeigt,
+und die zeigt nur, was der Kreis sehen darf — wer die Notfalleinsicht dafür braucht, verlässt sie
+und wird protokolliert. Eine technische Sperre gegen das Abschreiben gibt es nicht und kann es
+nicht geben; sie liegt in der Zweckbindung, auf die jede Notfalleinsicht hinweist, und im
+Protokoll, das die Hortleitung liest.
 
 ## Restrisiko und Ergebnis
 

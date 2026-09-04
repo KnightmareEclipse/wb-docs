@@ -9,8 +9,11 @@
 -- application_offers, contracts, contract_responses, contract_amendments,
 -- care_module_agreements,
 -- care_module_bookings, emergency_care_bookings, care_bridge_days und
--- care_bridge_day_responses. Dazu drei partielle Unique-Indizes und die beiden
--- Querschnitts-Fremdschlüssel auf `contracts` und `applications`. Zwei
+-- care_bridge_day_responses. Dazu drei partielle Unique-Indizes, die beiden
+-- Querschnitts-Fremdschlüssel auf `contracts` und `applications` und der eine
+-- Trigger, der die Notfallbetreuung auf Kinder beschränkt, die das Haus kennt.
+-- `emergency_care_types` trägt mit `booking_cutoff_time` den Buchungsschluss je
+-- Fall-Art als Pflichtwert; dieselbe Uhrzeit trägt den Storno. Zwei
 -- Fremdschlüssel dieser Datei sind zusammengesetzt, obwohl sie einspaltig
 -- aussehen: `fk_applications_slot` bindet das Zeitfenster an seinen Tag,
 -- `fk_contracts_application` den Schulvertrag an das Kind seiner Bewerbung. Hier stehen
@@ -144,7 +147,11 @@ BEGIN
     IF missing IS NOT NULL THEN
         RAISE EXCEPTION 'Fehlende Indizes: %', missing;
     END IF;
-    RAISE NOTICE 'ok: alle geprüften Constraints und Indizes vorhanden';
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger
+                    WHERE tgname = 'trg_emergency_care_bookings_admission') THEN
+        RAISE EXCEPTION 'Der Trigger fehlt — der Kreis der Notfallbetreuung wäre ungeprüft';
+    END IF;
+    RAISE NOTICE 'ok: alle geprüften Constraints, Indizes und der Trigger vorhanden';
 END $$;
 
 CREATE FUNCTION pg_temp.expect_reject(rule text, stmt text) RETURNS void AS $$
@@ -196,18 +203,37 @@ INSERT INTO persons (person_id, first_name, last_name, created_by) VALUES
     ('22222222-2222-2222-2222-222222222222', 'Mutter', 'Muster', 'system:check'),
     ('22222222-2222-2222-2222-222222222223', 'Vater',  'Muster', 'system:check'),
     ('22222222-2222-2222-2222-222222222224', 'Extern', 'Hortkind', 'system:check'),
-    ('22222222-2222-2222-2222-222222222225', 'Ohne',   'Vertrag',  'system:check');
+    ('22222222-2222-2222-2222-222222222225', 'Ohne',   'Vertrag',  'system:check'),
+    ('22222222-2222-2222-2222-222222222226', 'Nur',    'Schulkind', 'system:check');
 INSERT INTO families (family_id, created_by)
     VALUES ('33333333-3333-3333-3333-333333333333', 'system:check');
-INSERT INTO children (child_id, person_id, family_id, birth_date, created_by) VALUES
+-- Das Eintrittsdatum zieht Schulart und Stufe mit sich (`ck_children_enrolment`,
+-- stammdaten-schema.sql): Eingeschrieben ist, wer beides trägt.
+INSERT INTO children (child_id, person_id, family_id, birth_date, entry_date,
+                      school_branch_id, first_grade_level, final_grade_level,
+                      grade_level, created_by) VALUES
+    -- Eingeschrieben, aber ohne Betreuungsvertrag: das eigene Schulkind, für das
+    -- die Notfallbetreuung offensteht, ohne dass es Hortkind wäre.
     ('44444444-4444-4444-4444-444444444444', '22222222-2222-2222-2222-222222222221',
-     '33333333-3333-3333-3333-333333333333', DATE '2020-05-01', 'system:check'),
+     '33333333-3333-3333-3333-333333333333', DATE '2020-05-01', DATE '2026-09-01',
+     1, 1, 4, 1, 'system:check'),
+    -- Das externe Hortkind: nicht eingeschrieben, aber weiter unten mit
+    -- freigegebenem Betreuungsvertrag.
     ('44444444-4444-4444-4444-444444444445', '22222222-2222-2222-2222-222222222224',
-     '33333333-3333-3333-3333-333333333333', DATE '2019-05-01', 'system:check'),
-    -- Bekommt in diesem Skript keinen Vertrag: die Gegenprobe zur
-    -- Notfallbetreuung eines Kindes ohne Betreuungsvertrag hängt daran.
+     '33333333-3333-3333-3333-333333333333', DATE '2019-05-01', NULL, NULL, NULL,
+     NULL, NULL, 'system:check'),
+    -- Bekommt in diesem Skript weder Einschreibung noch Vertrag: die Gegenprobe
+    -- zur Notfallbetreuung eines Kindes, das das Haus nicht kennt, hängt daran.
     ('44444444-4444-4444-4444-444444444446', '22222222-2222-2222-2222-222222222225',
-     '33333333-3333-3333-3333-333333333333', DATE '2018-05-01', 'system:check');
+     '33333333-3333-3333-3333-333333333333', DATE '2018-05-01', NULL, NULL, NULL,
+     NULL, NULL, 'system:check'),
+    -- Eingeschrieben und ohne jeden Vertrag in diesem Skript — daran hängt die
+    -- Gegenprobe zur Notfallbetreuung eines Kindes, das Schülerin oder Schüler
+    -- ist, aber kein Hortkind. Kind …4444 taugt dafür nicht: Es bekommt weiter
+    -- unten selbst einen Hortvertrag.
+    ('44444444-4444-4444-4444-444444444447', '22222222-2222-2222-2222-222222222226',
+     '33333333-3333-3333-3333-333333333333', DATE '2020-07-01', DATE '2026-09-01',
+     1, 1, 4, 1, 'system:check');
 
 -- Die Textsorte steht als Wert im System; eine Fassung ohne sie gibt es nicht.
 INSERT INTO contract_text_kinds (code, name, kind_class, created_by) VALUES
@@ -233,12 +259,17 @@ INSERT INTO care_modules (care_module_id, code, name, includes_lunch,
     (3, 'after_noon_school', 'Nach Mittagsschule', true, 2, 5, 'system:check');
 
 -- Vier Fälle hängen an einem Modul, der fünfte an keinem.
-INSERT INTO emergency_care_types (emergency_care_type_id, code, name, care_module_id, created_by)
+-- Der Buchungsschluss steht je Fall-Art: „Frühbetreuung endet die Buchung über
+-- meinClemens um 6:45 Uhr", der Nachmittag desselben Tages um 11:15, und die
+-- halbe Stunde außerhalb der Öffnungszeiten trägt dieselbe 11:15
+-- (Geschäftsführung, 04.09.2026).
+INSERT INTO emergency_care_types (emergency_care_type_id, code, name, care_module_id,
+                                  booking_cutoff_time, created_by)
     OVERRIDING SYSTEM VALUE VALUES
-    (1, 'emergency_early',     'Notfall Frühbetreuung',   1, 'system:check'),
-    (2, 'emergency_afternoon3', 'Notfall bis 15:30',      2, 'system:check'),
+    (1, 'emergency_early',     'Notfall Frühbetreuung',   1, TIME '06:45', 'system:check'),
+    (2, 'emergency_afternoon3', 'Notfall bis 15:30',      2, TIME '11:15', 'system:check'),
     (3, 'emergency_after_hours', 'Halbe Stunde außerhalb der Öffnungszeiten',
-        NULL, 'system:check');
+        NULL, TIME '11:15', 'system:check');
 
 INSERT INTO admission_days (admission_day_id, school_branch_id, target_grade_level,
                             first_grade_level, final_grade_level,
@@ -1618,37 +1649,101 @@ SELECT pg_temp.expect_reject(
 SELECT pg_temp.expect_reject(
     '09 — zweiter Fall am selben Betreuungsmodul',
     $q$INSERT INTO emergency_care_types (emergency_care_type_id, code, name,
-                                         care_module_id, created_by)
+                                         care_module_id, booking_cutoff_time, created_by)
        OVERRIDING SYSTEM VALUE
        VALUES (4, 'emergency_early_2', 'Noch ein Notfall Frühbetreuung', 1,
-               'system:check')$q$);
+               TIME '06:45', 'system:check')$q$);
 
 SELECT pg_temp.expect_accept(
     '09 — zweiter Fall ohne Modul, weil außerhalb der Öffnungszeiten keines liegt',
     $q$INSERT INTO emergency_care_types (emergency_care_type_id, code, name,
-                                         care_module_id, created_by)
+                                         care_module_id, booking_cutoff_time, created_by)
        OVERRIDING SYSTEM VALUE
        VALUES (5, 'emergency_after_hours_2', 'Zweite halbe Stunde außerhalb', NULL,
+               TIME '11:15', 'system:check')$q$);
+
+-- 09: „Jede Art trägt also ihren eigenen" Schluss. Ohne ihn stünde eine
+-- Fall-Art da, für die das Portal nicht sagen kann, ob eine Buchung noch geht —
+-- und der Storno hätte keine Frist.
+SELECT pg_temp.expect_reject(
+    '09 — eine Fall-Art ohne Buchungsschluss',
+    $q$INSERT INTO emergency_care_types (emergency_care_type_id, code, name,
+                                         care_module_id, created_by)
+       OVERRIDING SYSTEM VALUE
+       VALUES (6, 'emergency_no_cutoff', 'Fall ohne Schluss', NULL,
                'system:check')$q$);
 
 -- 09: „Sie steht Hortkindern wie Nicht-Hortkindern offen und passt deshalb in
 -- kein Betreuungsmodul: Ein Modul hinge an einer Modulanlage, die ein Kind ohne
--- Betreuungsvertrag nicht hat." Kind …4446 hat in diesem Skript keinen — die
--- Gegenprobe belegt zuerst das und dann die Buchung.
+-- Betreuungsvertrag nicht hat." Kind …4447 ist eingeschrieben und hat keinen —
+-- die Gegenprobe belegt zuerst das und dann die Buchung.
 DO $$
 BEGIN
     IF EXISTS (SELECT 1 FROM contracts
-                WHERE child_id = '44444444-4444-4444-4444-444444444446') THEN
+                WHERE child_id = '44444444-4444-4444-4444-444444444447') THEN
         RAISE EXCEPTION 'Die Gegenprobe trägt nicht: das Kind hat doch einen Vertrag';
     END IF;
-    RAISE NOTICE 'ok: das Kind der nächsten Gegenprobe hat keinen Vertrag';
+    RAISE NOTICE 'ok: das Kind der nächsten Gegenprobe ist eingeschrieben, aber kein Hortkind';
 END $$;
 SELECT pg_temp.expect_accept(
-    '09 — Notfallbetreuung für ein Kind ohne Betreuungsvertrag',
+    '09 — Notfallbetreuung für ein eingeschriebenes Kind ohne Betreuungsvertrag',
+    $q$INSERT INTO emergency_care_bookings (child_id, care_date, emergency_care_type_id,
+                                            amount_cents, booked_at, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444447', DATE '2026-09-09', 1, 800,
+               now(), 'guardian:22222222-2222-2222-2222-222222222222')$q$);
+
+-- 09: „Das Kind muss uns bekannt sein" (Geschäftsführung, 04.09.2026) — der
+-- zweite Zweig desselben Prädikats: nicht eingeschrieben, aber Hortkind. Ohne
+-- ihn stünde die Betreuung genau den externen Kindern nicht offen, für die es
+-- den Hortvertrag am Kind überhaupt gibt.
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM children
+                WHERE child_id = '44444444-4444-4444-4444-444444444445'
+                  AND entry_date IS NOT NULL) THEN
+        RAISE EXCEPTION 'Die Gegenprobe trägt nicht: das externe Kind ist doch eingeschrieben';
+    END IF;
+    RAISE NOTICE 'ok: das Kind der nächsten Gegenprobe ist extern und trägt allein seinen Hortvertrag';
+END $$;
+SELECT pg_temp.expect_accept(
+    '09 — Notfallbetreuung für ein externes Kind mit Betreuungsvertrag',
+    $q$INSERT INTO emergency_care_bookings (child_id, care_date, emergency_care_type_id,
+                                            amount_cents, booked_at, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444445', DATE '2026-09-09', 1, 800,
+               now(), 'guardian:22222222-2222-2222-2222-222222222222')$q$);
+
+-- 09: „Das Kind muss uns bekannt sein." Kind …4446 steht in `children` — eine
+-- Ferienbuchung oder eine Akademie-Anmeldung legt eine solche Zeile an —, ist
+-- aber weder eingeschrieben noch Hortkind. Für es wäre der Bestand, den die
+-- Betreuung braucht, erst zu erheben, und das ist „für eine Notfallbetreuung zu
+-- viel".
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM contracts
+                WHERE child_id = '44444444-4444-4444-4444-444444444446')
+       OR EXISTS (SELECT 1 FROM children
+                   WHERE child_id = '44444444-4444-4444-4444-444444444446'
+                     AND entry_date IS NOT NULL) THEN
+        RAISE EXCEPTION 'Die Gegenprobe trägt nicht: das Kind ist dem Haus doch bekannt';
+    END IF;
+    RAISE NOTICE 'ok: das Kind der nächsten Gegenprobe ist weder eingeschrieben noch Hortkind';
+END $$;
+SELECT pg_temp.expect_reject(
+    '09 — Notfallbetreuung für ein Kind, das das Haus nicht kennt',
     $q$INSERT INTO emergency_care_bookings (child_id, care_date, emergency_care_type_id,
                                             amount_cents, booked_at, created_by)
        VALUES ('44444444-4444-4444-4444-444444444446', DATE '2026-09-10', 1, 800,
                now(), 'guardian:22222222-2222-2222-2222-222222222222')$q$);
+
+-- Und derselbe Fall über den zweiten Eingang: Der offizielle Umweg trägt den
+-- Weg, nicht den Kreis — auch der Hort trägt telefonisch nur ein bekanntes Kind
+-- nach.
+SELECT pg_temp.expect_reject(
+    '09 — der Hort trägt ein unbekanntes Kind telefonisch nach',
+    $q$INSERT INTO emergency_care_bookings (child_id, care_date, emergency_care_type_id,
+                                            amount_cents, attended_at, attended_by, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444446', DATE '2026-09-10', 1, 800,
+               now(), 'entra:hort', 'entra:hort')$q$);
 
 -- 09: „Buchung und Vollzug sind zwei Zeitpunkte … Genau das ist der
 -- Papierfall: Wer unangekündigt kommt, hat keine Buchung, nur den Vollzug."
@@ -1821,8 +1916,10 @@ BEGIN
     END IF;
     -- Die Notfallbetreuung dagegen hängt an keinem Vertrag und trägt ihren
     -- eigenen Anker: „Sie steht Hortkindern wie Nicht-Hortkindern offen" (09).
-    -- Ginge sie hier mit, verlöre ein Kind ohne Betreuungsvertrag seine
-    -- Abrechnung, sobald irgendein Vertrag fällt.
+    -- Ginge sie hier mit, verlöre ein eingeschriebenes Kind ohne
+    -- Betreuungsvertrag seine Abrechnung, sobald irgendein Vertrag fällt. Dass
+    -- der Kreis beim Anlegen enger ist, ändert daran nichts: Der Trigger prüft
+    -- die Zulassung, nicht die Aufbewahrung.
     IF NOT EXISTS (SELECT 1 FROM emergency_care_bookings) THEN
         RAISE EXCEPTION 'ZU VIEL GELÖSCHT — die Notfallbetreuung ging mit dem Vertrag';
     END IF;

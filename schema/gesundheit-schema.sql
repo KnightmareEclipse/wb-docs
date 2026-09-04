@@ -305,15 +305,6 @@ CREATE TABLE child_health_records (
     -- vergessene Frage darf nicht wie eine Verweigerung aussehen.
     answered_at            timestamptz,
     declined_at            timestamptz,
-    -- „Der kurze handlungsrelevante Hinweis der Klassenlehrkraft … ein Feld am
-    -- Bestand, nicht am Merkmal, und damit die einzige Angabe über das Kind
-    -- statt über eine Erkrankung" (grenzkarte.md, „Zugriff, drei Bedingungen")
-    -- — die zweite Spalte mit eigenem GRANT neben dem vollen Satz. Wer ihn
-    -- liest, steht in api/gesundheit-api.md. Nicht zu verwechseln mit dem
-    -- Feld „Beachten" an einem einzelnen Merkmal: Das schreiben die Eltern und
-    -- es gilt für diese eine Angabe, dieser Satz kommt von der Klassenlehrkraft
-    -- und gilt für das Kind.
-    action_note            text,
     created_at             timestamptz NOT NULL DEFAULT now(),
     created_by             text NOT NULL,
 
@@ -333,11 +324,64 @@ CREATE TABLE child_health_records (
     -- Beantwortet oder ausdrücklich verweigert, nie beides.
     CONSTRAINT ck_child_health_records_answer
         CHECK (answered_at IS NULL OR declined_at IS NULL),
-    -- Ein leerer Hinweis sieht aus wie ein geprüfter, und ihn lesen alle
-    -- unterrichtenden Personen.
-    CONSTRAINT ck_child_health_records_action_note CHECK (action_note <> ''),
     CONSTRAINT ck_child_health_records_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
+
+-- Herkunft: „Der kurze handlungsrelevante Hinweis … ein Feld am Bestand, nicht
+-- am Merkmal, und damit die einzige Angabe über das Kind statt über eine
+-- Erkrankung" (grenzkarte.md, „Zugriff, drei Bedingungen"). **Eine Tabelle und
+-- keine Spalte am Bestand, seit der Hort ihn ebenfalls braucht**
+-- (Geschäftsführung, 04.09.2026): Er hakt seine Tagesliste auf Papier ab und
+-- braucht darauf die Marke „hier ist etwas zu beachten", im Büro den Satz dazu.
+-- Ein einziges Feld hätte zwei Verfasser mit verschiedenem Alltag — die
+-- Klassenlehrkraft schreibt für den Unterricht, die Hortleitung für die
+-- Betreuung —, und sie überschrieben einander lautlos. Die Zeile steht deshalb
+-- je Sichtkreis, in derselben Bauform, in der schon die Freigaben je Instanz
+-- stehen: „Schule und Hort sind zwei Instanzen desselben Bestands"
+-- (grenzkarte.md). Ein externes Hortkind hat gar keine Klassenlehrkraft, die
+-- schreiben könnte — mit einer Spalte bliebe der Hinweis für es dauerhaft leer.
+-- **Der Hinweis ist keine zweite Erhebung.** Er fasst zusammen, was diesem
+-- Kreis ohnehin vorliegt, und entsteht nur, wo jemand etwas sieht: Liegt für
+-- den Hort nichts vor, gibt es für ihn nichts zu schreiben, und sein Blatt
+-- trägt keine Marke. Das ist kein Zurückhalten — die Angaben sind freiwillig,
+-- und was die Eltern nicht mitteilen, gibt es hier nicht (folgenabschaetzung.md,
+-- „die Ablehnung wird benannt statt sanktioniert"). Es braucht deshalb auch
+-- keinen Constraint: Geschrieben wird über eine Route, die nur zeigt, was der
+-- Kreis sehen darf.
+-- Nicht zu verwechseln mit dem Feld „Beachten" an einem einzelnen Merkmal: Das
+-- schreiben die Eltern und es gilt für diese eine Angabe, dieser Satz kommt aus
+-- dem Haus und gilt für das Kind. Wer ihn liest, steht in api/gesundheit-api.md.
+-- Löschanker: geht per Cascade mit dem Bestand und damit mit dem Kind (03) —
+-- er ist eine Angabe über das Kind und überlebt sie nicht.
+-- Welcher Sichtkreis einen Hinweis tragen darf, prüft **kein** Constraint: Der
+-- Fremdschlüssel nimmt jeden, sinnvoll sind heute zwei (`school`, `care`). Ein
+-- Häkchen an `health_visibility_scopes` wäre ein Flag samt Pflege für eine
+-- Regel, deren Verletzung folgenlos bleibt — ein Hinweis an einem Kreis, für
+-- den keine Route ihn ausliest, wird nie gelesen.
+CREATE TABLE child_health_action_notes (
+    child_health_record_id     uuid NOT NULL,
+    health_visibility_scope_id integer NOT NULL,
+    -- Ein leerer Hinweis sieht aus wie ein geprüfter; dass gar keiner dasteht,
+    -- ist die ehrlichere Aussage.
+    note                       text NOT NULL,
+    created_at                 timestamptz NOT NULL DEFAULT now(),
+    created_by                 text NOT NULL,
+
+    CONSTRAINT pk_child_health_action_notes
+        PRIMARY KEY (child_health_record_id, health_visibility_scope_id),
+    CONSTRAINT fk_child_health_action_notes_record
+        FOREIGN KEY (child_health_record_id)
+        REFERENCES child_health_records (child_health_record_id) ON DELETE CASCADE,
+    CONSTRAINT fk_child_health_action_notes_scope
+        FOREIGN KEY (health_visibility_scope_id)
+        REFERENCES health_visibility_scopes (health_visibility_scope_id),
+    CONSTRAINT ck_child_health_action_notes_note CHECK (note <> ''),
+    -- Aus dem Haus, nie von den Eltern: Es ist die fachliche Einschätzung der
+    -- Stelle, die das Kind betreut, und keine Angabe der Familie.
+    CONSTRAINT ck_child_health_action_notes_created_by
+        CHECK (created_by ~ '^(entra:|system:)')
+);
+
 
 -- Herkunft: das Gespräch mit der Geschäftsführung vom 01.09.2026 — die Eltern
 -- beantworten nicht mehr pauschal alles oder nichts, sondern entscheiden je
