@@ -166,6 +166,11 @@ hinaus gelten; er übernimmt diese beiden Festlegungen, sobald er geschrieben wi
 > Die Fristen müssen erst stehen, bevor er das erste Mal läuft — nicht bevor das System steht:
 > Solange nichts gelöscht wird, ist nichts verloren.
 
+**Jede Zahl unten ist der heutige Stand und keine Konstante:** Die Fristen stehen seit dem
+04.09.2026 [als Wert im System](hebel.md#geld-und-fristen-im-system-alles-andere-fest) und werden von
+der Stelle geändert, der der Bestand gehört. Wer eine Frist prüft, liest hier, was gilt — und im
+System, was eingetragen ist.
+
 Beides steht seit dem 02.09.2026: Der **Schulvertrag bleibt fünf Jahre nach dem Austritt**, das
 **SEPA-Mandat zwei Jahre** — getrennt, weil das Mandat nur die Ermächtigung ist und der Vertrag das
 Rechtsdokument; was tatsächlich eingezogen wurde, steht in Optigem und nicht hier. Dieselben fünf
