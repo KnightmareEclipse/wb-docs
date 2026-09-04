@@ -235,7 +235,18 @@ Der Ablauf selbst läuft; was fehlt, ist der gemeinsame Ort.
 Es verschwindet **nichts von selbst**, weder Daten noch Dateien: Die Angaben zum Beleg bleiben zehn
 Jahre in Weltenbaum, die Anhänge in SharePoint, und was danach mit einem Jahrgang geschieht,
 entscheidet die **Geschäftsführung** von Hand. Einen Lauf, der es von sich aus täte, gibt es hier
-nicht. Der Beleg **überlebt seinen Einreicher**: Scheidet er aus, bleibt sein Name daran
+nicht.
+
+**Die zehn Jahre stehen trotzdem als Wert im System** — und sie sind der **einzige** Fristwert, der
+nichts auslöst (Geschäftsführung, 04.09.2026). Er ist ein **Merkposten für die Handfreigabe**: Er
+sagt der Geschäftsführung, ab wann sie einen Jahrgang freigeben *darf*, und der **Buchhaltung** —
+die ihn als Einzige ändert —, dass sie ihn heraufsetzen kann, wenn etwas länger liegen soll. Was
+danach geschieht, entscheidet weiter ein Mensch.
+
+**Und das bleibt ein Sonderfall, ausdrücklich.** Bei jedem anderen Bestand ist die Frist der
+Auslöser und nicht die Notiz ([17](17-loesch-lauf.md)); hier ist sie es nicht, weil eine
+Aufbewahrungspflicht darauf liegt und der Lauf nicht in sie eingreifen darf. Wer die Bauform von
+hier anderswo hinträgt, baut eine Frist, die nie etwas tut. Der Beleg **überlebt seinen Einreicher**: Scheidet er aus, bleibt sein Name daran
 ([00](00-zugang-und-portal.md)). Ein Eintrag der Empfängerliste bleibt, **solange ein Beleg auf ihn
 verweist** — auch wenn dahinter eine Person steht und keine Firma.
 

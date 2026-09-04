@@ -167,6 +167,11 @@ Block gehören:
 ab, die etwas auslöst, die Belege stehen zehn Jahre, und was danach mit einem Jahrgang geschieht,
 gibt die Geschäftsführung von Hand frei. Ein Lauf, der sie mitnähme, griffe in die Aufbewahrung ein.
 
+**Ihre Frist steht trotzdem als Wert** — als einzige, die dieser Lauf **nicht liest**. Sie ist ein
+Merkposten für die Handfreigabe und wird von der Buchhaltung gepflegt (12). Das ist der einzige
+Bestand, bei dem ein Wert dasteht, ohne dass hier etwas daran hängt; überall sonst gilt umgekehrt,
+dass eine Frist ohne Wert nichts löscht.
+
 **Zwei Anker kommen aus [13](13-m365-konten.md)**: der letzte Arbeitstag eines Mitarbeitenden, ab
 dem sein Eintrag rechnet, und die Schuladresse am Kind, die keine eigene Frist hat und mit dem Kind
 geht. `[?]` Wie lange ein Mitarbeitendeneintrag nach dem letzten Arbeitstag steht, ist weiter offen

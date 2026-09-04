@@ -91,7 +91,9 @@ geändert:
 werden sie von der Stelle, der der Bestand gehört — die Buchhaltung bei den Belegen, sonst die
 Geschäftsführung —, wirksam ab einem Datum und nie rückwirkend. **Keine trägt eine Untergrenze**,
 auch die zehn Jahre der Belege nicht: Wer eine Aufbewahrungspflicht kennt, ist die zuständige Stelle
-und nicht das System. Die Tabelle nennt deshalb den **heutigen** Stand, nicht eine unveränderliche
+und nicht das System. Die Belege sind zugleich der **einzige** Bestand, dessen Frist nichts auslöst —
+sie ist ein Merkposten für die Handfreigabe durch die Geschäftsführung, gepflegt von der Buchhaltung
+(`soll-prozesse/12`). Die Tabelle nennt deshalb den **heutigen** Stand, nicht eine unveränderliche
 Zahl — und wo gar nichts eingetragen ist, wird auch nichts gelöscht
 (`soll-prozesse/17`).
 

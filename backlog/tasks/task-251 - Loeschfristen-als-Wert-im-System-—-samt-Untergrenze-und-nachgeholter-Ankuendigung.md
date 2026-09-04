@@ -36,6 +36,8 @@ Derselbe Satz traegt nebenbei den Erstbezug: Wird ein Wert zum ersten Mal gesetz
 
 **Was daran nicht neu ist:** Die Aenderungsspur traegt den Vorgang wie bei jedem anderen Wert im System.
 
+**Ein Sonderfall, und er bleibt einer: die Rechnungsfreigabe.** Ihre zehn Jahre stehen als Wert, aber der Lauf **liest ihn nicht** — er spart die Belege aus, weil eine Aufbewahrungspflicht darauf liegt und die Freigabe eines Jahrgangs eine menschliche Handlung bleibt (Block 12). Der Wert ist dort ein **Merkposten fuer die Handfreigabe**, gepflegt von der Buchhaltung: Er sagt, ab wann freigegeben werden darf, und laesst sich heraufsetzen, wenn etwas laenger liegen soll. Bei jedem anderen Bestand ist die Frist der Ausloeser — wer diese Bauform anderswo hintraegt, baut eine Frist, die nie etwas tut.
+
 **Nicht mit hinein gehoert der Nachweis der Fotoerlaubnis** (TASK-244): Er hat keine Frist, und eine Zeile in dieser Tabelle waere eine, die jemand versehentlich fuellen kann.
 <!-- SECTION:DESCRIPTION:END -->
 
@@ -46,5 +48,6 @@ Derselbe Satz traegt nebenbei den Erstbezug: Wird ein Wert zum ersten Mal gesetz
 - [ ] #3 Der Loeschtermin ist nie frueher als created_at des Wertes plus 14 Tage; die Gegenprobe: nach einer Senkung wird am naechsten Morgen nichts geraeumt
 - [ ] #4 Eine Aenderung wirkt ab valid_from und nie rueckwirkend
 - [ ] #5 hebel.md, Block 17 und das Verarbeitungsverzeichnis sagen dasselbe
-- [ ] #6 Die Buchhaltung darf die Fristen ihrer Belege aendern, die Geschaeftsfuehrung die uebrigen
+- [ ] #6 Die Buchhaltung darf die Frist der Belege aendern, die Geschaeftsfuehrung die uebrigen
+- [ ] #7 Die Frist der Belege loest nichts aus; die Gegenprobe: der Lauf raeumt sie auch dann nicht, wenn ihr Wert abgelaufen ist
 <!-- AC:END -->
