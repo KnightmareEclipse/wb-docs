@@ -32,9 +32,10 @@ Z6 → die drei Storno-Routen · Z7 → `GET /holiday/sessions/{id}/participants
   und Werbe-Einwilligung sind Q1-Routen ([`querschnitt-api.md`](querschnitt-api.md)), die
   Essensvariante eine Mensa-Route ([`mensa-api.md`](mensa-api.md)), die Notfallnummer eine
   Stammdaten-Route — das Formular führt sie zusammen, die API nicht.
-- **Für die Mensa entsteht hier nichts.** Ob ein Kind an einem Ferientag isst, sagt
-  `holiday_modules.includes_lunch`; die Tagesliste der Küche liest das selbst
-  ([`mensa-api.md`](mensa-api.md)). Diese Domäne erzeugt dafür keine Zeile und zeigt keine Liste.
+- **Für die Mensa entsteht hier nichts.** Ein Ferienmodul trägt kein Mittagessen — „wer im
+  Ferienprogramm betreut wird, isst nicht auf Rechnung der Schule"
+  ([10](../soll-prozesse/10-ferienprogramm.md)); wo eines im Preis steckt, ist es ein
+  Akademie-Angebot (`akademie-schema.sql`). Diese Domäne erzeugt keine Zeile und zeigt keine Liste.
 - **Nichts wartet auf eine Entscheidung, und nichts läuft ab.** Keine Aufnahme, keine Warteliste,
   kein Nachrücken, keine Freigabe: „Wer bezahlt hat, ist dabei." Die Platzzahl ist eine Obergrenze
   für die Anzeige und keine Sperre.
@@ -88,8 +89,8 @@ Jahren dieselben sind, und ein `is_active`, das jemand pflegen müsste.
 
 | Handlung | Herkunft | Wer darf | Worauf eingeschränkt | Schreibt/liest | Enge Rolle |
 |---|---|---|---|---|---|
-| `GET /holiday/session-types` — die Terminarten samt ihren Modulen, Uhrzeiten, `includes_lunch`, dem Häkchen für fremde Kinder, dem Code ihrer Stornobedingungen und je Modul dem geltenden und dem angekündigten Betrag | [10](../soll-prozesse/10-ferienprogramm.md) „Was dabei erhoben wird" | `day_care_management`, `domestic_services_management`, `executive_management`, `secretariat` | **interne Route**: Die Eltern sehen den Betrag am Termin, der ihn braucht ([`querschnitt-api.md`](querschnitt-api.md)). Ein angekündigter Betrag geht sie hier auch nichts an — bezahlt wird im selben Zug, also gilt für jede Buchung der heutige | liest | — |
-| `POST /holiday/module-prices` — einen Modulbetrag ab einem Tag setzen | [`hebel.md`](../soll-prozesse/hebel.md#geld-und-fristen-im-system-alles-andere-fest) | `executive_management` | unbeschränkt; je Modul und Tag einer (`uq_holiday_module_prices`). **Der Aufschlag je Termin gehört nicht hierher** — ihn setzt die anbietende Stelle am Termin, „der einzige Betrag in diesem Block, den nicht die Geschäftsführung setzt" | schreibt, `entra:` | — |
+| `GET /holiday/session-types` — die Terminarten samt ihren Modulen, Uhrzeiten, dem Häkchen für fremde Kinder, dem Code ihrer Stornobedingungen und je Modul dem geltenden und dem angekündigten Betrag | [10](../soll-prozesse/10-ferienprogramm.md) „Was dabei erhoben wird" | `day_care_management`, `domestic_services_management`, `executive_management`, `secretariat` | **interne Route**: Die Eltern sehen den Betrag am Termin, der ihn braucht ([`querschnitt-api.md`](querschnitt-api.md)). Ein angekündigter Betrag geht sie hier auch nichts an — bezahlt wird im selben Zug, also gilt für jede Buchung der heutige | liest | — |
+| `POST /holiday/module-prices` — einen Modulbetrag ab einem Tag setzen | [`hebel.md`](../soll-prozesse/hebel.md#geld-und-fristen-im-system-alles-andere-fest) | `executive_management` | unbeschränkt; je Modul und Tag einer (`uq_holiday_module_prices`). **Einen Aufschlag je Termin gibt es nicht** — „Alle Beträge stehen fest und gelten für jeden Termin gleich" ([10](../soll-prozesse/10-ferienprogramm.md)); den einen Betrag, den nicht die Geschäftsführung setzt, trägt das Akademie-Angebot (`akademie-schema.sql`, `surcharge_cents`) | schreibt, `entra:` | — |
 | `PATCH /holiday/module-prices/{holiday_module_price_id}` — einen angekündigten Betrag ändern | [`hebel.md`](../soll-prozesse/hebel.md#geld-und-fristen-im-system-alles-andere-fest) | `executive_management` | **nur solange sein Gültigkeitstag nicht erreicht ist**, sonst `400`; `now()` steht in keinem CHECK, die Regel prüft die Route — dieselbe Mechanik wie bei `meal-prices` | schreibt, `entra:` | — |
 | `DELETE /holiday/module-prices/{holiday_module_price_id}` — einen angekündigten Betrag zurücknehmen | [`hebel.md`](../soll-prozesse/hebel.md#geld-und-fristen-im-system-alles-andere-fest) | `executive_management` | wie oben; ein bereits gültiger bleibt stehen, „was schon berechnet oder bezahlt ist, bleibt bei dem Betrag, der damals galt" | schreibt, `entra:` | — |
 
@@ -110,12 +111,12 @@ zuständige Stelle ausfällt" greift fürs Einrichten nicht.
 
 | Handlung | Herkunft | Wer darf | Worauf eingeschränkt | Schreibt/liest | Enge Rolle |
 |---|---|---|---|---|---|
-| `GET /holiday/programmes` — **die Ausschreibung**: je Programm sein Fenster, je Termin Tage, Terminart, Thema, freie Plätze und je Modul der Preis (geltender Modulbetrag plus Aufschlag), dazu Storno- und Teilnahmebedingungen in der heute geltenden Fassung | [10](../soll-prozesse/10-ferienprogramm.md) Z3, Z1 „danach steht fest" | jede Mitarbeiterrolle; Erziehungsberechtigte und **jeder ohne Anmeldung** | „für alle sichtbar, auch ohne Anmeldung, denn es ist die Ausschreibung" — dieselbe Lage wie `GET /enrolment-windows` ([`anmeldung-api.md`](anmeldung-api.md)). **Bilder liefert sie nie**, die liegen auf der Webseite der Schule. Ein Filter zeigt den internen Rollen auch geschlossene und vergangene Programme; ohne ihn steht nur, was offen ist. Ein **abgesagter Termin bleibt sichtbar** und ist nicht buchbar. Sie zeigt **keine Namen und keine Zahl über die Buchungen** außer den freien Plätzen | liest | — |
+| `GET /holiday/programmes` — **die Ausschreibung**: je Programm sein Fenster, je Termin Tage, Terminart, Thema, freie Plätze und je Modul der geltende Modulbetrag, dazu Storno- und Teilnahmebedingungen in der heute geltenden Fassung | [10](../soll-prozesse/10-ferienprogramm.md) Z3, Z1 „danach steht fest" | jede Mitarbeiterrolle; Erziehungsberechtigte und **jeder ohne Anmeldung** | „für alle sichtbar, auch ohne Anmeldung, denn es ist die Ausschreibung" — dieselbe Lage wie `GET /enrolment-windows` ([`anmeldung-api.md`](anmeldung-api.md)). **Bilder liefert sie nie**, die liegen auf der Webseite der Schule. Ein Filter zeigt den internen Rollen auch geschlossene und vergangene Programme; ohne ihn steht nur, was offen ist. Ein **abgesagter Termin bleibt sichtbar** und ist nicht buchbar. Sie zeigt **keine Namen und keine Zahl über die Buchungen** außer den freien Plätzen | liest | — |
 | `POST /holiday/programmes` — ein Programm anlegen: Name, anbietende Rolle, Anmeldefenster | [10](../soll-prozesse/10-ferienprogramm.md) Z1 | `day_care_management`, `domestic_services_management`, `admin` | unbeschränkt; die anbietende Rolle ist eine der beiden und wird nicht frei gewählt. Ein Schließdatum ist nicht Pflicht (`ck_holiday_programmes_window`) | schreibt, `entra:` | — |
 | `PATCH /holiday/programmes/{holiday_programme_id}` — Name oder Anmeldefenster ändern, vorziehen oder verschieben | [10](../soll-prozesse/10-ferienprogramm.md) Z1, „Fristen und Termine" | die anbietende Rolle des Programms, `admin` | nur die Programme der eigenen Rolle, `admin` alle; „jederzeit vorziehbar oder verschiebbar wie das Voranmeldefenster (05)", **auch nachdem das Datum verstrichen ist** | schreibt, `entra:` | — |
 | `POST /holiday/programmes/{holiday_programme_id}/closure` — die Anmeldung von Hand schließen | [10](../soll-prozesse/10-ferienprogramm.md) Z5 | die anbietende Rolle des Programms, `admin` | nur die Programme der eigenen Rolle, `admin` alle; **auch wenn rechnerisch noch Platz wäre**, „denn eingekauft und geplant wird vorher". Genau einmal; ein zweiter Aufruf ist `400`. **Kein Weg zurück** — wer danach doch noch mitsoll, kommt über den [offiziellen Umweg](gemeinsam.md#der-offizielle-umweg) hinein, den der Block ausdrücklich dafür benennt | schreibt, `entra:` | — |
-| `POST /holiday/programmes/{holiday_programme_id}/sessions` — einen Termin anlegen: Tage, Terminart, Platzzahl, Titel und Beschreibung **und den Aufschlag je Modul dieser Terminart**, alles in **einer** Transaktion | [10](../soll-prozesse/10-ferienprogramm.md) Z1 | die anbietende Rolle des Programms, `admin` | nur die Programme der eigenen Rolle, `admin` alle; mindestens ein Tag, Platzzahl > 0 (`ck_holiday_sessions_places`), je Tag eine Zeile (`uq_holiday_session_days`), je Modul der Terminart genau ein Aufschlag (`uq_holiday_session_surcharges`, Pflicht, meist null). **Termin, Tage und Aufschläge sind ein Schritt** — ein Termin ohne Tag oder ohne Aufschlag ist ein Zustand, den kein Block kennt | schreibt, `entra:` | — |
-| `PATCH /holiday/sessions/{holiday_session_id}` — Thema, Platzzahl, Tage oder Aufschlag ändern | [10](../soll-prozesse/10-ferienprogramm.md) Z1 + [`hebel.md`](../soll-prozesse/hebel.md#standardantworten) „Ändern" | die anbietende Rolle des Programms, `admin` | nur die Programme der eigenen Rolle, `admin` alle; nicht an einem abgesagten Termin. **Auch nach den ersten Buchungen** — eine Platzzahl unter den bereits Gebuchten sperrt nur die Anzeige, sie wirft niemanden hinaus; der Aufschlag gilt ab dann und rechnet nichts zurück ([`hebel.md`](../soll-prozesse/hebel.md#geld-und-fristen-im-system-alles-andere-fest)) | schreibt, `entra:` | — |
+| `POST /holiday/programmes/{holiday_programme_id}/sessions` — einen Termin anlegen: Tage, Terminart, Platzzahl, Titel und Beschreibung, alles in **einer** Transaktion | [10](../soll-prozesse/10-ferienprogramm.md) Z1 | die anbietende Rolle des Programms, `admin` | nur die Programme der eigenen Rolle, `admin` alle; mindestens ein Tag, Platzzahl > 0 (`ck_holiday_sessions_places`), je Tag eine Zeile (`uq_holiday_session_days`). **Termin und Tage sind ein Schritt** — ein Termin ohne Tag ist ein Zustand, den kein Block kennt | schreibt, `entra:` | — |
+| `PATCH /holiday/sessions/{holiday_session_id}` — Thema, Platzzahl oder Tage ändern | [10](../soll-prozesse/10-ferienprogramm.md) Z1 + [`hebel.md`](../soll-prozesse/hebel.md#standardantworten) „Ändern" | die anbietende Rolle des Programms, `admin` | nur die Programme der eigenen Rolle, `admin` alle; nicht an einem abgesagten Termin. **Auch nach den ersten Buchungen** — eine Platzzahl unter den bereits Gebuchten sperrt nur die Anzeige, sie wirft niemanden hinaus | schreibt, `entra:` | — |
 
 ## Buchen und bezahlen
 
@@ -128,7 +129,7 @@ zuständige Stelle ausfällt" greift fürs Einrichten nicht.
 **Was `POST /holiday/bookings` an den Zahlungsdienst übergibt**, ist der Formularinhalt als Metadaten
 der Sitzung, in derselben Form wie bei der Bewerbung: ein JSON über mehrere Metadaten-Schlüssel, weil
 ein Schlüssel bei Stripe 500 Zeichen fasst ([`anmeldung-api.md`](anmeldung-api.md)). Der **Betrag je
-Buchung** reist mit — Modulbetrag zum Tag der Handlung plus Aufschlag —, denn genau ihn zieht die
+Buchung** reist mit — der Modulbetrag zum Tag der Handlung —, denn genau ihn zieht die
 Sitzung ein, und „eine spätere Änderung rechnet nichts rückwirkend um".
 
 `[A!]` **Ein Absenden ist eine Sitzung und eine Zahlungszeile, auch wenn drei Kinder an vier Terminen
@@ -285,9 +286,8 @@ Je eine Zeile, benannt und nicht mitgeplant:
 - **Das Fotoeinverständnis** (`PUT /children/{child_id}/consents/photo`) und die **Werbe-Einwilligung**
   (`PUT /persons/{person_id}/consents/marketing_holiday`) — [`querschnitt-api.md`](querschnitt-api.md).
 - **Die Essensvariante** (`PUT /children/{child_id}/meal-profile`) — [`mensa-api.md`](mensa-api.md);
-  hier abgefragt, wo ein Modul ein Essen trägt, geführt dort.
-- **Die Tagesliste der Küche**, auf der ein Kind mit `includes_lunch` steht —
-  [`mensa-api.md`](mensa-api.md); sie liest `holiday_bookings` selbst.
+  hier abgefragt, geführt dort. Kein Ferienmodul trägt ein Essen, und auf der Tagesliste der Küche
+  steht ein Ferienkind deshalb nicht.
 - **`POST /payments/callback`** — [`querschnitt-api.md`](querschnitt-api.md), Form in
   [`gemeinsam.md`](gemeinsam.md#sofortzahlung). **Die Zahlungssitzung eröffnet diese Domäne selbst**,
   in `POST /holiday/bookings`; sie wandert nicht mit. Der **Einzelnachweis** `GET /payments` liest die
@@ -328,8 +328,8 @@ Kein Eingriff, das Schema führt `wb-backend`:
 - **`holiday_programmes.offering_role_id` zeigt auf `roles` und ist damit frei wählbar.** Kein
   Constraint hält, dass es Hortleitung oder Hauswirtschaftsleitung ist; die Route prüft es. Ein CHECK
   ginge nur gegen eine Kennung, die der Seed vergibt, und das wäre schlechter als die Prüfung.
-- **`holiday_bookings.amount_cents` erlaubt 0.** Ein Termin, dessen Modulbetrag und Aufschlag beide
-  null sind, ließe sich buchen, ohne dass eine Zahlung entstehen kann (`ck_payments_amount` verlangt
+- **`holiday_bookings.amount_cents` erlaubt 0.** Ein Termin, dessen Modulbetrag null ist,
+  ließe sich buchen, ohne dass eine Zahlung entstehen kann (`ck_payments_amount` verlangt
   > 0). Der Fall kommt heute nicht vor, und die Route weist ihn ab, statt eine Sitzung über 0 € zu
   eröffnen.
 

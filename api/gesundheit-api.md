@@ -31,7 +31,7 @@ Sichtbarkeit ist ein **Schnitt aus drei Bedingungen**, und alle drei sind Zeilen
    Sichtkreis. Der Notfallausschnitt übergeht sie ausdrücklich, die Küche erbt die Freigabe der
    Liste, auf der das Kind steht.
 3. **Ist die aufrufende Person für dieses Kind zuständig?** — die zweite Achse
-   (`klassenorganisation-schema.sql`): Klassenleitung, Unterricht in seiner Klasse, oder eine
+   (`schema/klassenorganisation-schema.sql`): Klassenleitung, Unterricht in seiner Klasse, oder eine
    Wahlmodulgruppe, in der es Mitglied ist.
 
 Keine Route entscheidet in einer Fallunterscheidung, welches Feld sie ausliefert: **Jeder Sichtkreis

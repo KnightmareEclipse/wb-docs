@@ -34,7 +34,7 @@ BEGIN
     IF missing IS NOT NULL THEN
         RAISE EXCEPTION 'Fehlende Tabellen: %', missing;
     END IF;
-    RAISE NOTICE 'ok: alle 15 Tabellen vorhanden';
+    RAISE NOTICE 'ok: alle 16 Tabellen vorhanden';
 END $$;
 
 DO $$

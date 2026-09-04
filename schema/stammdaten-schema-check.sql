@@ -50,7 +50,7 @@ BEGIN
     IF missing IS NOT NULL THEN
         RAISE EXCEPTION 'Fehlende Tabellen: %', missing;
     END IF;
-    RAISE NOTICE 'ok: alle 26 Tabellen vorhanden';
+    RAISE NOTICE 'ok: alle 28 Tabellen vorhanden';
 END $$;
 
 -- ---------------------------------------------------------------------------
