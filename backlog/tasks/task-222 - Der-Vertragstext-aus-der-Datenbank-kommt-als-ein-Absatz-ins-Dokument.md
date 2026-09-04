@@ -1,13 +1,14 @@
 ---
 id: TASK-222
-title: Der Vertragstext aus der Datenbank kommt als ein Absatz ins Dokument
+title: contract_texts traegt die eingefrorene Vorlagendatei
 status: To Do
 assignee: []
 created_date: '2026-09-03 22:40'
+updated_date: '2026-09-04 00:17'
 labels:
+  - schema
+  - wb-docs
   - wb-backend
-  - anmeldung
-  - dokument
 milestone: m-2
 dependencies:
   - TASK-186
@@ -20,22 +21,28 @@ ordinal: 199500
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-`contract_texts.body` trägt den Wortlaut einer Fassung, `hebel.md` überlässt seine Form ausdrücklich dem Bau: „Wie ein solcher Text abgelegt und formatiert wird, entscheidet der Bau und nicht dieser Hebel — festgehalten wird, welche Fassung galt." Entschieden ist das bis heute nicht, und der gebaute Weg entscheidet es stillschweigend mit: In `contract-template.docx` steht `{{ contract_body }}` als einfacher Platzhalter, gefüllt in `build_contract_document` (`app/services/anmeldung.py`). docxtpl setzt den Wert damit als **einen Textlauf in einen Absatz** — ein Schulvertrag mit Gliederung, Überschriften und Aufzählungen wird zu einem Block. Dieselbe Form haben `mandate-template.docx` und `photo-consent-template.docx`.
+**Ersetzt die ursprüngliche Fragestellung.** Das Ticket fragte, welche Auszeichnungssprache `contract_texts.body` spricht und wer sie in Word-Absätze übersetzt. Die Frage ist hinfällig: Am 04.09.2026 gemessen und entschieden, dass die **Word-Datei selbst die Fassung ist** und `body` daraus abgeleitet wird. Damit übersetzt niemand etwas, und die drei dort vorgeschlagenen Wege entfallen alle drei.
 
-Das steht gegen TASK-186: Die Vorlage kann echte Überschriftenebenen tragen, der Vertragstext selbst dann immer noch nicht — und er ist der längste Teil des Dokuments.
+**Warum.** Der reale Schulvertrag der Schule hat 682 Absätze, 4 Tabellen, 128 Listenabsätze in drei eigenen Ebenen, 10 Grafiken, zwei Kopf- und zwei Fußzeilen. Kein Fließtext- und kein Markdown-Feld trägt das. Die Datei ist ausserdem bereits eine Vorlage — 82 benannte Inhaltssteuerelemente, von Hand gebaut, weil Power Automate nicht anders in ein Word-Dokument schreiben konnte. Mit `docxtpl` im eigenen Backend braucht es diese Steuerelemente nicht.
 
-Zu entscheiden ist, was in `body` steht und wer es in Absätze übersetzt. Drei Wege:
+**Was sich an `contract_texts` ändert:**
 
-- **Markdown in `body`, gerendert in `RichText`/Subdokument** — die Geschäftsführung schreibt mit Überschriften und Listen, der Bau übersetzt sie in Word-Formatvorlagen. Preis: eine Übersetzungsschicht, die nur die Auszeichnungen kann, die sie kennt.
-- **Absätze als Schleife** (`{%p for absatz in contract_body %}`) — `body` bleibt Fließtext, Leerzeilen trennen Absätze. Billig, aber ohne Überschriften und Listen.
-- **Die Gliederung wandert in die Vorlage**, `body` trägt nur noch den Fließtext je Abschnitt. Preis: je Vertragsart eine Vorlage, die bei jeder Textänderung mitgepflegt wird — genau das, was die Fassung in der Datenbank vermeiden wollte.
+| Spalte | was |
+|---|---|
+| `body` | bleibt, aber **vom System geschrieben**: der aus der eingefrorenen Datei ausgelesene Text. `CLAUDE.md` erlaubt genau das — abgeleitet ja, gepflegt nein. Trägt weiter `GET /contract-texts`, den Textvergleich zweier Fassungen und die Volltextsuche |
+| `template_docx` | neu, `bytea` — die eingefrorene Datei |
+| `template_checksum` | neu, sha256 über die Bytes, dieselbe Bauform wie `contracts.document_checksum` |
+| `frozen_at` | neu, wann eingefroren wurde |
 
-Empfehlung: der erste Weg, weil er die Fassung als Text erhält (und damit den Nachweis, welcher Wortlaut galt) und trotzdem Struktur trägt.
+**Die Datei liegt bewusst in Postgres und nicht in SharePoint**, abweichend von `grenzkarte.md` („Die Dateien selbst bleiben in SharePoint"). Sie trägt keine Personendaten, ist klein (400 KB beim echten Vertrag), **muss unveränderlich sein** — und in der Bibliothek ist sie das nicht, dort haben Sekretariat und Geschäftsführung Vollzugriff (`sharepoint_libraries`) — und sie gehört in dieselbe Sicherung wie die Zeile, die auf sie zeigt. Die Abweichung gehört als Absatz in `grenzkarte.md`, nicht in einen Nebensatz.
+
+`code`, `valid_from` und `uq_contract_texts` bleiben unangetastet. Die Regel bleibt ebenfalls: eine angekündigte Fassung lässt sich ersetzen oder zurücknehmen, eine erreichte nie — auch dann nicht, wenn kein Vertrag auf sie zeigt, denn sie beantwortet „welcher Wortlaut galt am 1. September".
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Entschieden und an `contract_texts.body` als Kommentar festgehalten, was dort steht
-- [ ] #2 Ein Vertragstext mit Überschriften und einer Aufzählung erzeugt ein PDF, das sie trägt
-- [ ] #3 Die Regel gilt für alle drei Vorlagen, nicht nur für den Schulvertrag
+- [ ] #1 `contract_texts` traegt Datei, Pruefsumme und Einfrierzeitpunkt; `body` wird beim Einfrieren aus der Datei ausgelesen und nicht mehr von Hand gesetzt
+- [ ] #2 Der Kommentar an `body` sagt, dass die Spalte abgeleitet ist und woraus
+- [ ] #3 Die Abweichung von der SharePoint-Regel steht als Absatz in `grenzkarte.md`, mit ihrem Preis
+- [ ] #4 Gegenprobe: eine erreichte Fassung laesst sich nicht mehr aendern, eine angekuendigte schon
 <!-- AC:END -->

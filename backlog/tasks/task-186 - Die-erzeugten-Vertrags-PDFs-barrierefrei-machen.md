@@ -1,10 +1,10 @@
 ---
 id: TASK-186
-title: Die erzeugten Vertrags-PDFs barrierefrei machen
+title: Die erzeugten PDFs barrierefrei machen — gemessene Arbeitsliste
 status: To Do
 assignee: []
 created_date: '2026-09-01 20:14'
-updated_date: '2026-09-01 20:41'
+updated_date: '2026-09-04 00:17'
 labels:
   - wb-backend
   - anmeldung
@@ -17,16 +17,35 @@ ordinal: 199000
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Das BFSG trifft nicht nur die Oberfläche: Die Geschäftsführung hat am 01.09.2026 bestätigt, dass es gilt (TASK-118), und damit fällt auch der Vertrag darunter, den das Portal erzeugt und den Eltern zum Lesen und Unterschreiben bekommen. Gebaut ist die Strecke schon (TASK-111): Word-Vorlage app/documents/contract-template.docx, gefüllt per docxtpl, Konvertierung über Graph.
+Das BFSG gilt (Geschäftsführung, 01.09.2026, TASK-118), damit fällt auch der erzeugte Vertrag darunter. **Am 04.09.2026 gemessen** — Gotenberg 8 als Vergleichskonverter, veraPDF 1.30.2 als Prüfer, gegen eine saubere Referenzvorlage und gegen den echten Schulvertrag. Ergebnis: erreichbar, auf dem gebauten Weg, ohne den Konverter zu tauschen.
 
-Der Aufwand liegt in der Vorlage, nicht im Code — Graph übernimmt beim Export, was das .docx mitbringt: echte Überschriftenebenen statt fett formatierter Absätze, Dokumentsprache, Titel in den Dateieigenschaften, Alternativtext an Logo und Grafik, Tabellen mit Kopfzeile. Was die Vorlage nicht trägt, kann die Konvertierung nicht erfinden.
+**Der Word/M365-Weg liefert einen vollständigen Tag-Baum** — `H1`, `H2×5`, `H3`, `Table`, `TH`, `TR`, `L`/`LI`/`Lbl`/`LBody`, `Figure`, echte `/P`-Absätze. Er scheitert an genau zwei Regeln, beide nachbearbeitbar. Nach der Nachbearbeitung: **PASS, null verletzte Regeln.**
 
-Gilt für jede Vorlage, die entsteht, nicht nur für die erste — Schulvertrag, Betreuungsvertrag, Essensbedingungen, Anlage zum Elternbonus, Erklärung zur Klassenfahrt.
+**Drei Schritte im Code**, alle in `render_and_file()`, wo jedes erzeugte Dokument ohnehin durchläuft:
+
+1. **XMP-Metadatenstrom** setzen — `dc:title`, `dc:language`, `pdfuaid:part`. Ohne ihn fehlt die PDF/UA-Kennung (veraPDF 5-1). Fünf Zeilen `pikepdf`.
+2. **`/Lang` korrigieren.** Word schrieb `en`, obwohl die Vorlage `de-DE` an drei Stellen setzt. **veraPDF meldet das nicht** — es prüft nur, dass eine Sprache dasteht, nicht welche. Praktisch liest ein Screenreader den deutschen Vertrag mit englischer Stimme; die einzige echte Barriere im ganzen Test, und die einzige, die durch jede formale Prüfung rutscht.
+3. **`Scope` an die `TH`-Zellen** (veraPDF 7.5-1). Word markiert Kopfzeile *und* erste Spalte als `TH`, damit ist die Tabellenstruktur nicht mehr aus sich heraus lesbar.
+4. **Alternativtext an jedes eingefügte Bild.** `docxtpl` setzt keinen — gemessen: 0 von 2 Unterschriftsbildern, veraPDF 7.3-1 zweimal verletzt. Mit `descr` je Bild: PASS. Der Text kommt aus demselben Objekt wie das Bild („Unterschrift von {Name}") und skaliert damit von allein.
+
+**Sechs Regeln am echten Schulvertrag**, alle in Word zu beheben, keine davon Code:
+
+| Regel | Was fehlt |
+|---|---|
+| 7.1-9 | Kein Dokumenttitel in den Dateieigenschaften |
+| 7.4.2-1 | Keine Überschriftenebenen — die Datei nutzt `Listenabsatz`, `StandardWeb`, `Auflistung1–3`, keine einzige `Überschrift 1/2/3` |
+| 7.2-17 (6×) | Kaputte Listenstruktur, `LI` ausserhalb von `L` — von den drei eigenen Aufzählungsformatvorlagen |
+| 7.18.5-2, 7.18.1-2 | Der eine Hyperlink hat keine QuickInfo |
+| 7.3-1 | Eine Grafik ohne Alternativtext |
+
+**Eine Falle, die ohne Test niemand sieht:** `generateTaggedPdf` und `pdfua` zusammen zerstören den Tag-Baum. Die `pdfua`-Nachbearbeitung läuft durch LibreOffice, das das fertige PDF neu interpretiert — aus zwölf sauberen Tag-Arten wurden 24 `Figure` ohne Alternativtext. Gilt nur, wenn je auf Gotenberg umgestellt wird; hier festgehalten, damit es dann niemanden kostet.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Die Word-Vorlage trägt Überschriftenebenen, Sprache, Titel und Alternativtexte
-- [ ] #2 Ein erzeugtes PDF ist gegen einen Prüfer gelesen worden, nicht nur angesehen
-- [ ] #3 Die Regel steht bei der Vorlage, damit die nächste sie mitbekommt
+- [ ] #1 `render_and_file()` setzt XMP (`dc:title`, `dc:language`, `pdfuaid:part`), korrigiert `/Lang` und ergaenzt `Scope` an den `TH`-Zellen
+- [ ] #2 Jedes eingefuegte Bild bekommt einen Alternativtext aus demselben Objekt, aus dem es stammt
+- [ ] #3 Die vier Word-Vorlagen tragen Ueberschriftenebenen, Dokumenttitel, echte Listen, ausgezeichnete Kopfzeile und Alternativtexte
+- [ ] #4 Ein erzeugtes PDF ist gegen veraPDF gelaufen und besteht PDF/UA-1 — nicht nur angesehen
+- [ ] #5 Die Regel steht bei der Vorlage, damit die naechste sie mitbekommt
 <!-- AC:END -->
