@@ -510,6 +510,18 @@ CREATE TABLE contract_texts (
     template_checksum text,
     -- Wann eingefroren wurde. Eine Fassung ohne Datei friert nichts ein.
     frozen_at        timestamptz,
+    -- **Ist diese Fassung eine wesentliche Änderung?** Sie entscheidet, was den
+    -- laufenden Verträgen vorgelegt wird (`contract_amendments`,
+    -- anmeldung-schema.sql): Ohne sie genügt die **Kenntnisnahme** der neuen
+    -- Fassung, mit ihr braucht es die **Zustimmung** und einen Nachtrag als
+    -- Urkunde in der Akte. Sie steht hier und nicht am einzelnen Nachtrag: Ob
+    -- eine Änderung wesentlich ist, wird einmal je Fassung entschieden und
+    -- nicht je Familie — an fünfhundert Zeilen driftete dieselbe Entscheidung
+    -- auseinander. Ob sie es ist, ist eine Rechtsfrage und keine, die dieses
+    -- Schema beantwortet; es hält nur fest, wie sie ausgefallen ist.
+    -- Der Erstvertrag kennt sie nicht: Dort wird die Fassung ohnehin
+    -- unterschrieben, und `false` ist der Regelfall.
+    requires_consent boolean NOT NULL DEFAULT false,
     created_at       timestamptz NOT NULL DEFAULT now(),
     created_by       text NOT NULL,
 
@@ -521,6 +533,11 @@ CREATE TABLE contract_texts (
     -- (anmeldung-schema.sql): Der Vertrag führt die Sorte seines Textes mit,
     -- damit ein CHECK sie gegen den Vertragstyp halten kann.
     CONSTRAINT uq_contract_texts_id_code UNIQUE (contract_text_id, code),
+    -- Trägt den zusammengesetzten Fremdschlüssel von `contract_amendments`
+    -- (anmeldung-schema.sql): Der Nachtrag führt mit, ob seine Fassung
+    -- Zustimmung verlangt, damit ein CHECK die Urkunde erzwingen kann.
+    CONSTRAINT uq_contract_texts_id_consent
+        UNIQUE (contract_text_id, requires_consent),
     CONSTRAINT ck_contract_texts_code CHECK (code <> ''),
     CONSTRAINT ck_contract_texts_body CHECK (body <> ''),
     -- Datei, Prüfsumme und Einfrierzeitpunkt stehen zu dritt oder gar nicht:
@@ -568,6 +585,17 @@ CREATE TABLE signatures (
     -- unterschreiben die neue Modulanlage … der Vertrag darunter bleibt
     -- stehen" (09). Leer heißt: die Unterschrift unter dem Vertrag selbst.
     care_module_agreement_id uuid,
+    -- Gesetzt, wo nicht der Vertrag selbst unterschrieben wird, sondern eine
+    -- **spätere Fassung seines Textes**: die Kenntnisnahme einer geänderten
+    -- Fassung oder die Zustimmung zu einer wesentlichen Änderung
+    -- (`contract_amendments`, anmeldung-schema.sql). Dieselbe Bauform wie die
+    -- Modulanlage daneben und aus demselben Grund: „der Vertrag darunter bleibt
+    -- stehen". Der Vertrag wird dabei **nie neu erzeugt** — er ist eine Urkunde
+    -- über den Stand der Zusage, und ein zweites Mal aus heutigen Daten gebaut
+    -- trüge er die Klassenstufe von heute statt der von damals (grenzkarte.md,
+    -- „Was Weltenbaum selbst erzeugt hat, lässt sich weder ersetzen noch
+    -- entfernen").
+    contract_amendment_id uuid,
     -- Der Löschanker der dritten Unterschrift: „Ab 14 unterschreibt das Kind
     -- sein Fotoeinverständnis mit — über einen Signaturlink, keinen Zugang"
     -- (08). Sie hängt an keinem Vertragsvorgang und an keinem Mandat, und über
@@ -622,6 +650,13 @@ CREATE TABLE signatures (
     -- stehen" (09) — vorher trug das `contract_id NOT NULL`.
     CONSTRAINT ck_signatures_agreement
         CHECK (care_module_agreement_id IS NULL OR contract_id IS NOT NULL),
+    -- Und ein Nachtrag ebenso: Er ändert einen Vertrag, er ersetzt ihn nicht.
+    CONSTRAINT ck_signatures_amendment
+        CHECK (contract_amendment_id IS NULL OR contract_id IS NOT NULL),
+    -- Beides zugleich gibt es nicht: Eine Unterschrift gilt der Modulanlage
+    -- oder der neuen Fassung, nie beiden.
+    CONSTRAINT ck_signatures_agreement_amendment
+        CHECK (care_module_agreement_id IS NULL OR contract_amendment_id IS NULL),
     CONSTRAINT fk_signatures_image_library
         FOREIGN KEY (signature_image_library_id) REFERENCES sharepoint_libraries (sharepoint_library_id),
     -- „beide nur gemeinsam gültig" (grenzkarte.md, Q2): eine halbe Referenz
@@ -632,15 +667,29 @@ CREATE TABLE signatures (
     CONSTRAINT ck_signatures_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
--- Je Person und Vorgang eine Unterschrift — und je Person und Modulanlage
--- ebenfalls eine, weil jede Anpassung neu unterschrieben wird (09). Zwei
--- Indizes, weil ein NULL in der Anlage sonst jede Zeile für sich einzigartig
--- machte.
+-- Je Person und Vorgang eine Unterschrift — und je Person und Modulanlage bzw.
+-- Nachtrag ebenfalls eine, weil jede Anpassung und jede neue Fassung neu
+-- unterschrieben wird (09, 08). Drei Indizes, weil ein NULL in der Anlage sonst
+-- jede Zeile für sich einzigartig machte.
+-- **Der erste schließt beide aus, und das ist kein Beiwerk:** Ohne die zweite
+-- Bedingung könnte, wer den Vertrag gezeichnet hat, nie einen Nachtrag zu ihm
+-- zeichnen — die Modulanlage stand aus demselben Grund schon in der ersten.
 CREATE UNIQUE INDEX ix_signatures_contract ON signatures (contract_id, person_id)
-    WHERE care_module_agreement_id IS NULL AND contract_id IS NOT NULL;
+    WHERE care_module_agreement_id IS NULL AND contract_amendment_id IS NULL
+      AND contract_id IS NOT NULL;
 CREATE UNIQUE INDEX ix_signatures_agreement
     ON signatures (care_module_agreement_id, person_id)
     WHERE care_module_agreement_id IS NOT NULL;
+-- Je Nachtrag und Person eine Unterschrift. **Es zeichnen alle
+-- Sorgeberechtigten, nicht eine** (Betreiber, 04.09.2026) — anders als bei der
+-- Modulanlage, wo „eine Person genügt" (09), und wie beim Vertrag selbst, den
+-- der Nachtrag ändert. Dass sie vollzählig sind, hält dieser Index nicht fest:
+-- Wie viele es sind, steht in `family_guardians` und nicht in dieser Zeile;
+-- `contract_amendments.completed_at` trägt das Ergebnis, wie `released_at` es
+-- am Vertrag tut.
+CREATE UNIQUE INDEX ix_signatures_amendment
+    ON signatures (contract_amendment_id, person_id)
+    WHERE contract_amendment_id IS NOT NULL;
 -- Je Mandat eine Unterschrift: „Eine sorgeberechtigte Person füllt im Portal
 -- ein neues aus und unterschreibt" (08) — eine, nicht alle.
 CREATE UNIQUE INDEX ix_signatures_mandate ON signatures (sepa_mandate_id)

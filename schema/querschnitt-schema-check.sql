@@ -18,9 +18,13 @@
 -- führt eine Zeile je Kind, Bibliothek und Kategorie; `documents` zeigt auf den
 -- Ordner statt auf die Bibliothek, trägt eine Pflicht-Bezeichnung und eine
 -- freiwillige Art.
--- Dazu fünfzehn partielle Unique-Indizes (drei für signatures, zwei für
+-- Dazu sechzehn partielle Unique-Indizes (vier für signatures, zwei für
 -- consents, neun für sync_tasks, einer über die erste Zeile je angehaltenem
--- Fall) und zwei Lese-Indizes, auf outbound_emails und auf change_log. `payments` trägt außerdem ein UNIQUE auf der Zahlungsreferenz;
+-- Fall) und zwei Lese-Indizes, auf outbound_emails und auf change_log.
+-- `contract_texts` sagt mit `requires_consent`, ob eine Fassung Zustimmung
+-- verlangt oder Kenntnisnahme genügt; `signatures` trägt dafür den vierten
+-- Bezug (`contract_amendment_id`), dessen Tabelle in anmeldung-schema.sql
+-- steht und dort geprüft wird. `payments` trägt außerdem ein UNIQUE auf der Zahlungsreferenz;
 -- seine Gegenprobe steht in putzdienst-schema-check.sql, weil sie wie die
 -- übrigen Q3-Proben einen echten Anlass braucht.
 --
@@ -100,6 +104,8 @@ BEGIN
         'ck_contract_text_kinds_class_shape',
         'fk_contract_text_kinds_document_type', 'fk_contract_text_kinds_working_library',
         'ck_contract_texts_frozen', 'ck_contract_texts_checksum',
+        'uq_contract_texts_id_consent',
+        'ck_signatures_amendment', 'ck_signatures_agreement_amendment',
         'ck_change_log_template',
         'fk_contract_texts_kind', 'uq_contract_texts_id_code',
         'uq_sync_targets_branch_bound', 'ck_sync_tasks_branch_bound',
@@ -129,6 +135,7 @@ BEGIN
         'ix_sync_tasks_open_academy',
         'ix_sync_tasks_open_slot', 'ix_sync_tasks_open_payment', 'ix_change_log_row',
         'ix_signatures_contract', 'ix_signatures_agreement', 'ix_signatures_mandate',
+        'ix_signatures_amendment',
         'ix_outbound_emails_undeliverable', 'ix_retention_holds_held_until',
         'ix_retention_holds_first'
     ]) AS i
@@ -1381,6 +1388,9 @@ INSERT INTO loeschlauf (platz, tabelle, im_lauf) VALUES
     -- Platz der Tabelle, die sie mitnimmt, und zählen deshalb als Halter — als
     -- Ziel des Laufs nicht, denn der Lauf räumt sie nie selbst.
     ( 3, 'contract_responses', false), ( 3, 'signatures',      false),
+    -- Der Nachtrag geht mit seinem Vertrag und haelt bis dahin seine Urkunde
+    -- fest — er steht deshalb auf dem Platz des Vertrags und vor `documents`.
+    ( 3, 'contract_amendments', false),
     (17, 'family_guardians',   false), (17, 'family_contacts', false);
 
 DO $$

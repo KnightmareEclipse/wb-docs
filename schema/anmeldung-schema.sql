@@ -973,6 +973,11 @@ CREATE TABLE contracts (
     created_by       text NOT NULL,
 
     CONSTRAINT pk_contracts       PRIMARY KEY (contract_id),
+    -- Trägt den zusammengesetzten Fremdschlüssel von `contract_amendments`: Der
+    -- Nachtrag betrifft dieselbe Textsorte wie der Vertrag, den er ändert —
+    -- sonst hinge am Hortvertrag eine Fassung des Schulvertrags, derselbe
+    -- Fehler, den `ck_contracts_text_kind` weiter unten verbietet.
+    CONSTRAINT uq_contracts_id_text_code UNIQUE (contract_id, contract_text_code),
     CONSTRAINT fk_contracts_child FOREIGN KEY (child_id) REFERENCES children (child_id),
     -- Zusammengesetzt mit dem Kind, weil `child_id` beim Schulvertrag aus der
     -- Bewerbung folgt (`applications.child_id` ist NOT NULL, und ein
@@ -1154,6 +1159,120 @@ CREATE TABLE contract_responses (
 -- freigegeben; der Vertrag darunter bleibt stehen, die vorigen Anlagen bleiben
 -- in der Akte." Löschanker: geht mit dem Vertrag. Bewusst KEIN Monatsbeitrag
 -- hier: er ergibt sich aus Modulen und Wochentagen gegen `care_module_prices`.
+-- Herkunft: 08 (Schulvertrag) und der Beschluss vom 04.09.2026 — die
+-- Geschäftsführung legt allen Familien eine geänderte Fassung des Vertragstexts
+-- vor. Löschanker: geht mit dem Vertrag und damit mit dem Kind (Cascade), wie
+-- die Modulanlage daneben.
+--
+-- **Eine Zeile je Vertrag, also je Kind** (Betreiber, 04.09.2026): Der Nachtrag
+-- ändert einen Vertrag, und Verträge gibt es je Kind — drei Kinder heißen drei
+-- Nachträge, jeder von allen Sorgeberechtigten gezeichnet. Vorgelegt werden sie
+-- in einem Griff, das ist Sache der Oberfläche; die Urkunde entsteht je Vertrag
+-- und liegt damit in der Akte des Kindes, dem sie gehört. — Alternative: ein
+-- Vorgang je Familie und Fassung; Preis: eine zweite Tabelle allein dafür, die
+-- Urkunde je betroffenem Vertrag zu tragen, denn eine Datei in der Akte gehört
+-- immer genau einem Kind (grenzkarte.md, Q2, und der Lösch-Lauf).
+--
+-- Bei zwei Schularten in einer Familie sind es ohnehin zwei Vorgänge: Der
+-- Vertragstext hängt an der Schulart, und eine geänderte Grundschulfassung
+-- betrifft den Realschulvertrag nicht.
+--
+-- **Der Vertrag wird dabei nie neu gezeichnet, und das ist der Kern.** Das
+-- Vertragsdokument ist eine Urkunde über den Stand der Zusage; ein zweites Mal
+-- erzeugt entstünde es aus heutigen Daten und trüge die Klassenstufe von heute
+-- statt der von damals. „Korrigiert wird durch einen neuen Vorgang, der neben
+-- dem alten stehen bleibt" (grenzkarte.md) — hier ist dieser Vorgang der
+-- Nachtrag, und der Vertrag darunter bleibt unberührt, genau wie bei der
+-- geänderten Modulanlage (09).
+--
+-- **Zwei Fälle, eine Tabelle**, unterschieden allein durch `requires_consent`
+-- an der Fassung (querschnitt-schema.sql):
+--   * **Kenntnisnahme** — der Wortlaut ändert sich, die Gegenleistung nicht.
+--     Die Familie bestätigt die neue Fassung; eine Urkunde muss dabei nicht
+--     entstehen.
+--   * **Zustimmung** — eine wesentliche Änderung (Schulgeld, Pflichtstunden,
+--     Kündigungsfrist). Sie erzeugt den **Nachtrag als Urkunde**, abgelegt in
+--     der Schülerakte wie der Vertrag selbst, und `ck_contract_amendments_deed`
+--     lässt sie nicht ohne ihn abschließen.
+-- Ein dritter Fall steht bewusst NICHT hier: Die mitgeltenden Anlagen —
+-- Betreuungsordnung, Infektionsschutz — gelten „in ihrer jeweils gültigen
+-- Fassung" (09) und erzeugen gar nichts am Kind; sie sind die Klasse 'applies'
+-- an `contract_text_kinds` und kommen ohne Zeile hier aus.
+--
+-- Der **Wortlaut des Nachtrags** ist eine eigene Textsorte der Klasse 'signed'
+-- mit eigener Vorlage; er nennt Vertrag, Fassung und Geltungstag und **rechnet
+-- nichts** — deshalb driftet an ihm nichts. Angelegt wird die Sorte, wenn der
+-- erste Nachtrag ansteht, nicht auf Vorrat.
+CREATE TABLE contract_amendments (
+    contract_amendment_id uuid NOT NULL DEFAULT gen_random_uuid(),
+    contract_id           uuid NOT NULL,
+    -- Die Fassung, um die es geht — die neue, nicht die des Vertrags.
+    contract_text_id      integer NOT NULL,
+    -- Mitgeführt, damit `fk_contract_amendments_contract_kind` den Nachtrag an
+    -- dieselbe Textsorte bindet wie den Vertrag (rules.md Abschnitt 1).
+    contract_text_code    text NOT NULL,
+    -- Ebenfalls mitgeführt, von der Fassung; `fk_contract_amendments_text_consent`
+    -- hält beide zusammen. Ohne sie könnte der CHECK unten die Urkunde nicht
+    -- erzwingen — er sähe die Fassung nicht.
+    requires_consent      boolean NOT NULL,
+    -- Wann die Fassung dieser Familie vorgelegt wurde. Daran hängt, was
+    -- aussteht: erst Erinnerung, dann Sperre im Portal, und in beiden Fällen
+    -- ein Hinweis ans Sekretariat (08) — eine eigene Spalte für den Stand gibt
+    -- es nicht, er folgt aus diesen zwei Zeitpunkten.
+    announced_at          timestamptz NOT NULL DEFAULT now(),
+    -- Wann die Familie geantwortet hat: **wenn alle Sorgeberechtigten gezeichnet
+    -- haben**, nicht eine (Betreiber, 04.09.2026) — der Nachtrag ändert den
+    -- Vertrag, und den zeichnen ebenfalls alle. Wie viele es sind, steht in
+    -- `family_guardians`; dass sie vollzählig sind, prüft die Anwendung, wie
+    -- sie es beim Vertrag tut. Leer heißt „steht aus"; ein Nein gibt es hier
+    -- nicht — wer nicht zustimmt, löst eine Prüfung aus und keinen Zustand (08).
+    completed_at          timestamptz,
+    -- Die Urkunde, wie am Vertrag: „Vor der Freigabe entsteht kein Dokument"
+    -- (08) gilt hier für den Abschluss.
+    document_id           uuid,
+    document_checksum     text,
+    created_at            timestamptz NOT NULL DEFAULT now(),
+    created_by            text NOT NULL,
+
+    CONSTRAINT pk_contract_amendments PRIMARY KEY (contract_amendment_id),
+    CONSTRAINT fk_contract_amendments_contract
+        FOREIGN KEY (contract_id) REFERENCES contracts (contract_id) ON DELETE CASCADE,
+    -- Der Nachtrag betrifft dieselbe Textsorte wie sein Vertrag.
+    CONSTRAINT fk_contract_amendments_contract_kind
+        FOREIGN KEY (contract_id, contract_text_code)
+        REFERENCES contracts (contract_id, contract_text_code) ON DELETE CASCADE,
+    CONSTRAINT fk_contract_amendments_text
+        FOREIGN KEY (contract_text_id, contract_text_code)
+        REFERENCES contract_texts (contract_text_id, code),
+    CONSTRAINT fk_contract_amendments_text_consent
+        FOREIGN KEY (contract_text_id, requires_consent)
+        REFERENCES contract_texts (contract_text_id, requires_consent),
+    CONSTRAINT fk_contract_amendments_document
+        FOREIGN KEY (document_id) REFERENCES documents (document_id),
+    -- Trägt den zusammengesetzten Fremdschlüssel von `signatures`: Die
+    -- Unterschrift gehört einem Nachtrag an genau diesem Vertrag.
+    CONSTRAINT uq_contract_amendments_id_contract
+        UNIQUE (contract_amendment_id, contract_id),
+    -- Dieselbe Fassung wird einem Vertrag nicht zweimal vorgelegt.
+    CONSTRAINT uq_contract_amendments UNIQUE (contract_id, contract_text_id),
+    -- „Vor der Freigabe entsteht kein Dokument" (08): die Urkunde entsteht mit
+    -- der letzten Unterschrift, nicht mit der Vorlage.
+    CONSTRAINT ck_contract_amendments_document
+        CHECK (document_id IS NULL OR completed_at IS NOT NULL),
+    -- Und der Nachtrag wird abgelegt: Eine abgeschlossene Zustimmung ohne
+    -- Urkunde in der Akte gibt es nicht. Für die bloße Kenntnisnahme ist die
+    -- Urkunde erlaubt und nicht verlangt — ob sie eine bekommt, entscheidet die
+    -- Geschäftsführung und nicht dieses Schema.
+    CONSTRAINT ck_contract_amendments_deed
+        CHECK (NOT requires_consent OR completed_at IS NULL OR document_id IS NOT NULL),
+    -- Die Prüfsumme gehört zur Urkunde, „damit sich jede spätere Abweichung
+    -- zeigt" (08) — wie an `contracts.document_checksum`.
+    CONSTRAINT ck_contract_amendments_checksum
+        CHECK ((document_id IS NULL) = (document_checksum IS NULL)),
+    CONSTRAINT ck_contract_amendments_created_by
+        CHECK (created_by ~ '^(entra:|guardian:|system:)')
+);
+
 CREATE TABLE care_module_agreements (
     care_module_agreement_id uuid NOT NULL DEFAULT gen_random_uuid(),
     contract_id              uuid NOT NULL,
@@ -1368,7 +1487,13 @@ ALTER TABLE signatures
         FOREIGN KEY (contract_id) REFERENCES contracts (contract_id) ON DELETE CASCADE,
     ADD CONSTRAINT fk_signatures_agreement
         FOREIGN KEY (care_module_agreement_id)
-        REFERENCES care_module_agreements (care_module_agreement_id) ON DELETE CASCADE;
+        REFERENCES care_module_agreements (care_module_agreement_id) ON DELETE CASCADE,
+    -- Zusammengesetzt, anders als bei der Modulanlage: Die Unterschrift nennt
+    -- den Vertrag ohnehin (`ck_signatures_amendment`), und ohne diese Bindung
+    -- trüge sie womöglich den Nachtrag eines fremden Vertrags.
+    ADD CONSTRAINT fk_signatures_amendment
+        FOREIGN KEY (contract_amendment_id, contract_id)
+        REFERENCES contract_amendments (contract_amendment_id, contract_id) ON DELETE CASCADE;
 
 -- Mit Cascade: „Löschanker: geht mit dem Vorgang, an dem die Zahlung hängt"
 -- (querschnitt-schema.sql) — sonst hielte die Zahlung die Bewerbung fest.

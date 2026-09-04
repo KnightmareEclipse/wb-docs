@@ -235,6 +235,37 @@ aber **zweimal** ab.
   seinem ersten Schultag nicht mehr stimmt, und wer ein Geschwister bekommt oder verliert, eine, die
   danach falsch ist. Angekündigte Erhöhungen sind zum Zusagezeitpunkt ohnehin sichtbar.
 
+**Ändert sich der Vertragstext, wird der Vertrag nicht neu gezeichnet.** Das Dokument ist eine
+Urkunde über den Stand der Zusage; ein zweites Mal erzeugt entstünde es aus heutigen Daten und trüge
+die Klassenstufe von heute statt der von damals. Stattdessen tritt die neue Fassung als eigener
+Vorgang **neben** den Vertrag, so wie die geänderte Modulanlage den Hortvertrag darunter stehen
+lässt ([09](09-hortvertrag.md)). Drei Fälle, und sie unterscheiden sich darin, was die Familie tut:
+
+- Eine **mitgeltende Anlage** — Betreuungsordnung, Infektionsschutz — gilt „in ihrer jeweils
+  gültigen Fassung" (09) und ab ihrem Gültigkeitstag. Es genügt die Mitteilung, es entsteht nichts
+  am Kind.
+- Ändert sich der **Wortlaut, nicht aber die Gegenleistung**, wird die neue Fassung vorgelegt und
+  die Familie bestätigt sie — **Kenntnisnahme**. Eine Urkunde muss dabei nicht entstehen.
+- Ist die Änderung **wesentlich** — Schulgeld, Pflichtstunden, Kündigungsfrist —, braucht es die
+  **Zustimmung**, und sie wird als **Nachtrag** festgehalten: ein eigenes kurzes Dokument, das
+  Vertrag, Fassung und Geltungstag nennt und **nichts rechnet**, unterschrieben und in der
+  Schülerakte abgelegt wie der Vertrag selbst. Weil es nichts rechnet, kann daran auch nichts
+  veralten.
+
+Ob eine Änderung wesentlich ist, entscheidet die Geschäftsführung je Fassung und nicht je Familie —
+es ist eine Rechtsfrage, und das System hält nur fest, wie sie ausgefallen ist
+(`schema/querschnitt-schema.sql`, `contract_texts.requires_consent`). Antwortet eine Familie nicht,
+gilt der Hebel aus dem Ticket: erst Erinnerung, dann Sperre im Portal, in beiden Fällen ein Hinweis
+ans Sekretariat — ob ein Vertrag ohne bestätigte wesentliche Änderung weiterläuft, ist eine Prüfung
+und kein Automatismus.
+
+**Gezeichnet wird wie der Vertrag selbst: von allen Sorgeberechtigten, und je Vertrag.** Nicht von
+einer Person, wie bei der Modulanlage — der Nachtrag ändert den Vertrag, also gilt dessen
+Unterschriftenlage. Und nicht einmal je Familie: Verträge gibt es je Kind, drei Kinder heißen drei
+Nachträge. Vorgelegt werden sie in einem Griff; die Urkunde entsteht je Vertrag und liegt in der
+Akte des Kindes, dem sie gehört. Bei zwei Schularten in einer Familie sind es ohnehin zwei
+verschiedene Fassungen. `[?]` Wann der erste Durchgang läuft, steht noch aus (`backlog/`).
+
 Das **Schulgeld hängt an der Schulart und am Geschwisterrang**: derzeit 145 / 125 / 105 € in der
 Grundschule und 150 / 130 / 110 € in der Realschule, ab dem vierten Kind beitragsfrei. Gezählt wird
 über beide Schulen zusammen, weil der Vertrag mit dem Trägerverein geschlossen wird, der beide

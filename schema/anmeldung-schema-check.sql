@@ -1,12 +1,13 @@
 -- Prüfskript zu anmeldung-schema.sql.
 --
--- Sollstand: 25 Tabellen — neun Wertelisten (application_statuses,
+-- Sollstand: 26 Tabellen — neun Wertelisten (application_statuses,
 -- kindergartens, school_levels, enrolment_assessments,
 -- kindergarten_recommendations, attended_offers,
 -- care_need_levels, care_modules, emergency_care_types), dazu
 -- care_module_prices, emergency_care_prices, tuition_fees, enrolment_windows,
 -- application_unlocks, admission_days, admission_day_slots, applications,
--- application_offers, contracts, contract_responses, care_module_agreements,
+-- application_offers, contracts, contract_responses, contract_amendments,
+-- care_module_agreements,
 -- care_module_bookings, emergency_care_bookings, care_bridge_days und
 -- care_bridge_day_responses. Dazu drei partielle Unique-Indizes und die beiden
 -- Querschnitts-Fremdschlüssel auf `contracts` und `applications`. Zwei
@@ -14,7 +15,11 @@
 -- aussehen: `fk_applications_slot` bindet das Zeitfenster an seinen Tag,
 -- `fk_contracts_application` den Schulvertrag an das Kind seiner Bewerbung. Hier stehen
 -- außerdem die Gegenproben zu `signatures` (Q2), deren Fremdschlüssel auf den
--- Vertragsvorgang erst mit dieser Datei entsteht.
+-- Vertragsvorgang erst mit dieser Datei entsteht — darunter der vierte Bezug,
+-- der Nachtrag: `contract_amendments` legt eine geänderte Fassung einem
+-- laufenden Vertrag vor, ohne ihn neu zu zeichnen, und `requires_consent` an
+-- der Fassung entscheidet, ob die Kenntnisnahme genügt oder eine Urkunde in die
+-- Akte muss.
 --
 -- Setzt stammdaten-schema.sql und querschnitt-schema.sql voraus:
 --   psql -v ON_ERROR_STOP=1 -f anmeldung-schema-check.sql
@@ -32,6 +37,7 @@ BEGIN
         'care_module_prices', 'tuition_fees', 'enrolment_windows', 'application_unlocks',
         'admission_days', 'admission_day_slots', 'applications',
         'application_offers', 'contracts', 'contract_responses',
+        'contract_amendments',
         'care_module_agreements', 'care_module_bookings',
         'emergency_care_types', 'emergency_care_prices', 'emergency_care_bookings',
         'care_bridge_days', 'care_bridge_day_responses'
@@ -40,7 +46,7 @@ BEGIN
     IF missing IS NOT NULL THEN
         RAISE EXCEPTION 'Fehlende Tabellen: %', missing;
     END IF;
-    RAISE NOTICE 'ok: alle 25 Tabellen vorhanden';
+    RAISE NOTICE 'ok: alle 26 Tabellen vorhanden';
 END $$;
 
 -- 07: „Bewertung, Ranking und Notizen der Lehrkräfte: außerhalb des Systems,
@@ -87,6 +93,15 @@ BEGIN
         'ck_applications_release', 'ck_applications_ended',
         'ck_contracts_type', 'ck_contracts_application', 'ck_contracts_care_only',
         'ck_contracts_document', 'ck_contracts_end',
+        'uq_contracts_id_text_code',
+        'pk_contract_amendments', 'uq_contract_amendments',
+        'uq_contract_amendments_id_contract',
+        'fk_contract_amendments_contract', 'fk_contract_amendments_contract_kind',
+        'fk_contract_amendments_text', 'fk_contract_amendments_text_consent',
+        'fk_contract_amendments_document',
+        'ck_contract_amendments_document', 'ck_contract_amendments_deed',
+        'ck_contract_amendments_checksum',
+        'fk_signatures_amendment',
         'ck_contract_responses_answer', 'ck_contract_responses_review',
         'ck_care_module_bookings_weekday',
         'ck_care_modules_grade', 'ck_care_module_prices_days',
@@ -203,6 +218,12 @@ INSERT INTO contract_texts (contract_text_id, code, valid_from, body, created_by
     OVERRIDING SYSTEM VALUE VALUES
     (1, 'school_contract_gs', DATE '2026-08-01', 'Schulvertrag GS', 'system:check'),
     (2, 'care_contract',      DATE '2026-08-01', 'Betreuungsvertrag', 'system:check');
+-- Zwei spätere Fassungen desselben Schulvertrags, für die Nachträge weiter
+-- unten: eine wesentliche Änderung und eine, bei der die Kenntnisnahme genügt.
+INSERT INTO contract_texts (contract_text_id, code, valid_from, body, requires_consent, created_by)
+    OVERRIDING SYSTEM VALUE VALUES
+    (3, 'school_contract_gs', DATE '2027-08-01', 'Schulvertrag GS, neues Schulgeld', true,  'system:check'),
+    (4, 'school_contract_gs', DATE '2028-08-01', 'Schulvertrag GS, neu formuliert',  false, 'system:check');
 
 INSERT INTO care_modules (care_module_id, code, name, includes_lunch,
                           school_branch_id, restricted_to_grade_level, created_by)
@@ -1161,6 +1182,123 @@ SELECT pg_temp.expect_reject(
     $q$INSERT INTO tuition_fees (school_branch_id, sibling_rank, valid_from,
                                  monthly_amount_cents, created_by)
        VALUES (1, 5, DATE '2026-08-01', 0, 'system:check')$q$);
+
+
+-- ---------------------------------------------------------------------------
+-- Gegenproben — Nachtrag zum Vertrag
+-- ---------------------------------------------------------------------------
+-- 08: Der Vertrag wird nie neu gezeichnet — er ist eine Urkunde über den Stand
+-- der Zusage. Eine geänderte Fassung kommt als Nachtrag daneben, wie die
+-- geänderte Modulanlage (09).
+
+-- Die Fassung gehört zur Sorte des Vertrags: Am Schulvertrag hängt keine
+-- Fassung des Hortvertrags — derselbe Fehler, den `ck_contracts_text_kind` am
+-- Vertrag selbst verbietet.
+SELECT pg_temp.expect_reject(
+    '08 — Nachtrag zum Schulvertrag mit einer Fassung des Hortvertrags',
+    $q$INSERT INTO contract_amendments (contract_id, contract_text_id, contract_text_code,
+                                       requires_consent, created_by)
+       VALUES ('88888888-8888-8888-8888-888888888881', 2, 'care_contract', false,
+               'system:check')$q$);
+
+-- Ob eine Fassung Zustimmung verlangt, steht an ihr und wird hier nur
+-- mitgeführt; ein Nachtrag, der etwas anderes behauptet, käme um die Urkunde
+-- herum.
+SELECT pg_temp.expect_reject(
+    '08 — Nachtrag, der die Zustimmungspflicht seiner Fassung leugnet',
+    $q$INSERT INTO contract_amendments (contract_id, contract_text_id, contract_text_code,
+                                       requires_consent, created_by)
+       VALUES ('88888888-8888-8888-8888-888888888881', 3, 'school_contract_gs', false,
+               'system:check')$q$);
+
+-- Der Regelfall: die wesentliche Fassung wird vorgelegt, die Antwort steht aus.
+INSERT INTO contract_amendments (contract_amendment_id, contract_id, contract_text_id,
+                                 contract_text_code, requires_consent, created_by)
+    VALUES ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1',
+            '88888888-8888-8888-8888-888888888881', 3, 'school_contract_gs', true,
+            'system:check');
+
+SELECT pg_temp.expect_reject(
+    '08 — dieselbe Fassung demselben Vertrag zweimal vorgelegt',
+    $q$INSERT INTO contract_amendments (contract_id, contract_text_id, contract_text_code,
+                                       requires_consent, created_by)
+       VALUES ('88888888-8888-8888-8888-888888888881', 3, 'school_contract_gs', true,
+               'system:check')$q$);
+
+-- „Vor der Freigabe entsteht kein Dokument" (08) — auch hier nicht.
+INSERT INTO documents (document_id, child_id, label, child_file_folder_id,
+                       sharepoint_library_id, graph_item_id, filed_at, created_by)
+    VALUES ('99999999-9999-9999-9999-999999999992',
+            '44444444-4444-4444-4444-444444444444', 'Nachtrag zum Schulvertrag',
+            '10000000-0000-0000-0000-000000000001', 1, '01NACHTRAG', now(), 'system:check');
+SELECT pg_temp.expect_reject(
+    '08 — Urkunde am Nachtrag, bevor er abgeschlossen ist',
+    $q$UPDATE contract_amendments
+          SET document_id = '99999999-9999-9999-9999-999999999992',
+              document_checksum = 'sha256:abc'
+        WHERE contract_amendment_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1'$q$);
+
+-- Und der Nachtrag wird abgelegt: eine abgeschlossene Zustimmung ohne Urkunde
+-- in der Akte gibt es nicht.
+SELECT pg_temp.expect_reject(
+    '08 — Zustimmung abgeschlossen, ohne dass ein Nachtrag in der Akte liegt',
+    $q$UPDATE contract_amendments SET completed_at = now()
+        WHERE contract_amendment_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1'$q$);
+
+SELECT pg_temp.expect_accept(
+    '08 — Zustimmung abgeschlossen, Nachtrag liegt in der Akte',
+    $q$UPDATE contract_amendments
+          SET completed_at = now(),
+              document_id = '99999999-9999-9999-9999-999999999992',
+              document_checksum = 'sha256:abc'
+        WHERE contract_amendment_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1'$q$);
+
+-- Die bloße Kenntnisnahme braucht keine: „der Wortlaut ändert sich, die
+-- Gegenleistung nicht".
+SELECT pg_temp.expect_accept(
+    '08 — Kenntnisnahme abgeschlossen, ohne Urkunde',
+    $q$INSERT INTO contract_amendments (contract_id, contract_text_id, contract_text_code,
+                                       requires_consent, completed_at, created_by)
+       VALUES ('88888888-8888-8888-8888-888888888881', 4, 'school_contract_gs', false,
+               now(), 'system:check')$q$);
+
+-- Die Unterschrift gehört dem Nachtrag **dieses** Vertrags: Ohne den
+-- zusammengesetzten Fremdschlüssel zeichnete sie den Nachtrag eines fremden.
+INSERT INTO contracts (contract_id, child_id, contract_type, contract_text_id,
+                       contract_text_code, may_walk_home_alone, created_by)
+    VALUES ('88888888-8888-8888-8888-88888888889f',
+            '44444444-4444-4444-4444-444444444444', 'care', 2, 'care_contract',
+            false, 'system:check');
+SELECT pg_temp.expect_reject(
+    '08 — Unterschrift am Nachtrag eines anderen Vertrags',
+    $q$INSERT INTO signatures (contract_id, contract_amendment_id, person_id, signed_at, created_by)
+       VALUES ('88888888-8888-8888-8888-88888888889f',
+               'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1',
+               '22222222-2222-2222-2222-222222222222', now(), 'system:check')$q$);
+
+-- „Er ändert einen Vertrag, er ersetzt ihn nicht": eine Unterschrift am
+-- Nachtrag ohne den Vertrag darunter gibt es nicht.
+SELECT pg_temp.expect_reject(
+    '08 — Unterschrift am Nachtrag ohne den Vertrag darunter',
+    $q$INSERT INTO signatures (contract_amendment_id, person_id, signed_at, created_by)
+       VALUES ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1',
+               '22222222-2222-2222-2222-222222222222', now(), 'system:check')$q$);
+
+SELECT pg_temp.expect_accept(
+    '08 — die Mutter zeichnet den Nachtrag',
+    $q$INSERT INTO signatures (contract_id, contract_amendment_id, person_id, signed_at, created_by)
+       VALUES ('88888888-8888-8888-8888-888888888881',
+               'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1',
+               '22222222-2222-2222-2222-222222222222', now(), 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    '08 — dieselbe Person zeichnet denselben Nachtrag zweimal',
+    $q$INSERT INTO signatures (contract_id, contract_amendment_id, person_id, signed_at, created_by)
+       VALUES ('88888888-8888-8888-8888-888888888881',
+               'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1',
+               '22222222-2222-2222-2222-222222222222', now(), 'system:check')$q$);
+
+DELETE FROM contracts WHERE contract_id = '88888888-8888-8888-8888-88888888889f';
 
 -- ---------------------------------------------------------------------------
 -- Gegenproben — Betreuungsmodule
