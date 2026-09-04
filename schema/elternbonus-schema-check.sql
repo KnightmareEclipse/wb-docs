@@ -547,17 +547,17 @@ SELECT pg_temp.expect_accept(
 SELECT pg_temp.expect_accept(
     '14 — die drei Werte des Bonus haben ihren Ort, mit Gültigkeit zum 1. August',
     $q$INSERT INTO configured_values (code, valid_from, value, created_by) VALUES
-        ('parent_bonus_monthly_cents',            DATE '2026-08-01', 1000, 'system:check'),
-        ('parent_bonus_required_hours_primary',   DATE '2026-08-01',   15, 'system:check'),
-        ('parent_bonus_required_hours_secondary', DATE '2026-08-01',   10, 'system:check')$q$);
+        ('parent_work_monthly_cents', DATE '2026-08-01', 1000, 'system:check'),
+        ('parent_work_hours_primary', DATE '2026-08-01',   15, 'system:check'),
+        ('parent_work_hours_default', DATE '2026-08-01',   10, 'system:check')$q$);
 
 DO $$
 DECLARE fehlend text;
 BEGIN
     SELECT string_agg(c, ', ') INTO fehlend
-    FROM unnest(ARRAY['parent_bonus_monthly_cents',
-                      'parent_bonus_required_hours_primary',
-                      'parent_bonus_required_hours_secondary']) AS c
+    FROM unnest(ARRAY['parent_work_monthly_cents',
+                      'parent_work_hours_primary',
+                      'parent_work_hours_default']) AS c
     WHERE NOT EXISTS (SELECT 1 FROM configured_values v WHERE v.code = c);
     IF fehlend IS NOT NULL THEN
         RAISE EXCEPTION 'REGEL NICHT GEBAUT — Wert des Bonus ohne Ort: %', fehlend;

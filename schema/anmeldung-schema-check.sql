@@ -195,9 +195,9 @@ INSERT INTO children (child_id, person_id, family_id, birth_date, created_by) VA
      '33333333-3333-3333-3333-333333333333', DATE '2018-05-01', 'system:check');
 
 -- Die Textsorte steht als Wert im System; eine Fassung ohne sie gibt es nicht.
-INSERT INTO contract_text_kinds (code, name, created_by) VALUES
-    ('school_contract_gs', 'Schulvertrag Grundschule', 'system:check'),
-    ('care_contract',      'Hortvertrag',             'system:check');
+INSERT INTO contract_text_kinds (code, name, kind_class, created_by) VALUES
+    ('school_contract_gs', 'Schulvertrag Grundschule', 'signed', 'system:check'),
+    ('care_contract',      'Hortvertrag',              'signed', 'system:check');
 
 INSERT INTO contract_texts (contract_text_id, code, valid_from, body, created_by)
     OVERRIDING SYSTEM VALUE VALUES
@@ -864,13 +864,24 @@ SELECT pg_temp.expect_reject(
 
 -- 08: „Vor der Freigabe entsteht kein Dokument."
 INSERT INTO sharepoint_libraries (sharepoint_library_id, code, name, graph_drive_id, created_by)
-    OVERRIDING SYSTEM VALUE VALUES (1, 'generated', 'Erzeugt', 'b!x', 'system:check');
+    OVERRIDING SYSTEM VALUE VALUES (1, 'student_file', 'Digitale Schülerakte', 'b!x', 'system:check');
 INSERT INTO document_types (document_type_id, code, name, created_by)
     OVERRIDING SYSTEM VALUE VALUES (1, 'school_contract', 'Schulvertrag', 'system:check');
-INSERT INTO documents (document_id, child_id, document_type_id, sharepoint_library_id,
+-- Die Datei liegt im Unterordner ihrer Kategorie, nicht in der Bibliothek
+-- (querschnitt-schema.sql): erst der Ordner, dann das Blatt darin.
+INSERT INTO child_file_categories (child_file_category_id, code, name, created_by)
+    OVERRIDING SYSTEM VALUE
+    VALUES (1, 'contracts', 'Verträge und Vereinbarungen', 'system:check');
+INSERT INTO child_file_folders (child_file_folder_id, child_id, sharepoint_library_id,
+                                child_file_category_id, graph_item_id, created_by)
+    VALUES ('10000000-0000-0000-0000-000000000001',
+            '44444444-4444-4444-4444-444444444444', 1, 1, '01ORDNER', 'system:check');
+INSERT INTO documents (document_id, child_id, document_type_id, label,
+                       child_file_folder_id, sharepoint_library_id,
                        graph_item_id, filed_at, created_by)
     VALUES ('99999999-9999-9999-9999-999999999991',
-            '44444444-4444-4444-4444-444444444444', 1, 1, '01ABC', now(), 'system:check');
+            '44444444-4444-4444-4444-444444444444', 1, 'Schulvertrag',
+            '10000000-0000-0000-0000-000000000001', 1, '01ABC', now(), 'system:check');
 SELECT pg_temp.expect_reject(
     '08 — Vertragsdokument ohne Freigabe',
     $q$UPDATE contracts SET document_id = '99999999-9999-9999-9999-999999999991'

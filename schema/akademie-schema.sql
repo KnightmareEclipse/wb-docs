@@ -100,6 +100,16 @@ CREATE TABLE academy_offerings (
     -- gleichzeitiger Anmeldungen nichts" — anders als die Platzzahl des
     -- Ferientermins, die nur anzeigt. Durchgesetzt vom Trigger unten.
     places              smallint NOT NULL,
+    -- Ab wie wenigen freien Plätzen die anbietende Stelle eine Warnung bekommt
+    -- — bei einem Angebot die an ihm benannten Leads. **Leer heißt keine
+    -- Warnung.** Sie steht je Angebot und nicht als Wert im System, weil ein
+    -- Angebot mit zwölf Plätzen anders tickt als eines mit sechzig. Dieselbe
+    -- Spalte trägt `holiday_sessions` (ferien-schema.sql) — ein Mechanismus für
+    -- beide Domänen, ein Lauf statt zwei.
+    low_places_threshold smallint,
+    -- Die Lauf-Marke dazu: ohne sie schickte der Lauf die Warnung bei jedem
+    -- Durchgang erneut, solange die Restplätze unter der Schwelle liegen.
+    low_places_notice_sent_at timestamptz,
     -- Der Betrag, den die anbietende Stelle setzt — die dritte benannte
     -- Ausnahme vom Geld-Hebel (hebel.md). Bewusst OHNE Gültigkeitstag: er
     -- gehört diesem einen Angebot und lebt nicht länger als es; was beim
@@ -185,6 +195,12 @@ CREATE TABLE academy_offerings (
     CONSTRAINT ck_academy_offerings_window
         CHECK (registration_closes_at IS NULL OR registration_closes_at > registration_opens_at),
     CONSTRAINT ck_academy_offerings_places  CHECK (places > 0),
+    -- Eine Schwelle über der Platzzahl warnte vom ersten Tag an und wäre keine.
+    CONSTRAINT ck_academy_offerings_low_places
+        CHECK (low_places_threshold > 0 AND low_places_threshold <= places),
+    -- Die Marke gehört zur Schwelle: ohne Schwelle wurde nie gewarnt.
+    CONSTRAINT ck_academy_offerings_low_places_notice
+        CHECK (low_places_notice_sent_at IS NULL OR low_places_threshold IS NOT NULL),
     CONSTRAINT ck_academy_offerings_amount  CHECK (amount_cents >= 0),
     CONSTRAINT ck_academy_offerings_surcharge CHECK (surcharge_cents >= 0),
     CONSTRAINT ck_academy_offerings_surcharge_label

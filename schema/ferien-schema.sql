@@ -226,6 +226,18 @@ CREATE TABLE holiday_sessions (
     -- Obergrenze für die Anzeige, keine Sperre: „Senden zwei Familien im selben
     -- Moment ab, wird der Termin um eins überschritten."
     places                  smallint NOT NULL,
+    -- Ab wie wenigen freien Plätzen die anbietende Stelle eine Warnung
+    -- bekommt. **Leer heißt keine Warnung.** Sie steht je Termin und nicht als
+    -- Wert im System, weil ein Angebot mit zwölf Plätzen anders tickt als eines
+    -- mit sechzig; „fünf" ist der Wunsch der Hortleitung und keine Regel.
+    -- Dieselbe Spalte trägt `academy_offerings` (akademie-schema.sql) — ein
+    -- Mechanismus für beide Domänen, ein Lauf statt zwei. Wer die Warnung
+    -- bekommt, steht in hebel.md und nicht hier.
+    low_places_threshold    smallint,
+    -- Die Lauf-Marke dazu: ohne sie schickte der Lauf die Warnung bei jedem
+    -- Durchgang erneut, solange die Restplätze unter der Schwelle liegen.
+    -- Dieselbe Bauform wie `first_reminder_sent_at` am Putzdienst-Termin.
+    low_places_notice_sent_at timestamptz,
     cancelled_at            timestamptz,
     cancellation_reason     text,
     created_at              timestamptz NOT NULL DEFAULT now(),
@@ -246,6 +258,12 @@ CREATE TABLE holiday_sessions (
     -- „samt Grund in einem Satz" (10) — ein leerer Satz ist keiner.
     CONSTRAINT ck_holiday_sessions_reason CHECK (cancellation_reason <> ''),
     CONSTRAINT ck_holiday_sessions_places CHECK (places > 0),
+    -- Eine Schwelle über der Platzzahl warnte vom ersten Tag an und wäre keine.
+    CONSTRAINT ck_holiday_sessions_low_places
+        CHECK (low_places_threshold > 0 AND low_places_threshold <= places),
+    -- Die Marke gehört zur Schwelle: ohne Schwelle wurde nie gewarnt.
+    CONSTRAINT ck_holiday_sessions_low_places_notice
+        CHECK (low_places_notice_sent_at IS NULL OR low_places_threshold IS NOT NULL),
     -- Eine Absage trägt ihren Grund in einem Satz, wie jedes Ende in 03.
     CONSTRAINT ck_holiday_sessions_cancellation
         CHECK ((cancelled_at IS NULL) = (cancellation_reason IS NULL)),

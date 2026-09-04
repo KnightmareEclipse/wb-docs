@@ -4,6 +4,7 @@ title: Die mitgeltenden Anlagen als dritte Klasse
 status: To Do
 assignee: []
 created_date: '2026-09-04 00:20'
+updated_date: '2026-09-04 01:07'
 labels:
   - wb-docs
   - schema
@@ -32,3 +33,11 @@ Sie brauchen deshalb denselben `contract_texts`-Mechanismus mit `valid_from` —
 - [ ] #3 Der Vertragstext nennt den Fundort im Portal statt einer Anlagennummer
 - [ ] #4 Welche Anlagen es gibt, folgt aus dem ueberarbeiteten Vertragstext und wird nicht auf Vorrat angelegt
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Der Mechanismus steht seit TASK-225: contract_text_kinds.kind_class kennt die Klasse 'applies', und ck_contract_text_kinds_class_shape weist eine mitgeltende Anlage mit Arbeitsfassung ab — sie ist reiner Text mit valid_from, ohne Dokument am Kind und ohne Unterschrift. Das Pruefskript zeigt es (querschnitt-schema-check.sql, 'TASK-231 — mitgeltende Anlage als reiner Text mit Gueltigkeitstag').
+
+Bewusst NICHT angelegt sind Zeilen fuer Betreuungsordnung und Infektionsschutz: Welche Anlagen es gibt, sagt der ueberarbeitete Vertragstext (TASK-042, fragen.md Frage 10), und das ist der Moment, in dem die Liste entsteht. Kriterium 1 bleibt deshalb offen, obwohl die Form steht. Kriterium 2 und 3 sind ohnehin Vertragstext und Erzeugung, nicht Schema.
+<!-- SECTION:NOTES:END -->

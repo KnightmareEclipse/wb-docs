@@ -1,9 +1,10 @@
 ---
 id: TASK-199
 title: Die Werte des Elternbonus heißen im Prüfskript anders als im Backend
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-02 07:55'
+updated_date: '2026-09-04 01:05'
 labels:
   - wb-docs
   - elternbonus
@@ -23,5 +24,11 @@ Fund aus dem Nachtlauf 02.09.2026: schema/elternbonus-schema-check.sql legt die 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Prüfskript, querschnitt-schema.sql und Backend nennen dieselben drei Codes
+- [x] #1 Prüfskript, querschnitt-schema.sql und Backend nennen dieselben drei Codes
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Die drei Codes heissen jetzt ueberall parent_work_monthly_cents, parent_work_hours_primary und parent_work_hours_default — die Namen, unter denen app/services/elternbonus.py sie liest und unter denen die Tabellen dieser Domaene stehen (parent_work_sessions, parent_work_entries). Nachgezogen: die Aufzaehlung an configured_values in schema/querschnitt-schema.sql, schema/elternbonus-schema-check.sql und TASK-051, damit dort nicht die alten Codes eingetragen werden. api/elternbonus-api.md nannte sie schon richtig; im Backend war nichts zu aendern.
+<!-- SECTION:NOTES:END -->

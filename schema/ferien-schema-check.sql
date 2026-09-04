@@ -11,6 +11,9 @@
 -- mehrere Kinder eine Zahlung über die Summe ist. Dazu der eine Trigger, der
 -- fremde Kinder, abgesagte Termine und das Anmeldefenster abweist. `holiday_session_types` trägt
 -- mit `cancellation_deadline_days` die Stornosperre der Eltern als Zahl.
+-- `holiday_sessions` trägt die Warnschwelle der letzten Plätze samt ihrer
+-- Lauf-Marke; dieselben zwei Spalten stehen an `academy_offerings`, geprüft
+-- werden sie hier und dort je für sich.
 --
 -- Setzt stammdaten-schema.sql und querschnitt-schema.sql voraus:
 --   psql -v ON_ERROR_STOP=1 -f ferien-schema-check.sql
@@ -50,6 +53,7 @@ BEGIN
         'ck_holiday_bookings_declared', 'ck_holiday_bookings_recorded',
         'ck_holiday_bookings_retained', 'ck_holiday_sessions_cancellation',
         'ck_holiday_sessions_places', 'ck_holiday_programmes_window',
+        'ck_holiday_sessions_low_places', 'ck_holiday_sessions_low_places_notice',
         'fk_payments_holiday_booking',
         'ck_holiday_bookings_declared_by', 'ck_holiday_bookings_recorded_by',
         'fk_sync_tasks_holiday_booking',
@@ -115,11 +119,11 @@ INSERT INTO children (child_id, person_id, family_id, birth_date, created_by)
             '22222222-2222-2222-2222-222222222222',
             '33333333-3333-3333-3333-333333333333', DATE '2018-06-01', 'system:check');
 -- Die Textsorte steht als Wert im System; eine Fassung ohne sie gibt es nicht.
-INSERT INTO contract_text_kinds (code, name, created_by) VALUES
-    ('holiday_terms',             'Teilnahmebedingungen',          'system:check'),
-    ('holiday_cancellation_day',  'Stornobedingungen Ferientag',   'system:check'),
-    ('holiday_cancellation_week', 'Stornobedingungen Ferienwoche', 'system:check'),
-    ('care_contract',             'Hortvertrag',                   'system:check');
+INSERT INTO contract_text_kinds (code, name, kind_class, created_by) VALUES
+    ('holiday_terms',             'Teilnahmebedingungen',          'agreed', 'system:check'),
+    ('holiday_cancellation_day',  'Stornobedingungen Ferientag',   'agreed', 'system:check'),
+    ('holiday_cancellation_week', 'Stornobedingungen Ferienwoche', 'agreed', 'system:check'),
+    ('care_contract',             'Hortvertrag',                   'signed', 'system:check');
 
 INSERT INTO contract_texts (contract_text_id, code, valid_from, body, created_by)
     OVERRIDING SYSTEM VALUE
@@ -574,6 +578,28 @@ SELECT pg_temp.expect_reject(
     $q$INSERT INTO holiday_sessions (holiday_programme_id, holiday_session_type_id,
                                      title, places, created_by)
        VALUES (1, 1, 'Leer', 0, 'system:check')$q$);
+
+-- Die Warnung der letzten Plätze: eine Schwelle über der Platzzahl warnte vom
+-- ersten Tag an und wäre keine.
+SELECT pg_temp.expect_reject(
+    '10 — Warnschwelle größer als die Platzzahl',
+    $q$INSERT INTO holiday_sessions (holiday_programme_id, holiday_session_type_id,
+                                     title, places, low_places_threshold, created_by)
+       VALUES (1, 1, 'Zu hohe Schwelle', 6, 7, 'system:check')$q$);
+
+-- Und eine Marke ohne Schwelle behauptete eine Warnung, die nie hinausging.
+SELECT pg_temp.expect_reject(
+    '10 — Lauf-Marke ohne Warnschwelle',
+    $q$INSERT INTO holiday_sessions (holiday_programme_id, holiday_session_type_id,
+                                     title, places, low_places_notice_sent_at, created_by)
+       VALUES (1, 1, 'Marke ohne Schwelle', 6, now(), 'system:check')$q$);
+
+-- Leer heißt „keine Warnung" — der Regelfall bleibt zulässig.
+SELECT pg_temp.expect_accept(
+    '10 — Termin ohne Warnschwelle',
+    $q$INSERT INTO holiday_sessions (holiday_programme_id, holiday_session_type_id,
+                                     title, places, created_by)
+       VALUES (1, 1, 'Ohne Schwelle', 6, 'system:check')$q$);
 
 -- 10: „Die Ferienwoche trägt eigene Beträge" — je Modul und Gültigkeitstag einer.
 INSERT INTO holiday_module_prices (holiday_module_id, valid_from, amount_cents, created_by)

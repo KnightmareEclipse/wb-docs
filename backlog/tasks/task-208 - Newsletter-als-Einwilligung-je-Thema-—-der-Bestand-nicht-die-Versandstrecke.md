@@ -1,10 +1,10 @@
 ---
 id: TASK-208
 title: 'Newsletter als Einwilligung je Thema — der Bestand, nicht die Versandstrecke'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-03 13:55'
-updated_date: '2026-09-03 18:20'
+updated_date: '2026-09-04 01:06'
 labels:
   - schema
   - dsgvo
@@ -46,12 +46,29 @@ Offen und nicht Teil dieses Tickets: **wie die Schule erfährt, wer Alumni werde
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Die Themen stehen als Werteliste, ein neues ist eine Zeile
-- [ ] #2 Je Person und Thema eine Zeile mit zwei Zeitpunkten — eingewilligt und widersprochen, nie beides
-- [ ] #3 Der Anker ist die Person; eine Zeile ohne Kind und ohne Familie ist gültig, das Prüfskript zeigt es
+- [x] #1 Die Themen stehen als Werteliste, ein neues ist eine Zeile
+- [x] #2 Je Person und Thema eine Zeile mit zwei Zeitpunkten — eingewilligt und widersprochen, nie beides
+- [x] #3 Der Anker ist die Person; eine Zeile ohne Kind und ohne Familie ist gültig, das Prüfskript zeigt es
 - [ ] #4 Jede Newsletter-Mail trägt einen Abmeldelink je Thema und einen für alle; der Token hängt an der Person
 - [ ] #5 Vorgangsmails tragen keinen Abmeldelink — die Gegenprobe: eine Mail ohne Thema kommt ohne ihn heraus
-- [ ] #6 Ein Widerspruch löscht die Zeile nicht: nach ihm steht sie noch da und der Versand überspringt sie
-- [ ] #7 Die Sammelmail ist mitgedacht: outbound_emails trägt je Empfänger eine Zeile, und der Verweis auf eine Sendung ist später eine nullable Spalte — kein Umbau
+- [x] #6 Ein Widerspruch löscht die Zeile nicht: nach ihm steht sie noch da und der Versand überspringt sie
+- [x] #7 Die Sammelmail ist mitgedacht: outbound_emails trägt je Empfänger eine Zeile, und der Verweis auf eine Sendung ist später eine nullable Spalte — kein Umbau
 - [ ] #8 Entschieden, ab welcher Menge der Versand aus dem Portal an die Grenzen des Tenants stößt
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Gebaut, aber auf Q1 statt daneben — und das weicht vom Ticketwortlaut ab: Ein Newsletter-Thema IST ein Zustimmungszweck. consent_purposes ist bereits die Werteliste (ein neues Thema ist eine Zeile), consents bereits die Zeile je Person und Zweck mit granted_at/declined_at, revoked_at, delivery_address und dem Anker an der Person ohne Kind und ohne Familie; ix_consents_person_purpose haelt sie schon heute je Person und Zweck eindeutig, und mit 'marketing_holiday' steht dort seit je eine Werbe-Einwilligung ohne Kind. Zwei eigene Tabellen daneben waeren eine zweite Bauform fuer genau das, was Q1 traegt.
+
+Drei Spalten statt zweier Tabellen:
+- consent_purposes.is_newsletter_topic — das Haekchen, das sagt, welcher Zweck einen Abmeldelink bekommt, samt uq_consent_purposes_newsletter fuer den zusammengesetzten Fremdschluessel.
+- outbound_emails.consent_purpose_id + is_newsletter_topic (mitgefuehrt) — ck_outbound_emails_topic laesst genau die Newsletter-Mail ein Thema tragen, und der zusammengesetzte Fremdschluessel weist einen Vorgangszweck ab. Damit ist Kriterium 5 als Gegenprobe gebaut: eine Vorgangsmail KANN kein Thema tragen und kommt deshalb ohne Link heraus.
+- outbound_emails.from_address — nullable, weil welche Adressen es gibt an der Domainfrage haengt (TASK-188, fragen.md Frage 6). Kein Wert wird hier erfunden.
+
+Kein Token in der Datenbank (Kriterium 4 halb): Der Abmeldelink ist ein Token ueber die Personenkennung, wie der Signaturlink des Kindes ab 14 — der hat ebenfalls keine Spalte (api/querschnitt-api.md). Der Link je Thema folgt aus consent_purpose_id, der fuer alle aus der Person. Zu bauen in wb-backend.
+
+Der Widerspruch loescht nicht: revoked_at, und ck_consents_revoked sagt schon heute, dass eine Ablehnung nicht widerrufen wird. Gegenprobe im Pruefskript.
+
+Offen: Kriterium 8 (ab welcher Menge der Tenant sperrt) — eine Zahl, die recherchiert und bestaetigt werden muss, kein Schemapunkt. Die Sendung ueber outbound_emails entsteht erst mit der ersten Sammelmail, wie im Ticket beschrieben — hier bewusst nicht gebaut.
+<!-- SECTION:NOTES:END -->

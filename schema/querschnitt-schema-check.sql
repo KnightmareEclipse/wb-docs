@@ -1,8 +1,8 @@
 -- Prüfskript zu querschnitt-schema.sql.
 --
--- Sollstand: 19 Tabellen — sieben Wertelisten (consent_purposes,
--- sharepoint_libraries, document_types, sync_targets, contract_text_kinds,
--- retention_subjects, retention_hold_reasons),
+-- Sollstand: 20 Tabellen — acht Wertelisten (consent_purposes,
+-- sharepoint_libraries, child_file_categories, document_types, sync_targets,
+-- contract_text_kinds, retention_subjects, retention_hold_reasons),
 -- Q2 (contract_texts,
 -- signatures, documents, child_file_folders), Q1 (consents), Q3 (payments),
 -- Q5 (sync_tasks), die drei übrigen Hebel (configured_values, change_log,
@@ -11,6 +11,13 @@
 -- Die vertragsgebundenen Gegenproben zu `signatures` stehen in
 -- anmeldung-schema-check.sql, weil ihr Fremdschlüssel dort entsteht; die
 -- Unterschrift unter dem SEPA-Mandat steht hier, sie kennt keinen Vertrag.
+-- `contract_text_kinds` definiert die Dokumentsorte vollständig: Klasse,
+-- Dokumentart und die Graph-Kennung der Arbeitsfassung. `contract_texts` trägt
+-- die eingefrorene Vorlagendatei samt Prüfsumme und Einfrierzeitpunkt, und für
+-- sie trägt die Änderungsspur die Prüfsumme statt des Werts. `child_file_folders`
+-- führt eine Zeile je Kind, Bibliothek und Kategorie; `documents` zeigt auf den
+-- Ordner statt auf die Bibliothek, trägt eine Pflicht-Bezeichnung und eine
+-- freiwillige Art.
 -- Dazu fünfzehn partielle Unique-Indizes (drei für signatures, zwei für
 -- consents, neun für sync_tasks, einer über die erste Zeile je angehaltenem
 -- Fall) und zwei Lese-Indizes, auf outbound_emails und auf change_log. `payments` trägt außerdem ein UNIQUE auf der Zahlungsreferenz;
@@ -31,7 +38,8 @@ DECLARE missing text;
 BEGIN
     SELECT string_agg(t, ', ') INTO missing
     FROM unnest(ARRAY[
-        'consent_purposes', 'sharepoint_libraries', 'document_types',
+        'consent_purposes', 'sharepoint_libraries', 'child_file_categories',
+        'document_types',
         'sync_targets', 'signatures', 'documents', 'child_file_folders',
         'consents', 'payments', 'sync_tasks', 'configured_values', 'change_log',
         'contract_text_kinds',
@@ -44,7 +52,7 @@ BEGIN
     IF missing IS NOT NULL THEN
         RAISE EXCEPTION 'Fehlende Tabellen: %', missing;
     END IF;
-    RAISE NOTICE 'ok: alle 19 Tabellen vorhanden';
+    RAISE NOTICE 'ok: alle 20 Tabellen vorhanden';
 END $$;
 
 -- ---------------------------------------------------------------------------
@@ -60,7 +68,11 @@ BEGIN
         'fk_consents_person', 'fk_consents_child', 'fk_consents_signature',
         'fk_documents_child', 'fk_sync_tasks_target', 'fk_sync_targets_role',
         'fk_sync_tasks_payment', 'fk_sync_tasks_branch',
-        'uq_child_file_folders',
+        'uq_child_file_folders', 'uq_child_file_folders_graph_item',
+        'uq_child_file_folders_id_child', 'fk_child_file_folders_category',
+        'pk_child_file_categories', 'uq_child_file_categories_code',
+        'fk_child_file_categories_retention',
+        'fk_documents_folder', 'ck_documents_label',
         'ck_consents_answer', 'ck_consents_revocation',
         'ck_consents_revoked_after_granted', 'ck_sync_tasks_completed_by',
         'ck_signatures_level',
@@ -78,10 +90,17 @@ BEGIN
         'pk_configured_values', 'uq_configured_values',
         'pk_contract_texts', 'uq_contract_texts',
         'uq_consent_purposes_requires_child', 'fk_consents_purpose',
+        'uq_consent_purposes_newsletter', 'fk_outbound_emails_topic',
+        'ck_outbound_emails_topic', 'ck_outbound_emails_topic_person',
         'ck_consents_child',
-        'fk_documents_library', 'fk_consents_document', 'fk_sepa_mandates_document',
+        'fk_consents_document', 'fk_sepa_mandates_document',
         'uq_documents_graph_item', 'uq_documents_id_child', 'uq_signatures_id_person',
         'pk_contract_text_kinds', 'uq_contract_text_kinds_code',
+        'ck_contract_text_kinds_class', 'ck_contract_text_kinds_working',
+        'ck_contract_text_kinds_class_shape',
+        'fk_contract_text_kinds_document_type', 'fk_contract_text_kinds_working_library',
+        'ck_contract_texts_frozen', 'ck_contract_texts_checksum',
+        'ck_change_log_template',
         'fk_contract_texts_kind', 'uq_contract_texts_id_code',
         'uq_sync_targets_branch_bound', 'ck_sync_tasks_branch_bound',
         'pk_retention_subjects', 'uq_retention_subjects_code',
@@ -174,6 +193,13 @@ INSERT INTO document_types (code, name, created_by)
     VALUES ('school_contract', 'Schulvertrag', 'system:check'),
            ('observation_sheet', 'Beobachtungsbogen', 'system:check'),
            ('sepa_mandate', 'SEPA-Mandat', 'system:check');
+-- Die Unterordner der Akte, „jeder mit seiner eigenen Frist" (grenzkarte.md,
+-- Q2). Welche es am Ende gibt, setzt der Datenschutzbeauftragte; zwei genügen
+-- hier, um den zweiten Ordner derselben Kategorie abweisen zu können.
+INSERT INTO child_file_categories (child_file_category_id, code, name, created_by)
+    OVERRIDING SYSTEM VALUE VALUES
+    (1, 'contracts',   'Verträge und Vereinbarungen', 'system:check'),
+    (2, 'proceedings', 'Verfahrensunterlagen',        'system:check');
 INSERT INTO consent_purposes (code, name, requires_child, self_consent_age, created_by)
     VALUES ('photo', 'Fotoeinverständnis', true, 14, 'system:check'),
            ('marketing_holiday', 'Werbe-Einwilligung Ferienbetreuung', false, NULL, 'system:check');
@@ -184,8 +210,11 @@ INSERT INTO consent_purposes (code, name, requires_child, self_consent_age, crea
 -- scheiterte dann an `pk_contract_texts` statt an `uq_contract_texts`, den sie
 -- zu prüfen behauptet.
 -- Die Textsorte steht als Wert im System; eine Fassung ohne sie gibt es nicht.
-INSERT INTO contract_text_kinds (code, name, created_by) VALUES
-    ('school_contract_gs', 'Schulvertrag Grundschule', 'system:check');
+INSERT INTO contract_text_kinds (code, name, kind_class, document_type_id,
+                                 working_library_id, working_item_id, created_by) VALUES
+    ('school_contract_gs', 'Schulvertrag Grundschule', 'signed',
+     (SELECT document_type_id FROM document_types WHERE code = 'school_contract'),
+     1, 'item-vorlage-gs', 'system:check');
 
 INSERT INTO contract_texts (code, valid_from, body, created_by)
     VALUES ('school_contract_gs', DATE '2026-08-01', 'Vertragstext GS', 'system:check');
@@ -356,38 +385,78 @@ SELECT pg_temp.expect_accept(
 -- 6. Gegenproben — Q2
 -- ---------------------------------------------------------------------------
 
+-- Der Ordner steht vor der Datei: `documents` zeigt auf ihn und nicht mehr auf
+-- die Bibliothek. Zwei Kategorien desselben Kindes in derselben Akte — das ist
+-- der Regelfall, seit sich die Akte in Unterordner teilt.
+INSERT INTO child_file_folders (child_file_folder_id, child_id, sharepoint_library_id,
+                                child_file_category_id, graph_item_id, created_by)
+    VALUES ('10000000-0000-0000-0000-000000000001',
+            '44444444-4444-4444-4444-444444444444', 1, 1, '01FOLDER', 'system:check'),
+           ('10000000-0000-0000-0000-000000000002',
+            '44444444-4444-4444-4444-444444444444', 1, 2, '01FOLDER2', 'system:check');
+
+SELECT pg_temp.expect_reject(
+    'Q2 — zweiter Ordner derselben Kategorie in derselben Bibliothek',
+    $q$INSERT INTO child_file_folders (child_id, sharepoint_library_id,
+                                       child_file_category_id, graph_item_id, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444444', 1, 1, '01OTHER', 'system:check')$q$);
+
 -- grenzkarte.md, Q2: „der am Anmeldetag verlangte, aber nicht mitgebrachte
 -- Beobachtungsbogen ist eine Anforderung ohne Ablageort".
 SELECT pg_temp.expect_accept(
     'Q2 — Anforderung ohne Datei',
-    $q$INSERT INTO documents (child_id, document_type_id, sharepoint_library_id,
-                              requested_at, created_by)
+    $q$INSERT INTO documents (child_id, document_type_id, label, child_file_folder_id,
+                              sharepoint_library_id, requested_at, created_by)
        VALUES ('44444444-4444-4444-4444-444444444444',
                (SELECT document_type_id FROM document_types WHERE code='observation_sheet'),
+               'Beobachtungsbogen', '10000000-0000-0000-0000-000000000002',
                1, now(), 'system:check')$q$);
+
+-- grenzkarte.md, Q2: „Die Art ist freiwillig … Alles Übrige liegt mit Kategorie
+-- und Bezeichnung da und braucht keine Art." Die Bezeichnung dagegen ist
+-- Pflicht — ohne Art wäre die Datei sonst an nichts zu erkennen.
+SELECT pg_temp.expect_accept(
+    'Q2 — Schriftwechsel ohne Art, mit Bezeichnung',
+    $q$INSERT INTO documents (child_id, label, child_file_folder_id,
+                              sharepoint_library_id, graph_item_id, filed_at, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444444', 'Brief der Klassenlehrkraft',
+               '10000000-0000-0000-0000-000000000002', 1, '01BRIEF', now(),
+               'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    'Q2 — Datei ohne Bezeichnung',
+    $q$INSERT INTO documents (child_id, label, child_file_folder_id,
+                              sharepoint_library_id, graph_item_id, filed_at, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444444', '',
+               '10000000-0000-0000-0000-000000000002', 1, '01LEER', now(),
+               'system:check')$q$);
 
 SELECT pg_temp.expect_reject(
     'Q2 — Dokumentzeile ohne Anforderung und ohne Datei',
-    $q$INSERT INTO documents (child_id, document_type_id, sharepoint_library_id, created_by)
+    $q$INSERT INTO documents (child_id, document_type_id, label, child_file_folder_id,
+                              sharepoint_library_id, created_by)
        VALUES ('44444444-4444-4444-4444-444444444444',
                (SELECT document_type_id FROM document_types WHERE code='school_contract'),
-               1, 'system:check')$q$);
+               'Schulvertrag', '10000000-0000-0000-0000-000000000001', 1, 'system:check')$q$);
 
 SELECT pg_temp.expect_reject(
     'Q2 — Datei ohne Ablagezeitpunkt',
-    $q$INSERT INTO documents (child_id, document_type_id, sharepoint_library_id,
-                              graph_item_id, created_by)
+    $q$INSERT INTO documents (child_id, document_type_id, label, child_file_folder_id,
+                              sharepoint_library_id, graph_item_id, created_by)
        VALUES ('44444444-4444-4444-4444-444444444444',
                (SELECT document_type_id FROM document_types WHERE code='school_contract'),
-               1, '01ABC', 'system:check')$q$);
+               'Schulvertrag', '10000000-0000-0000-0000-000000000001', 1, '01ABC',
+               'system:check')$q$);
 
 -- 08: „eine Unterlage, eine Datei" — Mandat und unterschriebene Zustimmung
 -- zeigen auf ihre eigene Datei, und die Datei geht nicht, solange eines von
 -- beiden sie festhält (Lösch-Lauf, Stufe 1).
-INSERT INTO documents (document_id, child_id, document_type_id, sharepoint_library_id,
+INSERT INTO documents (document_id, child_id, document_type_id, label,
+                       child_file_folder_id, sharepoint_library_id,
                        graph_item_id, filed_at, created_by)
     VALUES ('99999999-9999-9999-9999-999999999998', '44444444-4444-4444-4444-444444444444',
             (SELECT document_type_id FROM document_types WHERE code='sepa_mandate'),
+            'SEPA-Mandat', '10000000-0000-0000-0000-000000000001',
             1, '01MANDAT', now(), 'system:check');
 SELECT pg_temp.expect_accept(
     'Q2 — das Mandat zeigt auf seine eigene Datei',
@@ -417,21 +486,48 @@ INSERT INTO children (child_id, person_id, family_id, birth_date, created_by)
     VALUES ('44444444-4444-4444-4444-444444444447',
             '22222222-2222-2222-2222-222222222226',
             '33333333-3333-3333-3333-333333333333', DATE '2017-05-01', 'system:check');
-INSERT INTO documents (document_id, child_id, document_type_id, sharepoint_library_id,
+INSERT INTO child_file_folders (child_file_folder_id, child_id, sharepoint_library_id,
+                                child_file_category_id, graph_item_id, created_by)
+    VALUES ('10000000-0000-0000-0000-000000000003',
+            '44444444-4444-4444-4444-444444444447', 1, 1, '01FOLDERD', 'system:check');
+INSERT INTO documents (document_id, child_id, document_type_id, label,
+                       child_file_folder_id, sharepoint_library_id,
                        graph_item_id, filed_at, created_by)
     VALUES ('99999999-9999-9999-9999-999999999997', '44444444-4444-4444-4444-444444444447',
             (SELECT document_type_id FROM document_types WHERE code='school_contract'),
+            'Schulvertrag', '10000000-0000-0000-0000-000000000003',
             1, '01KINDD', now(), 'system:check');
+
+-- Ein Ordner ist ein Graph-Element wie jede Datei; zwei Zeilen darauf ließen
+-- den Lösch-Lauf einen Ordner entfernen, auf den die zweite noch zeigt.
+SELECT pg_temp.expect_reject(
+    'Q2 — zweiter Ordner auf demselben Graph-Element',
+    $q$INSERT INTO child_file_folders (child_id, sharepoint_library_id,
+                                       child_file_category_id, graph_item_id, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444447', 1, 2, '01FOLDER', 'system:check')$q$);
+
+-- grenzkarte.md, Q2: „Eine Datei beim falschen Kind ist keine ältere Fassung."
+-- Der zusammengesetzte Fremdschlüssel bindet die Datei an einen Ordner
+-- **desselben** Kindes; ohne ihn hinge das Blatt des einen in der Akte des
+-- anderen, und die Verwechslung wäre eingebaut statt behoben.
+SELECT pg_temp.expect_reject(
+    'Q2 — Datei im Ordner eines anderen Kindes',
+    $q$INSERT INTO documents (child_id, label, child_file_folder_id,
+                              sharepoint_library_id, graph_item_id, filed_at, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444444', 'Zeugnis',
+               '10000000-0000-0000-0000-000000000003', 1, '01FREMD', now(),
+               'system:check')$q$);
 
 -- grenzkarte.md, Q2: „Jede Datei bekommt eine Zeile" — und keine Datei zwei.
 -- Ohne `uq_documents_graph_item` zeigten hier zwei Kinder auf dasselbe
 -- Graph-Element, und der Lösch-Lauf nähme dem einen die Datei des anderen mit.
 SELECT pg_temp.expect_reject(
     'Q2 — zweite Dokumentzeile auf dasselbe Graph-Element',
-    $q$INSERT INTO documents (child_id, document_type_id, sharepoint_library_id,
-                              graph_item_id, filed_at, created_by)
+    $q$INSERT INTO documents (child_id, document_type_id, label, child_file_folder_id,
+                              sharepoint_library_id, graph_item_id, filed_at, created_by)
        VALUES ('44444444-4444-4444-4444-444444444447',
                (SELECT document_type_id FROM document_types WHERE code='school_contract'),
+               'Schulvertrag', '10000000-0000-0000-0000-000000000003',
                1, '01MANDAT', now(), 'system:check')$q$);
 
 -- grenzkarte.md, Q2: „Eine Datei beim falschen Kind … die Verwechslung wäre
@@ -450,30 +546,26 @@ SELECT pg_temp.expect_reject(
                now(), 'mutter@example.org', '99999999-9999-9999-9999-999999999997',
                'system:check')$q$);
 
-INSERT INTO child_file_folders (child_id, sharepoint_library_id, graph_item_id, created_by)
-    VALUES ('44444444-4444-4444-4444-444444444444', 1, '01FOLDER', 'system:check');
-SELECT pg_temp.expect_reject(
-    'Q2 — zweiter Aktenordner desselben Kindes',
-    $q$INSERT INTO child_file_folders (child_id, sharepoint_library_id, graph_item_id, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444444', 1, '01OTHER', 'system:check')$q$);
-
 -- 06: „Unterlagen, je Stück vorgelegt, fehlt oder nicht nötig" — der dritte
 -- Stand steht allein und ist von „fehlt" unterscheidbar.
 SELECT pg_temp.expect_accept(
     '06 — Unterlage als nicht nötig festgestellt',
-    $q$INSERT INTO documents (child_id, document_type_id, sharepoint_library_id,
-                              not_required_at, created_by)
+    $q$INSERT INTO documents (child_id, document_type_id, label, child_file_folder_id,
+                              sharepoint_library_id, not_required_at, created_by)
        VALUES ('44444444-4444-4444-4444-444444444444',
                (SELECT document_type_id FROM document_types WHERE code='school_contract'),
-               1, now(), 'system:check')$q$);
+               'Schulvertrag', '10000000-0000-0000-0000-000000000001', 1, now(),
+               'system:check')$q$);
 
 SELECT pg_temp.expect_reject(
     '06 — Unterlage zugleich vorgelegt und nicht nötig',
-    $q$INSERT INTO documents (child_id, document_type_id, sharepoint_library_id,
-                              not_required_at, graph_item_id, filed_at, created_by)
+    $q$INSERT INTO documents (child_id, document_type_id, label, child_file_folder_id,
+                              sharepoint_library_id, not_required_at, graph_item_id,
+                              filed_at, created_by)
        VALUES ('44444444-4444-4444-4444-444444444444',
                (SELECT document_type_id FROM document_types WHERE code='observation_sheet'),
-               1, now(), '01ABC', now(), 'system:check')$q$);
+               'Beobachtungsbogen', '10000000-0000-0000-0000-000000000002', 1, now(),
+               '01ABC', now(), 'system:check')$q$);
 
 -- Die vertragsgebundenen Gegenproben zu `signatures` stehen in
 -- anmeldung-schema-check.sql: ihr Fremdschlüssel auf den Vertragsvorgang
@@ -886,6 +978,75 @@ SELECT pg_temp.expect_accept(
     $q$INSERT INTO contract_texts (code, valid_from, body, created_by)
        VALUES ('school_contract_gs', DATE '2027-08-01', 'neue Fassung', 'system:check')$q$);
 
+-- Die eingefrorene Vorlagendatei: Datei, Prüfsumme und Einfrierzeitpunkt
+-- stehen zu dritt oder gar nicht.
+SELECT pg_temp.expect_reject(
+    'TASK-222 — Vorlagendatei ohne Prüfsumme und Einfrierzeitpunkt',
+    $q$INSERT INTO contract_texts (code, valid_from, body, template_docx, created_by)
+       VALUES ('school_contract_gs', DATE '2029-08-01', 'Fassung',
+               '\x504b0304'::bytea, 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    'TASK-222 — Prüfsumme, die keine ist',
+    $q$INSERT INTO contract_texts (code, valid_from, body, template_docx,
+                                  template_checksum, frozen_at, created_by)
+       VALUES ('school_contract_gs', DATE '2029-08-01', 'Fassung',
+               '\x504b0304'::bytea, 'abc', now(), 'system:check')$q$);
+
+SELECT pg_temp.expect_accept(
+    'TASK-222 — eingefrorene Fassung: Datei, Prüfsumme, Zeitpunkt',
+    $q$INSERT INTO contract_texts (code, valid_from, body, template_docx,
+                                  template_checksum, frozen_at, created_by)
+       VALUES ('school_contract_gs', DATE '2029-08-01', 'aus der Datei gelesen',
+               '\x504b0304'::bytea,
+               'sha256:' || repeat('a', 64), now(), 'system:check')$q$);
+
+-- Eine Sorte ohne Arbeitsfassung ist reiner Text und erzeugt keine Urkunde;
+-- eine mitgeltende Anlage mit Vorlage behauptete ein Dokument am Kind.
+SELECT pg_temp.expect_reject(
+    'TASK-225 — mitgeltende Anlage mit Arbeitsfassung',
+    $q$INSERT INTO contract_text_kinds (code, name, kind_class, working_library_id,
+                                       working_item_id, created_by)
+       VALUES ('care_rules', 'Betreuungsordnung', 'applies', 1, 'item-9',
+               'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    'TASK-225 — Arbeitsfassung als halbe Graph-Kennung',
+    $q$INSERT INTO contract_text_kinds (code, name, kind_class, working_library_id,
+                                       created_by)
+       VALUES ('photo_consent', 'Fotoeinverständnis', 'signed', 1, 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    'TASK-225 — Klasse, die es nicht gibt',
+    $q$INSERT INTO contract_text_kinds (code, name, kind_class, created_by)
+       VALUES ('care_rules', 'Betreuungsordnung', 'mitgeltend', 'system:check')$q$);
+
+-- „Es gilt die jeweils gültige Fassung" (09): die mitgeltende Anlage braucht
+-- `valid_from` und sonst nichts — kein Dokument, keine Unterschrift.
+SELECT pg_temp.expect_accept(
+    'TASK-231 — mitgeltende Anlage als reiner Text mit Gültigkeitstag',
+    $q$INSERT INTO contract_text_kinds (code, name, kind_class, created_by)
+       VALUES ('care_rules', 'Betreuungsordnung', 'applies', 'system:check');
+       INSERT INTO contract_texts (code, valid_from, body, created_by)
+       VALUES ('care_rules', DATE '2026-08-01', 'Betreuungsordnung', 'system:check')$q$);
+
+-- TASK-232: Für `contract_texts.template_docx` trägt die Spur die Prüfsumme
+-- statt des Werts — die eine Ausnahme, und der Versuch, die Bytes abzulegen,
+-- fällt auf.
+SELECT pg_temp.expect_reject(
+    'TASK-232 — Änderungsspur mit dem Dateiinhalt der Vorlage',
+    $q$INSERT INTO change_log (table_name, row_id, column_name, old_value, new_value,
+                              changed_by)
+       VALUES ('contract_texts', '1', 'template_docx', '\x504b0304', '\x504b0305',
+               'entra:gf')$q$);
+SELECT pg_temp.expect_accept(
+    'TASK-232 — Änderungsspur mit der Prüfsumme',
+    $q$INSERT INTO change_log (table_name, row_id, column_name, old_value, new_value,
+                              changed_by)
+       VALUES ('contract_texts', '1', 'template_docx',
+               'sha256:' || repeat('a', 64), 'sha256:' || repeat('b', 64),
+               'entra:gf')$q$);
+
 -- Eine Werteliste legt kein Elternteil an: Zweck, Bibliothek, Dokumentart,
 -- Aufgabenart und Vertragsfassung entstehen im Haus, und `contract_texts`
 -- pflegt ausdrücklich die Geschäftsführung (hebel.md). Fünf Proben, eine je
@@ -920,6 +1081,80 @@ SELECT pg_temp.expect_reject(
     'hebel.md — Rückläufer ohne Grund',
     $q$UPDATE outbound_emails SET undeliverable_at = now()
         WHERE purpose = 'offer'$q$);
+
+-- ---------------------------------------------------------------------------
+-- Newsletter: das Thema ist ein Zustimmungszweck, kein eigener Bestand
+-- ---------------------------------------------------------------------------
+-- Der Anker ist die Person: Ein Ehemaliger hat weder Kind noch Familie, und
+-- `persons` verlangt keine — die Einwilligung steht trotzdem.
+INSERT INTO consent_purposes (code, name, is_newsletter_topic, created_by)
+    VALUES ('newsletter_alumni', 'Newsletter Ehemalige', true, 'system:check');
+INSERT INTO persons (person_id, first_name, last_name, created_by)
+    VALUES ('22222222-2222-2222-2222-222222222228', 'Ehe', 'Malig', 'system:check');
+SELECT pg_temp.expect_accept(
+    'TASK-208 — Newsletter-Einwilligung einer Person ohne Kind und ohne Familie',
+    $q$INSERT INTO consents (person_id, consent_purpose_id, granted_at,
+                             delivery_address, created_by)
+       VALUES ('22222222-2222-2222-2222-222222222228',
+               (SELECT consent_purpose_id FROM consent_purposes WHERE code='newsletter_alumni'),
+               now(), 'ehemalig@example.org', 'guardian:x')$q$);
+
+-- „Der Widerspruch löscht nicht, er setzt einen Zeitpunkt": nach ihm steht die
+-- Zeile noch da, und der Versand überspringt sie.
+SELECT pg_temp.expect_accept(
+    'TASK-208 — Widerspruch gegen den Newsletter',
+    $q$UPDATE consents SET revoked_at = now()
+        WHERE person_id = '22222222-2222-2222-2222-222222222228'$q$);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM consents
+                    WHERE person_id = '22222222-2222-2222-2222-222222222228'
+                      AND revoked_at IS NOT NULL) THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — der Widerspruch hat die Zeile mitgenommen';
+    END IF;
+    RAISE NOTICE 'ok (erlaubt): der Widerspruch lässt die Zeile stehen';
+END $$;
+
+-- Die Newsletter-Mail trägt ihr Thema und damit ihren Abmeldelink.
+SELECT pg_temp.expect_accept(
+    'TASK-208 — Newsletter-Mail mit Thema',
+    $q$INSERT INTO outbound_emails (recipient_email, person_id, purpose,
+                                    consent_purpose_id, is_newsletter_topic)
+       VALUES ('ehemalig@example.org', '22222222-2222-2222-2222-222222222228',
+               'newsletter',
+               (SELECT consent_purpose_id FROM consent_purposes WHERE code='newsletter_alumni'),
+               true)$q$);
+
+-- „Wer sich vom Elternabend abmelden könnte, bekäme die nächste Vertragsfrist
+-- auch nicht mehr": Ein Vorgangszweck ist kein Newsletter-Thema und lässt sich
+-- nicht an eine Mail hängen — der zusammengesetzte Fremdschlüssel weist ab.
+SELECT pg_temp.expect_reject(
+    'TASK-208 — Vorgangsmail mit einem Zweck, der kein Newsletter-Thema ist',
+    $q$INSERT INTO outbound_emails (recipient_email, person_id, purpose,
+                                    consent_purpose_id, is_newsletter_topic)
+       VALUES ('mutter@example.org', '22222222-2222-2222-2222-222222222222',
+               'contract_deadline',
+               (SELECT consent_purpose_id FROM consent_purposes WHERE code='photo'),
+               true)$q$);
+
+-- Und ein Thema ohne Häkchen wäre eine Mail mit Thema, die keines trägt.
+SELECT pg_temp.expect_reject(
+    'TASK-208 — Mail mit Thema, aber ohne Newsletter-Häkchen',
+    $q$INSERT INTO outbound_emails (recipient_email, person_id, purpose,
+                                    consent_purpose_id)
+       VALUES ('ehemalig@example.org', '22222222-2222-2222-2222-222222222228',
+               'newsletter',
+               (SELECT consent_purpose_id FROM consent_purposes WHERE code='newsletter_alumni'))$q$);
+
+-- Der Abmeldelink hängt an der Person: eine Newsletter-Mail an eine Adresse
+-- ohne Person ließe sich nicht abbestellen.
+SELECT pg_temp.expect_reject(
+    'TASK-208 — Newsletter-Mail an eine Adresse ohne Person',
+    $q$INSERT INTO outbound_emails (recipient_email, purpose,
+                                    consent_purpose_id, is_newsletter_topic)
+       VALUES ('unbekannt2@example.org', 'newsletter',
+               (SELECT consent_purpose_id FROM consent_purposes WHERE code='newsletter_alumni'),
+               true)$q$);
 
 SELECT pg_temp.expect_accept(
     'hebel.md — unzustellbare Mail mit Grund',
@@ -1006,10 +1241,12 @@ SELECT pg_temp.expect_accept(
     $q$DELETE FROM persons WHERE person_id = '22222222-2222-2222-2222-222222222221'$q$);
 
 -- „Löschanker: geht mit der Person, an die sie ging" — für die Mail wie für die
--- kindlose Zustimmung.
+-- kindlose Zustimmung. Die Einwilligung des Ehemaligen geht denselben Weg: Sie
+-- hängt an keiner Familie und an keinem Kind, allein an ihrer Person.
 SELECT pg_temp.expect_accept(
     'Q1 — Zustimmung und versandte Mail gehen mit ihrer Person',
-    $q$DELETE FROM persons WHERE person_id = '22222222-2222-2222-2222-222222222222'$q$);
+    $q$DELETE FROM persons WHERE person_id IN ('22222222-2222-2222-2222-222222222222',
+                                               '22222222-2222-2222-2222-222222222228')$q$);
 
 DO $$
 BEGIN
@@ -1087,7 +1324,7 @@ END $$;
 CREATE TEMP TABLE loeschlauf (platz smallint, tabelle text, im_lauf boolean) ON COMMIT DROP;
 INSERT INTO loeschlauf (platz, tabelle, im_lauf) VALUES
     -- Stufe 1, in der Reihenfolge des Dateikopfs
-    ( 1, 'child_file_folders', true), ( 2, 'sepa_mandates',      true),
+    ( 2, 'sepa_mandates',      true),
     ( 3, 'contracts',          true), ( 4, 'applications',       true),
     ( 5, 'holiday_bookings',   true),
     -- Direkt hinter der Buchung, die ihn mit NO ACTION festhält: er trägt eine
@@ -1116,31 +1353,35 @@ INSERT INTO loeschlauf (platz, tabelle, im_lauf) VALUES
     -- Kind fünf Jahre hält; er hält es seinerseits fest, damit der Lauf ihn
     -- sieht und ein Anhalten trägt.
     ( 9, 'child_health_records', true),
+    -- Zuletzt in dieser Stufe der Ordner selbst: Seit die Datei auf ihn zeigt
+    -- (`fk_documents_folder`), fiele ein früher geräumter Ordner mitsamt dem,
+    -- was die Zeilen daneben noch behaupten. Erst die Blätter, dann der Ordner.
+    (10, 'child_file_folders', true),
     -- Stufe 2
-    (10, 'children', true),
+    (11, 'children', true),
     -- Stufe 3. Der Einzel-Freikauf steht vor der Zuteilung, die ihn mit
     -- NO ACTION festhält.
-    (11, 'parent_work_entries',   true), (12, 'cleaning_slot_buyouts', true),
+    (12, 'parent_work_entries',   true), (13, 'cleaning_slot_buyouts', true),
     -- Direkt hinter den Stunden, die aus ihm kamen: Er gehört keiner Familie,
     -- trägt aber dieselbe Schuljahresfrist und nimmt seine Anmeldungen mit.
-    (11, 'parent_work_sessions',  true),
-    (13, 'cleaning_assignments',  true), (14, 'cleaning_buyouts',      true),
-    (15, 'cleaning_family_quotas', true),
+    (12, 'parent_work_sessions',  true),
+    (14, 'cleaning_assignments',  true), (15, 'cleaning_buyouts',      true),
+    (16, 'cleaning_family_quotas', true),
     -- Stufe 4
-    (16, 'families', true),
+    (17, 'families', true),
     -- Stufe 5
-    (17, 'employees', true),
+    (18, 'employees', true),
     -- Stufe 6
-    (18, 'persons', true),
+    (19, 'persons', true),
     -- Stufe 7. Sie folgt als einzige nicht aus einem Fremdschlüssel; hier steht
     -- sie trotzdem, weil die Prüfung darunter damit jede neue Tabelle meldet,
     -- die eine Anschrift festhält — und jede, die hinter ihr stünde.
-    (19, 'addresses', true),
+    (20, 'addresses', true),
     -- Nicht im Lauf, aber an diesem Platz per Cascade fort: sie stehen mit dem
     -- Platz der Tabelle, die sie mitnimmt, und zählen deshalb als Halter — als
     -- Ziel des Laufs nicht, denn der Lauf räumt sie nie selbst.
     ( 3, 'contract_responses', false), ( 3, 'signatures',      false),
-    (16, 'family_guardians',   false), (16, 'family_contacts', false);
+    (17, 'family_guardians',   false), (17, 'family_contacts', false);
 
 DO $$
 DECLARE ungenannt text;

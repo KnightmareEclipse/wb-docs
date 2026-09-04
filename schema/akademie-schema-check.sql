@@ -5,7 +5,10 @@
 -- academy_cost_coverage_codes und academy_registrations. Dazu zwei partielle
 -- Unique-Indizes über die nicht abgemeldeten Anmeldungen (je einer für den
 -- Kinder- und den Erwachsenen-Zweig), ein Lese-Index auf die Teilnehmerliste
--- und der eine Trigger, der Platzzahl und fremde Kinder abweist. Dazu die
+-- und der eine Trigger, der Platzzahl und fremde Kinder abweist.
+-- `academy_offerings` trägt die Warnschwelle der letzten Plätze samt ihrer
+-- Lauf-Marke — dieselben zwei Spalten wie `holiday_sessions`
+-- (ferien-schema.sql), ein Mechanismus für beide Domänen. Dazu die
 -- Fremdschlüssel von Q3 und Q5 auf diese Domäne: die Zahlung der Familie ohne
 -- SEPA-Mandat und die Aufgabe bei der Buchhaltung, beide mit Cascade.
 --
@@ -46,6 +49,7 @@ BEGIN
         'uq_academy_offering_audiences', 'ck_academy_offering_audiences_form',
         'ck_academy_offerings_period', 'ck_academy_offerings_window',
         'ck_academy_offerings_places', 'ck_academy_offerings_deadline',
+        'ck_academy_offerings_low_places', 'ck_academy_offerings_low_places_notice',
         'ck_academy_offerings_decision', 'ck_academy_offerings_returned',
         'ck_academy_offerings_cancellation',
         'ck_academy_registrations_participant', 'ck_academy_registrations_payment_mode',
@@ -199,9 +203,9 @@ INSERT INTO employees (employee_id, person_id, house_id, created_by) VALUES
      1, 'system:check');
 
 -- Die Textsorte steht als Wert im System; eine Fassung ohne sie gibt es nicht.
-INSERT INTO contract_text_kinds (code, name, created_by) VALUES
-    ('academy_cancellation_cooking', 'Abmeldebedingungen Kochwerkstatt', 'system:check'),
-    ('care_contract',                'Hortvertrag',                     'system:check');
+INSERT INTO contract_text_kinds (code, name, kind_class, created_by) VALUES
+    ('academy_cancellation_cooking', 'Abmeldebedingungen Kochwerkstatt', 'agreed', 'system:check'),
+    ('care_contract',                'Hortvertrag',                      'signed', 'system:check');
 
 INSERT INTO contract_texts (contract_text_id, code, valid_from, body, created_by)
     OVERRIDING SYSTEM VALUE VALUES
@@ -262,6 +266,29 @@ SELECT pg_temp.expect_reject(
                                       places, amount_cents, cancellation_terms_code,
                                       registration_opens_at, created_by)
        VALUES (1, 'Chor', DATE '2027-02-01', DATE '2027-07-31', 0, 3000,
+               'academy_cancellation_cooking', TIMESTAMPTZ '2027-01-01 08:00+01',
+               'entra:lehrkraft')$q$);
+
+-- Die Warnung der letzten Plätze: eine Schwelle über der Platzzahl warnte vom
+-- ersten Tag an und wäre keine.
+SELECT pg_temp.expect_reject(
+    '21 — Warnschwelle größer als die Platzzahl',
+    $q$INSERT INTO academy_offerings (academy_category_id, title, starts_on, ends_on,
+                                      places, low_places_threshold, amount_cents,
+                                      cancellation_terms_code,
+                                      registration_opens_at, created_by)
+       VALUES (1, 'Chor', DATE '2027-02-01', DATE '2027-07-31', 12, 13, 3000,
+               'academy_cancellation_cooking', TIMESTAMPTZ '2027-01-01 08:00+01',
+               'entra:lehrkraft')$q$);
+
+-- Und eine Marke ohne Schwelle behauptete eine Warnung, die nie hinausging.
+SELECT pg_temp.expect_reject(
+    '21 — Lauf-Marke ohne Warnschwelle',
+    $q$INSERT INTO academy_offerings (academy_category_id, title, starts_on, ends_on,
+                                      places, low_places_notice_sent_at, amount_cents,
+                                      cancellation_terms_code,
+                                      registration_opens_at, created_by)
+       VALUES (1, 'Chor', DATE '2027-02-01', DATE '2027-07-31', 12, now(), 3000,
                'academy_cancellation_cooking', TIMESTAMPTZ '2027-01-01 08:00+01',
                'entra:lehrkraft')$q$);
 

@@ -40,25 +40,31 @@
 -- deshalb hier, weil sie keiner Domäne gehört. Sieben Stufen:
 --
 --   1. Die Vorgänge am Kind, jeder erst, wenn seine eigene Frist abgelaufen
---      ist: `child_file_folders` (die Datei in SharePoint zuerst, „eine
---      verwaiste Datei … ist genauso ein DSGVO-Verstoß wie eine verwaiste
---      Zeile" — und mit ihr beide Papierkorb-Stufen, sonst liegt sie noch
---      93 Tage da, grenzkarte.md Q2), `sepa_mandates`, `contracts`, dann `applications` — der Vertrag
+--      ist: `sepa_mandates`, `contracts`, dann `applications` — der Vertrag
 --      hält seine Bewerbung fest und geht ihr voraus —, `holiday_bookings`,
 --      `meal_subscriptions`, `emergency_care_bookings` und
 --      `care_bridge_day_responses` — beide hängen am Kind und an keinem
 --      Vertrag, ein Kind ohne Betreuungsvertrag kann beide haben —,
 --      `health_trait_values`, die unterschriebene
---      Zustimmung (`consents`, wo sie eine Datei trägt) und zuletzt
---      `documents`. Jeder nimmt mit, was an ihm hängt: Unterschriften,
---      Antworten, Modulanlagen, Zahlungen, Esstage.
+--      Zustimmung (`consents`, wo sie eine Datei trägt), dann `documents` und
+--      **zuletzt** `child_file_folders`. Jeder nimmt mit, was an ihm hängt:
+--      Unterschriften, Antworten, Modulanlagen, Zahlungen, Esstage.
+--      Bei beiden gilt: die Datei bzw. der Ordner in SharePoint zuerst, „eine
+--      verwaiste Datei … ist genauso ein DSGVO-Verstoß wie eine verwaiste
+--      Zeile" — und mit ihr beide Papierkorb-Stufen, sonst liegt sie noch
+--      93 Tage da (grenzkarte.md, Q2).
 --      `documents` steht am Ende dieser Stufe und nicht an ihrem Anfang: der
 --      freigegebene Vertrag (`fk_contracts_document`), das Mandat
 --      (`fk_sepa_mandates_document`), die unterschriebene Zustimmung
 --      (`fk_consents_document`) und das Attest
 --      (`fk_health_trait_values_document`) halten das Dokument mit NO ACTION
 --      fest. Weiter nach hinten kann es nicht — es hält selbst das Kind
---      (`fk_documents_child`) und muss vor Stufe 2 fort sein. Deshalb steht
+--      (`fk_documents_child`) und muss vor Stufe 2 fort sein.
+--      **Hinter `documents` steht der Ordner**, seit die Datei auf ihn zeigt
+--      statt auf die Bibliothek (`fk_documents_folder`): Ein Ordner, der vor
+--      seinen Dateien fiele, nähme in SharePoint mit, was die Zeilen daneben
+--      noch behaupten. Dieselbe Reihenfolge gilt außerhalb der Datenbank —
+--      erst die Blätter, dann der Ordner. Deshalb steht
 --      auch `health_trait_values` hier und nicht erst in Stufe 2, wo es per
 --      Cascade mit dem Gesundheitssatz ginge, ohne dass der Lauf es sieht: bis
 --      dahin hielte es das Attest fest. Merkmal und Antwortzeile darüber nennt
@@ -195,11 +201,30 @@ CREATE TABLE consent_purposes (
     -- Ab diesem Alter antwortet das Kind selbst mit — 14 beim
     -- Fotoeinverständnis, sonst leer (grenzkarte.md, Q1).
     self_consent_age   smallint,
+    -- Ein **Newsletter-Thema**: Alumni-Rundbrief, Förderkreis, Interessenten —
+    -- „für die sich jede Person einzeln an- und abmeldet", und ein neues ist
+    -- eine Zeile hier. Ein eigener Bestand daneben wäre eine zweite Bauform für
+    -- genau das, was Q1 trägt: eine Antwort je Person und Zweck, zwei
+    -- Zeitpunkte statt eines Häkchens, und der Widerruf, der die Zeile stehen
+    -- lässt. Der Anker ist die Person und nicht das Kind — ein Ehemaliger hat
+    -- weder Familie noch Vertragsverhältnis, und `persons` verlangt keines.
+    -- Das Häkchen trägt zugleich die Regel, die sonst im Code stünde: **Nur ein
+    -- Newsletter-Thema bekommt einen Abmeldelink.** „Wer sich vom Elternabend
+    -- abmelden könnte, bekäme die nächste Vertragsfrist auch nicht mehr" — die
+    -- Einladung steht auf dem Vertrag, nicht auf einer Einwilligung. Der Link
+    -- selbst hat keine Spalte: Er ist ein Token über die Personenkennung, wie
+    -- der Signaturlink des Kindes ab 14 (api/querschnitt-api.md).
+    is_newsletter_topic boolean NOT NULL DEFAULT false,
     created_at         timestamptz NOT NULL DEFAULT now(),
     created_by         text NOT NULL,
 
     CONSTRAINT pk_consent_purposes      PRIMARY KEY (consent_purpose_id),
     CONSTRAINT uq_consent_purposes_code UNIQUE (code),
+    -- Trägt den zusammengesetzten Fremdschlüssel von `outbound_emails`
+    -- (rules.md Abschnitt 1) und ist deshalb zusätzlich zum Primärschlüssel
+    -- nötig — dieselbe Bauform wie `uq_consent_purposes_requires_child`.
+    CONSTRAINT uq_consent_purposes_newsletter
+        UNIQUE (consent_purpose_id, is_newsletter_topic),
     -- Trägt den zusammengesetzten Fremdschlüssel von `consents` (rules.md
     -- Abschnitt 1) und ist deshalb zusätzlich zum Primärschlüssel nötig.
     CONSTRAINT uq_consent_purposes_requires_child UNIQUE (consent_purpose_id, requires_child),
@@ -238,6 +263,47 @@ CREATE TABLE sharepoint_libraries (
     CONSTRAINT uq_sharepoint_libraries_code UNIQUE (code),
     -- Ohne `guardian:`: eine Bibliothek richtet ein Admin ein, kein Elternteil.
     CONSTRAINT ck_sharepoint_libraries_created_by CHECK (created_by ~ '^(entra:|system:)')
+);
+
+-- Herkunft: grenzkarte.md, Q2 — „Die Kategorie ist Pflicht, aber vorbelegt. Sie
+-- sagt, in welchem Unterordner die Datei liegt, wie lange sie bleibt und wer
+-- sie sehen darf; sie ist die Werteliste, die der Datenschutzbeauftragte setzt,
+-- und es sind wenige." Sie ist die **Aktengruppe** der Aktenkunde — die
+-- Einheit, an der die Aufbewahrung hängt, gebildet nach der Funktion der
+-- Unterlage und nicht nach ihrem Aussehen. Der Grund für die Aufteilung ist die
+-- Frist und nichts sonst: „Ein Zeugnis, ein Schriftwechsel und eine
+-- Verfahrensunterlage laufen verschieden lange, und eine gemeinsame längste
+-- Frist behielte jedes Blatt so lange wie das langlebigste"
+-- (Geschäftsführung, 01.09.2026).
+-- Bewusst KEIN Bezug auf eine Bibliothek: Welche Kategorie in welcher Akte
+-- vorkommt, folgt aus den Ordnern, die die Anwendung anlegt, und eine zweite
+-- Zuordnungstabelle daneben trüge dieselbe Tatsache ein zweites Mal.
+-- Kein Löschanker: keine Personendaten.
+CREATE TABLE child_file_categories (
+    child_file_category_id integer GENERATED ALWAYS AS IDENTITY,
+    code                   text NOT NULL,
+    name                   text NOT NULL,
+    -- Der Bestand, dessen Frist diese Kategorie trägt — er ist der Grund, aus
+    -- dem es die Kategorien überhaupt gibt. Leer, solange die Liste der
+    -- Kategorien und ihre Fristen beim Datenschutzbeauftragten liegen
+    -- (grenzkarte.md, offene Punkte); bis dahin rechnet die Kategorie mit der
+    -- Frist ihrer Akte („child_file" bzw. „care_file"). Bleibt es am Ende bei
+    -- einer einzigen Frist, ist das eine Zeile und kein Rückbau.
+    retention_subject_id   integer,
+    -- Deaktiviert statt gelöscht: „is_active = false" nimmt den Wert aus jedem
+    -- Auswahlfeld, lässt aber jede Zeile stehen, die schon auf ihn zeigt
+    -- (rules.md Abschnitt 3).
+    is_active              boolean NOT NULL DEFAULT true,
+    created_at             timestamptz NOT NULL DEFAULT now(),
+    created_by             text NOT NULL,
+
+    CONSTRAINT pk_child_file_categories      PRIMARY KEY (child_file_category_id),
+    CONSTRAINT uq_child_file_categories_code UNIQUE (code),
+    CONSTRAINT ck_child_file_categories_code CHECK (code <> ''),
+    CONSTRAINT ck_child_file_categories_name CHECK (name <> ''),
+    -- Ohne `guardian:`: eine Aktenkategorie setzt der Datenschutzbeauftragte,
+    -- kein Elternteil.
+    CONSTRAINT ck_child_file_categories_created_by CHECK (created_by ~ '^(entra:|system:)')
 );
 
 -- Herkunft: grenzkarte.md, Q2 — „Damit muss niemand die Liste der
@@ -329,6 +395,13 @@ CREATE TABLE sync_targets (
 -- — ein Tippfehler ließe die Bedingungen sonst still verschwinden, obwohl sie
 -- „sichtbar bevor angemeldet wird" (21) bzw. „sichtbar bevor gebucht wird"
 -- (10) sein müssen.
+-- Sie ist zugleich der Ort, an dem eine **Dokumentsorte vollständig definiert**
+-- ist: welche Klasse sie hat, welche Dokumentart aus ihr entsteht und wo ihre
+-- Arbeitsfassung liegt. Ohne das stünde dieselbe Tatsache im Anwendungscode,
+-- und eine neue Sorte kostete einen Bau statt einer Zeile und einer Vorlage.
+-- **Nicht** hierher wandert die Feldfreigabe je Sorte — wer sie verbreitern
+-- kann, zöge Daten in ein Dokument, das der falsche Leserkreis sieht, und das
+-- darf nicht dieselbe Person sein, die die Vorlage schreibt. Sie bleibt im Code.
 -- Kein Löschanker: keine Personendaten.
 CREATE TABLE contract_text_kinds (
     contract_text_kind_id integer GENERATED ALWAYS AS IDENTITY,
@@ -343,13 +416,55 @@ CREATE TABLE contract_text_kinds (
     -- Auswahlfeld, lässt aber jede Zeile stehen, die schon auf ihn zeigt
     -- (rules.md Abschnitt 3).
     is_active             boolean NOT NULL DEFAULT true,
+    -- Die Klasse sagt, was aus der Sorte entsteht. Sie ist nicht ableitbar: Die
+    -- Anwendung muss beim Anzeigen wissen, ob sie eine Zustimmung festhält oder
+    -- nicht, und das steht sonst nirgends. Drei Codes, nach der Bauform von
+    -- `ck_contracts_type` als CHECK und nicht als Werteliste — eine vierte
+    -- Klasse wäre eine Änderung an jedem Leser, nicht eine Zeile:
+    --   'signed'  — Schulvertrag, Betreuungsvertrag, Fotoeinverständnis,
+    --               SEPA-Mandat: Urkunde je Kind, Prüfsumme, Unterschriftszeilen.
+    --   'agreed'  — Teilnahmebedingungen (10), Essensbedingungen (11): keine
+    --               Datei, aber der Vorgang merkt sich die Fassung.
+    --   'applies' — Betreuungsordnung, Infektionsschutz: nichts am Kind, es
+    --               gilt „die jeweils gültige Fassung" (09).
+    kind_class            text NOT NULL,
+    -- Welche Dokumentart aus der Sorte entsteht. Ohne diesen Verweis stünde die
+    -- Zuordnung im Anwendungscode, und eine neue Sorte kostete einen Deploy
+    -- statt einer Zeile plus Vorlage. Nur die Klasse 'signed' trägt eine — die
+    -- beiden anderen erzeugen keine Datei.
+    document_type_id      integer,
+    -- Wo die Arbeitsfassung liegt, an der die Geschäftsführung schreibt:
+    -- Bibliothek und Element als Graph-Kennung, „nie ein Pfad" (grenzkarte.md,
+    -- Q2). Aus ihr entsteht beim Einfrieren die Fassung an `contract_texts`.
+    working_library_id    integer,
+    working_item_id       text,
     created_at            timestamptz NOT NULL DEFAULT now(),
     created_by            text NOT NULL,
 
     CONSTRAINT pk_contract_text_kinds      PRIMARY KEY (contract_text_kind_id),
     CONSTRAINT uq_contract_text_kinds_code UNIQUE (code),
+    CONSTRAINT fk_contract_text_kinds_document_type
+        FOREIGN KEY (document_type_id) REFERENCES document_types (document_type_id),
+    CONSTRAINT fk_contract_text_kinds_working_library
+        FOREIGN KEY (working_library_id) REFERENCES sharepoint_libraries (sharepoint_library_id),
     CONSTRAINT ck_contract_text_kinds_code CHECK (code <> ''),
     CONSTRAINT ck_contract_text_kinds_name CHECK (name <> ''),
+    CONSTRAINT ck_contract_text_kinds_class
+        CHECK (kind_class IN ('signed', 'agreed', 'applies')),
+    -- Die Arbeitsfassung ist Bibliothek **und** Element oder keines von beiden;
+    -- eine halbe Kennung fände nichts.
+    CONSTRAINT ck_contract_text_kinds_working
+        CHECK ((working_library_id IS NULL) = (working_item_id IS NULL)
+               AND working_item_id <> ''),
+    -- Arbeitsfassung und Dokumentart trägt allein die unterschriebene Sorte.
+    -- „Eine Sorte ohne Arbeitsfassung ist reiner Text und erzeugt keine
+    -- Urkunde" — eine mitgeltende Anlage mit Vorlage behauptete ein Dokument am
+    -- Kind, das es nicht gibt. Umgekehrt ist eine 'signed'-Sorte **ohne**
+    -- Vorlage zulässig: Die drei Vertragstexte werden gerade überarbeitet und
+    -- der Mandatswortlaut steht noch aus — die Sorte gibt es vor ihrer Datei.
+    CONSTRAINT ck_contract_text_kinds_class_shape
+        CHECK (kind_class = 'signed'
+               OR (working_library_id IS NULL AND document_type_id IS NULL)),
     CONSTRAINT ck_contract_text_kinds_created_by CHECK (created_by ~ '^(entra:|system:)')
 );
 
@@ -362,6 +477,17 @@ CREATE TABLE contract_text_kinds (
 -- solcher Text abgelegt und formatiert wird, entscheidet der Bau". Dass „ein
 -- bereits gültiger nicht mehr" geändert wird, prüft die Anwendung — dieselbe
 -- Auslassung wie an `configured_values`, aus demselben Grund.
+-- **Die Word-Datei selbst ist die Fassung, nicht der Text daneben.** Der reale
+-- Schulvertrag hat 682 Absätze, vier Tabellen, 128 Listenabsätze in drei
+-- Ebenen, zehn Grafiken und je zwei Kopf- und Fußzeilen; kein Fließtext- und
+-- kein Markdown-Feld trägt das. Eingefroren wird die Datei aus der
+-- Arbeitsfassung, die `contract_text_kinds` benennt.
+-- **Sie liegt bewusst in Postgres und nicht in SharePoint**, abweichend von
+-- „Die Dateien selbst bleiben in SharePoint" (grenzkarte.md, Q2): Sie trägt
+-- keine Personendaten, sie ist klein (400 KB beim echten Vertrag), sie muss
+-- unveränderlich sein — „wer Zugriff auf eine Bibliothek hat, kann dort
+-- löschen" (oberflaechen.md) —, und sie gehört in dieselbe Sicherung wie die
+-- Zeile, die auf sie zeigt. Der Preis der Abweichung steht in grenzkarte.md.
 CREATE TABLE contract_texts (
     contract_text_id integer GENERATED ALWAYS AS IDENTITY,
     -- Welcher Text: Schulvertrag je Schulart (08), Hortvertrag und
@@ -369,7 +495,21 @@ CREATE TABLE contract_texts (
     -- Terminart (10), Essensbedingungen (11).
     code             text NOT NULL,
     valid_from       date NOT NULL,
+    -- **Vom System geschrieben, nicht von Hand gepflegt:** der aus
+    -- `template_docx` ausgelesene Text. Er trägt `GET /contract-texts`, den
+    -- Textvergleich zweier Fassungen und die Volltextsuche — die Fassung selbst
+    -- ist die Datei. Eine Sorte ohne Arbeitsfassung (Klasse 'agreed' oder
+    -- 'applies') hat keine Datei; dort ist er die Fassung und wird eingegeben.
     body             text NOT NULL,
+    -- Die eingefrorene Vorlagendatei. Leer bei jeder Sorte ohne Arbeitsfassung.
+    template_docx    bytea,
+    -- sha256 über die Bytes, in der Form `sha256:<64 Hexstellen>`. Das Format
+    -- ist festgelegt und nicht bloß Konvention, weil `ck_change_log_template`
+    -- es liest: Die Änderungsspur trägt für `template_docx` diese Prüfsumme
+    -- statt des Werts, und ohne festes Format wäre die Regel nicht prüfbar.
+    template_checksum text,
+    -- Wann eingefroren wurde. Eine Fassung ohne Datei friert nichts ein.
+    frozen_at        timestamptz,
     created_at       timestamptz NOT NULL DEFAULT now(),
     created_by       text NOT NULL,
 
@@ -383,6 +523,13 @@ CREATE TABLE contract_texts (
     CONSTRAINT uq_contract_texts_id_code UNIQUE (contract_text_id, code),
     CONSTRAINT ck_contract_texts_code CHECK (code <> ''),
     CONSTRAINT ck_contract_texts_body CHECK (body <> ''),
+    -- Datei, Prüfsumme und Einfrierzeitpunkt stehen zu dritt oder gar nicht:
+    -- eine Prüfsumme ohne Datei belegte nichts, eine Datei ohne
+    -- Einfrierzeitpunkt sagte nicht, welchen Stand sie hält.
+    CONSTRAINT ck_contract_texts_frozen
+        CHECK (num_nonnulls(template_docx, template_checksum, frozen_at) IN (0, 3)),
+    CONSTRAINT ck_contract_texts_checksum
+        CHECK (template_checksum ~ '^sha256:[0-9a-f]{64}$'),
     -- Ohne `guardian:`: „geändert von der Geschäftsführung" (hebel.md).
     CONSTRAINT ck_contract_texts_created_by CHECK (created_by ~ '^(entra:|system:)')
 );
@@ -499,6 +646,57 @@ CREATE UNIQUE INDEX ix_signatures_agreement
 CREATE UNIQUE INDEX ix_signatures_mandate ON signatures (sepa_mandate_id)
     WHERE sepa_mandate_id IS NOT NULL;
 
+-- Herkunft: grenzkarte.md, Q2 — „Der Ordner-Anker bleibt daneben bestehen
+-- (`child_file_folders`): Er trägt den Ordner selbst, den der Lösch-Lauf
+-- zusätzlich zu seinen Dateien entfernen muss, und er ist der Bezug, über den
+-- die Zeile ihre Kategorie kennt." Löschanker: geht mit dem Kind, aber bewusst OHNE
+-- Cascade — wie bei `documents` muss der Lösch-Lauf den Ordner in SharePoint
+-- zuerst mitentfernen, mit Papierkorb und Versionsverlauf; er erwischt damit
+-- auch, was Weltenbaum nie gesehen hat.
+-- **Eine Zeile je Kind, Bibliothek und Kategorie** (grenzkarte.md, Q2): Die
+-- Schülerakte teilt sich in Unterordner je Kategorie, weil die Fristen
+-- verschieden lang sind, und die Hortakte ist die zweite Bibliothek am Kind.
+-- **Die Zeile entsteht auf Anforderung und nicht je Kind:** Sie existiert nur,
+-- wo ein Ordner ist — „nicht jedes Kind hat eine" Hortakte (grenzkarte.md), und
+-- ein Unterordner der Schülerakte entsteht, wenn das erste Blatt seiner
+-- Kategorie hereinkommt. Ein von Hand angelegter Ordner hätte keinen Anker und
+-- überlebte jede Frist; „Ordner legt allein die App an".
+CREATE TABLE child_file_folders (
+    child_file_folder_id uuid NOT NULL DEFAULT gen_random_uuid(),
+    child_id             uuid NOT NULL,
+    sharepoint_library_id integer NOT NULL,
+    -- Welcher Unterordner: die Aktengruppe, an der die Frist hängt. Pflicht
+    -- auch in der Hortakte, die nur eine kennt — eine leere Kategorie zählte in
+    -- Postgres als verschieden und ließe den zweiten Ordner desselben Kindes zu,
+    -- genau den Fall, den `uq_child_file_folders` abweist.
+    child_file_category_id integer NOT NULL,
+    graph_item_id        text NOT NULL,
+    created_at           timestamptz NOT NULL DEFAULT now(),
+    created_by           text NOT NULL,
+
+    CONSTRAINT pk_child_file_folders       PRIMARY KEY (child_file_folder_id),
+    CONSTRAINT fk_child_file_folders_child FOREIGN KEY (child_id) REFERENCES children (child_id),
+    CONSTRAINT fk_child_file_folders_library
+        FOREIGN KEY (sharepoint_library_id) REFERENCES sharepoint_libraries (sharepoint_library_id),
+    CONSTRAINT fk_child_file_folders_category
+        FOREIGN KEY (child_file_category_id)
+        REFERENCES child_file_categories (child_file_category_id),
+    CONSTRAINT uq_child_file_folders
+        UNIQUE (child_id, sharepoint_library_id, child_file_category_id),
+    -- Ein Ordner ist ein Graph-Element wie jede Datei, und zwei Zeilen auf
+    -- demselben Element ließen den Lösch-Lauf einen Ordner entfernen, auf den
+    -- die zweite Zeile noch zeigt. Derselbe Schlüssel wie `uq_documents_graph_item`.
+    CONSTRAINT uq_child_file_folders_graph_item
+        UNIQUE (sharepoint_library_id, graph_item_id),
+    -- Trägt den zusammengesetzten Fremdschlüssel von `documents`: Er bindet die
+    -- Datei an einen Ordner desselben Kindes in derselben Bibliothek
+    -- (rules.md Abschnitt 1).
+    CONSTRAINT uq_child_file_folders_id_child
+        UNIQUE (child_file_folder_id, child_id, sharepoint_library_id),
+    CONSTRAINT ck_child_file_folders_item CHECK (graph_item_id <> ''),
+    CONSTRAINT ck_child_file_folders_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
+);
+
 -- Herkunft: grenzkarte.md, Q2 — „Dokument: Typ, Bezug (Kind bzw. Vorgang),
 -- Ablageort, Erzeugungszeitpunkt — dazu, ob es angefordert wurde." Löschanker:
 -- geht mit dem Kind, aber bewusst OHNE Cascade — der Lösch-Lauf muss die Datei
@@ -510,10 +708,33 @@ CREATE UNIQUE INDEX ix_signatures_mandate ON signatures (sepa_mandate_id)
 CREATE TABLE documents (
     document_id      uuid NOT NULL DEFAULT gen_random_uuid(),
     child_id         uuid NOT NULL,
-    document_type_id integer NOT NULL,
-    -- Wo die Datei liegt. Sie steht an der Datei und nicht an ihrer Art: käme
-    -- die Trennung nach Bibliotheken je zurück, wäre das eine Datenänderung
-    -- statt einer Migration.
+    -- **Freiwillig** (grenzkarte.md, Q2): „Die Art steht nur dort, wo ein
+    -- Prozess nach genau dieser Unterlage fragt" — die am Anmeldetag verlangten
+    -- Stücke, bei denen „fehlt noch" von „nie verlangt" unterscheidbar sein
+    -- muss (06), und was Weltenbaum selbst erzeugt. Ein Attest, ein
+    -- Schriftwechsel, eine Bescheinigung, an die heute niemand denkt, liegt mit
+    -- Kategorie und Bezeichnung da und braucht keine. „Unbestimmt heißt eng":
+    -- eine Datei ohne Art sieht nur, wer ohnehin alles sieht — das prüft die
+    -- Anwendung je Aufruf und kein Constraint, denn der Leserkreis steht nicht
+    -- in dieser Zeile.
+    document_type_id integer,
+    -- Die Bezeichnung für Menschen, und sie ist **Pflicht**: Ohne Art ist sie
+    -- das Einzige, woran eine Datei in der Liste zu erkennen ist. „Die
+    -- Bezeichnung entscheidet nichts. Sie ist ein Etikett für Menschen"
+    -- (grenzkarte.md, Q2) — wer sie unglücklich wählt, macht eine Liste
+    -- unübersichtlich und sonst gar nichts.
+    label            text NOT NULL,
+    -- In welchem Ordner die Datei liegt — und damit, über die Kategorie des
+    -- Ordners, wie lange sie bleibt und wer sie sehen darf. Der Bezug geht auf
+    -- den Ordner und nicht mehr auf die Bibliothek: Seit die Akte sich in
+    -- Unterordner je Kategorie teilt, wäre die Bibliothek allein zu grob, und
+    -- eine zweite Kategoriespalte neben dem Ordner trüge dieselbe Tatsache
+    -- zweimal (rules.md Abschnitt 1).
+    child_file_folder_id uuid NOT NULL,
+    -- Mitgeführt, damit `uq_documents_graph_item` die Datei je Bibliothek
+    -- eindeutig hält und `fk_documents_folder` sie zugleich an einen Ordner
+    -- **desselben** Kindes in **derselben** Bibliothek bindet; dieselbe
+    -- Bauform wie `contracts.contract_text_code`.
     sharepoint_library_id integer NOT NULL,
     -- Gesetzt, wo ein Mensch die Unterlage verlangt hat; zusammen mit einem
     -- leeren `graph_item_id` heißt das „fehlt noch", ohne Zeile „nie verlangt".
@@ -534,8 +755,15 @@ CREATE TABLE documents (
     CONSTRAINT pk_documents       PRIMARY KEY (document_id),
     CONSTRAINT fk_documents_child FOREIGN KEY (child_id) REFERENCES children (child_id),
     CONSTRAINT fk_documents_type  FOREIGN KEY (document_type_id) REFERENCES document_types (document_type_id),
-    CONSTRAINT fk_documents_library
-        FOREIGN KEY (sharepoint_library_id) REFERENCES sharepoint_libraries (sharepoint_library_id),
+    -- Die Datei liegt im Ordner **ihres** Kindes: Ein zusammengesetzter
+    -- Schlüssel statt dreier einzelner, sonst hinge das Blatt eines Kindes im
+    -- Ordner eines anderen und die Akte wäre still vertauscht. Er trägt die
+    -- Bibliothek mit und ersetzt damit den früheren `fk_documents_library` —
+    -- ein zweiter Schlüssel auf dieselbe Spalte prüfte nichts, was dieser nicht
+    -- schon prüft.
+    CONSTRAINT fk_documents_folder
+        FOREIGN KEY (child_file_folder_id, child_id, sharepoint_library_id)
+        REFERENCES child_file_folders (child_file_folder_id, child_id, sharepoint_library_id),
     -- „Jede Datei bekommt eine Zeile" (grenzkarte.md, Q2) — und keine Datei
     -- zwei. Ohne diesen Schlüssel zeigten die Zeilen zweier Kinder auf dasselbe
     -- Graph-Element, und der Lösch-Lauf entfernte in Stufe 1 die Datei, auf die
@@ -560,6 +788,7 @@ CREATE TABLE documents (
     -- Abgelegt ist, wo eine Datei liegt — beides gehört zusammen.
     CONSTRAINT ck_documents_filed
         CHECK ((graph_item_id IS NULL) = (filed_at IS NULL)),
+    CONSTRAINT ck_documents_label CHECK (label <> ''),
     CONSTRAINT ck_documents_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
@@ -568,31 +797,6 @@ CREATE TABLE documents (
 ALTER TABLE sepa_mandates
     ADD CONSTRAINT fk_sepa_mandates_document
         FOREIGN KEY (document_id) REFERENCES documents (document_id);
-
--- Herkunft: grenzkarte.md, Q2 — „Der Ordner-Anker bleibt daneben bestehen
--- (`child_file_folders`): Er trägt den Ordner selbst, den der Lösch-Lauf
--- zusätzlich zu seinen Dateien entfernen muss, und er ist der Bezug, über den
--- die Zeile ihre Kategorie kennt." Löschanker: geht mit dem Kind, aber bewusst OHNE
--- Cascade — wie bei `documents` muss der Lösch-Lauf den Ordner in SharePoint
--- zuerst mitentfernen, mit Papierkorb und Versionsverlauf; er erwischt damit
--- auch, was Weltenbaum nie gesehen hat.
--- Je Kind genau einer, seit alles in derselben Bibliothek liegt.
-CREATE TABLE child_file_folders (
-    child_file_folder_id uuid NOT NULL DEFAULT gen_random_uuid(),
-    child_id             uuid NOT NULL,
-    sharepoint_library_id integer NOT NULL,
-    graph_item_id        text NOT NULL,
-    created_at           timestamptz NOT NULL DEFAULT now(),
-    created_by           text NOT NULL,
-
-    CONSTRAINT pk_child_file_folders       PRIMARY KEY (child_file_folder_id),
-    CONSTRAINT fk_child_file_folders_child FOREIGN KEY (child_id) REFERENCES children (child_id),
-    CONSTRAINT fk_child_file_folders_library
-        FOREIGN KEY (sharepoint_library_id) REFERENCES sharepoint_libraries (sharepoint_library_id),
-    CONSTRAINT uq_child_file_folders UNIQUE (child_id),
-    CONSTRAINT ck_child_file_folders_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
-);
-
 
 -- ---------------------------------------------------------------------------
 -- Q1 — Zustimmung
@@ -936,8 +1140,8 @@ CREATE TABLE configured_values (
     -- „cleaning_penalty_cents", „application_fee_cents", „mileage_rate_cents",
     -- „expense_report_threshold_cents", „contract_fee_cents",
     -- „care_sibling_discount_basis_points", „care_change_fee_cents",
-    -- „parent_bonus_monthly_cents", „parent_bonus_required_hours_primary",
-    -- „parent_bonus_required_hours_secondary",
+    -- „parent_work_monthly_cents", „parent_work_hours_primary",
+    -- „parent_work_hours_default",
     -- „meal_single_amount_cents"). Jeder von ihnen ist von der
     -- Geschäftsführung änderbar und trägt seinen Gültigkeitstag; im Code steht
     -- nur der Code, nie die Zahl.
@@ -982,10 +1186,10 @@ CREATE TABLE configured_values (
     -- Die drei des Elternbonus: „Drei Werte im System gehören der
     -- Geschäftsführung: der Monatsbetrag (derzeit 10 €) und die beiden
     -- Pflichtstundenzahlen (derzeit 15 und 10)" (14).
-    -- „parent_bonus_monthly_cents" ist der Monatsbetrag, den jede Familie
+    -- „parent_work_monthly_cents" ist der Monatsbetrag, den jede Familie
     -- zusätzlich zum Schulgeld zahlt, elf Monate im Jahr;
-    -- „parent_bonus_required_hours_primary" die Pflichtstunden, wenn ein
-    -- Grundschüler dabei ist, „parent_bonus_required_hours_secondary" die
+    -- „parent_work_hours_primary" die Pflichtstunden, wenn ein
+    -- Grundschüler dabei ist, „parent_work_hours_default" die
     -- sonst — „nicht additiv, der größere Wert entscheidet" (14), und welcher
     -- gilt, rechnet die Anwendung aus der Schulart der Kinder. Die Stundenzahl
     -- ist eine Stückzahl und kein Betrag; welche Einheit gilt, sagt der Code
@@ -1041,6 +1245,20 @@ CREATE TABLE outbound_emails (
     -- Welcher Anlass, als Code — „Zusage", „Erinnerung Fristende",
     -- „Aufnahmebestätigung"; die Blöcke zählen sie je Prozess auf.
     purpose           text NOT NULL,
+    -- **Die Absenderadresse steht je Anlass, nicht global:** Vorgangsmails,
+    -- Hortsachen und Newsletter dürfen verschiedene tragen. Welche es gibt,
+    -- hängt an der Domainfrage (fragen.md) und wird nicht hier entschieden —
+    -- leer heißt „die eine, die der Versand ohnehin nimmt".
+    from_address      text,
+    -- Gesetzt allein bei einer Newsletter-Mail: das Thema, auf dessen
+    -- Einwilligung sie ging, und damit das Thema des Abmeldelinks. Eine
+    -- Vorgangsmail trägt keines und kommt deshalb ohne Link heraus.
+    consent_purpose_id integer,
+    -- Das Häkchen der Zweckzeile, hier mitgeführt, damit der CHECK unten es
+    -- sehen kann; `fk_outbound_emails_topic` hält beide zusammen (rules.md
+    -- Abschnitt 1). Ohne es ließe sich ein Vorgangszweck an eine Mail hängen,
+    -- und sie bekäme einen Abmeldelink, den es für sie nicht geben darf.
+    is_newsletter_topic boolean NOT NULL DEFAULT false,
     sent_at           timestamptz NOT NULL DEFAULT now(),
     -- Der Rückläufer. Solange er leer ist, gilt die Mail als zugestellt; steht
     -- er, sieht das Sekretariat sie in seiner Liste.
@@ -1050,8 +1268,22 @@ CREATE TABLE outbound_emails (
     CONSTRAINT pk_outbound_emails PRIMARY KEY (outbound_email_id),
     CONSTRAINT fk_outbound_emails_person
         FOREIGN KEY (person_id) REFERENCES persons (person_id) ON DELETE CASCADE,
+    CONSTRAINT fk_outbound_emails_topic
+        FOREIGN KEY (consent_purpose_id, is_newsletter_topic)
+        REFERENCES consent_purposes (consent_purpose_id, is_newsletter_topic),
     CONSTRAINT ck_outbound_emails_email   CHECK (recipient_email <> ''),
     CONSTRAINT ck_outbound_emails_purpose CHECK (purpose <> ''),
+    CONSTRAINT ck_outbound_emails_from    CHECK (from_address <> ''),
+    -- Genau die Newsletter-Mail trägt ihr Thema; zusammen mit dem
+    -- zusammengesetzten Fremdschlüssel heißt das: ein Zweck, der keines ist,
+    -- kommt hier nicht an.
+    CONSTRAINT ck_outbound_emails_topic
+        CHECK ((consent_purpose_id IS NOT NULL) = is_newsletter_topic),
+    -- Der Abmeldelink hängt an der Person. Eine Newsletter-Mail an eine
+    -- Adresse, hinter der keine steht, ließe sich nicht abbestellen — die Mail
+    -- ohne Person gibt es nur im Vorgang (05, 09, 10).
+    CONSTRAINT ck_outbound_emails_topic_person
+        CHECK (consent_purpose_id IS NULL OR person_id IS NOT NULL),
     CONSTRAINT ck_outbound_emails_bounce
         CHECK ((undeliverable_at IS NULL) = (undeliverable_reason IS NULL))
 );
@@ -1110,6 +1342,15 @@ CREATE TABLE change_log (
     -- Nur bei einer Spaltenänderung gesetzt; das Anlegen und das Löschen einer
     -- Zeile hat keinen Spaltennamen.
     column_name   text,
+    -- Der Alt- und der Neuwert als Text — **mit genau einer Ausnahme**, und sie
+    -- steht als CHECK weiter unten: Für `contract_texts.template_docx` trägt die
+    -- Spur die Prüfsumme statt des Werts. Eine Vorlagendatei von 400 KB stünde
+    -- sonst zweimal je `PATCH` in der Spur, rund ein Megabyte für einen Wert,
+    -- den aus ihr niemand je liest; dass sich die Datei geändert hat und auf
+    -- welche Prüfsumme, ist die ganze Aussage, die gebraucht wird. Verloren geht
+    -- dabei der vorherige Dateiinhalt einer **angekündigten** Fassung — das ist
+    -- hinnehmbar: Eine Fassung, deren Tag nie erreicht wurde, hat nichts
+    -- belegt, und eine erreichte wird nie geändert.
     old_value     text,
     new_value     text,
     changed_at    timestamptz NOT NULL DEFAULT now(),
@@ -1156,6 +1397,13 @@ CREATE TABLE change_log (
             WHEN 'delete' THEN old_value IS NOT NULL AND new_value IS NULL
             ELSE old_value IS NOT NULL OR new_value IS NOT NULL
         END),
+    -- Die eine Spalte, deren Wert die Spur nicht mitschreibt (siehe oben). Sie
+    -- prüft das Format, das `ck_contract_texts_checksum` an der Quelle setzt —
+    -- damit fällt der Versuch auf, die Dateibytes hier abzulegen.
+    CONSTRAINT ck_change_log_template
+        CHECK (NOT (table_name = 'contract_texts' AND column_name = 'template_docx')
+               OR (coalesce(old_value, 'sha256:' || repeat('0', 64)) ~ '^sha256:[0-9a-f]{64}$'
+               AND coalesce(new_value, 'sha256:' || repeat('0', 64)) ~ '^sha256:[0-9a-f]{64}$')),
     CONSTRAINT ck_change_log_changed_by CHECK (changed_by ~ '^(entra:|guardian:|system:)')
 );
 -- Siehe die Warnung im Kopf dieser Datei: diese Tabelle füllt allein die
@@ -1198,6 +1446,13 @@ CREATE TABLE retention_subjects (
     CONSTRAINT ck_retention_subjects_name CHECK (name <> ''),
     CONSTRAINT ck_retention_subjects_created_by CHECK (created_by ~ '^(entra:|system:)')
 );
+
+-- Die Aktenkategorie zeigt auf den Bestand, dessen Frist sie trägt; die Tabelle
+-- steht als Werteliste von Q2 weiter oben, der Bestand entsteht erst hier —
+-- deshalb der Schlüssel an dieser Stelle, wie bei `fk_sepa_mandates_document`.
+ALTER TABLE child_file_categories
+    ADD CONSTRAINT fk_child_file_categories_retention
+        FOREIGN KEY (retention_subject_id) REFERENCES retention_subjects (retention_subject_id);
 
 -- Herkunft: hebel.md, „Löschankündigung und Anhalten" — „Empfänger sind immer
 -- mindestens zwei … Sie stehen als Wert im System und nicht im Code."

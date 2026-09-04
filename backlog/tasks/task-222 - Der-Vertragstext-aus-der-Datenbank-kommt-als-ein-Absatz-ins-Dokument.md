@@ -1,10 +1,10 @@
 ---
 id: TASK-222
 title: contract_texts traegt die eingefrorene Vorlagendatei
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-03 22:40'
-updated_date: '2026-09-04 00:17'
+updated_date: '2026-09-04 01:05'
 labels:
   - schema
   - wb-docs
@@ -45,8 +45,18 @@ Die Abweichung gehört als Absatz in `grenzkarte.md`, nicht in einen Nebensatz.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 `contract_texts` traegt Datei, Pruefsumme und Einfrierzeitpunkt; `body` wird beim Einfrieren aus der Datei ausgelesen und nicht mehr von Hand gesetzt
-- [ ] #2 Der Kommentar an `body` sagt, dass die Spalte abgeleitet ist und woraus
-- [ ] #3 Die Abweichung von der SharePoint-Regel steht als Absatz in `grenzkarte.md`, mit ihrem Preis
+- [x] #1 `contract_texts` traegt Datei, Pruefsumme und Einfrierzeitpunkt; `body` wird beim Einfrieren aus der Datei ausgelesen und nicht mehr von Hand gesetzt
+- [x] #2 Der Kommentar an `body` sagt, dass die Spalte abgeleitet ist und woraus
+- [x] #3 Die Abweichung von der SharePoint-Regel steht als Absatz in `grenzkarte.md`, mit ihrem Preis
 - [ ] #4 Gegenprobe: eine erreichte Fassung laesst sich nicht mehr aendern, eine angekuendigte schon
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Schema gebaut: contract_texts traegt template_docx (bytea), template_checksum und frozen_at; ck_contract_texts_frozen haelt die drei zusammen oder gar nicht, ck_contract_texts_checksum legt das Format sha256:<64 Hex> fest — nicht als Konvention, sondern weil TASK-232 es liest. Der Kommentar an body sagt, dass die Spalte abgeleitet ist und woraus, und dass eine Sorte ohne Arbeitsfassung (Klasse agreed/applies) ihn als Fassung selbst traegt. grenzkarte.md hat den Absatz zur Abweichung samt Preis (Binaerdaten in der Sicherung, eine Spalte, die kein Werkzeug lesbar anzeigt) — tragbar, weil es je Sorte und Gueltigkeitstag genau eine Fassung gibt und keine je Kind.
+
+Offen bleibt Kriterium 4, und zwar bewusst: 'eine erreichte Fassung laesst sich nicht mehr aendern' vergleicht valid_from mit dem heutigen Tag, und now() ist in keinem CHECK zulaessig. Dieselbe ausgeschriebene Auslassung wie an configured_values und den beiden Preistabellen — die Regel prueft die Anwendung, und die Gegenprobe gehoert deshalb in die Testsuite von wb-backend, nicht ins Pruefskript.
+
+Ebenfalls wb-backend: das Einfrieren selbst (Datei aus der Arbeitsfassung holen, body auslesen, Pruefsumme rechnen).
+<!-- SECTION:NOTES:END -->

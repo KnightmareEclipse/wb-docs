@@ -188,13 +188,24 @@ INSERT INTO measles_presentation_types (measles_presentation_type_id, code, name
     VALUES (1, 'vaccination_card', 'Impfpass'), (2, 'certificate', 'ärztliche Bescheinigung');
 
 INSERT INTO sharepoint_libraries (sharepoint_library_id, code, name, graph_drive_id, created_by)
-    OVERRIDING SYSTEM VALUE VALUES (1, 'generated', 'Erzeugt', 'b!x', 'system:check');
+    OVERRIDING SYSTEM VALUE VALUES (1, 'student_file', 'Digitale Schülerakte', 'b!x', 'system:check');
 INSERT INTO document_types (document_type_id, code, name, created_by)
     OVERRIDING SYSTEM VALUE VALUES (1, 'certificate', 'Attest', 'system:check');
-INSERT INTO documents (document_id, child_id, document_type_id, sharepoint_library_id,
+-- Die Datei liegt im Unterordner ihrer Kategorie, nicht in der Bibliothek
+-- (querschnitt-schema.sql): erst der Ordner, dann das Blatt darin.
+INSERT INTO child_file_categories (child_file_category_id, code, name, created_by)
+    OVERRIDING SYSTEM VALUE
+    VALUES (1, 'health', 'Gesundheitsunterlagen', 'system:check');
+INSERT INTO child_file_folders (child_file_folder_id, child_id, sharepoint_library_id,
+                                child_file_category_id, graph_item_id, created_by)
+    VALUES ('10000000-0000-0000-0000-000000000001',
+            '44444444-4444-4444-4444-444444444441', 1, 1, '01ORDNER', 'system:check');
+INSERT INTO documents (document_id, child_id, document_type_id, label,
+                       child_file_folder_id, sharepoint_library_id,
                        graph_item_id, filed_at, created_by)
     VALUES ('99999999-9999-9999-9999-999999999991',
-            '44444444-4444-4444-4444-444444444441', 1, 1, '01ATT', now(), 'system:check');
+            '44444444-4444-4444-4444-444444444441', 1, 'Attest',
+            '10000000-0000-0000-0000-000000000001', 1, '01ATT', now(), 'system:check');
 
 -- ---------------------------------------------------------------------------
 -- Der Sichtkreis: welche Felder ein Kreis überhaupt sehen kann
@@ -549,10 +560,16 @@ INSERT INTO children (child_id, person_id, family_id, birth_date, created_by)
     VALUES ('44444444-4444-4444-4444-444444444449',
             '22222222-2222-2222-2222-222222222229',
             '33333333-3333-3333-3333-333333333333', DATE '2019-03-01', 'system:check');
-INSERT INTO documents (document_id, child_id, document_type_id, sharepoint_library_id,
+INSERT INTO child_file_folders (child_file_folder_id, child_id, sharepoint_library_id,
+                                child_file_category_id, graph_item_id, created_by)
+    VALUES ('10000000-0000-0000-0000-000000000009',
+            '44444444-4444-4444-4444-444444444449', 1, 1, '01ORDNERF', 'system:check');
+INSERT INTO documents (document_id, child_id, document_type_id, label,
+                       child_file_folder_id, sharepoint_library_id,
                        graph_item_id, filed_at, created_by)
     VALUES ('99999999-9999-9999-9999-999999999999',
-            '44444444-4444-4444-4444-444444444449', 1, 1, '01FREMD', now(), 'system:check');
+            '44444444-4444-4444-4444-444444444449', 1, 'Attest',
+            '10000000-0000-0000-0000-000000000009', 1, '01FREMD', now(), 'system:check');
 
 SELECT pg_temp.expect_accept(
     'Q2 — Attest eines fremden Kindes (die Sperre trägt die Route)',
@@ -926,7 +943,11 @@ SELECT pg_temp.expect_reject(
 -- zu gehen. Nur so sieht der Lösch-Lauf ihn, und nur so überlebt ein angehaltener
 -- Bestand sein Anhalten (hebel.md).
 DELETE FROM health_trait_values WHERE value_document_id IS NOT NULL;
-DELETE FROM documents WHERE child_id = '44444444-4444-4444-4444-444444444441';
+-- Erst die Blätter, dann der Ordner: `documents` zeigt auf ihn und hielte ihn
+-- sonst fest, und der Ordner hält seinerseits das Kind (querschnitt-schema.sql,
+-- Stufe 1 des Lösch-Laufs).
+DELETE FROM documents          WHERE child_id = '44444444-4444-4444-4444-444444444441';
+DELETE FROM child_file_folders WHERE child_id = '44444444-4444-4444-4444-444444444441';
 SELECT pg_temp.expect_reject(
     '03 — Kind gelöscht, obwohl sein Gesundheitsbestand noch steht',
     $q$DELETE FROM children WHERE child_id = '44444444-4444-4444-4444-444444444441'$q$);
