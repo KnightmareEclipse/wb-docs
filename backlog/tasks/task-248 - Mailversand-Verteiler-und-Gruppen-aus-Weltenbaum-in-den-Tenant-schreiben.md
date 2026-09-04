@@ -30,6 +30,8 @@ Geschaeftsfuehrung, 04.09.2026: **geplant, aber vorerst niedrige Prioritaet.** D
 - **Ein Freigabeschritt ueber PIM geht nicht:** Service Principals koennen nicht 'eligible' sein, approval-basierte Aktivierung gibt es fuer sie nicht. Ein zweiter Dienst mit Freigabe waere Eigenbau — und eine Freigabe je Aenderung frisst genau den Gewinn. Freigabe je **Lauf** ist der Kompromiss, der traegt.
 - **Der Umweg ueber eine Datei, die Vis365 frisst, ist verworfen.** Ein Import ist kein Abgleich (wer fehlt, wird nicht geloescht), das Zwischenformat ist eine dritte Wahrheit, und der Upload ist wieder ein Weg ueber einen Menschen — genau der, der heute reisst.
 
+**Der Serienbrief haengt daran und steht getrennt:** TASK-250. Er kann nur an einen Kreis gehen, dessen Mitglieder Weltenbaum selbst kennt — traegt jemand in Exchange eine Adresse von Hand nach, hat sie keinen Personenbezug und ihre Platzhalter blieben leer. Damit faellt er mit der Entscheidung oben, ob Weltenbaum alleinige Quelle des Verteilers ist.
+
 **Der Schnitt gegen Vis365, wenn gebaut wird:** Weltenbaum schreibt, was aus seinen Daten folgt — Konten je Kind und Mitarbeitendem, Klassengruppen, Verteiler. Vis365 macht, was Weltenbaum nicht kennt — Geraete, Lizenzzuweisung, Teams-Richtlinien, Zwei-Faktor. Diese Grenze ist zugleich die Liste der Objekte, die in die Administrative Unit gehoeren.
 <!-- SECTION:DESCRIPTION:END -->
 
