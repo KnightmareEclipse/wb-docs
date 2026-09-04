@@ -1396,16 +1396,27 @@ CREATE UNIQUE INDEX ix_sync_tasks_open_payment ON sync_tasks (sync_target_id, pa
 -- jemand einstellen muss, desto weniger geht schief". Für die Aufbewahrung gilt
 -- das nicht mehr: Eine Frist, die eine Aufsichtsbehörde beanstandet, kostet
 -- sonst einen Bau statt einer Eingabe.
--- Drei Dinge folgen daraus für diese Tabelle, und zwei davon sind noch nicht
--- gebaut (backlog/):
+-- Drei Dinge folgen daraus für diese Tabelle:
 --   * `valid_from` trägt die Umkehrung schon: Eine Änderung wirkt ab einem
 --     Datum und nie rückwirkend.
---   * **Eine Untergrenze fehlt.** Wo eine Aufbewahrungspflicht dahintersteht —
---     die zehn Jahre der Belege aus § 147 AO und § 257 HGB (12) —, darf auch
---     die Geschäftsführung nicht darunter. Heute weist nichts das ab.
---   * **Der Lösch-Lauf muss die Ankündigung nachholen**, wenn eine Senkung den
---     Ankündigungstermin überholt hat (17). Ohne das räumt er am Morgen nach
---     der Eingabe, was am Abend niemand mehr prüfen konnte.
+--   * **Bewusst KEINE Untergrenze** (04.09.2026): „Wir akzeptieren das Risiko
+--     mit zu geringen Werten in der Datenbank." Auch die zehn Jahre der Belege
+--     aus § 147 AO und § 257 HGB (12) sind hier ein Wert wie jeder andere. Der
+--     Grund ist Zuständigkeit und nicht Sorglosigkeit: Wer eine
+--     Aufbewahrungspflicht kennt, ist die Stelle, die den Bestand führt — sonst
+--     müsste dieses Repo die Rechtslage nachhalten und bei jeder Änderung
+--     nachfragen, wie lange etwas liegen darf.
+--   * **Und deshalb kein Anfangsbestand.** Eine Frist, die niemand eingetragen
+--     hat, steht hier gar nicht — „ein Anker ohne Ziel löscht nichts" (17). Das
+--     ist der sichere Ausfall: Wer nichts einträgt, verliert nichts. Eine Null
+--     wäre das Gegenteil, und genau deshalb ist die fehlende Zeile die richtige
+--     Form und nicht `value = 0`.
+-- **`created_at` ist hier kein Beiwerk, sondern trägt eine Regel des
+-- Lösch-Laufs:** Ein Löschtermin ist nie früher als vierzehn Tage nach dem
+-- Eintragen des Wertes, aus dem er folgt (17). Das fängt eine gesenkte Frist ab,
+-- ohne dass irgendwo gemerkt werden müsste, wann angekündigt wurde — und
+-- gerechnet wird ab `created_at` und nicht ab `valid_from`, weil sich eine
+-- Gültigkeit rückdatieren lässt und der Zeitpunkt der Eingabe nicht.
 -- `value` ist bewusst `integer` geblieben: Eine Frist ist eine Zahl von Tagen
 -- oder Monaten, kein eigener Typ — welche Einheit gilt, sagt der `code`.
 

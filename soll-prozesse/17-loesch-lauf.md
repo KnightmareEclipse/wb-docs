@@ -121,14 +121,24 @@ Geschäftsführung — nicht dem System.
 **Jede Frist steht in dem Block, dem ihr Bestand gehört**, und wird hier nicht wiederholt; dieser
 Block trägt die Reihenfolge, nicht die Zahlen.
 
-**Sie stehen als Wert im System und nicht im Code** (Geschäftsführung, 04.09.2026) —
-[geändert wird von der Geschäftsführung](hebel.md#geld-und-fristen-im-system-alles-andere-fest), und
-eine Änderung wirkt ab einem Datum, nie rückwirkend. Für diesen Lauf folgt daraus **eine** Regel, und
-sie ist der ganze Unterschied: **Wird eine Frist gesenkt, holt er die beiden Ankündigungen nach.**
-Ein Bestand, dessen Ankündigungstermin durch die Senkung schon vergangen ist, wird nicht am nächsten
-Morgen geräumt, sondern bekommt zwei Wochen ab der Änderung — sonst löschte eine Eingabe am
-Nachmittag, was am Abend niemand mehr prüfen konnte. Verlängert jemand eine Frist, ist nichts zu
-tun; nach oben ist eine Frist harmlos. Drei stehen trotzdem hier, weil sie keinem einzelnen
+**Sie stehen als Wert im System und nicht im Code**
+([hebel.md](hebel.md#geld-und-fristen-im-system-alles-andere-fest), 04.09.2026), sie tragen **keine
+Untergrenze**, und Weltenbaum setzt keinen Anfangswert. Für diesen Lauf folgt daraus zweierlei:
+
+**Eine Frist ohne Wert löscht nichts.** Das ist keine neue Regel — sie steht unten schon für den
+Mitarbeitendeneintrag: „Ein Anker ohne Ziel löscht nichts." Sie gilt jetzt überall, und sie ist der
+sichere Ausfall: Wer nichts einträgt, verliert nichts.
+
+**Und der Löschtermin ist nie früher als vierzehn Tage, nachdem der Wert eingetragen wurde.** Das ist
+die ganze Vorkehrung gegen eine gesenkte Frist, und sie ist eine Rechnung statt eines Mechanismus:
+
+> Löschtermin = **später von beidem** — Anker plus Frist, oder Eintragung des Wertes plus 14 Tage.
+
+Damit fallen die beiden Ankündigungen von selbst in das Fenster, das die Senkung öffnet; es gibt
+nichts nachzuholen, nichts zu merken und keine zweite Zustandshaltung. Gerechnet wird ab dem
+**Eintragen**, nicht ab der Gültigkeit des Wertes: Eine Gültigkeit lässt sich rückdatieren, der
+Zeitpunkt der Eingabe nicht. Wer eine Frist verlängert, merkt von der Regel nichts — dann ist Anker
+plus Frist ohnehin später, und nach oben ist eine Frist harmlos. Drei stehen trotzdem hier, weil sie keinem einzelnen
 Block gehören:
 
 - **Der Gesundheitsbestand am Kind: drei Monate nach dem Austritt.** Ein schulfremdes Kind hat

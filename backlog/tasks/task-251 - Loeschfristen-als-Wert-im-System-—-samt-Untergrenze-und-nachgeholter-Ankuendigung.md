@@ -18,27 +18,33 @@ ordinal: 264000
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Geschaeftsfuehrung, 04.09.2026: 'Generell soll es moeglich sein die Loeschfristen dynamisch anzupassen durch die GF und soll nicht fix im Code stehen.'
+Geschaeftsfuehrung, 04.09.2026: 'Generell soll es moeglich sein die Loeschfristen dynamisch anzupassen und sie sollen nicht fix im Code stehen.'
 
-Das kehrt um, was soll-prozesse/anleitung.md bisher trug — eine Frist war eine feste Zahl, weil 'je weniger jemand einstellen muss, desto weniger geht schief'. Fuer Vorlaufzeiten und Stichtage gilt der Satz weiter; fuer die Aufbewahrung nicht mehr.
+Das kehrt um, was soll-prozesse/anleitung.md bisher trug — eine Frist war eine feste Zahl. Fuer Vorlaufzeiten und Stichtage gilt der Satz weiter; fuer die Aufbewahrung nicht mehr.
 
-**Der Mechanismus steht schon:** configured_values traegt code, valid_from und value — eine Aenderung wirkt damit ab einem Datum und nie rueckwirkend. Zu bauen sind die Codes je Bestand und zwei Sicherungen, die heute fehlen:
+**Der Mechanismus steht schon:** configured_values traegt code, valid_from und value. Zu bauen sind die Codes je Bestand und die eine Rechnung unten.
 
-1. **Die Untergrenze.** Wo eine Aufbewahrungspflicht dahintersteht — die zehn Jahre der Belege aus § 147 AO und § 257 HGB (soll-prozesse/12) —, darf auch die Geschaeftsfuehrung nicht darunter. Heute weist nichts das ab, und der Fehler faellt erst auf, wenn die Belege fort sind. Nach oben ist eine Frist harmlos; die Grenze ist einseitig.
-2. **Die nachgeholte Ankuendigung.** Senkt jemand eine Frist, werden Bestaende faellig, die es gestern nicht waren — und ihr Ankuendigungstermin liegt dann in der Vergangenheit. Der Lauf muss ihnen zwei Wochen ab der Aenderung geben, statt am naechsten Morgen zu raeumen (soll-prozesse/17). Ohne das loescht eine Eingabe am Nachmittag, was am Abend niemand mehr pruefen konnte.
+**Keine Untergrenze, und kein Anfangswert** (04.09.2026, zweite Runde): 'Wir akzeptieren das Risiko mit zu geringen Werten in der DB.' Auch die zehn Jahre der Belege sind ein Wert wie jeder andere, aenderbar durch die **Buchhaltung** — sie fuehrt den Bestand und kennt die Pflicht, nicht dieses System. Weltenbaum setzt den finalen Wert gar nicht: Eine Frist, die niemand eingetragen hat, steht leer, und **ein Anker ohne Ziel loescht nichts** (Block 17, bereits geltende Regel). Das ist der sichere Ausfall — wer nichts eintraegt, verliert nichts. Eine Null waere das Gegenteil, deshalb ist die fehlende Zeile die richtige Form und nicht value = 0.
 
-**Was daran nicht neu ist:** Die Aenderungsspur traegt den Vorgang wie bei jedem anderen Wert im System — wer eine Frist gesenkt hat und wann, ist dieselbe Frage wie 'wer hat den Preis geaendert'.
+**Die gesenkte Frist ist geloest, und zwar ohne Mechanismus:**
 
-**Der Anfangsbestand ist der heutige Stand** aus verarbeitungsverzeichnis.md, nicht eine neue Setzung: Schulvertrag fuenf Jahre, SEPA-Mandat zwei, Gesundheitsbestand drei Monate, Hortakte zwei Jahre, Belege zehn Jahre (mit Untergrenze), und so fort. Die Tabelle dort nennt seither ausdruecklich den heutigen Stand und keine unveraenderliche Zahl.
+> Loeschtermin = **spaeter von beidem** — Anker plus Frist, oder Eintragung des Wertes plus 14 Tage.
 
-**Nicht mit hinein gehoert der Nachweis der Fotoerlaubnis** (TASK-244): Er hat keine Frist, und eine Null in dieser Tabelle waere eine, die jemand versehentlich fuellen kann.
+Damit fallen die beiden Loeschankuendigungen von selbst in das Fenster, das eine Senkung oeffnet. Es gibt nichts nachzuholen, nichts zu merken und keine zweite Zustandshaltung — eine Zeile in der Berechnung statt einer Tabelle 'wann wurde angekuendigt'. Gerechnet wird ab `created_at` der Wertzeile und **nicht** ab `valid_from`: Eine Gueltigkeit laesst sich rueckdatieren, der Zeitpunkt der Eingabe nicht. Wer eine Frist verlaengert, merkt von der Regel nichts — dann ist Anker plus Frist ohnehin spaeter.
+
+Derselbe Satz traegt nebenbei den Erstbezug: Wird ein Wert zum ersten Mal gesetzt, wird nichts sofort faellig.
+
+**Was daran nicht neu ist:** Die Aenderungsspur traegt den Vorgang wie bei jedem anderen Wert im System.
+
+**Nicht mit hinein gehoert der Nachweis der Fotoerlaubnis** (TASK-244): Er hat keine Frist, und eine Zeile in dieser Tabelle waere eine, die jemand versehentlich fuellen kann.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Je Bestand ein Code in configured_values, der Anfangsbestand ist der heutige Stand
-- [ ] #2 Eine Frist mit gesetzlicher Untergrenze laesst sich nicht darunter setzen — die Gegenprobe: der Versuch wird abgewiesen, nicht protokolliert
-- [ ] #3 Eine gesenkte Frist holt die beiden Ankuendigungen nach; die Gegenprobe: nach einer Senkung wird am naechsten Morgen nichts geraeumt
+- [ ] #1 Je Bestand ein Code in configured_values — **ohne** Anfangsbestand: Was niemand eintraegt, bleibt leer
+- [ ] #2 Eine fehlende Frist loescht nichts — die Gegenprobe: der Lauf laesst einen Bestand ohne Wert stehen, statt ihn sofort zu raeumen
+- [ ] #3 Der Loeschtermin ist nie frueher als created_at des Wertes plus 14 Tage; die Gegenprobe: nach einer Senkung wird am naechsten Morgen nichts geraeumt
 - [ ] #4 Eine Aenderung wirkt ab valid_from und nie rueckwirkend
 - [ ] #5 hebel.md, Block 17 und das Verarbeitungsverzeichnis sagen dasselbe
+- [ ] #6 Die Buchhaltung darf die Fristen ihrer Belege aendern, die Geschaeftsfuehrung die uebrigen
 <!-- AC:END -->

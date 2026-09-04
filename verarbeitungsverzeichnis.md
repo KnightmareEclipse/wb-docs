@@ -88,10 +88,12 @@ dieser Stelle; begründet sind sie je Bestand am Löschanker im Schema, und dort
 geändert:
 
 **Die Fristen stehen als Wert im System und nicht im Code** (Geschäftsführung, 04.09.2026): Geändert
-werden sie von der Geschäftsführung, wirksam ab einem Datum und nie rückwirkend. Wo eine
-Aufbewahrungspflicht dahintersteht — die zehn Jahre der Belege —, trägt der Wert eine Untergrenze,
-die niemand unterschreiten kann. Die Tabelle nennt deshalb den **heutigen** Stand, nicht eine
-unveränderliche Zahl.
+werden sie von der Stelle, der der Bestand gehört — die Buchhaltung bei den Belegen, sonst die
+Geschäftsführung —, wirksam ab einem Datum und nie rückwirkend. **Keine trägt eine Untergrenze**,
+auch die zehn Jahre der Belege nicht: Wer eine Aufbewahrungspflicht kennt, ist die zuständige Stelle
+und nicht das System. Die Tabelle nennt deshalb den **heutigen** Stand, nicht eine unveränderliche
+Zahl — und wo gar nichts eingetragen ist, wird auch nichts gelöscht
+(`soll-prozesse/17`).
 
 | Bestand | Frist | steht in |
 |---|---|---|
