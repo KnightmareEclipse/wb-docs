@@ -1429,13 +1429,21 @@ CREATE UNIQUE INDEX ix_sync_tasks_open_payment ON sync_tasks (sync_target_id, pa
 --     ist der sichere Ausfall: Wer nichts einträgt, verliert nichts. Eine Null
 --     wäre das Gegenteil, und genau deshalb ist die fehlende Zeile die richtige
 --     Form und nicht `value = 0`.
--- **Eine Frist liest der Lösch-Lauf nicht: die der Rechnungsfreigabe.** Ihre
--- zehn Jahre stehen hier als **Merkposten für die Handfreigabe** — er sagt der
--- Geschäftsführung, ab wann sie einen Jahrgang freigeben darf, und die
--- Buchhaltung setzt ihn herauf, wenn etwas länger liegen soll (12). Der Lauf
--- spart die Belege aus, weil eine Aufbewahrungspflicht darauf liegt. Das ist
--- der einzige Wert dieser Art und bleibt es: Überall sonst ist die Frist der
--- Auslöser, und eine Frist, die nie etwas tut, wäre anderswo ein Fehler.
+-- **Eine Frist kündigt der Lösch-Lauf nur an: die der Rechnungsfreigabe.** Ihre
+-- zehn Jahre stehen hier wie jede andere, und der Lauf schickt darauf seine
+-- beiden Ankündigungen an Buchhaltung und Geschäftsführung — **geräumt wird
+-- aber nicht** (12, 17). Der Grund ist umgekehrt zu allen anderen Beständen:
+-- Dort ist zu langes Aufbewahren der Fehler, hier das zu frühe Löschen
+-- (§ 379 AO, § 257 HGB). Geändert wird der Wert von der **Buchhaltung** — sie
+-- führt den Bestand und weiß als Einzige, wenn etwas länger liegen muss, etwa
+-- während einer Betriebsprüfung.
+-- **Und sie rechnet anders:** ab dem Schluss des Kalenderjahres, in dem der
+-- letzte Eintrag fiel (§ 147 Abs. 4 AO), nicht ab einem Ereignistag. Ein Beleg
+-- vom März 2026 ist Ende 2036 fällig und nicht im März — die einzige Frist im
+-- System mit dieser Rechenart. `expense_claims` führt das Kalenderjahr bereits
+-- als Spalte (rechnungsfreigabe-schema.sql).
+-- Beides bleibt ein Sonderfall: Überall sonst räumt der Lauf, was er ankündigt,
+-- und eine Ankündigung ohne Folgen wäre anderswo ein Fehler.
 -- **`created_at` ist hier kein Beiwerk, sondern trägt eine Regel des
 -- Lösch-Laufs:** Ein Löschtermin ist nie früher als vierzehn Tage nach dem
 -- Eintragen des Wertes, aus dem er folgt (17). Das fängt eine gesenkte Frist ab,

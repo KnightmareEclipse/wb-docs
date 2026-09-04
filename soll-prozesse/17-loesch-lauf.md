@@ -163,14 +163,20 @@ Block gehören:
   Kostenübernahme-Code an einer bloßen Mailadresse —, geht ihre Spur **mit dieser Zeile**: Wer sie
   löscht, hält ihren Schlüssel in der Hand und nimmt die Spur im selben Schritt mit.
 
-**Ausgespart bleibt die Rechnungsfreigabe** ([12](12-rechnungsfreigabe.md)): Dort läuft keine Frist
-ab, die etwas auslöst, die Belege stehen zehn Jahre, und was danach mit einem Jahrgang geschieht,
-gibt die Geschäftsführung von Hand frei. Ein Lauf, der sie mitnähme, griffe in die Aufbewahrung ein.
+**Die Rechnungsfreigabe kündigt er an, räumt sie aber nicht** ([12](12-rechnungsfreigabe.md)) — der
+einzige Bestand, bei dem die beiden Schritte auseinanderfallen. Die zwei Ankündigungen gehen an
+Buchhaltung und Geschäftsführung wie bei jedem anderen Bestand; am Löschtag geschieht hier nichts,
+und was mit dem Jahrgang passiert, gibt die Geschäftsführung von Hand frei. Ein Lauf, der sie
+mitnähme, griffe in die Aufbewahrung ein — und **zu frühes Löschen wäre dort anders als überall
+sonst selbst der Fehler** (§ 379 AO, § 257 HGB).
 
-**Ihre Frist steht trotzdem als Wert** — als einzige, die dieser Lauf **nicht liest**. Sie ist ein
-Merkposten für die Handfreigabe und wird von der Buchhaltung gepflegt (12). Das ist der einzige
-Bestand, bei dem ein Wert dasteht, ohne dass hier etwas daran hängt; überall sonst gilt umgekehrt,
-dass eine Frist ohne Wert nichts löscht.
+Zwei Dinge daran sind eigen und stehen deshalb hier:
+
+- **Sie rechnet ab dem Schluss des Kalenderjahres** und nicht ab einem Ereignistag (§ 147 Abs. 4 AO)
+  — die einzige Frist im System mit dieser Rechenart.
+- **Sie braucht kein Anhalten.** Was ohnehin stehenbleibt, muss niemand aufhalten; deshalb gibt es
+  für sie keinen Anhaltegrund, keinen Anker in der Liste der angehaltenen Löschungen und keine
+  vierte Ankersorte neben Kind, Person und Familie.
 
 **Zwei Anker kommen aus [13](13-m365-konten.md)**: der letzte Arbeitstag eines Mitarbeitenden, ab
 dem sein Eintrag rechnet, und die Schuladresse am Kind, die keine eigene Frist hat und mit dem Kind

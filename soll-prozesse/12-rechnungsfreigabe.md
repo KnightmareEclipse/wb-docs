@@ -237,16 +237,28 @@ Jahre in Weltenbaum, die Anhänge in SharePoint, und was danach mit einem Jahrga
 entscheidet die **Geschäftsführung** von Hand. Einen Lauf, der es von sich aus täte, gibt es hier
 nicht.
 
-**Die zehn Jahre stehen trotzdem als Wert im System** — und sie sind der **einzige** Fristwert, der
-nichts auslöst (Geschäftsführung, 04.09.2026). Er ist ein **Merkposten für die Handfreigabe**: Er
-sagt der Geschäftsführung, ab wann sie einen Jahrgang freigeben *darf*, und der **Buchhaltung** —
-die ihn als Einzige ändert —, dass sie ihn heraufsetzen kann, wenn etwas länger liegen soll. Was
-danach geschieht, entscheidet weiter ein Mensch.
+**Die zehn Jahre stehen als Wert im System, und der Lösch-Lauf kündigt sie an — geräumt wird
+trotzdem von Hand** (Geschäftsführung, 04.09.2026). Der Bestand bekommt damit dieselben zwei
+[Löschankündigungen](hebel.md#löschankündigung-und-anhalten) wie jeder andere: Zwei Wochen und eine
+Woche vor dem Termin melden sie **Buchhaltung und Geschäftsführung**, dass ein Jahrgang fällig ist.
+Was dann geschieht, entscheidet weiter ein Mensch — der Lauf hat keinen Zugriff auf diese Zeilen.
 
-**Und das bleibt ein Sonderfall, ausdrücklich.** Bei jedem anderen Bestand ist die Frist der
-Auslöser und nicht die Notiz ([17](17-loesch-lauf.md)); hier ist sie es nicht, weil eine
-Aufbewahrungspflicht darauf liegt und der Lauf nicht in sie eingreifen darf. Wer die Bauform von
-hier anderswo hinträgt, baut eine Frist, die nie etwas tut. Der Beleg **überlebt seinen Einreicher**: Scheidet er aus, bleibt sein Name daran
+Das nimmt genau die Arbeit ab, die hier wirklich anfällt: **daran zu denken.** Der Handgriff selbst
+ist einer im Jahr, das Vergessen dagegen fällt erst auf, wenn ein Schrank voll ist.
+
+**Gerechnet wird ab dem Schluss des Kalenderjahres**, nicht ab dem Belegdatum — § 147 Abs. 4 AO
+lässt die Frist mit dem Jahresende beginnen, in dem der letzte Eintrag fiel. Ein Beleg vom März 2026
+ist damit Ende 2036 fällig und nicht im März. Das ist die **einzige Frist im System mit dieser
+Rechenart**; alle anderen rechnen ab einem Ereignistag.
+
+**Geändert wird der Wert von der Buchhaltung** — sie führt den Bestand und weiß als Einzige, wenn
+etwas länger liegen muss, etwa während einer Betriebsprüfung.
+
+**Und dass hier nicht geräumt wird, bleibt ein Sonderfall, ausdrücklich.** Bei jedem anderen Bestand
+räumt der Lauf, was er ankündigt ([17](17-loesch-lauf.md)); hier nicht, weil eine
+Aufbewahrungspflicht darauf liegt und zu frühes Löschen anders als überall sonst **selbst** der
+Fehler wäre (§ 379 AO, § 257 HGB). Wer die Bauform von hier anderswo hinträgt, baut eine Ankündigung
+ohne Folgen. Der Beleg **überlebt seinen Einreicher**: Scheidet er aus, bleibt sein Name daran
 ([00](00-zugang-und-portal.md)). Ein Eintrag der Empfängerliste bleibt, **solange ein Beleg auf ihn
 verweist** — auch wenn dahinter eine Person steht und keine Firma.
 

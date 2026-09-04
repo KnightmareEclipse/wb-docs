@@ -36,7 +36,13 @@ Derselbe Satz traegt nebenbei den Erstbezug: Wird ein Wert zum ersten Mal gesetz
 
 **Was daran nicht neu ist:** Die Aenderungsspur traegt den Vorgang wie bei jedem anderen Wert im System.
 
-**Ein Sonderfall, und er bleibt einer: die Rechnungsfreigabe.** Ihre zehn Jahre stehen als Wert, aber der Lauf **liest ihn nicht** — er spart die Belege aus, weil eine Aufbewahrungspflicht darauf liegt und die Freigabe eines Jahrgangs eine menschliche Handlung bleibt (Block 12). Der Wert ist dort ein **Merkposten fuer die Handfreigabe**, gepflegt von der Buchhaltung: Er sagt, ab wann freigegeben werden darf, und laesst sich heraufsetzen, wenn etwas laenger liegen soll. Bei jedem anderen Bestand ist die Frist der Ausloeser — wer diese Bauform anderswo hintraegt, baut eine Frist, die nie etwas tut.
+**Ein Sonderfall, und er bleibt einer: die Rechnungsfreigabe.** Ihre zehn Jahre stehen als Wert wie jede andere Frist, und der Lauf schickt darauf seine **beiden Ankuendigungen** an Buchhaltung und Geschaeftsfuehrung — **geraeumt wird aber nicht** (04.09.2026). Die Freigabe eines Jahrgangs bleibt eine menschliche Handlung, weil dort umgekehrt zu allen anderen Bestaenden das zu fruehe Loeschen der Fehler waere (§ 379 AO, § 257 HGB).
+
+Das nimmt genau die Arbeit ab, um die es geht — daran zu denken —, und laesst die Sicherung stehen. Was dadurch **nicht** gebaut werden muss: kein vierter Ankertyp neben Kind, Person und Familie in retention_holds, keine achte Stufe in der Kaskade, kein Anhaltegrund fuer eine Betriebspruefung. Was ohnehin stehenbleibt, muss niemand aufhalten.
+
+**Sie rechnet als einzige anders:** ab dem Schluss des Kalenderjahres, in dem der letzte Eintrag fiel (§ 147 Abs. 4 AO), nicht ab einem Ereignistag. Ein Beleg vom Maerz 2026 ist Ende 2036 faellig. expense_claims fuehrt das Kalenderjahr bereits als Spalte, das Rechnen entsteht also nicht aus dem Nichts.
+
+Geaendert wird der Wert von der **Buchhaltung**: Sie fuehrt den Bestand und weiss als Einzige, wenn etwas laenger liegen muss.
 
 **Nicht mit hinein gehoert der Nachweis der Fotoerlaubnis** (TASK-244): Er hat keine Frist, und eine Zeile in dieser Tabelle waere eine, die jemand versehentlich fuellen kann.
 <!-- SECTION:DESCRIPTION:END -->
@@ -49,5 +55,7 @@ Derselbe Satz traegt nebenbei den Erstbezug: Wird ein Wert zum ersten Mal gesetz
 - [ ] #4 Eine Aenderung wirkt ab valid_from und nie rueckwirkend
 - [ ] #5 hebel.md, Block 17 und das Verarbeitungsverzeichnis sagen dasselbe
 - [ ] #6 Die Buchhaltung darf die Frist der Belege aendern, die Geschaeftsfuehrung die uebrigen
-- [ ] #7 Die Frist der Belege loest nichts aus; die Gegenprobe: der Lauf raeumt sie auch dann nicht, wenn ihr Wert abgelaufen ist
+- [ ] #7 Die Belege werden angekuendigt, aber nicht geraeumt; die Gegenprobe: nach dem Loeschtag steht der Jahrgang noch da, und die Ankuendigung ist trotzdem herausgegangen
+- [ ] #8 Die Frist der Belege rechnet ab dem Schluss des Kalenderjahres; die Gegenprobe: ein Beleg vom Maerz wird nicht im Maerz faellig
+- [ ] #9 Buchhaltung und Geschaeftsfuehrung stehen als Empfaenger der Ankuendigung in retention_notice_recipients
 <!-- AC:END -->
