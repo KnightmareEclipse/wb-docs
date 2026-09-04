@@ -385,9 +385,32 @@ Lösch-Lauf (17) — genauer: drei Monate nach dem Austritt, also lange vor dem 
 **Das Fotoeinverständnis dagegen bleibt unbegrenzt** (Datenschutzbeauftragter, 04.09.2026), und das
 ist kein Versehen: Ein Widerruf nimmt die Einwilligung für die Zukunft (Art. 7 Abs. 3), aber ein
 veröffentlichtes Bild verschwindet damit nicht — nachweisbar bleiben muss, **bis zu welchem Tag sie
-galt** (Art. 7 Abs. 1). Daran hängt zweierlei: Der Widerruf muss die weitere Nutzung unterbinden und
-das Löschen vorhandener Bilder anstoßen können, und die Zeile darf nicht mit dem Kind verschwinden,
-wie sie es heute täte. Sie ist damit der einzige Bestand dieses Blocks ohne Löschtermin.
+galt** (Art. 7 Abs. 1). Es ist damit der einzige Bestand dieses Blocks ohne Löschtermin.
+
+**Er zieht das Kind aber nicht mit.** Statt die Kindzeile auszuräumen und stehen zu lassen, entsteht
+ein **eigener Nachweis daneben**: Wenn der Lösch-Lauf das Kind räumt, schreibt er im selben Zug
+Vorname, Nachname, Geburtsdatum, Abgangsdatum, Schulzweig und die beiden Zeitpunkte — erteilt und
+widerrufen — in einen Bestand, der keiner Frist unterliegt, und **dupliziert die Datei** in eine
+eigene Bibliothek, die nur Fotoerlaubnisse führt. Danach ist die Schülerakte leer wie bei jedem
+anderen Kind.
+
+Der Grund ist die Alternative: Eine reduzierte Kindzeile hielte Ordner, Datei, Person und Familie
+fest, teilte den Lösch-Lauf in zwei Fälle und wäre in jeder Liste von einem aktiven Kind nicht zu
+unterscheiden — Klassenliste, Zählung, Export und Auskunft müssten sie jeweils ausfiltern, und diese
+Arbeit würde nie fertig. Der Preis dieses Wegs ist eine Dopplung, aber **erst im Moment des
+Löschens** und nicht fünf Jahre lang: Würde beim Abgang kopiert, träfe ein Widerruf zuverlässig nur
+die Zeile, an der die Route hängt.
+
+Das **Geburtsdatum** steht mit im Nachweis, weil der Bestand kein Ende hat: Name samt Abgangsjahr und
+Schulzweig kollidiert über fünfzig Jahre mit rund 14 %, mit dem Geburtsdatum mit 0,04 %. Es löst
+nicht, welches Kind auf welchem Bild ist — dafür ist die Datei selbst der letzte Aufschluss, weil die
+Eltern darin stehen.
+
+**Widerrufen wird nach dem Abgang über das Sekretariat**, per Mail: Einen Portalzugang gibt es dann
+nicht mehr, und ein Link, der unbegrenzt gilt, wäre ein Zugang ohne Anmeldung. Solange das Kind noch
+da ist, läuft der Widerruf wie jede andere Änderung übers Portal. Was ein Widerruf **auslöst** —
+wer die Meldung bekommt und wer vorhandene Bilder zieht —, ist offen und steht in `backlog/`
+TASK-244; ebenso, welche Aufnahme welches Kind zeigt. Beides hält diesen Bestand nicht auf.
 
 Die Unterschriftsbilder sind schon mit der Gegenzeichnung weg. **Vertrag und
 Mandat nicht:** Sie tragen die Fristen aus [03](03-irregulaerer-abgang.md) — der Vertrag **fünf

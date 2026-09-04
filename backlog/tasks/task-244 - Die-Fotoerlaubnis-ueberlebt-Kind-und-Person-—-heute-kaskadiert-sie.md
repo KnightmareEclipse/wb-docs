@@ -18,20 +18,41 @@ ordinal: 257000
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Der Datenschutzbeauftragte am 04.09.2026: die Fotoerlaubnis bleibt **unbegrenzt** — "es muss ersichtlich sein, dass bis zum Tag die Fotoerlaubnis gegolten hat". Heute traegt `consents` genau das Gegenteil: `fk_consents_person` und `fk_consents_child` stehen beide auf `ON DELETE CASCADE`, die Zeile verschwindet also mit dem Kind (fuenf Jahre nach dem Austritt) und mit der Person.
+Der Datenschutzbeauftragte am 04.09.2026: die Fotoerlaubnis bleibt **unbegrenzt**. Die
+Geschaeftsfuehrung hat am 04.09.2026 entschieden, **wie** — und es ist ein dritter Weg, der in der
+Frage nicht stand: nicht der Nachweis allein im Dokument und nicht die Personenzeile, die
+unbegrenzt stehen bleibt, sondern **ein eigener Bestand daneben**.
 
-**Drei Dinge sind zu entscheiden, und das dritte ist unangenehm:**
+Wenn der Loesch-Lauf ein Kind raeumt, schreibt er vorher `photo_consent_records`: Vorname, Nachname,
+Geburtsdatum, Abgangsdatum, Schulzweig und die beiden Zeitpunkte — und dupliziert die Datei in eine
+vierte SharePoint-Bibliothek, die nur Fotoerlaubnisse fuehrt. Danach geht das Kind wie jedes andere,
+und in den Stammdaten bleibt nichts stehen. Die Zustimmungszeile selbst kaskadiert weiter mit dem
+Kind; ihr Nachweis steht bis dahin laengst daneben.
 
-1. Der Loeschanker der `consents`-Zeile fuer den Fotozweck — kein Cascade, oder ein eigener Bestand daneben.
-2. Der **Widerruf muss wirken koennen**: die weitere Nutzung unterbinden und das Loeschen vorhandener Bilder anstossen. Heute traegt `revoked_at` den Zeitpunkt und sonst nichts; wohin die Meldung geht und wer die Bilder zieht, steht nirgends.
-3. **Eine Einwilligung ohne Einwilligenden belegt nichts.** Bleibt die Zeile unbegrenzt, bleibt auch die Person, die sie gegeben hat — sonst steht dort ein Nachweis ohne Namen. Damit reicht "unbegrenzt" ueber den Fotozweck hinaus in die Stammdaten, und das ist dem Datenschutzbeauftragten in dieser Form nicht vorgelegt worden. Vor dem Bau zurueckzufragen: Genuegt der Name im erzeugten PDF der Fotoerlaubnis, das ohnehin unbegrenzt liegt, sodass die Personenzeile regulaer loeschen darf?
+**Kopiert wird beim Loeschen, nicht beim Abgang.** Sonst liefen fuenf Jahre lang zwei Zeilen ueber
+dieselbe Erlaubnis, und ein Widerruf traefe verlaesslich nur die, an der die Route haengt.
+
+**Das Geburtsdatum steht mit im Nachweis**, weil der Bestand kein Ende hat: bei rund sechzig Zeilen
+im Jahr kollidiert Name samt Abgangsjahr und Schulzweig ueber fuenfzig Jahre mit rund 14 %, mit dem
+Geburtsdatum mit 0,04 %. Es loest nicht, welches Kind auf welchem Bild ist — dafuer ist die Datei
+selbst der letzte Aufschluss, weil die Eltern darin stehen.
+
+**Widerrufen wird nach dem Abgang ueber das Sekretariat, per Mail** — einen Portalzugang gibt es
+dann nicht mehr, und ein Link, der unbegrenzt gilt, waere ein Zugang ohne Anmeldung.
+
+Eingearbeitet in `schema/querschnitt-schema.sql` samt Pruefskript, `soll-prozesse/08`, `17`,
+`grenzkarte.md` und `verarbeitungsverzeichnis.md`. **Gebaut ist nichts** — das ist TASK-246.
+
+**Was hier offen bleibt und den Bestand nicht aufhaelt** (Geschaeftsfuehrung, 04.09.2026: „das soll
+uns nicht aufhalten"): wer die Meldung eines Widerrufs bekommt und wer vorhandene Bilder zieht, und
+die groessere Frage, welche Aufnahme welches Kind zeigt.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Der Loeschanker der Foto-Einwilligung ist entschieden und im Schema abgebildet — nicht Cascade mit Kind und Person
-- [ ] #2 Gegenprobe: der Loesch-Lauf raeumt ein Kind, die Foto-Einwilligung bleibt nachweisbar stehen
-- [ ] #3 Der Widerruf hat einen benannten Weg: Nutzung unterbinden, Bilder anstossen, Empfaenger der Meldung
-- [ ] #4 Rueckgefragt: reicht der Name im PDF, oder muss die Personenzeile selbst unbegrenzt bleiben
-- [ ] #5 verarbeitungsverzeichnis.md und folgenabschaetzung.md tragen den Bestand ohne Loeschtermin samt Begruendung
+- [x] #1 Der Loeschanker ist entschieden und im Schema abgebildet: ein eigener Bestand, den der Lauf fuellt
+- [x] #2 Gegenprobe: der Loesch-Lauf raeumt Kind und Person, der Nachweis bleibt stehen (querschnitt-schema-check.sql)
+- [ ] #3 Der Widerruf hat einen benannten Weg: der Eingang steht (Mail ans Sekretariat), offen bleiben Empfaenger der Meldung und wer die Bilder zieht
+- [x] #4 Beantwortet: weder noch — der Nachweis steht in einem eigenen Bestand, die Personenzeile geht regulaer
+- [x] #5 verarbeitungsverzeichnis.md traegt den Bestand ohne Loeschtermin samt Begruendung; folgenabschaetzung.md fuehrt ihn nicht, weil er keine Art.-9-Angabe traegt
 <!-- AC:END -->

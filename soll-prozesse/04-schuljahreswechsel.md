@@ -83,8 +83,16 @@ Putzdienstjahr, Voranmeldung und Lösch-Lauf im September — haben wie jede
 
 ## Mails und Schreiben
 
-Vier, sonst keine.
+Fünf, sonst keine.
 
+- **Am 1. Juni die Alumni-Anfrage**, und sie geht als einzige vor dem Abgang hinaus — nachher wäre
+  niemand mehr erreichbar, weil die Adresse drei Monate nach dem Austritt fällt
+  ([03](03-irregulaerer-abgang.md)). Sie fragt nach einer **privaten** Mailadresse für Mitteilungen
+  an Ehemalige und geht an zwei Kreise: an die **Schülerinnen und Schüler der Klasse 10**, die
+  selbst antworten, und an die **Sorgeberechtigten, deren letztes Kind** zum 31. Juli abgeht — bei
+  ihnen für Mitteilungen an Ehemaligen-Eltern. Wer nicht antwortet, bekommt nichts; eine Erinnerung
+  gibt es nicht. Die Einwilligung trägt danach die Adresse und keine Personenzeile mit Anschrift
+  ([00](00-zugang-und-portal.md)).
 - Am 1. Juli die Erinnerungen an Sekretariat und Geschäftsführung, jede mit ihrer Sache; die ans
   Sekretariat genau einmal, es wird nicht nachgefasst.
 - Am 1. August die Mail an alle Sorgeberechtigten eines abgehenden Kindes: welches Kind, zu welchem
@@ -101,7 +109,10 @@ Vier, sonst keine.
   Putzdienstjahr, Voranmeldung und Lösch-Lauf ab September.
 
 Nichts an die Eltern der aufsteigenden und der neu eingeschriebenen Kinder, und nichts zur
-Handarbeit in den Fremdsystemen. Für [unzustellbare Mails](hebel.md#unzustellbare-mail) gilt der
+Handarbeit in den Fremdsystemen. **Grundschulkinder bekommen die Alumni-Anfrage nicht** — mit zehn
+Jahren gäbe sie ein Elternteil für sie ab, und dann fragt man nicht das Kind. Wer **irregulär**
+abgeht ([03](03-irregulaerer-abgang.md)), fällt aus diesem Rhythmus und wird nicht gefragt. `[?]` Ob
+das so bleiben soll — Geschäftsführung, der Wortlaut steht in `fragen.md`. Für [unzustellbare Mails](hebel.md#unzustellbare-mail) gilt der
 gemeinsame Hebel.
 
 ## Dateien

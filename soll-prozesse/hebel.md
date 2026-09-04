@@ -138,6 +138,11 @@ sich vom Elternabend abmelden könnte, bekäme die nächste Vertragsfrist auch n
 Einladung steht auf dem Vertrag, nicht auf einer Einwilligung. Ob eine Mail einen trägt, folgt
 deshalb aus ihrem Anlass und nicht aus einer Regel im Versand.
 
+**Die drei Sorten Mail und ihre Untergrenze stehen in [00](00-zugang-und-portal.md)**; hier steht
+nur, was daraus für jede Mail folgt. Eine davon trägt eine Bedingung, die keine Mail allein
+beantworten kann: Bei der **Schulinformation** muss einer je Familie sie behalten — die Abwahl des
+Letzten wird deshalb abgewiesen, nicht stillschweigend übergangen.
+
 **Ein Widerspruch löscht nichts, er setzt einen Zeitpunkt.** Sonst wäre später nicht belegbar, dass
 ab diesem Tag nichts mehr geschrieben wurde — und eine gelöschte Adresse kehrt beim nächsten Import
 zurück.

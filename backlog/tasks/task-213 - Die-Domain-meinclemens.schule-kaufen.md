@@ -20,7 +20,7 @@ ordinal: 226000
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Auftrag der Geschäftsführung (Jürgen) am 03.09.2026: die Domain **meinclemens.schule** kaufen. Beantwortet den Namensteil von fragen.md Frage 6 — offen bleibt dort weiterhin, ob Absenderadresse und Postfachname mitziehen (TASK-188 AC #3/#4) und der DMARC-Verschärfungsschritt (TASK-088).
+Auftrag der Geschäftsführung (Jürgen) am 03.09.2026: die Domain **meinclemens.schule** kaufen. Beantwortet den Namensteil von fragen.md, „Zieht der Mailversand mit meinCLEMENS mit?" — offen bleibt dort weiterhin, ob Absenderadresse und Postfachname mitziehen (TASK-188 AC #3/#4) und der DMARC-Verschärfungsschritt (TASK-088).
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria

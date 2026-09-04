@@ -27,5 +27,5 @@ Die Bewerbung hat eine eigene, kürzere Frist; die mit ihr angelegten Personenze
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
-Dieselbe Frage wie TASK-058.04 ('Frist: Bewerbungen ohne Aufnahme'), nur von der anderen Seite: Dort geht es um die Bewerbung, hier um die Personenzeilen, die mit ihr entstanden sind. Beide hängen an einer Antwort der Datenschutzbeauftragten (fragen.md, Frage 2), und beide zweimal zu stellen kostet im Termin Zeit und lädt zu zwei verschiedenen Antworten ein. Deshalb hängt dieses Ticket jetzt an TASK-058.04; zu entscheiden bleibt hier allein, ob die Personenzeilen dieselbe Frist tragen oder eine eigene.
+Dieselbe Frage wie TASK-058.04 ('Frist: Bewerbungen ohne Aufnahme'), nur von der anderen Seite: Dort geht es um die Bewerbung, hier um die Personenzeilen, die mit ihr entstanden sind. Beide hängen an einer Antwort der Datenschutzbeauftragten (fragen.md, Abschnitt Datenschutzbeauftragte:r), und beide zweimal zu stellen kostet im Termin Zeit und lädt zu zwei verschiedenen Antworten ein. Deshalb hängt dieses Ticket jetzt an TASK-058.04; zu entscheiden bleibt hier allein, ob die Personenzeilen dieselbe Frist tragen oder eine eigene.
 <!-- SECTION:NOTES:END -->

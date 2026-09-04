@@ -39,13 +39,35 @@ löschen könnte, könnte auch ihre eigene Spur löschen.
 | 2 | Lauf | schickt zwei Wochen vorher die erste [Löschankündigung](hebel.md#löschankündigung-und-anhalten) an die Empfänger dieses Bestands, eine Woche vorher dieselbe noch einmal | dass die zuständige Stelle es weiß und Zeit zum Prüfen hatte |
 | 3 | zuständige Stelle | hält einen einzelnen Fall an: Grund aus der Liste, Datum, bis wann | dass dieser Anker übersprungen wird, bis wann, und wie oft er schon geschoben wurde |
 | 4 | Lauf | meldet jedes Anhalten der Geschäftsführung | dass niemand allein und unbemerkt aufschieben kann |
-| 5 | Lauf | räumt am Löschtag, was nicht angehalten ist — erst die Datei in SharePoint samt Papierkorb und Versionsverlauf, dann die Zeile | dass weder eine verwaiste Datei noch eine verwaiste Zeile zurückbleibt |
+| 5 | Lauf | räumt am Löschtag, was nicht angehalten ist — **erst kopieren, was den Anker überdauert**, dann die Datei in SharePoint samt Papierkorb und Versionsverlauf, dann die Zeile | dass weder eine verwaiste Datei noch eine verwaiste Zeile zurückbleibt — und dass kein Nachweis mitgeht, der bleiben muss |
 | 6 | Lauf | nimmt einen Anker, dessen Anhalten abgelaufen ist, wieder auf — mit beiden Ankündigungen von vorn | dass ein abgelaufenes Anhalten nicht am nächsten Morgen löscht |
 
 Was zusammengehört, geht in einem Zug: Der Lauf räumt einen Anker vollständig oder gar nicht.
 Scheitert unterwegs etwas — ein Graph-Fehler beim Entfernen der Datei —, bleibt der ganze Anker
 stehen und kommt in der nächsten Nacht wieder dran. **Die Grenze ist damit der Anker und nicht der
 Lauf:** Ein Fehler beim zweihundertsten Kind darf die hundertneunundneunzig davor nicht mitnehmen.
+
+## Was den Anker überdauert
+
+Zwei Bestände haben keinen Löschtermin, und der Lauf behandelt sie verschieden — weil sie
+Verschiedenes sind.
+
+**Die Fotoerlaubnis wird herausgeschrieben.** Bevor der Lauf ein Kind räumt, legt er den Nachweis
+daneben: Name, Geburtsdatum, Abgangsdatum, Schulzweig und die beiden Zeitpunkte, dazu eine Kopie der
+Datei in einer eigenen Bibliothek ([08](08-schulvertrag.md)). Danach geht das Kind wie jedes andere,
+und in den Stammdaten bleibt nichts stehen. Das ist der einzige Schritt dieses Laufs, der
+**schreibt** statt zu löschen, und er gehört zum selben Anker: Scheitert die Kopie, bleibt das Kind
+stehen und kommt in der nächsten Nacht wieder dran.
+
+**Die Newsletter-Einwilligung hält ihre Person fest.** Ein Ehemaliger, der weiter angeschrieben
+werden will, ist kein Rest eines gelöschten Kindes, sondern ein Empfänger — er wird deshalb nicht
+ausgelagert, sondern **reduziert**: Anschrift, Telefonnummern, Anmerkung und letzter Login gehen,
+Anrede und Name bleiben. Mehr braucht der Versand nicht, denn die Zustelladresse steht an der
+Einwilligung und nicht an der Person. Widerspricht er, geht die Zeile beim nächsten Lauf mit.
+
+Die Regel dahinter gilt für jeden weiteren Bestand dieser Art und steht nur hier: **Was seinen Anker
+überdauern muss, hält ihn fest; der Anker geht, wenn nichts mehr auf ihn zeigt.** Sie ist keine neue
+Erfindung — die Anschrift wird in derselben Mechanik geräumt, seit es diesen Lauf gibt.
 
 **Weiterlaufen heißt nicht schweigen.** Ein Anker, der scheitert, wird abgefangen, damit der Lauf
 weiterkommt — gemeldet wird er trotzdem, denn „ein stiller Fehlschlag zählt als nicht vorhanden"
@@ -139,7 +161,8 @@ Betriebsstörung, kein Vorgang.
 
 ## Dateien
 
-Der Lauf erzeugt keine. Er **entfernt** welche: die von Weltenbaum abgelegten Unterlagen und die
+Der Lauf erzeugt **eine**, und nur diese: die Kopie der Fotoerlaubnis in ihrer eigenen Bibliothek,
+bevor er das Kind räumt (siehe oben). Sonst **entfernt** er nur: die von Weltenbaum abgelegten Unterlagen und die
 Ordner des Kindes — in der Schülerakte einen je Kategorie, dazu den der Hortakte, wo einer
 angelegt wurde —, jeweils vor der Zeile, die auf sie zeigt. **Und die Blätter vor ihrem Ordner**:
 Eine Datei zeigt auf den Unterordner, in dem sie liegt, und ein zuerst geräumter Ordner nähme mit,
@@ -184,6 +207,9 @@ Zwei Bestände entstehen hier, und beide gehören zum Lauf selbst. Die **Empfän
 Frist — sie ist eine Organisationsangabe und steht, solange es den Bestand gibt. Eine
 **Anhaltezeile** geht mit dem Anker, den sie gehalten hat: Ist er geräumt, ist sie gegenstandslos.
 Der Beleg, dass angehalten wurde, bleibt in der [Änderungsspur](hebel.md#änderungsspur).
+
+Der **Nachweis der Fotoerlaubnis** entsteht zwar hier, gehört aber [08](08-schulvertrag.md) und hat
+keine Frist — er ist der einzige Bestand des ganzen Systems ohne eine.
 
 ## Gehört nicht dazu
 

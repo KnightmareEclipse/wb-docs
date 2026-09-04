@@ -1,10 +1,11 @@
 -- Prüfskript zu querschnitt-schema.sql.
 --
--- Sollstand: 20 Tabellen — acht Wertelisten (consent_purposes,
+-- Sollstand: 22 Tabellen — neun Wertelisten (mail_categories, consent_purposes,
 -- sharepoint_libraries, child_file_categories, document_types, sync_targets,
 -- contract_text_kinds, retention_subjects, retention_hold_reasons),
 -- Q2 (contract_texts,
--- signatures, documents, child_file_folders), Q1 (consents), Q3 (payments),
+-- signatures, documents, child_file_folders), Q1 (consents,
+-- photo_consent_records), Q3 (payments),
 -- Q5 (sync_tasks), die drei übrigen Hebel (configured_values, change_log,
 -- outbound_emails) und die zwei des Lösch-Laufs
 -- (retention_notice_recipients, retention_holds).
@@ -19,7 +20,13 @@
 -- Anlegens, wo `column_name` leer ist und der erste CHECK nicht greift. `child_file_folders`
 -- führt eine Zeile je Kind, Bibliothek und Kategorie; `documents` zeigt auf den
 -- Ordner statt auf die Bibliothek, trägt eine Pflicht-Bezeichnung und eine
--- freiwillige Art.
+-- freiwillige Art. `mail_categories` trennt die drei Sorten Mail — Vorgangsmail
+-- ohne Abmeldelink, Schulinformation mit Untergrenze je Familie, Newsletter frei
+-- abwählbar —, und `consent_purposes` führt das Häkchen der Kategorie mit, damit
+-- `outbound_emails` es über einen zusammengesetzten Fremdschlüssel sieht.
+-- `photo_consent_records` ist der Nachweis der Fotoerlaubnis, nachdem das Kind
+-- gelöscht ist: der einzige Bestand ohne Löschanker, gefüllt vom Lösch-Lauf im
+-- selben Zug, in dem er das Kind räumt.
 -- Dazu sechzehn partielle Unique-Indizes (vier für signatures, zwei für
 -- consents, neun für sync_tasks, einer über die erste Zeile je angehaltenem
 -- Fall) und zwei Lese-Indizes, auf outbound_emails und auf change_log.
@@ -44,10 +51,12 @@ DECLARE missing text;
 BEGIN
     SELECT string_agg(t, ', ') INTO missing
     FROM unnest(ARRAY[
-        'consent_purposes', 'sharepoint_libraries', 'child_file_categories',
+        'mail_categories', 'consent_purposes', 'sharepoint_libraries',
+        'child_file_categories',
         'document_types',
         'sync_targets', 'signatures', 'documents', 'child_file_folders',
-        'consents', 'payments', 'sync_tasks', 'configured_values', 'change_log',
+        'consents', 'photo_consent_records',
+        'payments', 'sync_tasks', 'configured_values', 'change_log',
         'contract_text_kinds',
         'contract_texts', 'outbound_emails',
         'retention_subjects', 'retention_hold_reasons',
@@ -95,8 +104,14 @@ BEGIN
         'ck_change_log_single_anchor',
         'pk_configured_values', 'uq_configured_values',
         'pk_contract_texts', 'uq_contract_texts',
-        'uq_consent_purposes_requires_child', 'fk_consents_purpose',
-        'uq_consent_purposes_newsletter', 'fk_outbound_emails_topic',
+        'uq_consent_purposes_requires_child', 'fk_consent_purposes_category',
+        'ck_consent_purposes_unsub',
+        'pk_mail_categories', 'uq_mail_categories_code', 'uq_mail_categories_unsub',
+        'ck_mail_categories_floor',
+        'pk_photo_consent_records', 'fk_photo_consent_records_branch',
+        'fk_photo_consent_records_library', 'uq_photo_consent_records_graph_item',
+        'ck_photo_consent_records_file', 'ck_photo_consent_records_revoked', 'fk_consents_purpose',
+        'uq_consent_purposes_unsub', 'fk_outbound_emails_topic',
         'ck_outbound_emails_topic', 'ck_outbound_emails_topic_person',
         'ck_consents_child',
         'fk_consents_document', 'fk_sepa_mandates_document',
@@ -1118,8 +1133,16 @@ SELECT pg_temp.expect_reject(
 -- ---------------------------------------------------------------------------
 -- Der Anker ist die Person: Ein Ehemaliger hat weder Kind noch Familie, und
 -- `persons` verlangt keine — die Einwilligung steht trotzdem.
-INSERT INTO consent_purposes (code, name, is_newsletter_topic, created_by)
-    VALUES ('newsletter_alumni', 'Newsletter Ehemalige', true, 'system:check');
+INSERT INTO mail_categories (code, name, is_unsubscribable,
+                             requires_family_recipient, created_by)
+    VALUES ('newsletter', 'Newsletter', true, false, 'system:check'),
+           ('school_info', 'Schulinformation', true, true, 'system:check'),
+           ('transactional', 'Vorgangsmail', false, false, 'system:check');
+INSERT INTO consent_purposes (code, name, mail_category_id, is_unsubscribable,
+                              created_by)
+    VALUES ('newsletter_alumni', 'Newsletter Ehemalige',
+            (SELECT mail_category_id FROM mail_categories WHERE code='newsletter'),
+            true, 'system:check');
 INSERT INTO persons (person_id, first_name, last_name, created_by)
     VALUES ('22222222-2222-2222-2222-222222222228', 'Ehe', 'Malig', 'system:check');
 SELECT pg_temp.expect_accept(
@@ -1150,7 +1173,7 @@ END $$;
 SELECT pg_temp.expect_accept(
     'TASK-208 — Newsletter-Mail mit Thema',
     $q$INSERT INTO outbound_emails (recipient_email, person_id, purpose,
-                                    consent_purpose_id, is_newsletter_topic)
+                                    consent_purpose_id, is_unsubscribable)
        VALUES ('ehemalig@example.org', '22222222-2222-2222-2222-222222222228',
                'newsletter',
                (SELECT consent_purpose_id FROM consent_purposes WHERE code='newsletter_alumni'),
@@ -1162,7 +1185,7 @@ SELECT pg_temp.expect_accept(
 SELECT pg_temp.expect_reject(
     'TASK-208 — Vorgangsmail mit einem Zweck, der kein Newsletter-Thema ist',
     $q$INSERT INTO outbound_emails (recipient_email, person_id, purpose,
-                                    consent_purpose_id, is_newsletter_topic)
+                                    consent_purpose_id, is_unsubscribable)
        VALUES ('mutter@example.org', '22222222-2222-2222-2222-222222222222',
                'contract_deadline',
                (SELECT consent_purpose_id FROM consent_purposes WHERE code='photo'),
@@ -1170,7 +1193,7 @@ SELECT pg_temp.expect_reject(
 
 -- Und ein Thema ohne Häkchen wäre eine Mail mit Thema, die keines trägt.
 SELECT pg_temp.expect_reject(
-    'TASK-208 — Mail mit Thema, aber ohne Newsletter-Häkchen',
+    'TASK-208 — Mail mit Thema, aber ohne Abmelde-Häkchen',
     $q$INSERT INTO outbound_emails (recipient_email, person_id, purpose,
                                     consent_purpose_id)
        VALUES ('ehemalig@example.org', '22222222-2222-2222-2222-222222222228',
@@ -1182,10 +1205,141 @@ SELECT pg_temp.expect_reject(
 SELECT pg_temp.expect_reject(
     'TASK-208 — Newsletter-Mail an eine Adresse ohne Person',
     $q$INSERT INTO outbound_emails (recipient_email, purpose,
-                                    consent_purpose_id, is_newsletter_topic)
+                                    consent_purpose_id, is_unsubscribable)
        VALUES ('unbekannt2@example.org', 'newsletter',
                (SELECT consent_purpose_id FROM consent_purposes WHERE code='newsletter_alumni'),
                true)$q$);
+
+-- Die drei Sorten Mail: Eine Untergrenze je Familie an einer Kategorie, die
+-- ohnehin niemand abwählen kann, ist gegenstandslos.
+SELECT pg_temp.expect_reject(
+    '00 — Untergrenze je Familie an einer nicht abwählbaren Kategorie',
+    $q$INSERT INTO mail_categories (code, name, is_unsubscribable,
+                                    requires_family_recipient, created_by)
+       VALUES ('unsinn', 'Unsinn', false, true, 'system:check')$q$);
+
+-- Und ein Abmeldelink an einem Zweck, der gar keine Mail steuert: Die
+-- Fotoerlaubnis ist eine Zustimmung zu einer Verarbeitung, nicht zu einem
+-- Postfach.
+SELECT pg_temp.expect_reject(
+    '00 — abbestellbarer Zweck ohne Mailkategorie',
+    $q$INSERT INTO consent_purposes (code, name, is_unsubscribable, created_by)
+       VALUES ('ohne_kategorie', 'Ohne Kategorie', true, 'system:check')$q$);
+
+-- Das mitgeführte Häkchen muss zu seiner Kategorie passen — sonst bekäme eine
+-- Vorgangsmail einen Abmeldelink über den Umweg des Zwecks.
+SELECT pg_temp.expect_reject(
+    '00 — Zweck mit Abmelde-Häkchen an einer Vorgangskategorie',
+    $q$INSERT INTO consent_purposes (code, name, mail_category_id,
+                                     is_unsubscribable, created_by)
+       VALUES ('falsch', 'Falsch',
+               (SELECT mail_category_id FROM mail_categories WHERE code='transactional'),
+               true, 'system:check')$q$);
+
+-- ---------------------------------------------------------------------------
+-- Der Anker, der seinen Menschen festhält
+-- ---------------------------------------------------------------------------
+-- „Was seinen Anker überdauern muss, hält ihn fest": Eine Newsletter-Zeile geht
+-- nicht per Cascade mit der Person — sonst räumte Stufe 6 des Lösch-Laufs den
+-- Verteiler still ab, ohne dass jemand widersprochen hätte.
+SELECT pg_temp.expect_reject(
+    'TASK-208 — die Person mit einer Newsletter-Einwilligung lässt sich nicht löschen',
+    $q$DELETE FROM persons WHERE person_id = '22222222-2222-2222-2222-222222222228'$q$);
+
+-- Und eine zweite Ehemalige, deren Einwilligung **offen** bleibt: Sie ist der
+-- Bestand ohne Löschtermin, an dem Stufe 6 unten hängenbleibt.
+INSERT INTO persons (person_id, first_name, last_name, created_by)
+    VALUES ('22222222-2222-2222-2222-222222222229', 'Immer', 'Noch-Dabei', 'system:check');
+INSERT INTO consents (person_id, consent_purpose_id, granted_at, delivery_address,
+                      created_by)
+    VALUES ('22222222-2222-2222-2222-222222222229',
+            (SELECT consent_purpose_id FROM consent_purposes WHERE code='newsletter_alumni'),
+            now(), 'immernoch@example.org', 'guardian:x');
+
+-- Die Zustimmung am Kind kaskadiert dagegen weiter: Sie hat nach dem Kind
+-- keinen Gegenstand mehr, und ihr Nachweis steht bis dahin längst daneben.
+INSERT INTO families (family_id, created_by)
+    VALUES ('99999999-9999-9999-9999-999999999991', 'system:check');
+INSERT INTO persons (person_id, first_name, last_name, created_by)
+    VALUES ('99999999-9999-9999-9999-999999999992', 'Ehe', 'Malig-Kind', 'system:check');
+INSERT INTO children (child_id, person_id, family_id, birth_date, created_by)
+    VALUES ('99999999-9999-9999-9999-999999999993',
+            '99999999-9999-9999-9999-999999999992',
+            '99999999-9999-9999-9999-999999999991', DATE '2010-03-14', 'system:check');
+INSERT INTO consents (person_id, child_id, consent_purpose_id, requires_child,
+                      granted_at, delivery_address, created_by)
+    VALUES ('22222222-2222-2222-2222-222222222221',
+            '99999999-9999-9999-9999-999999999993',
+            (SELECT consent_purpose_id FROM consent_purposes WHERE code='photo'),
+            true, now(), 'mutter@example.org', 'guardian:x');
+
+-- ---------------------------------------------------------------------------
+-- photo_consent_records — der Nachweis überlebt Kind und Person
+-- ---------------------------------------------------------------------------
+-- Der Lauf schreibt ihn, bevor er räumt (17, Schritt 0). Ohne Datei ist er
+-- gültig: Solange die Elternantwort keine Unterschrift trägt, entsteht bei einem
+-- Kind unter 14 gar kein PDF (TASK-195).
+SELECT pg_temp.expect_accept(
+    'TASK-244 — Nachweis ohne Datei',
+    $q$INSERT INTO photo_consent_records (first_name, last_name, birth_date,
+                                          exit_date, school_branch_id,
+                                          granted_at, created_by)
+       VALUES ('Ehe', 'Malig-Kind', DATE '2010-03-14', DATE '2026-07-31',
+               (SELECT school_branch_id FROM school_branches WHERE code='GS'),
+               now(), 'system:retention')$q$);
+
+-- Halb steht die Kopie nie da: Bibliothek und Element-Kennung gehören zusammen,
+-- „nie ein Pfad" (grenzkarte.md, Q2).
+SELECT pg_temp.expect_reject(
+    'TASK-244 — Nachweis mit Bibliothek, aber ohne Element-Kennung',
+    $q$INSERT INTO photo_consent_records (first_name, last_name, birth_date,
+                                          exit_date, school_branch_id,
+                                          granted_at, sharepoint_library_id,
+                                          created_by)
+       VALUES ('Halb', 'Kopiert', DATE '2010-03-14', DATE '2026-07-31',
+               (SELECT school_branch_id FROM school_branches WHERE code='GS'),
+               now(),
+               (SELECT sharepoint_library_id FROM sharepoint_libraries ORDER BY 1 LIMIT 1),
+               'system:retention')$q$);
+
+-- „Eine Erteilung, die nach ihrem Widerruf datiert, belegt nichts" — dieselbe
+-- Regel wie an `consents`.
+SELECT pg_temp.expect_reject(
+    'TASK-244 — Widerruf vor der Erteilung',
+    $q$INSERT INTO photo_consent_records (first_name, last_name, birth_date,
+                                          exit_date, school_branch_id,
+                                          granted_at, revoked_at, created_by)
+       VALUES ('Zu', 'Frueh', DATE '2010-03-14', DATE '2026-07-31',
+               (SELECT school_branch_id FROM school_branches WHERE code='GS'),
+               now(), now() - INTERVAL '1 day', 'system:retention')$q$);
+
+-- Kein Elternteil trägt hier ein: Die Zeile legt der Lauf an, den Widerruf
+-- nimmt das Sekretariat entgegen — nach dem Abgang gibt es keinen Portalzugang.
+SELECT pg_temp.expect_reject(
+    'TASK-244 — Nachweis von einem Elternteil angelegt',
+    $q$INSERT INTO photo_consent_records (first_name, last_name, birth_date,
+                                          exit_date, school_branch_id,
+                                          granted_at, created_by)
+       VALUES ('Kein', 'Guardian', DATE '2010-03-14', DATE '2026-07-31',
+               (SELECT school_branch_id FROM school_branches WHERE code='GS'),
+               now(), 'guardian:x')$q$);
+
+-- Und die eigentliche Gegenprobe: Kind und Person gehen, der Nachweis bleibt.
+DELETE FROM children WHERE child_id = '99999999-9999-9999-9999-999999999993';
+DELETE FROM persons  WHERE person_id = '99999999-9999-9999-9999-999999999992';
+DELETE FROM families WHERE family_id = '99999999-9999-9999-9999-999999999991';
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM consents
+                WHERE child_id = '99999999-9999-9999-9999-999999999993') THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — die Zustimmung hat ihr Kind ueberlebt';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM photo_consent_records
+                    WHERE last_name = 'Malig-Kind') THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — der Nachweis ist mit dem Kind gegangen';
+    END IF;
+    RAISE NOTICE 'ok (erlaubt): Kind und Person sind fort, der Fotonachweis steht';
+END $$;
 
 SELECT pg_temp.expect_accept(
     'hebel.md — unzustellbare Mail mit Grund',
@@ -1271,21 +1425,46 @@ SELECT pg_temp.expect_accept(
     '08 — nach dem Kind geht seine Person, keine Unterschrift sperrt sie',
     $q$DELETE FROM persons WHERE person_id = '22222222-2222-2222-2222-222222222221'$q$);
 
--- „Löschanker: geht mit der Person, an die sie ging" — für die Mail wie für die
--- kindlose Zustimmung. Die Einwilligung des Ehemaligen geht denselben Weg: Sie
--- hängt an keiner Familie und an keinem Kind, allein an ihrer Person.
+-- Stufe 6 sieht die kindlosen Zustimmungen jetzt **einzeln**: Seit
+-- `fk_consents_person` die Person festhält, nimmt kein Cascade sie mehr mit.
+-- Vorher geht deshalb gar nichts.
+SELECT pg_temp.expect_reject(
+    'Q1 — die Person geht nicht, solange eine kindlose Zustimmung an ihr hängt',
+    $q$DELETE FROM persons WHERE person_id = '22222222-2222-2222-2222-222222222222'$q$);
+
+-- So räumt der Lauf: erst jede kindlose Zustimmung, die **kein** Bestand ohne
+-- Löschtermin ist — eine widerrufene ist keiner mehr —, dann die Personen. Die
+-- Regel steht hier als eine Bedingung und nicht als Liste von Zwecken im Code.
+DELETE FROM consents c
+    WHERE c.child_id IS NULL
+      AND NOT EXISTS (SELECT 1 FROM consent_purposes p
+                       WHERE p.consent_purpose_id = c.consent_purpose_id
+                         AND p.is_unsubscribable
+                         AND c.revoked_at IS NULL);
 SELECT pg_temp.expect_accept(
-    'Q1 — Zustimmung und versandte Mail gehen mit ihrer Person',
+    'Q1 — nach ihren Zustimmungen gehen die Personen, die Mail geht mit',
     $q$DELETE FROM persons WHERE person_id IN ('22222222-2222-2222-2222-222222222222',
                                                '22222222-2222-2222-2222-222222222228')$q$);
 
+-- Und die Ehemalige mit der offenen Einwilligung bleibt: Sie ist kein Rest eines
+-- gelöschten Kindes, sondern ein Empfänger, der weiter angeschrieben wird.
+SELECT pg_temp.expect_reject(
+    'TASK-208 — die offene Newsletter-Einwilligung hält ihre Person auf',
+    $q$DELETE FROM persons WHERE person_id = '22222222-2222-2222-2222-222222222229'$q$);
+
 DO $$
 BEGIN
-    IF EXISTS (SELECT 1 FROM consents)
+    IF EXISTS (SELECT 1 FROM consents
+                WHERE person_id <> '22222222-2222-2222-2222-222222222229')
        OR EXISTS (SELECT 1 FROM outbound_emails WHERE recipient_email = 'mutter@example.org') THEN
         RAISE EXCEPTION 'REGEL NICHT GEBAUT — Zustimmung oder Mail überlebt ihre Person';
     END IF;
-    RAISE NOTICE 'ok (erlaubt): Q1 — weder Zustimmung noch Mail überlebt ihre Person';
+    IF NOT EXISTS (SELECT 1 FROM consents
+                    WHERE person_id = '22222222-2222-2222-2222-222222222229'
+                      AND revoked_at IS NULL) THEN
+        RAISE EXCEPTION 'ZU VIEL GELÖSCHT — die offene Newsletter-Einwilligung ging mit';
+    END IF;
+    RAISE NOTICE 'ok (erlaubt): Q1 — der Lauf räumt die kindlosen Zustimmungen und lässt die offene stehen';
 END $$;
 
 -- Stufe 7: Was der Lauf selbst berechnen muss. Die Anschrift hat keinen eigenen

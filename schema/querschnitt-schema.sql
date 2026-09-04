@@ -37,7 +37,16 @@
 -- Löschanker; die Abfolge über alle Domänen nennt keine, und ohne sie kommt der
 -- Lauf beim ersten Versuch nicht durch: `DELETE FROM children` scheitert an
 -- zwölf Fremdschlüsseln, die das Kind mit Absicht festhalten. Sie steht
--- deshalb hier, weil sie keiner Domäne gehört. Sieben Stufen:
+-- deshalb hier, weil sie keiner Domäne gehört. Sieben Stufen und ein Schritt
+-- davor:
+--
+--   0. **Bevor gelöscht wird, wird kopiert.** Trägt das Kind eine erteilte
+--      Fotoerlaubnis, entsteht ihr Nachweis in `photo_consent_records` und die
+--      Datei wird in die eigene Bibliothek dupliziert — beides, solange Zeile
+--      und Datei noch stehen, und deshalb hier und nicht beim Abgang fünf Jahre
+--      früher. Es ist der einzige Schritt dieses Laufs, der schreibt statt zu
+--      löschen, und er gehört zum selben Anker: Scheitert die Kopie, bleibt das
+--      Kind stehen und kommt in der nächsten Nacht wieder dran (17).
 --
 --   1. Die Vorgänge am Kind, jeder erst, wenn seine eigene Frist abgelaufen
 --      ist: `sepa_mandates`, `contracts`, dann `applications` — der Vertrag
@@ -113,9 +122,23 @@
 --   5. `employees`, ab `last_working_day` (13). Die Rollen gehen mit; was
 --      seinen Namen anderswo trägt, überlebt ihn (Beleg 12) und braucht den
 --      Namen vorher gesetzt.
---   6. `persons`. Telefonnummern, die Sorgeberechtigten-Angaben (`guardians`),
---      kindlose Zustimmungen, versandte Mails, Aufgaben, Spur und das
---      Elternvertretungsamt gehen mit.
+--   6. Die kindlosen Zustimmungen, dann `persons`. Beide sieht der Lauf jetzt
+--      einzeln, seit `fk_consents_person` die Person festhält, statt mit ihr zu
+--      gehen: Er räumt jede Zustimmung ohne Kind selbst und **lässt dabei genau
+--      die stehen, die abbestellbar und nicht widerrufen ist**. Eine Person, an
+--      der eine solche hängt, geht deshalb nicht — sie ist kein Rest eines
+--      gelöschten Kindes, sondern ein Empfänger, der weiter angeschrieben wird.
+--      Sie wird stattdessen **reduziert**: Anschrift, Telefonnummern, Mailadresse
+--      an der Zeile, Anmerkung und letzter Login gehen, Anrede und Name bleiben.
+--      Mehr braucht der Versand nicht — die Zustelladresse steht ohnehin an der
+--      Einwilligung (`consents.delivery_address`) und nicht an der Person, und
+--      „Name und Mailadresse dürfen bleiben, bis widersprochen wird" ist damit
+--      wörtlich erfüllt. Das ist der einzige Reduktionsschritt des Laufs, er
+--      trifft eine Tabelle und eine Spaltenliste; beim Kind gibt es ihn nicht,
+--      dafür steht `photo_consent_records` daneben.
+--      Telefonnummern, die Sorgeberechtigten-Angaben (`guardians`), versandte
+--      Mails, Aufgaben, Spur und das Elternvertretungsamt gehen per Cascade mit
+--      der Person, wo sie geht.
 --   7. Die verwaisten `addresses` — die, auf die danach weder eine Person noch
 --      ein Mandat zeigt. Die Anschrift hat keinen eigenen Anker („eine
 --      Anschrift verschwindet mit der letzten Person, die auf sie zeigt",
@@ -171,6 +194,53 @@
 -- Wertelisten
 -- ---------------------------------------------------------------------------
 
+-- Herkunft: 00 — „Schulinformationen darf man abwählen, aber einer in der
+-- Familie muss sie mindestens bekommen." Damit gibt es drei Sorten Mail und
+-- nicht mehr zwei: die **Vorgangsmail**, die niemand abbestellen kann, die
+-- **Schulinformation**, die jeder abwählt, solange einer je Familie sie noch
+-- bekommt, und den **Newsletter**, den jeder frei abwählt.
+-- Als Werteliste statt zweier Häkchen an `consent_purposes`: Eine feinere
+-- Aufteilung — Ferienprogramm getrennt von der Akademie — ist dann eine Zeile
+-- hier und kein Bau, und die vier Kombinationen zweier Booleans, von denen zwei
+-- unsinnig sind, entstehen gar nicht erst (rules.md Abschnitt 1).
+-- Kein Löschanker: keine Personendaten.
+CREATE TABLE mail_categories (
+    mail_category_id  integer GENERATED ALWAYS AS IDENTITY,
+    code              text NOT NULL,
+    name              text NOT NULL,
+    -- Trägt einen Abmeldelink. Falsch bei der Vorgangsmail: „Wer sich vom
+    -- Elternabend abmelden könnte, bekäme die nächste Vertragsfrist auch nicht
+    -- mehr" — die Einladung steht auf dem Vertrag, nicht auf einer Einwilligung.
+    is_unsubscribable boolean NOT NULL DEFAULT false,
+    -- Mindestens eine Person je Familie muss sie bekommen (00). Die Regel selbst
+    -- spannt über zwei Personenzeilen derselben Familie und kann deshalb kein
+    -- CHECK sein — sie lebt in der Schreibschicht (siehe den ACHTUNG-Block im
+    -- Kopf dieser Datei); dieses Häkchen sagt ihr, an welcher Kategorie sie
+    -- greift, statt die Liste der Kategorien im Code zu führen.
+    -- Zwei Folgen, die 00 ausschreibt: Ein alleiniger Sorgeberechtigter kann
+    -- nicht abwählen, und scheidet der andere aus, wird der Verbliebene wieder
+    -- eingeschaltet.
+    requires_family_recipient boolean NOT NULL DEFAULT false,
+    created_at        timestamptz NOT NULL DEFAULT now(),
+    created_by        text NOT NULL,
+
+    CONSTRAINT pk_mail_categories       PRIMARY KEY (mail_category_id),
+    CONSTRAINT uq_mail_categories_code  UNIQUE (code),
+    -- Trägt den zusammengesetzten Fremdschlüssel von `consent_purposes`
+    -- (rules.md Abschnitt 1) und ist deshalb zusätzlich zum Primärschlüssel
+    -- nötig.
+    CONSTRAINT uq_mail_categories_unsub UNIQUE (mail_category_id, is_unsubscribable),
+    -- Eine Untergrenze an einer Kategorie, die ohnehin niemand abwählen kann,
+    -- ist gegenstandslos — und sie zu setzen sähe aus wie eine Regel, die
+    -- irgendwo greift.
+    CONSTRAINT ck_mail_categories_floor
+        CHECK (NOT requires_family_recipient OR is_unsubscribable),
+    CONSTRAINT ck_mail_categories_code CHECK (code <> ''),
+    CONSTRAINT ck_mail_categories_name CHECK (name <> ''),
+    -- Ohne `guardian:`: eine Werteliste legt kein Elternteil an.
+    CONSTRAINT ck_mail_categories_created_by CHECK (created_by ~ '^(entra:|system:)')
+);
+
 -- Herkunft: grenzkarte.md, Q1 — „Braucht sie: Schulvertrag, Gesundheitsdaten,
 -- Fotoeinverständnis, Werbe-Einwilligung Ferienbetreuung, die Einwilligung zum
 -- Informationsaustausch zwischen Hort und Schule … und die
@@ -201,20 +271,25 @@ CREATE TABLE consent_purposes (
     -- Ab diesem Alter antwortet das Kind selbst mit — 14 beim
     -- Fotoeinverständnis, sonst leer (grenzkarte.md, Q1).
     self_consent_age   smallint,
-    -- Ein **Newsletter-Thema**: Alumni-Rundbrief, Förderkreis, Interessenten —
-    -- „für die sich jede Person einzeln an- und abmeldet", und ein neues ist
-    -- eine Zeile hier. Ein eigener Bestand daneben wäre eine zweite Bauform für
-    -- genau das, was Q1 trägt: eine Antwort je Person und Zweck, zwei
+    -- Welche Sorte Mail dieser Zweck steuert — Alumni-Rundbrief, Förderkreis,
+    -- Interessenten, Schulinformation —, „für die sich jede Person einzeln an-
+    -- und abmeldet"; ein neues Thema ist eine Zeile hier, seine Sorte eine in
+    -- `mail_categories`. Ein eigener Bestand daneben wäre eine zweite Bauform
+    -- für genau das, was Q1 trägt: eine Antwort je Person und Zweck, zwei
     -- Zeitpunkte statt eines Häkchens, und der Widerruf, der die Zeile stehen
     -- lässt. Der Anker ist die Person und nicht das Kind — ein Ehemaliger hat
     -- weder Familie noch Vertragsverhältnis, und `persons` verlangt keines.
-    -- Das Häkchen trägt zugleich die Regel, die sonst im Code stünde: **Nur ein
-    -- Newsletter-Thema bekommt einen Abmeldelink.** „Wer sich vom Elternabend
-    -- abmelden könnte, bekäme die nächste Vertragsfrist auch nicht mehr" — die
-    -- Einladung steht auf dem Vertrag, nicht auf einer Einwilligung. Der Link
-    -- selbst hat keine Spalte: Er ist ein Token über die Personenkennung, wie
-    -- der Signaturlink des Kindes ab 14 (api/querschnitt-api.md).
-    is_newsletter_topic boolean NOT NULL DEFAULT false,
+    -- **Leer, wo der Zweck keine Mail steuert:** Fotoerlaubnis, Gesundheitsdaten
+    -- und der Austausch zwischen Hort und Schule sind Zustimmungen zu einer
+    -- Verarbeitung und nicht zu einem Postfach.
+    mail_category_id   integer,
+    -- Das Häkchen der Kategoriezeile, hier mitgeführt, damit `outbound_emails`
+    -- es über einen zusammengesetzten Fremdschlüssel sehen kann; dieselbe
+    -- Bauform wie `requires_child` (rules.md Abschnitt 1). Ohne Kategorie ist es
+    -- falsch — der Link selbst hat keine Spalte: Er ist ein Token über die
+    -- Personenkennung, wie der Signaturlink des Kindes ab 14
+    -- (api/querschnitt-api.md).
+    is_unsubscribable  boolean NOT NULL DEFAULT false,
     created_at         timestamptz NOT NULL DEFAULT now(),
     created_by         text NOT NULL,
 
@@ -223,8 +298,18 @@ CREATE TABLE consent_purposes (
     -- Trägt den zusammengesetzten Fremdschlüssel von `outbound_emails`
     -- (rules.md Abschnitt 1) und ist deshalb zusätzlich zum Primärschlüssel
     -- nötig — dieselbe Bauform wie `uq_consent_purposes_requires_child`.
-    CONSTRAINT uq_consent_purposes_newsletter
-        UNIQUE (consent_purpose_id, is_newsletter_topic),
+    CONSTRAINT uq_consent_purposes_unsub
+        UNIQUE (consent_purpose_id, is_unsubscribable),
+    -- Hält das mitgeführte Häkchen an seiner Kategorie. Bei einem Zweck ohne
+    -- Kategorie greift er nicht (MATCH SIMPLE) — dort sorgt der CHECK darunter
+    -- dafür, dass niemand einen Abmeldelink erfindet.
+    CONSTRAINT fk_consent_purposes_category
+        FOREIGN KEY (mail_category_id, is_unsubscribable)
+        REFERENCES mail_categories (mail_category_id, is_unsubscribable),
+    -- Abbestellbar ist nur, was eine Kategorie hat: Ein Zweck ohne Mailsorte
+    -- bekäme sonst einen Abmeldelink für eine Mail, die es nicht gibt.
+    CONSTRAINT ck_consent_purposes_unsub
+        CHECK (mail_category_id IS NOT NULL OR NOT is_unsubscribable),
     -- Trägt den zusammengesetzten Fremdschlüssel von `consents` (rules.md
     -- Abschnitt 1) und ist deshalb zusätzlich zum Primärschlüssel nötig.
     CONSTRAINT uq_consent_purposes_requires_child UNIQUE (consent_purpose_id, requires_child),
@@ -236,13 +321,17 @@ CREATE TABLE consent_purposes (
 -- Herkunft: grenzkarte.md, Q2 — „Direkten Zugriff auf eine Bibliothek bekommt
 -- nur, wer *in* den Dateien arbeitet. Das ist genau eine Stelle im ganzen
 -- System: der Hort mit seinen fortgeschriebenen Dokumenten." Die Karte führt
--- die Bibliotheken als Tabelle, und es sind drei: die **Schülerakte** — was
+-- die Bibliotheken als Tabelle, und es sind vier: die **Schülerakte** — was
 -- Weltenbaum erzeugt und was Menschen dazulegen, ein Ordner je Kind und darin
 -- ein Unterordner je Kategorie (`child_file_folders`), und „an sie kommt kein
 -- Mensch direkt"; die **Hortakte** — Absprachen, Verhalten,
 -- Beobachtungsbögen, gelesen und fortgeschrieben allein von Hortkräften und
--- Hortleitung (09); und die **Belege** der Rechnungsfreigabe, ohne Kindbezug
--- und ebenfalls ohne menschlichen Direktzugriff (12).
+-- Hortleitung (09); die **Belege** der Rechnungsfreigabe, ohne Kindbezug
+-- und ebenfalls ohne menschlichen Direktzugriff (12); und die
+-- **Fotoerlaubnisse** — die Kopien, die der Lösch-Lauf anlegt, wenn er das Kind
+-- räumt (`photo_consent_records`). Sie ist die einzige ohne Ordnerstruktur und
+-- die einzige, deren Inhalt kein Kind mehr hat: Ein Ordner je Kind wäre genau
+-- das, was hier fortfallen soll.
 -- Warum die Hortakte eine eigene Bibliothek ist und kein Unterordner, steht in
 -- der Karte und nicht hier — es braucht zwei Anforderungen und einen zweiten
 -- API-Weg, um formulierbar zu sein.
@@ -854,20 +943,32 @@ ALTER TABLE sepa_mandates
 
 -- Herkunft: grenzkarte.md, Q1 — „Wer hat wann wozu geantwortet — erteilt oder
 -- abgelehnt —, über welche Zustelladresse, und wurde eine Erteilung
--- widerrufen." Löschanker: geht mit dem Kind bzw. mit der Person, je nachdem,
--- worauf die Zeile zeigt. Maßgeblich ist das Kind, wo `child_id` steht, sonst
--- die Person; beide Fremdschlüssel kaskadieren, weil die Zeile in keinem der
--- beiden Fälle stehen bleiben darf — die beiden Anker rechnen verschieden (das
--- Kind ab seinem Ende (03), der Sorgeberechtigte an der Familie), und es
--- löscht, wessen Frist zuerst abläuft.
--- Das Fotoeinverständnis macht davon keine Ausnahme: Es „hängt am Kind und
--- verschwindet mit ihm im Lösch-Lauf (17)" (08). Der Widerruf beendet die
--- Nutzung und nicht die Zeile — `revoked_at` setzen, die weitere Verwendung
--- unterbinden, das Bildmaterial auf Verlangen löschen. Ob der Nachweis der
--- Erlaubnis das Kind überdauern muss, ist offen und steht als Frage am Ende
--- dieser Datei. Bewusst KEIN Boolean und keine
--- Werteliste für die Antwort: der Zeitpunkt ist der Nachweis nach Art. 7
--- Abs. 1 DSGVO.
+-- widerrufen." Löschanker: geht mit dem Kind, wo `child_id` steht; sonst mit
+-- der Person, aber **nicht per Cascade** — der Lauf räumt sie selbst.
+-- Die beiden Fremdschlüssel zeigen deshalb in verschiedene Richtungen, und das
+-- ist keine Unachtsamkeit:
+--   * `fk_consents_child` kaskadiert. Eine Zustimmung, die einem Kind gilt,
+--     hat nach dem Kind keinen Gegenstand mehr. Auch das Fotoeinverständnis
+--     macht davon keine Ausnahme — sein Nachweis steht bis dahin längst in
+--     `photo_consent_records` und braucht diese Zeile nicht mehr.
+--   * `fk_consents_person` hält die Person **fest** (NO ACTION). Eine
+--     Newsletter-Einwilligung, der niemand widersprochen hat, ist ein Bestand
+--     ohne Löschtermin: Ein Ehemaliger wird weiter angeschrieben, obwohl weder
+--     Kind noch Familie geblieben sind. Kaskadierte sie, räumte Stufe 6 des
+--     Lösch-Laufs den Verteiler still ab — niemand widerspräche, und trotzdem
+--     hörten die Mails auf. Der Preis ist, dass der Lauf jede andere
+--     Zustimmung vor der Person selbst löschen muss, statt sie mitzunehmen;
+--     er steht in der Reihenfolge im Kopf dieser Datei.
+-- Dieselbe Bauform steht schon zweimal in diesem Schema: `child_health_records`
+-- hält sein Kind fest, statt mit ihm zu gehen, und `addresses` geht in Stufe 7
+-- gar nicht auf eigenen Anker, sondern wenn nichts mehr auf sie zeigt. Die
+-- Regel dahinter gilt für jeden weiteren Bestand dieser Art: **Was seinen Anker
+-- überdauern muss, hält ihn fest; der Anker geht, wenn nichts mehr auf ihn
+-- zeigt.**
+-- Der Widerruf beendet die Nutzung und nicht die Zeile — `revoked_at` setzen,
+-- die weitere Verwendung unterbinden, das Bildmaterial auf Verlangen löschen.
+-- Bewusst KEIN Boolean und keine Werteliste für die Antwort: der Zeitpunkt ist
+-- der Nachweis nach Art. 7 Abs. 1 DSGVO.
 CREATE TABLE consents (
     consent_id         uuid NOT NULL DEFAULT gen_random_uuid(),
     person_id          uuid NOT NULL,
@@ -901,7 +1002,7 @@ CREATE TABLE consents (
     created_by         text NOT NULL,
 
     CONSTRAINT pk_consents           PRIMARY KEY (consent_id),
-    CONSTRAINT fk_consents_person    FOREIGN KEY (person_id) REFERENCES persons (person_id) ON DELETE CASCADE,
+    CONSTRAINT fk_consents_person    FOREIGN KEY (person_id) REFERENCES persons (person_id),
     CONSTRAINT fk_consents_child     FOREIGN KEY (child_id)  REFERENCES children (child_id) ON DELETE CASCADE,
     CONSTRAINT fk_consents_purpose
         FOREIGN KEY (consent_purpose_id, requires_child)
@@ -947,6 +1048,102 @@ CREATE UNIQUE INDEX ix_consents_person_child_purpose
 CREATE UNIQUE INDEX ix_consents_person_purpose
     ON consents (person_id, consent_purpose_id)
     WHERE child_id IS NULL AND revoked_at IS NULL;
+
+
+-- Der Nachweis der Fotoerlaubnis, nachdem das Kind gelöscht ist.
+-- Herkunft: 08 „Löschen" — die Erlaubnis bleibt **unbegrenzt**
+-- (Datenschutzbeauftragter, 04.09.2026), weil ein veröffentlichtes Bild nicht
+-- verschwindet und ersichtlich bleiben muss, bis zu welchem Tag sie galt
+-- (Art. 7 Abs. 1 DSGVO). Kein Löschanker, und das ist der einzige Bestand
+-- dieses Schemas ohne einen.
+--
+-- **Warum ein eigener Bestand und keine ausgeräumte `children`-Zeile.** Bliebe
+-- das Kind reduziert stehen, hinge daran die ganze Kette, die es festhält —
+-- Ordner, Datei, Person, Familie —, Stufe 2 und 6 des Lösch-Laufs müssten sich
+-- teilen, und je Tabelle stünde eine Liste, welche Spalten eine überlebende
+-- Zeile behält. Vor allem aber wäre die ausgeräumte Zeile von einer aktiven
+-- nicht zu unterscheiden: Klassenliste, Zählung, Export und Auskunft müssten
+-- sie jeweils ausfiltern, und diese Arbeit würde nie fertig, weil jede neue
+-- Ansicht sie erneut fordert. Hier steht sie daneben, und `children` trägt
+-- weiterhin nur Kinder.
+--
+-- Der Preis, benannt statt versteckt: Die Angaben stehen doppelt, solange das
+-- Kind noch da ist — aber nur solange. **Der Lauf füllt diese Zeile im selben
+-- Zug, in dem er das Kind räumt** (17), nicht beim Abgang: Sonst liefen fünf
+-- Jahre lang zwei Zeilen über dieselbe Erlaubnis, und ein Widerruf träfe
+-- verlässlich nur die, an der die Route hängt.
+--
+-- Was hier **nicht** steht: eine Prüfsumme. `documents` trägt keine — sie steht
+-- an `contracts.document_checksum`, wo sie den freigegebenen Vertragstext
+-- bindet —, und eine, die erst an der Kopie entstünde, belegte nichts gegen ein
+-- Original, das im selben Zug gelöscht wird.
+CREATE TABLE photo_consent_records (
+    photo_consent_record_id uuid NOT NULL DEFAULT gen_random_uuid(),
+    -- Kopiert und nicht verknüpft: Kind und Person sind fort, wenn diese Zeile
+    -- entsteht. Der Name ist der des **Kindes**, um das es auf dem Bild geht —
+    -- wer die Erlaubnis erteilt hat, steht in der Datei, und genau deshalb
+    -- braucht dieser Bestand die Elternzeile nicht.
+    first_name        text NOT NULL,
+    last_name         text NOT NULL,
+    -- Gegen die Namensgleichheit, die über die Jahre sicher kommt: Der Bestand
+    -- wächst um rund sechzig Zeilen im Jahr und hat kein Ende, und schon Name
+    -- plus Abgangsjahr plus Schulzweig lassen über fünfzig Jahre rund 14 %
+    -- Kollisionswahrscheinlichkeit. Mit dem Geburtsdatum sind es 0,04 %.
+    -- Was es **nicht** löst, ist die Zuordnung eines Bildes zu einem Kind — wer
+    -- ein Foto vor sich hat, kennt kein Geburtsdatum; dafür ist die Datei
+    -- selbst der letzte Aufschluss, weil die Eltern darin stehen.
+    birth_date        date NOT NULL,
+    -- „wann von der Schule abgegangen und welcher Schulzweig" — die beiden
+    -- Angaben, die eine Aufnahme zeitlich und örtlich einordnen.
+    exit_date         date NOT NULL,
+    school_branch_id  integer NOT NULL,
+    -- Ab wann die Erlaubnis galt: der **späteste** der erteilten Zeitpunkte.
+    -- „Ja nur, wenn alle erwarteten Personen Ja gesagt haben" (08) — vorher galt
+    -- sie nicht, auch wenn ein Elternteil längst geantwortet hatte.
+    granted_at        timestamptz NOT NULL,
+    -- Und bis wann: der **früheste** Widerruf. „Eine Ablehnung sperrt sofort"
+    -- (grenzkarte.md, Q1) gilt hier genauso. Leer heißt, sie gilt weiter.
+    revoked_at        timestamptz,
+    -- Die Kopie der Urkunde in der eigenen Bibliothek — nicht im Ordner des
+    -- Kindes, der mit ihm geht. Verwiesen wird wie überall über Bibliothek und
+    -- Element-Kennung und nie über einen Pfad, der beim Verschieben bräche.
+    -- **Nullable, und das ist kein Versehen:** Solange die Elternantwort ohne
+    -- Unterschrift bleibt, entsteht bei einem Kind unter 14 gar keine Datei
+    -- (TASK-195). Die Zeile trägt den Nachweis dann allein — Name, Abgang,
+    -- Zweig und die beiden Zeitpunkte —, und das ist mehr als heute bliebe.
+    sharepoint_library_id integer,
+    graph_item_id     text,
+    created_at        timestamptz NOT NULL DEFAULT now(),
+    created_by        text NOT NULL,
+
+    CONSTRAINT pk_photo_consent_records PRIMARY KEY (photo_consent_record_id),
+    -- Die Schulart ist eine Werteliste ohne Löschanker und steht deshalb noch,
+    -- wenn das Kind längst fort ist.
+    CONSTRAINT fk_photo_consent_records_branch
+        FOREIGN KEY (school_branch_id) REFERENCES school_branches (school_branch_id),
+    CONSTRAINT fk_photo_consent_records_library
+        FOREIGN KEY (sharepoint_library_id) REFERENCES sharepoint_libraries (sharepoint_library_id),
+    -- Zwei Zeilen auf demselben Element ließen den Lösch-Lauf eine Datei
+    -- entfernen, auf die die zweite noch zeigt — derselbe Schlüssel wie
+    -- `uq_documents_graph_item`.
+    CONSTRAINT uq_photo_consent_records_graph_item
+        UNIQUE (sharepoint_library_id, graph_item_id),
+    -- Entweder steht die Kopie mit beiden Angaben da oder mit keiner.
+    CONSTRAINT ck_photo_consent_records_file
+        CHECK ((sharepoint_library_id IS NULL) = (graph_item_id IS NULL)),
+    -- Widerrufen wird nie vor der Erteilung: „eine Erteilung, die nach ihrem
+    -- Widerruf datiert, belegt nichts" — wie an `consents`.
+    CONSTRAINT ck_photo_consent_records_revoked
+        CHECK (revoked_at IS NULL OR revoked_at >= granted_at),
+    CONSTRAINT ck_photo_consent_records_names
+        CHECK (first_name <> '' AND last_name <> ''),
+    CONSTRAINT ck_photo_consent_records_item CHECK (graph_item_id <> ''),
+    -- Ohne `guardian:`: Die Zeile legt der Lauf an (`system:`), und den Widerruf
+    -- trägt das Sekretariat nach — nach dem Abgang gibt es keinen Portalzugang
+    -- mehr, über den ein Elternteil selbst schriebe (08).
+    CONSTRAINT ck_photo_consent_records_created_by
+        CHECK (created_by ~ '^(entra:|system:)')
+);
 
 
 -- ---------------------------------------------------------------------------
@@ -1300,15 +1497,16 @@ CREATE TABLE outbound_emails (
     -- hängt an der Domainfrage (fragen.md) und wird nicht hier entschieden —
     -- leer heißt „die eine, die der Versand ohnehin nimmt".
     from_address      text,
-    -- Gesetzt allein bei einer Newsletter-Mail: das Thema, auf dessen
-    -- Einwilligung sie ging, und damit das Thema des Abmeldelinks. Eine
-    -- Vorgangsmail trägt keines und kommt deshalb ohne Link heraus.
+    -- Gesetzt allein bei einer abbestellbaren Mail — Newsletter wie
+    -- Schulinformation: das Thema, auf dessen Einwilligung sie ging, und damit
+    -- das Thema des Abmeldelinks. Eine Vorgangsmail trägt keines und kommt
+    -- deshalb ohne Link heraus.
     consent_purpose_id integer,
     -- Das Häkchen der Zweckzeile, hier mitgeführt, damit der CHECK unten es
     -- sehen kann; `fk_outbound_emails_topic` hält beide zusammen (rules.md
     -- Abschnitt 1). Ohne es ließe sich ein Vorgangszweck an eine Mail hängen,
     -- und sie bekäme einen Abmeldelink, den es für sie nicht geben darf.
-    is_newsletter_topic boolean NOT NULL DEFAULT false,
+    is_unsubscribable boolean NOT NULL DEFAULT false,
     sent_at           timestamptz NOT NULL DEFAULT now(),
     -- Der Rückläufer. Solange er leer ist, gilt die Mail als zugestellt; steht
     -- er, sieht das Sekretariat sie in seiner Liste.
@@ -1319,17 +1517,17 @@ CREATE TABLE outbound_emails (
     CONSTRAINT fk_outbound_emails_person
         FOREIGN KEY (person_id) REFERENCES persons (person_id) ON DELETE CASCADE,
     CONSTRAINT fk_outbound_emails_topic
-        FOREIGN KEY (consent_purpose_id, is_newsletter_topic)
-        REFERENCES consent_purposes (consent_purpose_id, is_newsletter_topic),
+        FOREIGN KEY (consent_purpose_id, is_unsubscribable)
+        REFERENCES consent_purposes (consent_purpose_id, is_unsubscribable),
     CONSTRAINT ck_outbound_emails_email   CHECK (recipient_email <> ''),
     CONSTRAINT ck_outbound_emails_purpose CHECK (purpose <> ''),
     CONSTRAINT ck_outbound_emails_from    CHECK (from_address <> ''),
-    -- Genau die Newsletter-Mail trägt ihr Thema; zusammen mit dem
-    -- zusammengesetzten Fremdschlüssel heißt das: ein Zweck, der keines ist,
-    -- kommt hier nicht an.
+    -- Genau die abbestellbare Mail trägt ihr Thema; zusammen mit dem
+    -- zusammengesetzten Fremdschlüssel heißt das: ein Zweck, dessen Kategorie
+    -- keinen Abmeldelink trägt, kommt hier nicht an.
     CONSTRAINT ck_outbound_emails_topic
-        CHECK ((consent_purpose_id IS NOT NULL) = is_newsletter_topic),
-    -- Der Abmeldelink hängt an der Person. Eine Newsletter-Mail an eine
+        CHECK ((consent_purpose_id IS NOT NULL) = is_unsubscribable),
+    -- Der Abmeldelink hängt an der Person. Eine abbestellbare Mail an eine
     -- Adresse, hinter der keine steht, ließe sich nicht abbestellen — die Mail
     -- ohne Person gibt es nur im Vorgang (05, 09, 10).
     CONSTRAINT ck_outbound_emails_topic_person
@@ -1721,16 +1919,4 @@ CREATE UNIQUE INDEX ix_retention_holds_first
 --     Was daran hängt: Bis die Frist steht, räumt der Lösch-Lauf diese Zeilen
 --     gar nicht; danach ist es eine WHERE-Bedingung und keine Migration.
 
--- [?] Muss der Nachweis des Fotoeinverständnisses das Kind überdauern?
---     Heute nicht: Die Zustimmung hängt am Kind und geht mit ihm (08, Block
---     „Löschen"), beide Fremdschlüssel kaskadieren. Dagegen steht, dass ein
---     einmal veröffentlichtes Bild nicht mehr verschwindet und Jahre später
---     ersichtlich bleiben muss, dass die Erlaubnis bis zu einem bestimmten Tag
---     galt (Art. 7 Abs. 1 DSGVO). Am 02.09.2026 zusammen mit den vier Fristen
---     vorgelegt und **nicht beantwortet** zurückgekommen.
---     — Datenschutzbeauftragte
---     Was daran hängt: Fällt die Antwort auf „ja", ist das ein eigener
---     Bestandscode in `retention_subjects` und ein Eingriff in die
---     Löschmechanik — die Cascade an `fk_consents_child` müsste fallen —, kein
---     Satz an einem Kommentar.
 

@@ -41,7 +41,7 @@ in `schema/` liegt.
 | Konfession, Staatsangehörigkeit, Beruf, Kirchengemeinde | Erhebung im Voranmeldebogen | **offen** — der Zweckbeschluss steht aus (TASK-038); ohne ihn trägt kein Feld eine Rechtsgrundlage |
 | Rechnungsfreigabe, Elternbonus | interne Freigabe und Verrechnung von Auslagen und Elternmitarbeit | `[A]` Art. 6 Abs. 1 lit. b gegenüber Mitarbeitenden, lit. f gegenüber Eltern |
 | Klassenbildung, Klassenorganisation, M365 | Zuordnung zu Klassen und Konten | `[A]` Art. 6 Abs. 1 lit. b |
-| Newsletter je Thema | Versand an Personen, die sich dafür eingetragen haben — Ehemalige, Förderkreis, Interessenten; der Bestand ist eine Zeile je Person und Thema in `consents` (`schema/querschnitt-schema.sql`) | `[A]` Art. 6 Abs. 1 lit. a — Einwilligung, jederzeit widerrufbar; der Widerruf löscht die Zeile nicht, er setzt einen Zeitpunkt |
+| Newsletter und Schulinformation je Thema | Versand an Personen, die sich dafür eingetragen haben oder ihn nicht abgewählt haben — Ehemalige, Förderkreis, Interessenten, dazu die laufenden Familien; der Bestand ist eine Zeile je Person und Thema in `consents`, die Sorte eine Zeile in `mail_categories` (`schema/querschnitt-schema.sql`) | `[A]` Art. 6 Abs. 1 lit. a — Einwilligung, jederzeit widerrufbar; der Widerruf löscht die Zeile nicht, er setzt einen Zeitpunkt |
 
 ## c) Kategorien betroffener Personen und ihrer Daten
 
@@ -52,7 +52,7 @@ in `schema/` liegt.
 | Erziehungsberechtigte | Name, Anschrift, Telefon, E-Mail, Familienzugehörigkeit, Vertrags- und Zahlungsbezug, Arbeitsstundenkonto |
 | Notfallkontakte | Name und Telefonnummer, sonst nichts |
 | Bewerber ohne Aufnahme | die Voranmeldedaten bis zum Ablauf ihrer Frist |
-| Newsletter-Empfänger ohne Vertragsverhältnis | Name und Mailadresse, dazu die Einwilligung je Thema — mehr nicht; sie hängen an keiner Familie und an keinem Kind. `[?]` Ihre Löschfrist steht aus (`backlog/`) |
+| Newsletter-Empfänger ohne Vertragsverhältnis | Anrede, Name und die Zustelladresse an der Einwilligung je Thema — mehr nicht; sie hängen an keiner Familie und an keinem Kind. Ihre Frist läuft ab dem Widerspruch: bis dahin unbegrenzt, danach mit dem nächsten Lösch-Lauf (`soll-prozesse/17`) |
 | Mitarbeitende | Entra-Object-ID, Name, Rolle; kein Personalaktendatum — das bleibt außerhalb (`grenzkarte.md`) |
 | Kinder im Hort | dazu die **Betreuungsakte** des Horts — Absprachen, Verhalten, Beobachtungsbögen. Sie enthält eine Bewertung, liegt in einer eigenen SharePoint-Bibliothek und wird allein vom Hort gelesen (`grenzkarte.md`, Q2) |
 | **Besondere Kategorien (Art. 9)** | Gesundheitsmerkmale und Masernnachweis (`schema/gesundheit-schema.sql`), Konfession (`schema/stammdaten-schema.sql`) |
@@ -94,7 +94,8 @@ geändert:
 | Bewerbung ohne Aufnahme | sechs Monate ab dem Endstatus | `schema/anmeldung-schema.sql` |
 | Ferienbuchung samt schulfremdem Kind | sechs Monate nach dem letzten gebuchten Termin | `schema/ferien-schema.sql` |
 | Gesundheitsbestand am Kind | drei Monate nach dem Austritt | `schema/gesundheit-schema.sql` |
-| Fotoerlaubnis je Person | **unbegrenzt** — sie belegt, bis zu welchem Tag sie galt (Datenschutzbeauftragter, 04.09.2026) | `soll-prozesse/08` |
+| Nachweis der Fotoerlaubnis je Kind | **unbegrenzt** — er belegt, bis zu welchem Tag sie galt (Datenschutzbeauftragter, 04.09.2026). Er entsteht erst beim Löschen des Kindes und trägt dann Name, Geburtsdatum, Abgangsdatum, Schulzweig und die beiden Zeitpunkte; die Zustimmungszeile selbst geht mit dem Kind | `soll-prozesse/08` |
+| Newsletter-Einwilligung je Person | **unbegrenzt**, bis widersprochen wird; danach mit dem nächsten Lösch-Lauf. Die Person bleibt so lange mit Anrede und Namen stehen, ohne Anschrift und Telefonnummer | `soll-prozesse/00` |
 | Gesundheitsangaben eines schulfremden Kindes | vier Wochen nach dem letzten gebuchten Termin | `schema/ferien-schema.sql` |
 | Gesundheitsangaben einer Veranstaltung | vier Wochen nach ihrem Ende | `soll-prozesse/19`, `21` |
 | Anmeldeformular einer Fahrt samt Unterschrift | drei Jahre nach dem Ende der Fahrt | `soll-prozesse/19` |

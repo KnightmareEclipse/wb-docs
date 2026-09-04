@@ -26,5 +26,5 @@ Die einzige der sechs, die kein Soll-Block berührt.
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
-Am 02.09.2026 vorgelegt und nicht bewertbar zurückgekommen: 'kann nicht bewertet werden, da wir Kontext nicht verstehen. Wer sind die betroffenen Personen / warum kein Text'. Die nächste Vorlage muss beides mitliefern — Empfänger sind Eltern, die eine Bestätigung bekommen, bevor sie als Familie geführt werden, und der Mailtext wird bewusst nicht gespeichert. Der Wortlaut steht in fragen.md, Frage 3.
+Am 02.09.2026 vorgelegt und nicht bewertbar zurückgekommen: 'kann nicht bewertet werden, da wir Kontext nicht verstehen. Wer sind die betroffenen Personen / warum kein Text'. Die nächste Vorlage muss beides mitliefern — Empfänger sind Eltern, die eine Bestätigung bekommen, bevor sie als Familie geführt werden, und der Mailtext wird bewusst nicht gespeichert. Der Wortlaut steht in fragen.md, „Versandte Mails an noch unbekannte Familien".
 <!-- SECTION:NOTES:END -->

@@ -87,6 +87,28 @@ Zwei Anlässe:
 Keine Willkommensmail, keine Bestätigung, keine Nachricht über eine neue Rolle — wer eine bekommt,
 merkt es daran, dass er hereinkommt.
 
+**Was das Portal überhaupt verschickt, zerfällt in drei Sorten**, und die Sorte entscheidet, ob ein
+Abmeldelink darunter steht. Sie gilt für jede Person, die eine Mail bekommt — auch für die mit
+laufendem Vertrag, nicht erst für Ehemalige:
+
+| Sorte | abwählbar | Beispiele |
+|---|---|---|
+| **Vorgangsmail** | nein | Fristende, Zusage, Rechnung, Einladung zum Elternabend |
+| **Schulinformation** | ja, aber **einer je Familie muss sie bekommen** | Rundschreiben, Termine, Schuljahresbeginn |
+| **Newsletter** | ja, ohne Untergrenze | Ehemalige, Förderkreis, Interessenten — und später einzeln für Ferienprogramm oder Akademie |
+
+Die Vorgangsmail trägt keinen Abmeldelink, weil sie nicht auf einer Einwilligung steht, sondern auf
+dem Vertrag: Wer sich vom Elternabend abmelden könnte, bekäme die nächste Vertragsfrist auch nicht
+mehr. Bei der **Schulinformation** greift die Untergrenze — sie hat zwei Folgen, die niemanden
+überraschen sollen: Ein alleiniger Sorgeberechtigter kann nicht abwählen, und scheidet der zweite
+aus, wird der Verbliebene wieder eingeschaltet, ohne dass ihn jemand fragt. Ein **neues Thema ist
+eine Zeile** und kein Bau; die feinere Aufteilung kommt, wenn jemand sie braucht, und nicht auf
+Verdacht.
+
+Abgewählt wird im Portal oder über den Link in der Mail selbst. **Der Widerspruch löscht nichts**,
+er setzt einen Zeitpunkt: Sonst wäre später nicht belegbar, dass ab diesem Tag nichts mehr
+geschrieben wurde, und die Adresse käme beim nächsten Import zurück.
+
 ## Dateien
 
 Keine.

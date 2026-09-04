@@ -55,6 +55,16 @@ Braucht sie: Schulvertrag, Gesundheitsdaten, Fotoeinverständnis, Werbe-Einwilli
 
 **Das Fotoeinverständnis hat den breitesten Leserkreis im System.** Alle Lehrkräfte, alle Hortmitarbeiter und das Sekretariat müssen im Alltag nachschlagen können, ob ein Kind fotografiert werden darf (`prozesse.md` Abschnitt 7.3) — es ist damit die einzige Zustimmung, die eine eigene, breit lesbare Ansicht braucht. Das steht nicht im Widerspruch zum engen Zugriff auf Q1 insgesamt: gelesen wird ein Ja/Nein je Kind, nicht der Zustimmungssatz mit Zustelladresse und Widerrufsspur.
 
+**Die Fotoerlaubnis überdauert als einzige ihren Anker.** Sie bleibt unbegrenzt
+(Datenschutzbeauftragter, 04.09.2026), das Kind aber nicht: Wenn der Lösch-Lauf es räumt, schreibt er
+den Nachweis vorher in einen eigenen Bestand daneben — Name, Geburtsdatum, Abgangsdatum, Schulzweig,
+erteilt und widerrufen — und dupliziert die Datei in die Bibliothek der Fotoerlaubnisse (unten, Q2).
+Die Zustimmungszeile selbst geht danach mit dem Kind wie jede andere. **Umgekehrt bei der
+Newsletter-Einwilligung:** Sie hält ihre Person fest, statt mit ihr zu gehen — ein Ehemaliger ohne
+Kind und ohne Familie ist ein Empfänger und kein Rest. Die Regel für beide steht in
+[17](soll-prozesse/17-loesch-lauf.md): Was seinen Anker überdauern muss, hält ihn fest; der Anker
+geht, wenn nichts mehr auf ihn zeigt.
+
 **Wie aus mehreren Antworten ein Ja/Nein wird.** Gefragt sind alle sorgeberechtigten Personen des Kindes, beim Fotoeinverständnis ab 14 zusätzlich das Kind selbst. Die Ansicht antwortet **Ja nur, wenn alle erwarteten Personen Ja gesagt haben** ([08](soll-prozesse/08-schulvertrag.md)) und keine Erteilung widerrufen ist; gar keine Zeile heißt Nein.
 
 - **Eine Ablehnung sperrt sofort**, auch gegen eine bereits vorliegende Erteilung — und sie ist kein Endzustand, sondern der Auftrag an das Sekretariat, mit beiden Eltern zu klären, was gilt. Bis dahin gilt Nein. Das ist dieselbe Regel wie beim Vertrag und gilt für **jeden** Sachverhalt, der beide Unterschriften braucht: Schulvertrag, Gesundheitsdaten, Fotoeinverständnis, Hortvertrag (`prozesse.md` Abschnitt 7.1).
@@ -120,8 +130,15 @@ Der Grund ist nicht Vorsicht, sondern Ausdruckskraft: **SharePoint kann Gruppen,
 | **Schülerakte** (was Weltenbaum erzeugt — Vertrag, Gesundheitsblatt, Fotoeinverständnis, SEPA-Mandat, dazu die Signaturbilder bis zum Abschluss — und was Menschen dazulegen: Urkunde, Zeugnis, Empfehlung, Beobachtungsbogen, Schriftverkehr) | schreibt und liest | **keine**, alles über Weltenbaum |
 | **Hortakte** (Absprachen, Verhaltensdokumentation, Beobachtungsbögen des Horts) | schreibt | Hortkräfte und Hortleitung, sonst niemand |
 | **Belege** (die Anhänge der Rechnungsfreigabe, `schema/rechnungsfreigabe-schema.sql`) | schreibt und liest | **keine** |
+| **Fotoerlaubnisse** (die Kopien, die der Lösch-Lauf anlegt, wenn er ein Kind räumt — `photo_consent_records` in `schema/querschnitt-schema.sql`) | schreibt und liest | **keine** |
 
 Die **Belege** tragen kein Kind, sondern Kassenzettel; ihr Ordner ist das Kalenderjahr des Belegs, und „Sekretariat und Schulleitung haben hier keine Sonderstellung" (12). Sie waren die **erste Bibliothek ohne menschlichen Direktzugriff** — abgelegt und ausgeliefert wird über `api/rechnungsfreigabe-api.md`, nach derselben Regel wie die Zeile daneben. Die Schülerakte folgt ihnen jetzt.
+
+Die **Fotoerlaubnisse** sind die einzige Bibliothek ohne Ordnerstruktur und die einzige, deren Inhalt
+zu keinem Kind mehr gehört: Sie führt die Kopien der Einverständniserklärungen, die den Lösch-Lauf
+überdauern müssen, weil ein veröffentlichtes Bild nicht verschwindet
+([08](soll-prozesse/08-schulvertrag.md), [17](soll-prozesse/17-loesch-lauf.md)). Ein Ordner je Kind
+wäre genau das, was hier fortfallen soll.
 
 **Die Schülerakte ist eine Bibliothek und nicht zwei**, und **an sie kommt kein Mensch direkt.** Ablegen, ansehen und herausgeben laufen über Weltenbaum: Das Sekretariat lädt den Scan am Kind hoch und wählt die Kategorie, Weltenbaum benennt die Datei und legt sie in den richtigen Unterordner. Der Mensch legt nicht selbst in die Bibliothek, die er ohnehin offen hat — das spräche für sich, spart aber nichts: Der schreibende Graph-Weg ist gebaut, die Rechnungsfreigabe legt ihre Belege darüber ab (`api/rechnungsfreigabe-api.md`), und hier wird er nur ein zweites Mal benutzt.
 
