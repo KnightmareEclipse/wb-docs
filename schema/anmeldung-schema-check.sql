@@ -1283,7 +1283,8 @@ SELECT pg_temp.expect_reject(
 
 -- Q3: „geht mit dem Vorgang, an dem die Zahlung hängt" — die Bewerbung nimmt
 -- die Anmeldegebühr mit, statt von ihr festgehalten zu werden. Der Vertrag
--- darüber trägt seine eigene, noch offene Frist und geht ihr voraus.
+-- darüber trägt seine eigene Frist — fünf Jahre nach dem Austritt (03) — und
+-- geht ihr voraus.
 SELECT pg_temp.expect_accept(
     'Q3 — die Anmeldegebühr geht mit ihrer Bewerbung',
     $q$DELETE FROM contracts    WHERE application_id = '77777777-7777-7777-7777-777777777772';

@@ -90,7 +90,7 @@ Abweichung eine Zeile.
 - `ruff check`, `ruff format --check`, `mypy app` ohne Befund.
 - `tests/test_privileges.py` und `tests/test_changelog.py` ausdrücklich genannt: Sie fangen die zwei
   Fehler, die von außen unsichtbar sind.
-- Die dreizehn Prüfskripte mit ihrem Rückgabewert.
+- Alle Prüfskripte aus `schema/` mit ihrem Rückgabewert.
 - **Ein Pull Request**, damit `ci` denselben Lauf unabhängig nachfährt. Ein Push auf `main` löst ihn
   nicht aus (`rules.md` Abschnitt 2) — und ein Bau, den nur die eigene Maschine gesehen hat, ist
   nicht geprüft, sondern nur beobachtet.

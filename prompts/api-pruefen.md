@@ -4,7 +4,7 @@ Gegenstück zu [`api-bauen.md`](api-bauen.md). Dort entsteht der Code, hier wird
 und mit ihm die Tests, die ihn grün melden. **Der Prüfer baut nicht und repariert nicht**; er
 meldet, und du entscheidest.
 
-**Dreizehn Läufe: zwölf Domänen, dann einer über alle.** Eine Session je Domäne, kopieren, `DOMÄNE`
+**Ein Lauf je Domäne, dazu einer über alle.** Eine Session je Domäne, kopieren, `DOMÄNE`
 ersetzen, absenden. Jede richtet sich ihren eigenen Arbeitsbaum samt eigener Datenbank ein und
 räumt ihn wieder ab — deshalb ist es gleich, ob du sie nacheinander startest oder drei
 nebeneinander. Mehr als drei bringt nichts: Je Session läuft eine Postgres, und die Suite ist
@@ -239,7 +239,7 @@ Es gelten `gemeinsam.md` und `CLAUDE.md` beider Repos.
    Session etwas liegen lassen.
 4. **Die Gegenprobe aufs Aufräumen**: `git status` sauber, `git worktree list` nur der Hauptbaum,
    `podman ps -a` und `podman volume ls` ohne `wbp-`.
-5. **Die Zusammenfassung aus den zwölf Dateien**, nicht aus dem Gedächtnis: die schwersten Funde mit
+5. **Die Zusammenfassung aus den Berichten je Domäne**, nicht aus dem Gedächtnis: die schwersten Funde mit
    ihrer Nummer, die zwei Zahlen, die Rückgabewerte, und eine Zeile, welche Domänen ohne Fund
    durchgekommen sind. Sie kommt nach `wb-docs/pruefberichte/routen.md`.
 

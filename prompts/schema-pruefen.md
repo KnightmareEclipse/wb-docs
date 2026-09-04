@@ -70,7 +70,7 @@ den das Zitat gehalten wird. Deshalb liegt **kein Fund in deinem Gedächtnis**:
 - **Den Schlussbericht erzeugst du aus der Datei**, nicht aus dem Kopf.
 
 Was über alle Domänen geht — Fehlerklasse 6 und der Gesamtlauf — kommt zum Schluss und mechanisch:
-`grep` und ein Ladelauf, nicht die Erinnerung an dreizehn Dateien.
+`grep` und ein Ladelauf, nicht die Erinnerung an ein Dutzend Dateien.
 
 ## Die sieben Fehlerklassen
 

@@ -11,7 +11,7 @@ Strich ist der Prompt.
 
 1. **Zitate und Belegstellen** — nur Kommentare, kein SQL. Zuerst, solange die Zeilennummern
    des Berichts noch stimmen.
-2. **Löschanker** — eine Regel für „geht mit X", dann über alle dreizehn Dateien.
+2. **Löschanker** — eine Regel für „geht mit X", dann über alle Dateien in `schema/`.
 3. **Flag ohne Bindung / Wert an zwei Orten** — zusammengesetzter Fremdschlüssel plus CHECK.
 4. **UNIQUE und Index, die reale Fälle abweisen** — die teuerste Klasse.
 5. **Fehlende Spalte oder Tabelle** — je Domäne, mit dem Block in der Hand.
@@ -90,7 +90,7 @@ Lösch-Lauf je Domäne als Gegenprobe schließt die Klasse dauerhaft; `gesundhei
 ## Wie du läufst
 
 Aufruf, `ON_ERROR_STOP=1` und Ladereihenfolge stehen in `CLAUDE.md`. Am Ende des Pakets läuft der
-Ladelauf in eine leere Datenbank und alle dreizehn Prüfskripte gegen die vollständige — nicht
+Ladelauf in eine leere Datenbank und alle Prüfskripte gegen die vollständige — nicht
 einzeln gegen ihre Voraussetzungen. Rückgabewert je Skript, nicht der Text auf dem Schirm. Geht das
 nicht, sag es einmal am Anfang und ändere nur, was ohne Datenbank entscheidbar ist.
 
