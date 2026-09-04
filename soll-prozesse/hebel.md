@@ -116,6 +116,32 @@ angenommen: Die Routinen laufen regelmäßig, und der Eingriff ist das Anhalten,
 ([Standardantworten](hebel.md#standardantworten)), ist keiner — dort geht es um Vorgänge, hier um
 Fristen, die ohne Lauf nie enden.
 
+## Warnung bei den letzten Plätzen
+
+Wo ein Angebot eine harte Platzzahl hat, bekommt die **anbietende Stelle** eine Warnung, sobald nur
+noch wenige frei sind — dieselbe Stelle, die auch die [Löschankündigung](#löschankündigung-und-anhalten)
+bekommt. Ferienprogramm ([10](10-ferienprogramm.md)) und Akademie ([21](21-akademie.md)) teilen sich
+den Mechanismus; es ist ein Lauf und nicht zwei.
+
+**Ab wann gewarnt wird, steht je Termin bzw. je Angebot und nicht als eine Zahl fürs ganze Haus.**
+„Fünf" ist der geäußerte Wunsch der Hortleitung und keine Regel: Ein Angebot mit zwölf Plätzen tickt
+anders als eines mit sechzig. **Leer heißt keine Warnung** — der Regelfall bleibt, dass keine geht.
+
+**Sie geht genau einmal je Termin.** Ohne eine Marke schickte der Lauf sie bei jedem Durchgang
+erneut, solange die Restplätze unter der Schwelle liegen, und die Stelle läse sie nach dem zweiten
+Mal nicht mehr.
+
+## Abmeldelink
+
+**Ein Abmeldelink gehört an eine Mail, die auf einer Einwilligung beruht — an keine andere.** Wer
+sich vom Elternabend abmelden könnte, bekäme die nächste Vertragsfrist auch nicht mehr: Die
+Einladung steht auf dem Vertrag, nicht auf einer Einwilligung. Ob eine Mail einen trägt, folgt
+deshalb aus ihrem Anlass und nicht aus einer Regel im Versand.
+
+**Ein Widerspruch löscht nichts, er setzt einen Zeitpunkt.** Sonst wäre später nicht belegbar, dass
+ab diesem Tag nichts mehr geschrieben wurde — und eine gelöschte Adresse kehrt beim nächsten Import
+zurück.
+
 ## Unzustellbare Mail
 
 Bleibt eine Mail unzustellbar, ist das im System sichtbar, und das Sekretariat geht dem nach. Das gilt für jede Mail aus jedem Prozess — mit **einer** Ausnahme, dem [Anmeldecode](hebel.md#zugang-und-anmeldecode). Er ist die Antwort auf eine soeben gestellte Anfrage; wer ihn nicht bekommt, fordert einen neuen, und eine Zeile je Anforderung legte dafür jede je eingetippte Fremdadresse ab. Sein Fehlschlag ist deshalb kein Fall fürs Sekretariat, sondern eine Betriebsstörung: Er meldet sich beim Betreiber (`container.md`), nicht in einer Liste.

@@ -237,8 +237,9 @@ CREATE TABLE consent_purposes (
 -- nur, wer *in* den Dateien arbeitet. Das ist genau eine Stelle im ganzen
 -- System: der Hort mit seinen fortgeschriebenen Dokumenten." Die Karte führt
 -- die Bibliotheken als Tabelle, und es sind drei: die **Schülerakte** — was
--- Weltenbaum erzeugt und was Menschen dazulegen, ein Ordner je Kind, und „an
--- sie kommt kein Mensch direkt"; die **Hortakte** — Absprachen, Verhalten,
+-- Weltenbaum erzeugt und was Menschen dazulegen, ein Ordner je Kind und darin
+-- ein Unterordner je Kategorie (`child_file_folders`), und „an sie kommt kein
+-- Mensch direkt"; die **Hortakte** — Absprachen, Verhalten,
 -- Beobachtungsbögen, gelesen und fortgeschrieben allein von Hortkräften und
 -- Hortleitung (09); und die **Belege** der Rechnungsfreigabe, ohne Kindbezug
 -- und ebenfalls ohne menschlichen Direktzugriff (12).

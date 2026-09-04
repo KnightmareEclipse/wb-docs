@@ -191,6 +191,9 @@ Drei Anlässe, Elternmails an alle Sorgeberechtigten mit Mailadresse
   Stelle ihn einträgt; sagt sie selbst ab, geht dieselbe Mail mit dem Grund und ohne Betrag an alle
   betroffenen Familien.
 - Und die **Meldung an die Hortleitung**, sobald Eltern einen Storno erklären.
+- Dazu die **Warnung bei den letzten Plätzen** an die Hortleitung, nach dem
+  [gemeinsamen Hebel](hebel.md#warnung-bei-den-letzten-plätzen): Ab wann gewarnt wird, setzt sie je
+  Termin, und wo sie nichts setzt, geht keine.
 
 Keine Erinnerung vor dem Termin, keine weitere Meldung nach innen — sie sieht ihre Buchungen. Für
 [unzustellbare Mails](hebel.md#unzustellbare-mail) gilt der gemeinsame Hebel.

@@ -126,8 +126,11 @@ wäre eine Aufforderung, dem eigenen Löschen zu widersprechen.
 
 ## Dateien
 
-Der Lauf erzeugt keine. Er **entfernt** welche: die von Weltenbaum abgelegten Unterlagen und den
-Ordner des Kindes in der Schülerakte, jeweils vor der Zeile, die auf sie zeigt. **Papierkorb und
+Der Lauf erzeugt keine. Er **entfernt** welche: die von Weltenbaum abgelegten Unterlagen und die
+Ordner des Kindes — in der Schülerakte einen je Kategorie, dazu den der Hortakte, wo einer
+angelegt wurde —, jeweils vor der Zeile, die auf sie zeigt. **Und die Blätter vor ihrem Ordner**:
+Eine Datei zeigt auf den Unterordner, in dem sie liegt, und ein zuerst geräumter Ordner nähme mit,
+was die Zeilen daneben noch behaupten. **Papierkorb und
 Versionsverlauf gehören zum Löschen** — ein über Graph gelöschter Ordner liegt sonst 93 Tage im
 Papierkorb der Site und danach noch einmal in dem der Sammlung, und die Zusage wäre nicht gehalten.
 Beide Stufen werden geleert, und mit dem Element gehen seine früheren Fassungen.

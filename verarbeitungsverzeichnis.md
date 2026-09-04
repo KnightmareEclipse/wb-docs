@@ -41,6 +41,7 @@ in `schema/` liegt.
 | Konfession, Staatsangehörigkeit, Beruf, Kirchengemeinde | Erhebung im Voranmeldebogen | **offen** — der Zweckbeschluss steht aus (TASK-038); ohne ihn trägt kein Feld eine Rechtsgrundlage |
 | Rechnungsfreigabe, Elternbonus | interne Freigabe und Verrechnung von Auslagen und Elternmitarbeit | `[A]` Art. 6 Abs. 1 lit. b gegenüber Mitarbeitenden, lit. f gegenüber Eltern |
 | Klassenbildung, Klassenorganisation, M365 | Zuordnung zu Klassen und Konten | `[A]` Art. 6 Abs. 1 lit. b |
+| Newsletter je Thema | Versand an Personen, die sich dafür eingetragen haben — Ehemalige, Förderkreis, Interessenten; der Bestand ist eine Zeile je Person und Thema in `consents` (`schema/querschnitt-schema.sql`) | `[A]` Art. 6 Abs. 1 lit. a — Einwilligung, jederzeit widerrufbar; der Widerruf löscht die Zeile nicht, er setzt einen Zeitpunkt |
 
 ## c) Kategorien betroffener Personen und ihrer Daten
 
@@ -51,6 +52,7 @@ in `schema/` liegt.
 | Erziehungsberechtigte | Name, Anschrift, Telefon, E-Mail, Familienzugehörigkeit, Vertrags- und Zahlungsbezug, Arbeitsstundenkonto |
 | Notfallkontakte | Name und Telefonnummer, sonst nichts |
 | Bewerber ohne Aufnahme | die Voranmeldedaten bis zum Ablauf ihrer Frist |
+| Newsletter-Empfänger ohne Vertragsverhältnis | Name und Mailadresse, dazu die Einwilligung je Thema — mehr nicht; sie hängen an keiner Familie und an keinem Kind. `[?]` Ihre Löschfrist steht aus (`backlog/`) |
 | Mitarbeitende | Entra-Object-ID, Name, Rolle; kein Personalaktendatum — das bleibt außerhalb (`grenzkarte.md`) |
 | Kinder im Hort | dazu die **Betreuungsakte** des Horts — Absprachen, Verhalten, Beobachtungsbögen. Sie enthält eine Bewertung, liegt in einer eigenen SharePoint-Bibliothek und wird allein vom Hort gelesen (`grenzkarte.md`, Q2) |
 | **Besondere Kategorien (Art. 9)** | Gesundheitsmerkmale und Masernnachweis (`schema/gesundheit-schema.sql`), Konfession (`schema/stammdaten-schema.sql`) |

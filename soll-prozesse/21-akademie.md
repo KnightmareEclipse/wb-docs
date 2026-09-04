@@ -196,6 +196,9 @@ Drei Anlässe, Elternmails an alle Sorgeberechtigten mit Mailadresse
 - Die **Abmeldebestätigung** mit dem entfallenen Angebot und dem berechneten Betrag; sagt die Stelle
   selbst ab, geht dieselbe Mail mit dem Grund und ohne Betrag an alle betroffenen Familien.
 - Die **Meldung an die anbietende Stelle**, sobald Eltern eine Abmeldung erklären.
+- Dazu die **Warnung bei den letzten Plätzen** an dieselbe Stelle, nach dem
+  [gemeinsamen Hebel](hebel.md#warnung-bei-den-letzten-plätzen): Ab wann gewarnt wird, setzt sie je
+  Angebot, und wo sie nichts setzt, geht keine.
 
 Keine Erinnerung vor dem ersten Termin. Für [unzustellbare Mails](hebel.md#unzustellbare-mail) gilt
 der gemeinsame Hebel.
