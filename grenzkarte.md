@@ -140,6 +140,11 @@ zu keinem Kind mehr gehört: Sie führt die Kopien der Einverständniserklärung
 ([08](soll-prozesse/08-schulvertrag.md), [17](soll-prozesse/17-loesch-lauf.md)). Ein Ordner je Kind
 wäre genau das, was hier fortfallen soll.
 
+**Und niemand behält eine Ausnahme:** Die Schulleitung gibt ihren heutigen Direktzugriff auf den
+Kohorten-Ordner ab und liest ebenfalls über das Portal (Geschäftsführung, 04.09.2026). Damit gilt der
+Satz oben wörtlich und nicht „bis auf eine Stelle" — was zu entziehen ist, steht als Aufgabe in
+`backlog/`.
+
 **Lehrkräfte sehen die Dateien der Schülerakte vorerst gar nicht** (Geschäftsführung, 04.09.2026) —
 und das trennt scharf zwischen Datei und Datenbank: Was an Gesundheitsangaben in der Datenbank steht,
 sieht eine Lehrkraft nach ihrer [Einsichtsstufe](soll-prozesse/hebel.md#einsichtsstufe) wie bisher;

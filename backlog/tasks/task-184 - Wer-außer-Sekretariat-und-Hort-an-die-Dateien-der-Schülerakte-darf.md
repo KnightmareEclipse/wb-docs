@@ -36,12 +36,12 @@ Offen bleibt allein die fachliche Frage, und die gehört der Schule: **Welche Ka
 
 **Am Weg aendert das Haekchen nichts:** Gelesen wird ueber Weltenbaum, nie ueber eine SharePoint-Berechtigung.
 
-Offen bleibt allein die zweite Haelfte der urspruenglichen Frage: ob die Schulleitung ihren heutigen Direktzugriff auf den Kohorten-Ordner abgibt.
+**Und die zweite Haelfte ist ebenfalls beantwortet: Die Schulleitung gibt ihren Direktzugriff ab** und liest ueber das Portal. Damit gilt die Zusage in grenzkarte.md woertlich — an die Schuelerakte kommt kein Mensch direkt, ohne Ausnahme. Der Entzug im Tenant ist Handarbeit und steht als eigenes Ticket; dieses hier ist damit inhaltlich geschlossen.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Benannt, welche Kategorien eine Lehrkraft sehen darf — und ob lesend oder auch ablegend
-- [ ] #2 Entschieden, ob die Schulleitung ihren Zugriff auf den Kohorten-Ordner abgibt und ebenfalls über Weltenbaum liest
-- [ ] #3 Die Sicht der Lehrkraft ist eine Positivliste von Arten, nicht von Kategorien — unbestimmte Dateien bleiben außen
+- [x] #1 Benannt: **keine**, vorerst. Das Häkchen je Kategorie steht (`is_teacher_readable`, Default false), und es gilt nur lesend — ein Ablegen-Recht wäre später eine zweite Spalte
+- [x] #2 Entschieden (04.09.2026): **Sie gibt ihn ab** und liest ebenfalls über das Portal. Der Entzug selbst ist Handarbeit im Tenant und steht als eigenes Ticket
+- [x] #3 Gegenstandslos, solange keine Kategorie offensteht: Die Sicht ist heute leer, und sie öffnet sich je Kategorie und nie je Datei — eine unbestimmte Datei liegt in einer Kategorie wie jede andere
 <!-- AC:END -->

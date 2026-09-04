@@ -1,6 +1,6 @@
 # Fragen an die Schule — was wen zu fragen ist
 
-Zweiundzwanzig Fragen, die Weltenbaum nicht selbst beantworten kann, sortiert nach dem Gespräch, in
+Einundzwanzig Fragen, die Weltenbaum nicht selbst beantworten kann, sortiert nach dem Gespräch, in
 das sie gehören. **Sie stehen nur hier** — das Arbeitspapier in `pruefberichte/` trägt, was die
 Mails gesagt haben und was wir daraus bauen, aber keine Frage mehr. Je Frage steht hier ihr **Wortlaut**, das **Kriterium**, an dem du erkennst, dass die
 Antwort reicht, und **woran sie hängt**.
@@ -141,7 +141,7 @@ Gegenzeichnung im Verarbeitungsverzeichnis.
 
 ---
 
-## Geschäftsführung — zwölf Fragen
+## Geschäftsführung — elf Fragen
 
 Die Vertragstexte stehen hier nicht mehr: Sie werden künftig anhand dessen nachgezogen, **was im
 Portal gebaut wird** — sie gehen keinem Ablauf mehr voraus und blockieren keine Domäne. Was daran zu
@@ -320,22 +320,7 @@ kein Mandat ist.
 
 *Steht in* `soll-prozesse/08-schulvertrag.md` · `backlog/` TASK-196
 
-### 14. Gibt die Schulleitung ihren Direktzugriff auf den Kohorten-Ordner ab?
-
-> „Für **Lehrkräfte** ist entschieden: Sie sehen die Dateien der Schülerakte vorerst gar nicht, und
-> wenn sich das ändert, läuft es über meinCLEMENS und nicht über SharePoint-Rechte (04.09.2026).
-> Offen ist die andere Hälfte: **Die Schulleitung hat heute direkten Zugriff auf den
-> Kohorten-Ordner.** Gibt sie ihn ab und liest ebenfalls über das Portal?"
-
-**Brauchbar ist die Antwort, wenn** sie ein Ja oder Nein trägt.
-
-**Daran hängt:** `backlog/` TASK-184 und die Zusage in `grenzkarte.md`, dass an die Schülerakte kein
-Mensch direkt kommt. Solange dieser eine Zugriff besteht, gilt sie mit einer Ausnahme, die
-niemand aus der Karte liest.
-
-*Steht in* `grenzkarte.md` · `oberflaechen.md` · `backlog/` TASK-184
-
-### 15. Wer welche Rolle vergeben darf — eine Bestätigung, keine offene Frage
+### 14. Wer welche Rolle vergeben darf — eine Bestätigung, keine offene Frage
 
 > „Die Regel steht und ist bestätigt: **jede Führungskraft vergibt die Rollen ihres Bereichs**, das
 > **Personalwesen alle übrigen**, und der **Admin jede**, damit niemand feststeckt. Was fehlt, ist
@@ -353,7 +338,7 @@ Wer den Bereich wechselt, bekommt die Rolle von der neuen Führungskraft und ver
 
 *Steht in* `soll-prozesse/hebel.md` · `glossar.md` · `backlog/` TASK-190
 
-### 16. Betreuungsvertragstext: drei Anpassungen — zusammen mit der Hortleitung
+### 15. Betreuungsvertragstext: drei Anpassungen — zusammen mit der Hortleitung
 
 > „Der Betreuungsvertrag in der Fassung vom 11.12.2025 passt an drei Stellen nicht zu dem, was
 > künftig läuft. **Erstens** endet die Betreuungsberechtigung mit dem Ende der Klasse 4 bzw. 5, ohne
@@ -378,7 +363,7 @@ kann** — der lässt sich nicht durch Bauen auflösen.
 
 ## Sekretariat — vier Fragen
 
-### 17. Zuordnung der Fremdsysteme — zusammen mit Buchhaltung und Admin
+### 16. Zuordnung der Fremdsysteme — zusammen mit Buchhaltung und Admin
 
 > „Wenn sich bei einem Kind oder einer Familie etwas ändert, muss das teilweise auch in ASV-BW,
 > Optigem oder M365 nachgezogen werden. Wir haben eine Zuordnung erstellt, welche Änderung wohin
@@ -394,7 +379,7 @@ Zuordnung dort zu weit gefasst.
 
 *Steht in* `soll-prozesse/02-datenaenderung.md:32`
 
-### 18. Bescheinigungen beim Abgang
+### 17. Bescheinigungen beim Abgang
 
 > „Wenn ein Kind die Schule verlässt — welche Papiere schreibt ihr routinemäßig? Abgangszeugnis,
 > Schulbescheinigung für die neue Schule, Bestätigung der Abmeldung?"
@@ -406,7 +391,7 @@ oder nur auf Anfrage entsteht.
 
 *Steht in* `soll-prozesse/03-irregulaerer-abgang.md:25`
 
-### 19. Aufgaben des Jahreswechsels — was tut das Sekretariat?
+### 18. Aufgaben des Jahreswechsels — was tut das Sekretariat?
 
 > „Der zweite Admin hat seinen Teil des Jahreswechsels aufgeschrieben: ASV-Export, Import nach
 > Vis365, Teams und Elternverteiler nachziehen. Was tut ihr in dieser Zeit — jedes Jahr wieder, und
@@ -425,7 +410,7 @@ bleibt Zuruf.
 
 *Steht in* `soll-prozesse/04-schuljahreswechsel.md:30` · `prozesse.md` Abschnitt 15
 
-### 20. Elternfragebogen der Grundschul-Checkliste — zusammen mit der Grundschulleitung
+### 19. Elternfragebogen der Grundschul-Checkliste — zusammen mit der Grundschulleitung
 
 > „Beim Anmeldetag der Grundschule bekommen die Eltern einen Fragebogen auf Papier mit. Was steht
 > darauf — und könnte er künftig vorab im Portal ausgefüllt werden?"
@@ -440,7 +425,7 @@ gebaut.
 
 ## Schulleitung — zwei Fragen
 
-### 21. Unterrichtlicher und außerunterrichtlicher Ausflug — ein Unterschied oder zwei Wörter?
+### 20. Unterrichtlicher und außerunterrichtlicher Ausflug — ein Unterschied oder zwei Wörter?
 
 > „Für die Klassenfahrt gibt es eine mehrseitige Erklärung, die die Eltern unterschreiben —
 > Einverständnis, Vollmacht, Kostenzusage, Belehrung. Für den Unterrichtsgang oder den Wandertag
@@ -460,7 +445,7 @@ aussähe, als hätte jemand vergessen zu fragen.
 
 *Steht in* `soll-prozesse/19-ausfluege-und-fahrten.md` (Kopf, die Tabelle der zwei Arten)
 
-### 22. Geburtsurkunde: wie prüft das Sekretariat künftig?
+### 21. Geburtsurkunde: wie prüft das Sekretariat künftig?
 
 > „Die Geburtsurkunde wird künftig nur noch **eingesehen** und nicht mehr kopiert — das ist
 > entschieden. Offen ist der Ablauf: Wann wird sie vorgelegt, wer sieht sie an, und was wird
