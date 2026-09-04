@@ -11,7 +11,7 @@ Christliche private Grund- und Realschule in Baden-Württemberg, Klasse 1–10, 
 Angebote für Schüler/Eltern im laufenden Schulbetrieb:
 - **Putzdienst:** Pflicht-Putztermine je Familie (regulär + Großputz), gegen Gebühr freikaufbar
 - **Hort:** Ganztagesbetreuung Klasse 1–4 in sechs buchbaren Modulen von der Frühbetreuung ab 7:00 bis 17:00, optional gegen Aufpreis, Ausweitung angedacht. Ein eigenes Modul deckt Realschule Klasse 5 nach der Mittagschule ab; **mit Klasse 5 endet das Angebot**. Der Hort nimmt auch Kinder auf, die weder Grund- noch Realschüler sind (`prozesse.md` Abschnitt 8)
-- **Hausaufgabenbetreuung:** nur als Bestandteil einzelner Hort-Nachmittagsmodule — welche eines tragen, sagt ein Häkchen am Modul und nicht die Uhrzeit, denn es gibt Module über Mittag ohne sie (`schema/anmeldung-schema.sql`); gesondert gebucht und berechnet wird sie nicht. Das frühere eigenständige Realschul-Angebot (Lernbetreuung) ist mangels Interesse eingestellt
+- **Hausaufgabenbetreuung:** nur als Bestandteil einzelner Hort-Nachmittagsmodule — welche eines tragen, sagt ein Häkchen am Modul und nicht die Uhrzeit, denn es gibt Module über Mittag ohne sie (`schema/anmeldung-schema.sql`); gesondert gebucht und berechnet wird sie nicht. Ein eigenständiges Realschul-Angebot (Lernbetreuung) gibt es nicht — mangels Interesse eingestellt
 - **AGs:** einzelne Arbeitsgemeinschaften
 - **Mensa:** Anmeldung je Wochentag als Schuljahres-Abo (Oktober–Juli, kündbar zum Halbjahr — Formular in `prozesse.md` Abschnitt 9), gebührenpflichtig, berechtigt zum Essen an den gebuchten Wochentagen; für Hortkinder folgt das Mittagessen automatisch aus Modulen mit Betreuung über 13 Uhr
 

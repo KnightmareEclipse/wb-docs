@@ -84,7 +84,7 @@ Drei Dinge sagt das Dateisystem nicht, deshalb stehen sie hier:
 - **Drei Schemata ohne Tabellen sind ihr Ergebnis, kein Versäumnis:** M365-Kontenverwaltung,
   Eltern-Selfservice, Klassenbildung. Ihr Prüfskript belegt genau das — dass nichts auf Verdacht
   entstanden ist.
-- **`schema/` ist durch fünf Prüfzyklen gegangen**, kein Fund blieb offen.
+- **Jeder Prüflauf über `schema/` ist geschlossen**, kein Fund blieb offen — der Beleg ist die reparierte `.sql` samt grünem Prüfskript, nicht eine Zahl von Zyklen.
 
 ## Arbeitsgänge
 
