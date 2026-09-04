@@ -34,7 +34,11 @@ ordinal: 199500
 | `template_checksum` | neu, sha256 über die Bytes, dieselbe Bauform wie `contracts.document_checksum` |
 | `frozen_at` | neu, wann eingefroren wurde |
 
-**Die Datei liegt bewusst in Postgres und nicht in SharePoint**, abweichend von `grenzkarte.md` („Die Dateien selbst bleiben in SharePoint"). Sie trägt keine Personendaten, ist klein (400 KB beim echten Vertrag), **muss unveränderlich sein** — und in der Bibliothek ist sie das nicht, dort haben Sekretariat und Geschäftsführung Vollzugriff (`sharepoint_libraries`) — und sie gehört in dieselbe Sicherung wie die Zeile, die auf sie zeigt. Die Abweichung gehört als Absatz in `grenzkarte.md`, nicht in einen Nebensatz.
+**Die Datei liegt bewusst in Postgres und nicht in SharePoint**, abweichend von `grenzkarte.md` („Die Dateien selbst bleiben in SharePoint"). Drei Gründe: Sie trägt keine Personendaten, sie ist klein (400 KB beim echten Vertrag), und sie **muss unveränderlich sein** — in einer Bibliothek ist sie das nicht, denn „wer Zugriff auf eine Bibliothek hat, kann dort löschen" (`oberflaechen.md`), und die App selbst schreibt dort. Dazu gehört sie in dieselbe Sicherung wie die Zeile, die auf sie zeigt: Eine Vorlage in SharePoint und ein Vertrag in Postgres können beim Wiederherstellen auseinanderlaufen.
+
+Ein vierter Grund ist seit `5024721` weggefallen und steht hier, damit ihn niemand wieder aufgreift: Der Vollzugriff für Sekretariat und Geschäftsführung auf die erzeugten Unterlagen existiert nicht mehr — an Schülerakte und Belege kommt kein Mensch direkt. Das schwächt die Abweichung, hebt sie aber nicht auf.
+
+Die Abweichung gehört als Absatz in `grenzkarte.md`, nicht in einen Nebensatz.
 
 `code`, `valid_from` und `uq_contract_texts` bleiben unangetastet. Die Regel bleibt ebenfalls: eine angekündigte Fassung lässt sich ersetzen oder zurücknehmen, eine erreichte nie — auch dann nicht, wenn kein Vertrag auf sie zeigt, denn sie beantwortet „welcher Wortlaut galt am 1. September".
 <!-- SECTION:DESCRIPTION:END -->

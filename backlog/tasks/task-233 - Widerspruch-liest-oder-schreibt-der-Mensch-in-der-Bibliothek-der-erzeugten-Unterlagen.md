@@ -1,11 +1,10 @@
 ---
 id: TASK-233
-title: >-
-  Widerspruch: liest oder schreibt der Mensch in der Bibliothek der erzeugten
-  Unterlagen
+title: Die Abschlussnotiz von TASK-111 und der Bibliothekscode app_documents
 status: To Do
 assignee: []
 created_date: '2026-09-04 00:20'
+updated_date: '2026-09-04 00:29'
 labels:
   - wb-docs
 milestone: m-5
@@ -16,18 +15,20 @@ ordinal: 245000
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Zwei Stellen stehen im Präsens nebeneinander und sagen Verschiedenes:
+**Der Widerspruch in der Doku ist mit `5024721` aufgelöst**, und zwar in die andere Richtung als angenommen: `oberflaechen.md`, `schema/querschnitt-schema.sql` und `grenzkarte.md` sagen jetzt übereinstimmend, dass es **drei** Bibliotheken gibt und dass an Schülerakte und Belege **kein Mensch direkt** kommt — Direktzugriff hat allein der Hort auf seine Hortakte. Der Satz über den Vollzugriff für Sekretariat und Geschäftsführung ist gestrichen.
 
-- **`oberflaechen.md`** (Abschnitt SharePoint-Dateispeicher): „in der ersten legt die App die erzeugten Unterlagen ab und **Menschen lesen nur**". Dieselbe Aussage trägt die Abschlussnotiz von TASK-111 und dessen Abnahmekriterium #2.
-- **`schema/querschnitt-schema.sql`** am Kommentar zu `sharepoint_libraries`: „Entschieden nach der Abnahme … Der Preis ist benannt — die erzeugten Unterlagen sind für Sekretariat und Geschäftsführung **nicht mehr nur lesbar**. Dass ein Vertrag nachträglich verändert wurde, zeigt danach allein die Prüfsumme; verhindern kann sie es nicht."
+**Zwei Reste bleiben.**
 
-Welche gilt, entscheidet mehr als eine Formulierung: An ihr hängt, ob die eingefrorene Vorlagendatei in SharePoint liegen könnte (TASK-222 legt sie aus genau diesem Grund nach Postgres) und wie belastbar die Zusage „niemand ändert einen Vertrag still" ist.
+**Erstens: TASK-111 stimmt weiterhin nicht.** Sein Abnahmekriterium #2 und die Abschlussnotiz sagen „in der Bibliothek, in der Menschen nur lesen". Nach dem neuen Stand lesen Menschen dort gar nicht — sie kommen über Weltenbaum. Die Notiz ist also weiter falsch, nur in die andere Richtung. Sie gehört auf den heutigen Stand gebracht oder als überholt gekennzeichnet.
 
-Aufgefallen beim Durchgehen der Dokumenterzeugung am 04.09.2026.
+**Zweitens, und das ist der größere Fund:** `wb-backend` legt die erzeugten Dokumente in eine Bibliothek mit dem Code **`app_documents`** (`GENERATED_LIBRARY` in `app/services/anmeldung.py`, benutzt an vier Stellen). Die Doku kennt seit `5024721` drei Bibliotheken — Schülerakte, Hortakte, Belege — und sagt, die erzeugten Unterlagen lägen **in der Schülerakte**. Eine vierte namens `app_documents` gibt es dort nicht.
+
+Entweder ist `app_documents` der Code der Schülerakte, dann ist der Name irreführend und gehört umbenannt; oder das Backend legt tatsächlich woanders ab als die Doku beschreibt, dann ist es eine Abweichung. Beides ist zu klären, bevor jemand die Bibliotheken beim Aufsetzen anlegt.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 oberflaechen.md und querschnitt-schema.sql sagen dasselbe ueber den Zugriff auf die Bibliothek
+- [x] #1 oberflaechen.md und querschnitt-schema.sql sagen dasselbe ueber den Zugriff auf die Bibliothek
 - [ ] #2 Die Abschlussnotiz von TASK-111 stimmt mit dem Ergebnis ueberein oder ist als ueberholt gekennzeichnet
+- [ ] #3 Geklaert, ob app_documents der Code der Schuelerakte ist — und wenn ja, ob der Name bleibt
 <!-- AC:END -->
