@@ -24,6 +24,7 @@ Antwort auf die falsche Frage.
 | `glossar.md` | Das Rollen-Vokabular, repo-übergreifend gültig — Infra-Admin vs. Admin vs. Verwaltung |
 | `host.md`, `container.md`, `deploy.md`, `runbook.md` | Die Maschine: Server und Firewall, Runtime und Stack, Ausrollen, Neuaufbau von Hand |
 | `zugang.md`, `oberflaechen.md` | Wer wie hereinkommt (Entra-ID, OTP, Rollen) und wo die Oberflächen liegen |
+| `dokumente.md` | Wie aus Word-Vorlage und Daten eine Urkunde wird — Fassung einfrieren, rendern, und was eine neue Vertragsart kostet |
 | `backup.md`, `dsgvo.md`, `repos.md` | Sicherung und Wiederherstellung, die organisatorischen DSGVO-Pflichten, der Schnitt der Repos |
 | `verarbeitungsverzeichnis.md` | Der Eintrag nach Art. 30 für dieses eine Verfahren — Zwecke, Datenkategorien, Empfänger, Fristen, Maßnahmen |
 | `folgenabschaetzung.md` | Die Bewertung des Art.-9-Bestands nach Art. 35 — Risiken, Abhilfen und ihr Stand, und die Sperre, die am Livegang der Gesundheitsangaben hängt |
@@ -169,9 +170,9 @@ abgewogene Alternative samt Preis steht in der Architektur-Datei, die den Mechan
   Quadlet-Unit neben Compose, HTTP/3 aus und Port 80 trotzdem offen" ist ein Grund. An dieser Regel
   hört eine `.md` auf zu wachsen.
 - **Der Verweis geht in beide Richtungen, über einen Pfad.** Jede Architektur-Datei (`host.md`,
-  `container.md`, `deploy.md`, `zugang.md`, `oberflaechen.md`, `backup.md`) nennt im Kopf den Pfad,
-  der sie umsetzt — kein Rollen- oder Skriptname in Prosa. Jeder Mechanismus
-  im Code, dessen Alternative abgewogen wurde, nennt die `.md` beim Pfad: Zusammenfassung plus
+  `container.md`, `deploy.md`, `zugang.md`, `oberflaechen.md`, `dokumente.md`, `backup.md`) nennt im
+  Kopf den Pfad, der sie umsetzt — kein Rollen- oder Skriptname in Prosa. Jeder Mechanismus im Code,
+  dessen Alternative abgewogen wurde, nennt die `.md` beim Pfad: Zusammenfassung plus
   Verweis, nie eine zweite Vollfassung.
 
 ## Dokumentationsstil

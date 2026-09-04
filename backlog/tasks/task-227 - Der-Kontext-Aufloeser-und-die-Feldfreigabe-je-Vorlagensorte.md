@@ -4,6 +4,7 @@ title: Der Kontext-Aufloeser und die Feldfreigabe je Vorlagensorte
 status: To Do
 assignee: []
 created_date: '2026-09-04 00:19'
+updated_date: '2026-09-04 12:37'
 labels:
   - wb-backend
   - dsgvo
@@ -35,6 +36,8 @@ Damit ist ein neues Merkmal im Sichtkreis `care` in der Vorlage verfügbar, soba
 
 `{%p if %}` über denselben Namensraum bleibt erlaubt und ist erwünscht: So schaltet die Geschäftsführung ganze Absätze, ohne dass deren Text im Code landet. Die Regel dahinter: **Aus den Daten kommen Werte und Zeilen, aus der Vorlage kommt jeder Satz.**
 
+**Zwei Nachtraege vom 04.09.2026.** Erstens: „Die Vorschau laeuft nur gegen Beispieldaten" galt hier fuer die **Vorlagen**-Vorschau und ist als Satz zu weit geraten — die Eltern sehen ihren eigenen gefuellten Vertrag vor der Unterschrift, das verlangt 08 Z3, und es ist keine Vorschau einer Vorlage, sondern die Ansicht der eigenen Daten (`dokumente.md`, `api/anmeldung-api.md`). Zweitens: Der Torwaechter aus dieser Deklaration traegt an Unterfeldern nichts, solange er auf `find_undeclared_variables` steht — gemessen, siehe TASK-239. Das Beispiel oben (`{{ gesundheit.hiv }}` im Ferienbrief) scheitert damit heute **nicht**.
+
 `[?]` Die Namen der Platzhalter sind extern sichtbar — die Geschäftsführung tippt sie. Deutsch oder englisch, `{{ kind_name }}` oder `{{ child_name }}`. — Betreiber
 <!-- SECTION:DESCRIPTION:END -->
 
@@ -44,6 +47,6 @@ Damit ist ein neues Merkmal im Sichtkreis `care` in der Vorlage verfügbar, soba
 - [ ] #2 StrictUndefined ist gesetzt: ein unbekannter Name wirft, statt leer zu rendern
 - [ ] #3 Die Freigabe laeuft je Namensraum und fuer Gesundheit je Sichtkreis — ein neues Merkmal ist damit kein Code
 - [ ] #4 presence_only zieht mit: wo der Sichtkreis nur das Vorliegen sieht, steht das auch im Dokument
-- [ ] #5 Die Vorschau laeuft nur gegen Beispieldaten, nie gegen ein echtes Kind
-- [ ] #6 Die Namen der Platzhalter sind mit dem Betreiber besprochen — sie sind extern sichtbar
+- [ ] #5 Die Namen der Platzhalter sind mit dem Betreiber besprochen — sie sind extern sichtbar
+- [ ] #6 Die Vorlagen-Vorschau laeuft nur gegen Beispieldaten — die Ansicht der eigenen Familie auf ihren eigenen Vertrag ist davon unberuehrt (GET /contracts/{id}/document)
 <!-- AC:END -->

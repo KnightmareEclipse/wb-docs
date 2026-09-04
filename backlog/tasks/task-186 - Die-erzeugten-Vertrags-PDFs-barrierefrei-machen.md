@@ -4,7 +4,7 @@ title: Die erzeugten PDFs barrierefrei machen — gemessene Arbeitsliste
 status: To Do
 assignee: []
 created_date: '2026-09-01 20:14'
-updated_date: '2026-09-04 00:17'
+updated_date: '2026-09-04 12:38'
 labels:
   - wb-backend
   - anmeldung
@@ -28,6 +28,8 @@ Das BFSG gilt (Geschäftsführung, 01.09.2026, TASK-118), damit fällt auch der 
 3. **`Scope` an die `TH`-Zellen** (veraPDF 7.5-1). Word markiert Kopfzeile *und* erste Spalte als `TH`, damit ist die Tabellenstruktur nicht mehr aus sich heraus lesbar.
 4. **Alternativtext an jedes eingefügte Bild.** `docxtpl` setzt keinen — gemessen: 0 von 2 Unterschriftsbildern, veraPDF 7.3-1 zweimal verletzt. Mit `descr` je Bild: PASS. Der Text kommt aus demselben Objekt wie das Bild („Unterschrift von {Name}") und skaliert damit von allein.
 
+**Die Reihenfolge ist nicht gleichgueltig** (04.09.2026): Heute steht `sha256(pdf)` ueber denselben Bytes, die hochgeladen werden — das haelt. Schiebt sich die Nachbearbeitung dazwischen, ohne dass der Hash mitwandert, weicht `contracts.document_checksum` ab dem ersten Vertrag von der abgelegten Datei ab, und zwar lautlos: Niemand vergleicht sie heute (TASK-240).
+
 **Sechs Regeln am echten Schulvertrag**, alle in Word zu beheben, keine davon Code:
 
 | Regel | Was fehlt |
@@ -48,4 +50,5 @@ Das BFSG gilt (Geschäftsführung, 01.09.2026, TASK-118), damit fällt auch der 
 - [ ] #3 Die vier Word-Vorlagen tragen Ueberschriftenebenen, Dokumenttitel, echte Listen, ausgezeichnete Kopfzeile und Alternativtexte
 - [ ] #4 Ein erzeugtes PDF ist gegen veraPDF gelaufen und besteht PDF/UA-1 — nicht nur angesehen
 - [ ] #5 Die Regel steht bei der Vorlage, damit die naechste sie mitbekommt
+- [ ] #6 Die Pruefsumme wird ueber die Bytes gebildet, die abgelegt werden — also hinter der Nachbearbeitung, sonst beschreibt sie eine Datei, die es nicht mehr gibt
 <!-- AC:END -->

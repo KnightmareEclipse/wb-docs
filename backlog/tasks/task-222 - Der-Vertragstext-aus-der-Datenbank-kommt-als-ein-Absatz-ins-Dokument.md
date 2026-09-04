@@ -10,8 +10,7 @@ labels:
   - wb-docs
   - wb-backend
 milestone: m-2
-dependencies:
-  - TASK-186
+dependencies: []
 references:
   - schema/querschnitt-schema.sql
   - soll-prozesse/hebel.md
@@ -39,6 +38,8 @@ ordinal: 199500
 Ein vierter Grund ist seit `5024721` weggefallen und steht hier, damit ihn niemand wieder aufgreift: Der Vollzugriff für Sekretariat und Geschäftsführung auf die erzeugten Unterlagen existiert nicht mehr — an Schülerakte und Belege kommt kein Mensch direkt. Das schwächt die Abweichung, hebt sie aber nicht auf.
 
 Die Abweichung gehört als Absatz in `grenzkarte.md`, nicht in einen Nebensatz.
+
+**Die Abhängigkeit auf TASK-186 ist gestrichen** (04.09.2026): Sie saß hier falsch. Diese Spalten sind eine Schemaänderung und warten auf nichts; PDF/UA trifft das **Einfrieren** und das **Rendern** — also TASK-228 und TASK-186 selbst.
 
 `code`, `valid_from` und `uq_contract_texts` bleiben unangetastet. Die Regel bleibt ebenfalls: eine angekündigte Fassung lässt sich ersetzen oder zurücknehmen, eine erreichte nie — auch dann nicht, wenn kein Vertrag auf sie zeigt, denn sie beantwortet „welcher Wortlaut galt am 1. September".
 <!-- SECTION:DESCRIPTION:END -->

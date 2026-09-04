@@ -4,13 +4,14 @@ title: contract_text_kinds definiert die Dokumentsorte vollstaendig
 status: In Progress
 assignee: []
 created_date: '2026-09-04 00:18'
-updated_date: '2026-09-04 01:05'
+updated_date: '2026-09-04 12:37'
 labels:
   - schema
   - wb-docs
   - wb-backend
 milestone: m-5
-dependencies: []
+dependencies:
+  - TASK-235
 ordinal: 237000
 ---
 

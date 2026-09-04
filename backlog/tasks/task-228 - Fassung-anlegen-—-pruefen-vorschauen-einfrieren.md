@@ -4,10 +4,14 @@ title: 'Fassung anlegen — pruefen, vorschauen, einfrieren'
 status: To Do
 assignee: []
 created_date: '2026-09-04 00:19'
+updated_date: '2026-09-04 12:37'
 labels:
   - wb-backend
 milestone: m-5
-dependencies: []
+dependencies:
+  - TASK-186
+  - TASK-242
+  - TASK-239
 ordinal: 240000
 ---
 
