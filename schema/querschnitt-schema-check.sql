@@ -110,7 +110,8 @@ BEGIN
         'ck_mail_categories_floor',
         'pk_photo_consent_records', 'fk_photo_consent_records_branch',
         'fk_photo_consent_records_library', 'uq_photo_consent_records_graph_item',
-        'ck_photo_consent_records_file', 'ck_photo_consent_records_revoked', 'fk_consents_purpose',
+        'ck_photo_consent_records_file', 'ck_photo_consent_records_revoked',
+        'ck_child_file_categories_code', 'fk_consents_purpose',
         'uq_consent_purposes_unsub', 'fk_outbound_emails_topic',
         'ck_outbound_emails_topic', 'ck_outbound_emails_topic_person',
         'ck_consents_child',
@@ -1212,6 +1213,38 @@ SELECT pg_temp.expect_reject(
 
 -- Die drei Sorten Mail: Eine Untergrenze je Familie an einer Kategorie, die
 -- ohnehin niemand abwählen kann, ist gegenstandslos.
+-- ---------------------------------------------------------------------------
+-- Die Schuelerakte: kein Lehrerzugriff, solange niemand ihn setzt
+-- ---------------------------------------------------------------------------
+-- 'Vorerst soll kein Lehrer Zugriff auf die direkte Schuelerakte haben'
+-- (Geschaeftsfuehrung, 04.09.2026). Die Voreinstellung traegt das, ohne dass es
+-- jemand je Kategorie eintragen muesste — und der Anlass fuers spaetere
+-- Umlegen ist das Attest.
+DO $$
+DECLARE offen text;
+BEGIN
+    SELECT string_agg(code, ', ') INTO offen
+    FROM child_file_categories WHERE is_teacher_readable;
+    IF offen IS NOT NULL THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — Kategorien stehen fuer Lehrkraefte offen: %', offen;
+    END IF;
+    RAISE NOTICE 'ok (erlaubt): 04.09.2026 — keine Aktenkategorie ist fuer Lehrkraefte lesbar';
+END $$;
+
+-- Und die Voreinstellung greift auch bei einer neu angelegten Kategorie: Wer
+-- eine dazunimmt, oeffnet sie nicht versehentlich mit.
+INSERT INTO child_file_categories (child_file_category_id, code, name, created_by)
+    OVERRIDING SYSTEM VALUE
+    VALUES (900, 'neue_kategorie', 'Neue Kategorie', 'system:check');
+DO $$
+BEGIN
+    IF (SELECT is_teacher_readable FROM child_file_categories
+         WHERE code = 'neue_kategorie') THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — eine neue Kategorie steht Lehrkraeften offen';
+    END IF;
+    RAISE NOTICE 'ok (erlaubt): eine neu angelegte Kategorie ist zu, bis jemand sie oeffnet';
+END $$;
+
 SELECT pg_temp.expect_reject(
     '00 — Untergrenze je Familie an einer nicht abwählbaren Kategorie',
     $q$INSERT INTO mail_categories (code, name, is_unsubscribable,

@@ -127,7 +127,7 @@ Der Grund ist nicht Vorsicht, sondern Ausdruckskraft: **SharePoint kann Gruppen,
 
 | Bibliothek | App | Menschen |
 |---|---|---|
-| **Schülerakte** (was Weltenbaum erzeugt — Vertrag, Gesundheitsblatt, Fotoeinverständnis, SEPA-Mandat, dazu die Signaturbilder bis zum Abschluss — und was Menschen dazulegen: Urkunde, Zeugnis, Empfehlung, Beobachtungsbogen, Schriftverkehr) | schreibt und liest | **keine**, alles über Weltenbaum |
+| **Schülerakte** (was Weltenbaum erzeugt — Vertrag, Gesundheitsblatt, Fotoeinverständnis, SEPA-Mandat, dazu die Signaturbilder bis zum Abschluss — und was Menschen dazulegen: Urkunde, Zeugnis, Empfehlung, Beobachtungsbogen, Schriftverkehr) | schreibt und liest | **keine**, alles über Weltenbaum — auch für Lehrkräfte (unten) |
 | **Hortakte** (Absprachen, Verhaltensdokumentation, Beobachtungsbögen des Horts) | schreibt | Hortkräfte und Hortleitung, sonst niemand |
 | **Belege** (die Anhänge der Rechnungsfreigabe, `schema/rechnungsfreigabe-schema.sql`) | schreibt und liest | **keine** |
 | **Fotoerlaubnisse** (die Kopien, die der Lösch-Lauf anlegt, wenn er ein Kind räumt — `photo_consent_records` in `schema/querschnitt-schema.sql`) | schreibt und liest | **keine** |
@@ -139,6 +139,16 @@ zu keinem Kind mehr gehört: Sie führt die Kopien der Einverständniserklärung
 überdauern müssen, weil ein veröffentlichtes Bild nicht verschwindet
 ([08](soll-prozesse/08-schulvertrag.md), [17](soll-prozesse/17-loesch-lauf.md)). Ein Ordner je Kind
 wäre genau das, was hier fortfallen soll.
+
+**Lehrkräfte sehen die Dateien der Schülerakte vorerst gar nicht** (Geschäftsführung, 04.09.2026) —
+und das trennt scharf zwischen Datei und Datenbank: Was an Gesundheitsangaben in der Datenbank steht,
+sieht eine Lehrkraft nach ihrer [Einsichtsstufe](soll-prozesse/hebel.md#einsichtsstufe) wie bisher;
+das **Attest als Datei** sieht sie nicht. Dass sich das ändern lässt, ist mitgebaut: Jede
+Aktenkategorie trägt ein Häkchen, ob Lehrkräfte sie lesen dürfen, und es steht überall auf **nein** —
+„ganz und auch nur begrenzt" ist damit dieselbe Mechanik, alle Häkchen oder einige. Der Anlass, aus
+dem es die Möglichkeit überhaupt gibt, ist benannt: **Wer ein Medikament verabreicht, will
+womöglich den genauen Wortlaut des Attests lesen.** Am Weg ändert ein umgelegtes Häkchen nichts —
+gelesen wird über Weltenbaum, nie über eine SharePoint-Berechtigung.
 
 **Die Schülerakte ist eine Bibliothek und nicht zwei**, und **an sie kommt kein Mensch direkt.** Ablegen, ansehen und herausgeben laufen über Weltenbaum: Das Sekretariat lädt den Scan am Kind hoch und wählt die Kategorie, Weltenbaum benennt die Datei und legt sie in den richtigen Unterordner. Der Mensch legt nicht selbst in die Bibliothek, die er ohnehin offen hat — das spräche für sich, spart aber nichts: Der schreibende Graph-Weg ist gebaut, die Rechnungsfreigabe legt ihre Belege darüber ab (`api/rechnungsfreigabe-api.md`), und hier wird er nur ein zweites Mal benutzt.
 

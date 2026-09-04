@@ -320,21 +320,18 @@ kein Mandat ist.
 
 *Steht in* `soll-prozesse/08-schulvertrag.md` · `backlog/` TASK-196
 
-### 14. Was eine Lehrkraft in der Schülerakte sehen darf
+### 14. Gibt die Schulleitung ihren Direktzugriff auf den Kohorten-Ordner ab?
 
-> „Lehrkräfte sollen auf die Schülerakte zugreifen können. Der Weg ist entschieden: **niemand
-> bekommt dafür SharePoint-Rechte** — gelesen wird über meinCLEMENS, und dort gilt je Aufruf dieselbe
-> Regel wie für die Daten daneben. Offen ist die fachliche Seite: **Welche Kategorien darf eine
-> Lehrkraft sehen — und darf sie auch etwas ablegen oder nur lesen?** Zeugnis und Beobachtungsbogen
-> sind etwas anderes als Vertrag und Gesundheitsblatt. **Zweitens:** Gibt die Schulleitung ihren
-> heutigen Direktzugriff auf den Kohorten-Ordner ab und liest ebenfalls über das Portal?"
+> „Für **Lehrkräfte** ist entschieden: Sie sehen die Dateien der Schülerakte vorerst gar nicht, und
+> wenn sich das ändert, läuft es über meinCLEMENS und nicht über SharePoint-Rechte (04.09.2026).
+> Offen ist die andere Hälfte: **Die Schulleitung hat heute direkten Zugriff auf den
+> Kohorten-Ordner.** Gibt sie ihn ab und liest ebenfalls über das Portal?"
 
-**Brauchbar ist die Antwort, wenn** die Kategorien als Positivliste benannt sind — was nicht
-draufsteht, sieht sie nicht — und lesend von ablegend getrennt ist.
+**Brauchbar ist die Antwort, wenn** sie ein Ja oder Nein trägt.
 
-**Daran hängt:** `backlog/` TASK-184. Welche **Kinder** eine Lehrkraft sieht, ist schon beantwortet
-(TASK-161); welche **Kategorien** es überhaupt gibt, hängt am Datenschutzbeauftragten (TASK-058.10).
-Diese Frage ist die dritte Achse und die einzige, die der Schule gehört.
+**Daran hängt:** `backlog/` TASK-184 und die Zusage in `grenzkarte.md`, dass an die Schülerakte kein
+Mensch direkt kommt. Solange dieser eine Zugriff besteht, gilt sie mit einer Ausnahme, die
+niemand aus der Karte liest.
 
 *Steht in* `grenzkarte.md` · `oberflaechen.md` · `backlog/` TASK-184
 

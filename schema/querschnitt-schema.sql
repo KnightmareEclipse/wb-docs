@@ -392,6 +392,24 @@ CREATE TABLE child_file_categories (
     -- Auswahlfeld, lässt aber jede Zeile stehen, die schon auf ihn zeigt
     -- (rules.md Abschnitt 3).
     is_active              boolean NOT NULL DEFAULT true,
+    -- Ob eine Lehrkraft die Dateien dieser Kategorie **lesen** darf.
+    -- **Voreinstellung: nein**, und heute steht sie bei keiner Kategorie auf ja
+    -- (Geschäftsführung, 04.09.2026): „Vorerst soll kein Lehrer Zugriff auf die
+    -- direkte Schülerakte haben." Gemeint sind die **Dateien** — was in der
+    -- Datenbank steht, regelt die Einsichtsstufe und ist davon unberührt (08,
+    -- hebel.md).
+    -- Der benannte Anlass, aus dem es die Spalte überhaupt gibt: **das Attest.**
+    -- Wer ein Medikament verabreicht, will unter Umständen den genauen Wortlaut
+    -- lesen und nicht nur die Angabe daneben (gesundheit-schema.sql). Deshalb
+    -- ein Häkchen **je Kategorie** und kein globaler Schalter: „ganz und auch
+    -- nur begrenzt" ist damit dieselbe Mechanik — alle Häkchen oder einige.
+    -- Bewusst NUR Lesen und kein zweites Häkchen fürs Ablegen: Der Anlass ist
+    -- Nachlesen, und ein Recht ohne Anlass wäre eines, das niemand begründen
+    -- kann. Ein Ablegen-Recht wäre später eine zweite Spalte und kein Umbau.
+    -- Und es ändert nichts am Weg: Gelesen wird **über Weltenbaum**, nie über
+    -- eine SharePoint-Berechtigung — „an die Schülerakte kommt kein Mensch
+    -- direkt" (grenzkarte.md, Q2) gilt für die Lehrkraft wie für alle anderen.
+    is_teacher_readable    boolean NOT NULL DEFAULT false,
     created_at             timestamptz NOT NULL DEFAULT now(),
     created_by             text NOT NULL,
 
