@@ -32,7 +32,7 @@ Zeitliche Einordnung steht im Jahreskalender in `fachdomaenen.md` Abschnitt 1; h
 | Putzdienst | Jotform + Power Automate, vor Ort Papier | Sekretariat | Freikauf/Strafe | 1 |
 | Elternbonus Elternmitarbeit | reiner Papierprozess | Sekretariat | Rückzahlung über Schulgeldabrechnung | 11 |
 | Rechnungsfreigabe | SPFx-Teams-App + Power Automate + SharePoint | Buchhaltung/Führungskräfte | — | 5 |
-| M365-Konten | Vis365, Handarbeit | zweiter Admin | — | 7 |
+| M365-Konten | Vis365: Jahrgang per Import, Einzelfall von Hand | zweiter Admin | — | 7 |
 | Schuljahreswechsel | ASV-BW-CSV + Handarbeit | Sekretariat + zweiter Admin | — | Stammdaten (Jahreslauf) |
 | Abgang/Schulwechsel | Zuruf, kein Prozess | Sekretariat + Schulleitung | — | Stammdaten (siehe 16) |
 | DSGVO-Auskunft | kein Prozess, digitale Schülerakte in SharePoint | Sekretariat | — | — |
@@ -411,20 +411,50 @@ Dateien und Daten liegen vollständig in **SharePoint**, kein Excel.
 
 ## 14. M365-Kontenverwaltung (heute Vis365)
 
-Vollständig Handarbeit des zweiten Admins.
+**Der Jahrgang läuft automatisiert, der Einzelfall ist Handarbeit** — und die beiden reißen an
+verschiedenen Stellen.
 
-- **August:** Konten der neuen Schüler für das kommende Schuljahr anlegen.
-- Mitarbeiter und Schüler, die gehen, werden von Hand gelöscht — **sofern es dem zweiten Admin mitgeteilt wird**.
-- **Offboarding:** automatische Antwort einrichten, Passwort hart zurücksetzen, Konto nach einer Frist vollständig löschen.
-- Die Information kommt meist aus Sekretariat oder Geschäftsführung — genau dort reißt der Faden (siehe Abschnitt 16).
-- Getrennte Domains im gemeinsamen Tenant mit der KITA: Schüler `c-schule.de`, Schulmitarbeiter `clemens.schule`, KITA-Mitarbeiter `clemenskita.de`.
+- **Der Jahrgang:** Konten der neuen Schüler entstehen aus dem Schulverwaltungsimport in Vis365
+  (Abschnitt 15), nicht von Hand. Alle importierten Benutzer werden der Organisation „Clemens
+  Schule" zugewiesen; **daraus folgen Mail-Domain und Lizenz** — die Lizenz nach Profil, ohne dass
+  jemand sie einzeln vergibt.
+- **Der Einzelfall:** Wer unterjährig geht, wird von Hand gelöscht — **sofern es dem zweiten Admin
+  mitgeteilt wird**. Die Information kommt meist aus Sekretariat oder Geschäftsführung, und genau
+  dort reißt der Faden (Abschnitt 16). Im Jahreslauf trägt der Import das mit: Ein Schülerkonto, das
+  in den importierten Daten fehlt, wird gelöscht.
+- **Offboarding:** automatische Antwort einrichten, Passwort hart zurücksetzen, Konto nach einer
+  Frist vollständig löschen.
+- Getrennte Domains im gemeinsamen Tenant mit der KITA: Schüler `c-schule.de`, Schulmitarbeiter
+  `clemens.schule`, KITA-Mitarbeiter `clemenskita.de`.
 
 ---
 
 ## 15. Schuljahreswechsel
 
-- **Ende Juli:** ASV-BW-CSV-Import der neuen Schüler — deckt nicht alles ab, es bleibt viel Handarbeit.
-- **Ende Juli:** Der zweite Admin legt neue Schüler an, löscht Abgänger, zieht alle Klassen auf die neue Stufe um (Gruppen umbenennen, Mailverteiler nachziehen).
+**Der Lauf des zweiten Admins, in der Reihenfolge, in der er wirklich läuft** (Stand 04.09.2026 —
+**Klassen von Hand auf die neue Stufe umzuziehen entfällt seit je**, seit ausgeschiedene Schüler
+direkt gelöscht und ihre Teams archiviert werden):
+
+- **Export der Schülerdaten aus ASV-BW**, dann die Schleife, die nirgends gezählt wird: Exportdatei
+  prüfen, Fehler in ASV beheben, neu exportieren — bis alles passt.
+- **Schulverwaltungsimport in Vis365** mit der Einstellung „Neues Schuljahr" und drei Schaltern, die
+  vor dem Import greifen: Klassen- und Schülerteams **archivieren**, Mitgliedschaften in den alten
+  Klassengruppen **löschen**, und Schülerkonten, die in den importierten Daten fehlen, **löschen**.
+- Danach die Handarbeit in Vis365, jedes Jahr dieselbe:
+  - Klassengruppen prüfen, die es nicht mehr gibt — etwa „10", wenn daraus „10A" und „10B" wurden —
+    und löschen.
+  - **Teams fürs neue Schuljahr anlegen**, je Klasse mit der Klassenlehrkraft als Besitzer und der
+    Zuordnung zur importierten Klassengruppe; schnell über einen Excel-Import mit allen Klassen auf
+    einmal.
+  - **Elternverteiler** der weggefallenen Klassengruppen entfernen, alle bestehenden aktualisieren
+    und für jede neue Klassengruppe einen anlegen. **Das Aktualisieren dauert am längsten und ist
+    fehleranfällig** — es läuft über eine andere Microsoft-Schnittstelle als der Rest, und der
+    Status muss hinterher geprüft werden.
+  - Prüfen, welche Teams die Archivierung mitgenommen hat, obwohl sie gebraucht werden — geprüft
+    wird **vor** dem Lauf, dann sieht man, was noch nicht ohnehin archiviert war. Betroffen ist
+    derzeit das „Krisenteam 2.0", als falscher Typ angelegt und laut Vis365 nicht umwandelbar.
+  - An mehreren Stellen Stichproben: Stimmen die Schülerzuordnungen, stimmen die Eltern in den
+    Verteilern.
 - **August:** Sommerpause. Es läuft nur das Ferienprogramm des Horts und die Rechnungsbearbeitung.
 - **Anfang September:** Terminkalender mit den Festen festlegen → daraus Putztermine planen → Putzdienst-Anmeldung freigeben.
 - **Ende September:** Schulstatistik des Landes. ASV-BW muss dafür vollständig gepflegt sein, damit der Export alle relevanten Daten enthält.

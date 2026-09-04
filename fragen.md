@@ -422,18 +422,24 @@ oder nur auf Anfrage entsteht.
 
 *Steht in* `soll-prozesse/03-irregulaerer-abgang.md:25`
 
-### 20. Aufgaben des Jahreswechsels
+### 20. Aufgaben des Jahreswechsels — was tut das Sekretariat?
 
-> „Ende Juli zieht der zweite Admin alle Klassen von Hand auf die neue Stufe um, legt die Neuen an
-> und löscht die Abgänger. Was tut ihr in dieser Zeit sonst noch, jedes Jahr wieder?"
+> „Der zweite Admin hat seinen Teil des Jahreswechsels aufgeschrieben: ASV-Export, Import nach
+> Vis365, Teams und Elternverteiler nachziehen. Was tut ihr in dieser Zeit — jedes Jahr wieder, und
+> ohne dass es irgendwo steht?"
 
 **Brauchbar ist die Antwort, wenn** die wiederkehrenden Handgriffe benannt sind, die heute niemand
 aufgeschrieben hat.
 
+**Die Admin-Hälfte ist am 04.09.2026 beantwortet** und steht in `prozesse.md` Abschnitt 15. Zwei
+Dinge daraus sind für diese Frage wichtig: **Klassen von Hand auf die neue Stufe umzuziehen entfällt
+seit je** — die frühere Fassung dieser Frage behauptete das Gegenteil —, und der ASV-Export läuft in
+einer Schleife aus Prüfen, Korrigieren und erneutem Export, die niemand zählt.
+
 **Daran hängt:** Der Jahreswechsel steht künftig als Ansicht da statt als Zuruf — was in ihr fehlt,
 bleibt Zuruf.
 
-*Steht in* `soll-prozesse/04-schuljahreswechsel.md:30`
+*Steht in* `soll-prozesse/04-schuljahreswechsel.md:30` · `prozesse.md` Abschnitt 15
 
 ### 21. Elternfragebogen der Grundschul-Checkliste — zusammen mit der Grundschulleitung
 

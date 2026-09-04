@@ -150,9 +150,14 @@ Sekretariat
 Für sie entsteht keine Aufgabe, es gibt nur die Ansicht des Jahreswechsels.
 
 - **ASV-BW** (Sekretariat): Stufen umziehen, Neue anlegen, Jahrgang abmelden.
-- **M365** (Admin): Konten der Neuen anlegen, Jahrgang offboarden. Klassengruppen und Mailverteiler
-  werden **nicht** mehr umbenannt — sie hängen an der Kennung der Klasse und überstehen den Wechsel
-  von selbst ([15](15-klassenbildung.md)).
+- **M365** (Admin): kein einzelnes Anlegen, sondern **ein Import mit drei Schaltern und Handarbeit
+  danach** — Teams archivieren, alte Klassenmitgliedschaften leeren, Konten löschen, die im Import
+  fehlen; anschließend Teams je Klasse mit der Klassenlehrkraft als Besitzer und die Elternverteiler
+  (`prozesse.md` Abschnitt 15). **Das Aktualisieren der Elternverteiler ist der längste und
+  fehleranfälligste Griff des ganzen Laufs** und der erste, den eine Ablösung abnehmen würde
+  (`backlog/` TASK-248). Klassengruppen und Mailverteiler werden dabei **nicht** umbenannt — sie
+  hängen an der Kennung der Klasse und überstehen den Wechsel von selbst
+  ([15](15-klassenbildung.md)).
 - **Optigem** (Buchhaltung): Neue anlegen, Beiträge des neuen Jahres, Zahlungen des Jahrgangs
   stoppen und abschließen.
 
