@@ -65,6 +65,10 @@ Bewusst hinter die Anmeldekette gestellt, obwohl die Termine früher liegen: Bei
 
 - [x] 21. [Akademie](21-akademie.md) (AG, Kurs und Reihe als ein Angebot, mit Kategorien, Plätzen und Zielgruppe) — nimmt die **Kochwerkstatt** aus [10](10-ferienprogramm.md) mit
 
+**Aus dem Gespräch vom 04.09.2026 — wer nach dem Weggang erreichbar bleibt**
+
+- [x] 22. [Ehemalige](22-ehemalige.md) (die drei Verteilerkreise, die Zugehörigkeit zum Jahrgang, der Rückkehrer) — der Jahrgang ist **nur beim Weggang** zu haben, fünf Jahre später ist die Kindzeile fort
+
 Reihenfolge nach dieser Liste — nicht nach Lust, sondern nach Termin. **Die Nummer ist die Kennung eines Blocks, nicht sein Rang:** Sie steht im Dateinamen und in den Verweisen der fertigen Blöcke und bleibt deshalb, wo sie ist, auch wenn ein Prozess vorgezogen wird. Die Liste läuft von oben nach unten, nicht der Zahl nach.
 
 **Bewusst nicht in der Liste:** Die Krankmeldung entfällt ganz (`../prozesse.md` Abschnitt 19).

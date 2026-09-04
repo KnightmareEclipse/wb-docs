@@ -65,11 +65,11 @@ ausgelagert, sondern **reduziert**: Anschrift, Telefonnummern, Anmerkung und let
 Anrede und Name bleiben. Mehr braucht der Versand nicht, denn die Zustelladresse steht an der
 Einwilligung und nicht an der Person. Widerspricht er, geht die Zeile beim nächsten Lauf mit.
 
-Mit ihr geht die **Zugehörigkeit** — welcher der drei Kreise, welches Jahr, welcher Zweig
-([00](00-zugang-und-portal.md)). Sie besteht, weil jemand zugestimmt hat, und ist ohne die
-Zustimmung gegenstandslos; deshalb hält auch sie ihre Person fest und wird vor ihr geräumt. Wer
-inzwischen **sein eigenes Kind** an der Schule hat, wird davon nicht berührt: Bei ihm hält die
-Familie die Person längst, und der Lauf kommt gar nicht erst zu ihr.
+Mit ihr geht die **Zugehörigkeit** zum Kreis der Ehemaligen ([22](22-ehemalige.md)): Sie besteht,
+weil jemand zugestimmt hat, und ist ohne die Zustimmung gegenstandslos; deshalb hält auch sie ihre
+Person fest und wird vor ihr geräumt. Wer inzwischen **sein eigenes Kind** an der Schule hat, wird
+davon nicht berührt: Bei ihm hält die Familie die Person längst, und der Lauf kommt gar nicht erst
+zu ihr.
 
 Die Regel dahinter gilt für jeden weiteren Bestand dieser Art und steht nur hier: **Was seinen Anker
 überdauern muss, hält ihn fest; der Anker geht, wenn nichts mehr auf ihn zeigt.** Sie ist keine neue

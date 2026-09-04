@@ -871,7 +871,7 @@ CREATE TABLE employees (
 -- Ehemalige
 -- ---------------------------------------------------------------------------
 
--- Herkunft: 00 (Zugang und Portal) — der Verteiler der Ehemaligen, in drei
+-- Herkunft: 22 (Ehemalige) — der Verteiler der Ehemaligen, in drei
 -- Kreisen: das ehemalige **Kind**, das **Elternteil**, dessen letztes Kind
 -- gegangen ist, und der ehemalige **Mitarbeitende**. Kein Löschanker im
 -- eigenen Recht: Die Zeile lebt, solange die Einwilligung offen ist, an der sie
@@ -895,7 +895,7 @@ CREATE TABLE employees (
 -- **Sie entsteht allein mit der Einwilligung** („Alles unter Zustimmung",
 -- Geschäftsführung 04.09.2026). Ein Bestand über Ehemalige, die nie zugestimmt
 -- haben, wäre eine Adressliste ohne Rechtsgrundlage — deshalb legt der
--- Juni-Lauf sie erst an, wenn jemand geantwortet hat (04), und der Widerruf
+-- Juni-Lauf sie erst an, wenn jemand geantwortet hat (04, 22), und der Widerruf
 -- nimmt sie wieder mit. Was den Widerspruch belegt, bleibt an der Einwilligung
 -- stehen und nicht hier: `consents.revoked_at` ist die Sperre, diese Zeile ist
 -- die Zugehörigkeit.
@@ -915,8 +915,7 @@ CREATE TABLE alumni_kinds (
     -- Abgangsjahr, beim ehemaligen Mitarbeitenden das Jahr des letzten
     -- Arbeitstags. **Falsch beim Elternteil** — dessen letztes Kind ging in
     -- einem bestimmten Jahr, ein früheres vielleicht vier Jahre davor; ein
-    -- Jahrgang wäre dort eine Zahl, die nichts benennt (Geschäftsführung,
-    -- 04.09.2026: „Eltern brauchen keinen Jahrgang").
+    -- Jahrgang wäre dort eine Zahl, die nichts benennt (22).
     requires_exit_year boolean NOT NULL DEFAULT false,
     created_at         timestamptz NOT NULL DEFAULT now(),
     created_by         text NOT NULL,
