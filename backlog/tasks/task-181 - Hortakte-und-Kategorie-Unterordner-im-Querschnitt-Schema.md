@@ -4,7 +4,7 @@ title: Hortakte und Kategorie-Unterordner im Querschnitt-Schema
 status: To Do
 assignee: []
 created_date: '2026-09-01 19:25'
-updated_date: '2026-09-01 20:23'
+updated_date: '2026-09-04 00:32'
 labels:
   - schema
   - querschnitt
@@ -43,4 +43,5 @@ Der Klassenwechsel zieht nur den Ordner der Schülerakte um (api/stammdaten-api.
 - [ ] #7 Der Kommentar an sharepoint_libraries über den Vollzugriff für Sekretariat und Geschäftsführung ist ersetzt — an die Schülerakte kommt kein Mensch direkt
 - [ ] #8 documents: die Art wird freiwillig, dazu eine Pflicht-Bezeichnung und der Bezug auf den Ordner (und damit auf die Kategorie) statt auf die Bibliothek
 - [ ] #9 Das Prüfskript weist eine Datei ab, deren Ordner einem anderen Kind gehört — zusammengesetzter Fremdschlüssel
+- [ ] #10 GENERATED_LIBRARY heisst nicht mehr app_documents — der Code benennt die Schuelerakte, nicht ihren Erzeuger
 <!-- AC:END -->
