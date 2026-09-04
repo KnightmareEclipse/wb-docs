@@ -128,6 +128,13 @@ diesem Tag teilnimmt, steht auf der Mensaliste ([11](11-mensa.md)); die Essensva
 Angabe am Kind, die dort geführt wird. Eine Angabe am Angebot, keine Regel im Ablauf, und nie
 gesondert berechnet.
 
+**Die Esstage stehen einzeln am Angebot**, wie die Tage eines Ferientermins
+([10](10-ferienprogramm.md)) und aus demselben Grund: Ein Zeitraum sagt nicht, an welchen seiner
+Tage gegessen wird. Der erste Tag einer Kochwoche fängt oft nach dem Mittag an, der letzte hört
+davor auf, an einem Wochenende mittendrin kocht niemand, und die Reihe hat ihre Tage gar nicht im
+Zeitraum stehen, sondern in der Ausschreibung. Kein Häkchen daneben: „enthält ein Mittagessen" ist
+die Frage, ob ein Esstag eingetragen ist.
+
 **Der Gesundheitsbestand wird hier nicht geführt**, aber erhoben: bei einem Kind der Schule liegt er
 vor und wird von den Eltern für dieses Angebot freigegeben, bei einem fremden Kind entsteht er hier —
 dieselbe Regel, dieselbe eigene Frist wie bei der Ferienbuchung ([10](10-ferienprogramm.md)),

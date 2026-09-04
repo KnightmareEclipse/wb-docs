@@ -1,14 +1,18 @@
 -- Prüfskript zu akademie-schema.sql.
 --
--- Sollstand: 7 Tabellen — academy_categories, academy_offerings,
--- academy_offering_leads, academy_offering_audiences, academy_approvers,
+-- Sollstand: 8 Tabellen — academy_categories, academy_offerings,
+-- academy_offering_lunch_days, academy_offering_leads,
+-- academy_offering_audiences, academy_approvers,
 -- academy_cost_coverage_codes und academy_registrations. Dazu zwei partielle
 -- Unique-Indizes über die nicht abgemeldeten Anmeldungen (je einer für den
 -- Kinder- und den Erwachsenen-Zweig), ein Lese-Index auf die Teilnehmerliste
 -- und der eine Trigger, der Platzzahl und fremde Kinder abweist.
 -- `academy_offerings` trägt die Warnschwelle der letzten Plätze samt ihrer
 -- Lauf-Marke — dieselben zwei Spalten wie `holiday_sessions`
--- (ferien-schema.sql), ein Mechanismus für beide Domänen. Dazu die
+-- (ferien-schema.sql), ein Mechanismus für beide Domänen. Das enthaltene
+-- Mittagessen steht als Zeile je Tag in `academy_offering_lunch_days` und nicht
+-- als Häkchen am Angebot: Ein Zeitraum sagt nicht, an welchen seiner Tage
+-- gegessen wird. Dazu die
 -- Fremdschlüssel von Q3 und Q5 auf diese Domäne: die Zahlung der Familie ohne
 -- SEPA-Mandat und die Aufgabe bei der Buchhaltung, beide mit Cascade.
 --
@@ -23,7 +27,8 @@ DECLARE missing text;
 BEGIN
     SELECT string_agg(t, ', ') INTO missing
     FROM unnest(ARRAY[
-        'academy_categories', 'academy_offerings', 'academy_offering_leads',
+        'academy_categories', 'academy_offerings', 'academy_offering_lunch_days',
+        'academy_offering_leads',
         'academy_offering_audiences', 'academy_approvers',
         'academy_cost_coverage_codes', 'academy_registrations'
     ]) AS t
@@ -31,7 +36,7 @@ BEGIN
     IF missing IS NOT NULL THEN
         RAISE EXCEPTION 'Fehlende Tabellen: %', missing;
     END IF;
-    RAISE NOTICE 'ok: alle 7 Tabellen vorhanden';
+    RAISE NOTICE 'ok: alle 8 Tabellen vorhanden';
 END $$;
 
 DO $$
@@ -58,6 +63,10 @@ BEGIN
         'ck_academy_registrations_recorded_by',
         'ck_academy_registrations_adult_payment',
         'ck_academy_offerings_surcharge_label',
+        'uq_academy_offerings_id_period',
+        'pk_academy_offering_lunch_days', 'fk_academy_offering_lunch_days_offering',
+        'ck_academy_offering_lunch_days_period',
+        'ck_academy_offering_lunch_days_created_by',
         'uq_academy_cost_coverage_codes_id_offering', 'fk_academy_offerings_terms',
         'fk_payments_academy_registration', 'fk_sync_tasks_academy_registration'
     ]) AS c
@@ -340,21 +349,100 @@ SELECT pg_temp.expect_reject(
 
 -- Das Angebot, an dem die Anmeldungen hängen: drei Plätze, fremde Kinder nicht
 -- zugelassen („Der Chor ist für die eigenen Kinder"), Absagefrist null Tage und
--- 9 Uhr, dazu der Zusatzbetrag samt Etikett und das enthaltene Mittagessen.
+-- 9 Uhr, dazu der Zusatzbetrag samt Etikett. Sein Esstag steht unten.
 SELECT pg_temp.expect_accept(
-    '21 — Angebot mit Kategorie, Absagefrist, Zusatzbetrag und Mittagessen',
+    '21 — Angebot mit Kategorie, Absagefrist und Zusatzbetrag',
     $q$INSERT INTO academy_offerings (academy_offering_id, academy_category_id, title,
                                       description, starts_on, ends_on, schedule_text,
                                       allows_external_children, places, amount_cents,
-                                      surcharge_cents, surcharge_label, includes_lunch,
+                                      surcharge_cents, surcharge_label,
                                       cancellation_deadline_days, cancellation_deadline_time,
                                       cancellation_terms_code, registration_opens_at,
                                       created_by)
        VALUES ('55555555-5555-5555-5555-555555555501', 1, 'Kochwerkstatt',
                'Wir backen Brot', DATE '2027-04-10', DATE '2027-04-10',
-               'samstags 10–14 Uhr', false, 3, 3000, 500, 'Lebensmittel', true, 0,
+               'samstags 10–14 Uhr', false, 3, 3000, 500, 'Lebensmittel', 0,
                TIME '09:00', 'academy_cancellation_cooking',
                TIMESTAMPTZ '2026-01-01 08:00+01', 'entra:hauswirtschaftsleitung')$q$);
+
+-- 21: Der eine Samstag der Kochwerkstatt ist ihr Esstag.
+SELECT pg_temp.expect_accept(
+    '21 — der Esstag des eintägigen Angebots',
+    $q$INSERT INTO academy_offering_lunch_days (academy_offering_id, day, starts_on,
+                                                ends_on, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555501', DATE '2027-04-10',
+               DATE '2027-04-10', DATE '2027-04-10', 'entra:hauswirtschaftsleitung')$q$);
+
+SELECT pg_temp.expect_reject(
+    '21 — derselbe Esstag zweimal an einem Angebot',
+    $q$INSERT INTO academy_offering_lunch_days (academy_offering_id, day, starts_on,
+                                                ends_on, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555501', DATE '2027-04-10',
+               DATE '2027-04-10', DATE '2027-04-10', 'entra:hauswirtschaftsleitung')$q$);
+
+-- Ein Esstag außerhalb des Angebots ist keiner.
+SELECT pg_temp.expect_reject(
+    '21 — Esstag nach dem Ende des Angebots',
+    $q$INSERT INTO academy_offering_lunch_days (academy_offering_id, day, starts_on,
+                                                ends_on, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555501', DATE '2027-04-11',
+               DATE '2027-04-10', DATE '2027-04-10', 'entra:hauswirtschaftsleitung')$q$);
+
+-- Der mitgeführte Zeitraum ist nicht frei wählbar: Er muss der des Angebots
+-- sein, sonst hinge der CHECK an einer erfundenen Grenze.
+SELECT pg_temp.expect_reject(
+    '21 — Esstag mit einem Zeitraum, den das Angebot nicht hat',
+    $q$INSERT INTO academy_offering_lunch_days (academy_offering_id, day, starts_on,
+                                                ends_on, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555501', DATE '2027-04-11',
+               DATE '2027-04-01', DATE '2027-04-30', 'entra:hauswirtschaftsleitung')$q$);
+
+-- 21: Der Fall, für den die Tabelle da ist — eine Kochwoche über fünf Tage, an
+-- der nur drei gegessen wird: Der Montag fängt nach dem Mittag an, der Freitag
+-- hört davor auf.
+INSERT INTO academy_offerings (academy_offering_id, academy_category_id, title,
+                               starts_on, ends_on, allows_external_children, places,
+                               amount_cents, cancellation_terms_code,
+                               registration_opens_at, created_by)
+    VALUES ('55555555-5555-5555-5555-555555555520', 1, 'Kochwoche in den Pfingstferien',
+            DATE '2027-05-25', DATE '2027-05-29', false, 8, 15000,
+            'academy_cancellation_cooking',
+            TIMESTAMPTZ '2026-01-01 08:00+01', 'entra:hauswirtschaftsleitung');
+SELECT pg_temp.expect_accept(
+    '21 — drei Esstage von fünf Angebotstagen',
+    $q$INSERT INTO academy_offering_lunch_days (academy_offering_id, day, starts_on,
+                                                ends_on, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555520', DATE '2027-05-26',
+               DATE '2027-05-25', DATE '2027-05-29', 'entra:hauswirtschaftsleitung'),
+              ('55555555-5555-5555-5555-555555555520', DATE '2027-05-27',
+               DATE '2027-05-25', DATE '2027-05-29', 'entra:hauswirtschaftsleitung'),
+              ('55555555-5555-5555-5555-555555555520', DATE '2027-05-28',
+               DATE '2027-05-25', DATE '2027-05-29', 'entra:hauswirtschaftsleitung')$q$);
+
+-- Ein Angebot ohne Esstag ist der Normalfall: Chor, Theater, jede Reihe.
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM academy_offering_lunch_days
+                WHERE academy_offering_id = '55555555-5555-5555-5555-555555555502') THEN
+        RAISE EXCEPTION 'Testaufbau falsch: die offene Kochwerkstatt sollte keinen Esstag haben';
+    END IF;
+    RAISE NOTICE 'ok: „enthält ein Mittagessen" ist die Frage, ob eine Zeile steht';
+END $$;
+
+-- Das Angebot lässt sich nicht hinter seinem Esstag zusammenziehen: Erst den
+-- Tag streichen, dann den Zeitraum. `ON UPDATE CASCADE` zieht den mitgeführten
+-- Zeitraum nach, und der CHECK sieht den Tag dann draußen liegen.
+SELECT pg_temp.expect_reject(
+    '21 — Zeitraum verkürzt, ein Esstag läge draußen',
+    $q$UPDATE academy_offerings SET ends_on = DATE '2027-05-27'
+        WHERE academy_offering_id = '55555555-5555-5555-5555-555555555520'$q$);
+
+-- Verschieben geht dagegen, solange die Tage mitwandern — hier zieht der
+-- Zeitraum nach vorn, die Esstage bleiben darin.
+SELECT pg_temp.expect_accept(
+    '21 — Angebot verschoben, die Esstage wandern mit',
+    $q$UPDATE academy_offerings SET starts_on = DATE '2027-05-24'
+        WHERE academy_offering_id = '55555555-5555-5555-5555-555555555520'$q$);
 
 -- „Die Kochwerkstatt ist für alle" — dasselbe Häkchen, anderer Wert; ein Platz.
 INSERT INTO academy_offerings (academy_offering_id, academy_category_id, title,

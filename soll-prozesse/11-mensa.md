@@ -10,8 +10,9 @@ gibt es nirgends.
 - Ein **Hortkind** isst an jedem Wochentag mit, an dem es ein Modul mit Essen gebucht hat — derzeit
   jedes, das über 13 Uhr geht; Modul mal Wochentag ist auch dafür die Einheit
   ([09](09-hortvertrag.md)).
-- Ein **Kind in einem Akademie-Angebot** isst mit, wenn das Angebot ein Essen enthält — in der
-  Kochwerkstatt tut es das ([21](21-akademie.md)). Die **Ferienmodule tragen keines**, ein
+- Ein **Kind in einem Akademie-Angebot** isst mit an den Tagen, die das Angebot als Esstage führt —
+  in der Kochwerkstatt ist das ihr einer Samstag, in einer Kochwoche drei ihrer fünf Tage
+  ([21](21-akademie.md)). Die **Ferienmodule tragen keines**, ein
   Ferienkind steht deshalb aus diesem Grund nie auf der Liste ([10](10-ferienprogramm.md)).
 
 Beides entsteht dort und wird hier nur gelesen — keine Anmeldung und keine eigene Kündigung: Das
@@ -181,8 +182,8 @@ ist damit der einzige ohne eigene Mail; der Hebel für
 **Kein Dokument, keine Unterschrift.** Es gibt die **Tagesliste** — wer heute isst, in welcher
 Variante, mit welcher Unverträglichkeit —, [frisch erzeugt](hebel.md#frisch-erzeugte-liste),
 sichtbar für Mensa, Hauswirtschaftsleitung und Sekretariat; sie **führt alle Herkünfte zusammen** —
-Abo-Kinder, Hortkinder mit einem Essensmodul ([09](09-hortvertrag.md)) und Kinder an einem Termin,
-dessen Modul ein Essen trägt ([10](10-ferienprogramm.md)) — und ersetzt damit die zwei Excel-Listen,
+Abo-Kinder, Hortkinder mit einem Essensmodul ([09](09-hortvertrag.md)) und Kinder in einem
+Akademie-Angebot, das für diesen Tag einen Esstag führt ([21](21-akademie.md)) — und ersetzt damit die zwei Excel-Listen,
 die heute nebeneinander stehen. Die Hauswirtschaftsleitung druckt sie für die Ausgabe aus, wie das
 Sekretariat die Anwesenheitsliste in [01](01-putzdienst.md) — wer ausgibt, braucht dafür keinen
 Zugang.

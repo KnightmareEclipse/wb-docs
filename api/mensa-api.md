@@ -13,9 +13,10 @@ laufenden Betriebs · Z5 → der Lauf.
 
 ## Zwei Grenzen, die jede Route dieser Domäne einhält
 
-- **Das Essen folgt dem Modul, wo eines eines trägt.** Für Hortkinder ([09](../soll-prozesse/09-hortvertrag.md))
-  und für Kinder an einem Ferien- oder Werkstatttermin ([10](../soll-prozesse/10-ferienprogramm.md))
-  erhebt diese Domäne **nichts** und berechnet **nichts** — sie liest. Was hier entsteht, ist das
+- **Das Essen folgt dem Modul bzw. dem Angebot, wo eines eines trägt.** Für Hortkinder
+  ([09](../soll-prozesse/09-hortvertrag.md)) und für Kinder an einem Esstag eines Akademie-Angebots
+  ([21](../soll-prozesse/21-akademie.md)) erhebt diese Domäne **nichts** und berechnet **nichts** —
+  sie liest. Was hier entsteht, ist das
   eigenständige Abo der Realschule und das Küchenprofil am Kind, und sonst nichts. Ein Grundschüler
   steht deshalb ohne eigene Anmeldung auf der Tagesliste, sobald sein Modul ein Essen trägt.
 - **Nichts wartet auf jemanden.** Keine Freigabe, keine Entscheidung, keine Platzzahl, keine Mail,
@@ -107,7 +108,7 @@ Druckansicht ([`gemeinsam.md`](gemeinsam.md#liste)) und beide nie über den OTP-
 | Handlung | Herkunft | Wer darf | Worauf eingeschränkt | Schreibt/liest | Enge Rolle |
 |---|---|---|---|---|---|
 | `GET /meals/day-list?day=YYYY-MM-DD` — **die Tagesliste**: wer heute isst, in welcher Variante, mit welcher Unverträglichkeit | [11](../soll-prozesse/11-mensa.md) Z3, „Dateien" | `canteen`, `domestic_services_management`, `secretariat` | unbeschränkt, aber **drei Herkünfte und sonst nichts** (unten). Sie zeigt Name, Variante und den **Küchen-Ausschnitt** der Gesundheitsangaben — „ohne Notfallmedikation, ohne Diagnose, ohne Attestlage". Die Hauswirtschaftsleitung druckt sie aus; wer ausgibt, braucht dafür keinen Zugang | liest | `backend_kitchen`, für Variante **und** Gesundheits-Ausschnitt |
-| `GET /meals/week-overview?on=YYYY-MM-DD` — **die Wochenübersicht** für den Einkauf: je Wochentag, wie viele Kinder in welcher Variante essen | [11](../soll-prozesse/11-mensa.md) „Dateien" | `canteen`, `domestic_services_management`, `secretariat` | unbeschränkt. Sie zählt **den laufenden Betrieb** — Abos und Hortmodule —, **nicht** die Ferien- und Werkstatttermine: „ein Ferientermin passt in kein Wochenraster und wird als Termin geplant". Nur Zahlen, keine Namen. **Der Stichtag entscheidet, welche Tage gerade gelten**, Vorgabe heute — ohne ihn sähe die Hauswirtschaftsleitung einen zum 1. Dezember gebuchten Tag erst, wenn er läuft, und eingekauft wird vorher | liest | `backend_kitchen` |
+| `GET /meals/week-overview?on=YYYY-MM-DD` — **die Wochenübersicht** für den Einkauf: je Wochentag, wie viele Kinder in welcher Variante essen | [11](../soll-prozesse/11-mensa.md) „Dateien" | `canteen`, `domestic_services_management`, `secretariat` | unbeschränkt. Sie zählt **den laufenden Betrieb** — Abos und Hortmodule —, **nicht** die Akademie-Angebote: „ein Ferientermin und ein Akademie-Angebot passen in kein Wochenraster und werden als Termin geplant". Nur Zahlen, keine Namen. **Der Stichtag entscheidet, welche Tage gerade gelten**, Vorgabe heute — ohne ihn sähe die Hauswirtschaftsleitung einen zum 1. Dezember gebuchten Tag erst, wenn er läuft, und eingekauft wird vorher | liest | `backend_kitchen` |
 
 **Die drei Herkünfte der Tagesliste**, und die Route führt sie zusammen — genau das ersetzt die zwei
 Excel-Listen, die heute nebeneinander stehen:
@@ -118,12 +119,15 @@ Excel-Listen, die heute nebeneinander stehen:
    `care_module_bookings`-Zeile für diesen Wochentag, deren `care_modules.includes_lunch` gesetzt ist
    ([09](../soll-prozesse/09-hortvertrag.md)). Das ist der einzige Weg, auf dem ein Grundschüler
    mitisst.
-3. **Ferien- oder Werkstatttermin** — eine nicht stornierte `holiday_bookings`, deren Termin diesen
-   Tag trägt und deren `holiday_modules.includes_lunch` gesetzt ist
-   ([10](../soll-prozesse/10-ferienprogramm.md)).
+3. **Akademie-Angebot** — eine nicht abgemeldete `academy_registrations` an einem Angebot, das für
+   diesen Tag eine `academy_offering_lunch_days`-Zeile trägt
+   ([21](../soll-prozesse/21-akademie.md)). Die Zeile ist die ganze Bedingung: Ein Häkchen am
+   Angebot gibt es nicht, und der Zeitraum allein sagt nicht, an welchen seiner Tage gegessen wird.
+   **Ein Ferientermin ist keine Herkunft**: „wer im Ferienprogramm betreut wird, isst nicht auf
+   Rechnung der Schule" ([10](../soll-prozesse/10-ferienprogramm.md)).
 
 Ein Kind steht **einmal** darauf, auch wenn zwei Herkünfte zusammenfallen: „je Kind und Tag gibt es
-höchstens ein Essen". Gegen ein Hortmodul prüft schon die Anmeldung, gegen einen Ferientermin
+höchstens ein Essen". Gegen ein Hortmodul prüft schon die Anmeldung, gegen ein Akademie-Angebot
 niemand — deshalb entscheidet die Liste und nicht ein Constraint.
 
 ## Die Optigem-Aufgabe

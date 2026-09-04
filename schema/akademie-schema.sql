@@ -127,10 +127,6 @@ CREATE TABLE academy_offerings (
     -- leer, wo es ihn nicht gibt.
     surcharge_cents     integer NOT NULL DEFAULT 0,
     surcharge_label     text,
-    -- Im Preis enthalten und nie gesondert berechnet; wo es gesetzt ist, steht
-    -- das Kind an diesem Tag auf der Mensaliste (11) — dieselbe Bedeutung wie
-    -- vormals am Ferienmodul.
-    includes_lunch      boolean NOT NULL DEFAULT false,
     registration_opens_at  timestamptz NOT NULL,
     -- Das gesetzte Datum; jederzeit vorziehbar oder verschiebbar wie das des
     -- Ferienprogramms (10).
@@ -185,6 +181,9 @@ CREATE TABLE academy_offerings (
     -- Trägt den zusammengesetzten Fremdschlüssel der Anmeldung: er bindet den
     -- Zweig des Angebots an den Teilnehmer (rules.md Abschnitt 1).
     CONSTRAINT uq_academy_offerings_id_branch UNIQUE (academy_offering_id, for_adults),
+    -- Und den von `academy_offering_lunch_days`, der den Zeitraum mitführt.
+    CONSTRAINT uq_academy_offerings_id_period
+        UNIQUE (academy_offering_id, starts_on, ends_on),
     CONSTRAINT ck_academy_offerings_title       CHECK (title <> ''),
     CONSTRAINT ck_academy_offerings_description CHECK (description <> ''),
     CONSTRAINT ck_academy_offerings_schedule    CHECK (schedule_text <> ''),
@@ -228,6 +227,51 @@ CREATE TABLE academy_offerings (
     CONSTRAINT ck_academy_offerings_approved_by CHECK (approved_by ~ '^(entra:|system:)'),
     -- „Anlegen darf jede und jeder Mitarbeitende" — Eltern nicht.
     CONSTRAINT ck_academy_offerings_created_by CHECK (created_by ~ '^(entra:|system:)')
+);
+
+-- Herkunft: 21 (Akademie) — „Ein Mittagessen kann im Betrag enthalten sein …
+-- und wer an diesem Tag teilnimmt, steht auf der Mensaliste" (11).
+-- Kein Löschanker: keine Personendaten; die Zeile geht per Cascade mit dem
+-- Angebot.
+-- Eine Zeile je Tag mit Essen statt eines Häkchens am Angebot, und aus
+-- demselben Grund wie `holiday_session_days` (ferien-schema.sql) eine Zeile je
+-- Tag statt eines Von–Bis führt: Ein Zeitraum sagt nicht, an welchen seiner
+-- Tage gegessen wird. Der erste Tag fängt oft nach dem Mittag an, der letzte
+-- hört davor auf, ein Wochenende mittendrin kocht niemand, und die Reihe über
+-- sechs Nachmittage hat ihre Tage gar nicht im Zeitraum stehen, sondern in
+-- `schedule_text`.
+-- Bewusst KEIN `includes_lunch` daneben: „enthält ein Mittagessen" ist die
+-- Frage, ob hier eine Zeile steht, und ein Häkchen daneben wäre dieselbe
+-- Tatsache ein zweites Mal — auseinanderlaufen könnten sie auf drei Wegen, und
+-- ein CHECK sieht keine andere Tabelle, es bräuchte also einen Trigger in beide
+-- Richtungen. Die Ausschreibung fragt stattdessen `EXISTS`.
+-- Bewusst KEINE Terminliste des Angebots, an der das Essen ein Häkchen wäre:
+-- „angemeldet wird zum Angebot als Ganzem" (TASK-176), und der Chor über ein
+-- Schuljahr trüge fünfunddreißig Zeilen, an denen nie jemand isst.
+-- Der Zeitraum wird mitgeführt, damit der CHECK ihn sehen kann — ein Esstag
+-- außerhalb des Angebots ist keiner. `ON UPDATE CASCADE` zieht ihn nach, wenn
+-- das Angebot verschoben wird; ein Verkürzen, das einen Esstag draußen ließe,
+-- scheitert dann an eben diesem CHECK, und das ist die gewollte Reihenfolge:
+-- erst den Tag streichen, dann den Zeitraum.
+CREATE TABLE academy_offering_lunch_days (
+    academy_offering_id uuid NOT NULL,
+    day                 date NOT NULL,
+    -- Mitgeführt, siehe oben; nie von Hand gesetzt.
+    starts_on           date NOT NULL,
+    ends_on             date NOT NULL,
+    created_at          timestamptz NOT NULL DEFAULT now(),
+    created_by          text NOT NULL,
+
+    CONSTRAINT pk_academy_offering_lunch_days
+        PRIMARY KEY (academy_offering_id, day),
+    CONSTRAINT fk_academy_offering_lunch_days_offering
+        FOREIGN KEY (academy_offering_id, starts_on, ends_on)
+        REFERENCES academy_offerings (academy_offering_id, starts_on, ends_on)
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT ck_academy_offering_lunch_days_period
+        CHECK (day BETWEEN starts_on AND ends_on),
+    CONSTRAINT ck_academy_offering_lunch_days_created_by
+        CHECK (created_by ~ '^(entra:|system:)')
 );
 
 -- Herkunft: 21 (Akademie) — „Eine neue Rolle entsteht dafür nicht; wer ein
