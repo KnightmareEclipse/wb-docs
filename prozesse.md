@@ -281,6 +281,32 @@ Drei Festlegungen dazu:
 - Eltern schließen den Vertrag ab und **treten dann doch zurück oder kündigen**, bevor das Kind je an der Schule war. Kein Stammdaten-Fall: Das Eintrittsdatum wurde nie gesetzt, es ist ein Endstatus der Bewerbung.
 - Das Sekretariat hat schon **individuelle Verträge** erstellt: Passagen gestrichen, weil Eltern das wollten, oder handschriftlich ergänzt. Jede Regel im System braucht deshalb einen benannten legitimen Ausweg, sonst wird sie umgangen statt eingehalten.
 
+### 7.6 Weitere Anlagen ohne Datenfelder
+
+Neun Anlagen hängen am Vertrag, erheben nichts und werden nicht unterschrieben (Betreiber,
+05.09.2026, aus dem realen Vertragsdokument gezogen):
+
+Schulordnung · Kleiderordnung · Regelung im Krankheitsfall und Infektionsschutz · Kooperation
+Elternhaus und Schule · Bonussystem Elternmitarbeit · Putzdienstregeln · Versicherungsschutz der
+Eltern · Unser Leitbild · Informationen zum Datenschutz bei der CLEMENS BILDUNG
+
+Sie sind die Klasse `applies` (`dokumente.md`): nichts am Kind, keine Frist, keine Unterschrift — es
+gilt „die jeweils gültige Fassung" (09). Heute hängen sie hinten am Papier; künftig werden sie **im
+Portal bereitgestellt und nicht mehr ans erzeugte PDF geheftet** (Geschäftsführung, 05.09.2026).
+
+**Der Betreuungsvertrag trägt andere** — bei ihm sind es zwei, Regelung zum Infektionsschutz und
+Betreuungsordnung (8). Genau dafür ordnet `contract_kind_attachments` je Textsorte zu und nicht je
+Vertragsart (`schema/querschnitt-schema.sql`).
+
+**Es sind zwei Sorten, nicht eine unter zwei Namen:** Die „Regelung im Krankheitsfall und
+Infektionsschutz" hier und die „Regelung zum Infektionsschutz" dort werden je eine Zeile. —
+Alternative: eine Sorte an beiden Verträgen; Preis: eine Fassung gälte für beide zugleich, und wer
+sie für den Hort ändert, ändert sie für die Schule mit.
+
+**[?] Datenschutzbeauftragter:** „Informationen zum Datenschutz bei der CLEMENS BILDUNG" ist die
+einzige der neun, die dieses Repo bisher gar nicht kannte — ist sie die Information nach
+Art. 13 DSGVO, und wer verantwortet ihren Wortlaut?
+
 ---
 
 ## 8. Hortvertrag und Betreuungsmodule

@@ -248,9 +248,8 @@ die Klassenstufe von heute statt der von damals. Stattdessen tritt die neue Fass
 Vorgang **neben** den Vertrag, so wie die geänderte Modulanlage den Hortvertrag darunter stehen
 lässt ([09](09-hortvertrag.md)). Drei Fälle, und sie unterscheiden sich darin, was die Familie tut:
 
-- Eine **mitgeltende Anlage** — Betreuungsordnung, Infektionsschutz, Kleiderordnung, die Regeln zu
-  Putzdienst und Elternmitarbeit — gilt „in ihrer jeweils gültigen Fassung" (09) und ab ihrem
-  Gültigkeitstag. Es entsteht nichts am Kind, und **die Mitteilung geht von selbst hinaus**
+- Eine **mitgeltende Anlage** — welche neun am Schulvertrag hängen, steht in `prozesse.md` 7.6 —
+  gilt „in ihrer jeweils gültigen Fassung" (09) und ab ihrem Gültigkeitstag. Es entsteht nichts am Kind, und **die Mitteilung geht von selbst hinaus**
   (Geschäftsführung, 04.09.2026): eine Mail an alle, die ein laufender Vertrag dieser Anlage
   unterwirft. **Wie viele Tage vor dem Gültigkeitstag**, steht als Wert an der Anlage und nicht im
   Code — null Tage heißt „am Tag selbst". Es ist eine Vorgangsmail und trägt deshalb keinen

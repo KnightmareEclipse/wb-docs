@@ -4,6 +4,7 @@ title: Die vier Vorlagen auf Klartext-Platzhalter umstellen
 status: To Do
 assignee: []
 created_date: '2026-09-04 00:18'
+updated_date: '2026-09-05 00:58'
 labels:
   - wb-backend
   - wartet
@@ -35,5 +36,11 @@ Die heutige Vorlage `2026_01_22 Schulvertrag Vorlage ab 01-2026` trägt 82 benan
 - [ ] #1 Die 82 Inhaltssteuerelemente sind durch Klartext-Tags ersetzt; keine Formularfelder mehr in den Vorlagen
 - [ ] #2 Aus der einen Datei sind vier geworden — Schulvertrag, Gesundheitsblatt, Fotoeinverstaendnis, SEPA-Mandat
 - [ ] #3 Sorgeberechtigte, Module und Unterschriften stehen als Schleife, nicht als feste Steckplaetze
-- [ ] #4 Mit der Schule verhandelt: der Schnitt in vier Dateien und der Wegfall der angehefteten Anlagen
+- [x] #4 Mit der Schule verhandelt: der Schnitt in vier Dateien und der Wegfall der angehefteten Anlagen
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+**Die zweite Haelfte ist da (Geschaeftsfuehrung, 05.09.2026):** Der Wegfall der angehefteten Anlagen ist ein Ja — sie werden im Portal bereitgestellt statt ans erzeugte PDF geheftet. Damit traegt die Schule beide Haelften dieses Kriteriums. Die Anlagenliste selbst steht in prozesse.md 7.6, die Einarbeitung in TASK-231.
+<!-- SECTION:NOTES:END -->
