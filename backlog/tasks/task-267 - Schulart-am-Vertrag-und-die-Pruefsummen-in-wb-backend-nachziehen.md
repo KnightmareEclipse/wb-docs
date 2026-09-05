@@ -4,6 +4,7 @@ title: Schulart am Vertrag und die Pruefsummen in wb-backend nachziehen
 status: To Do
 assignee: []
 created_date: '2026-09-05 00:34'
+updated_date: '2026-09-05 19:09'
 labels:
   - schema
   - wb-backend
@@ -35,9 +36,25 @@ Der Loesch-Lauf raeumt `care_module_agreements` jetzt vor `documents`: Die Modul
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Die Ursprungsrevision traegt alle vier Aenderungen, die Datenbank ist neu aufgesetzt
-- [ ] #2 build_contract_document schreibt die Pruefsumme mit sha256-Praefix; ein Test faellt ohne es rot
+- [x] #1 Die Ursprungsrevision traegt alle vier Aenderungen, die Datenbank ist neu aufgesetzt
+- [x] #2 build_contract_document schreibt die Pruefsumme mit sha256-Praefix; ein Test faellt ohne es rot
 - [ ] #3 Die Vertragsroute setzt school_branch_id aus der Bewerbung und waehlt die Textsorte danach — Gegenprobe: ein Rumpf mit fremder Schulart aendert nichts
 - [ ] #4 Die Modulanlage legt ihre Ausfertigung samt Pruefsumme ab, sobald die Hortleitung sie freigibt
 - [ ] #5 Der Loesch-Lauf raeumt die Modulanlage vor der Datei, die sie festhaelt
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Gemessen am Baum von wb-backend (9be3efa, Branch wertelisten-und-log-filter).
+
+Kriterium 1 steht. Alle vier Aenderungen stehen in der Ursprungsrevision ihrer Domaene, keine neue Revision daneben: `contracts.school_branch_id` samt `fk_contracts_application_branch`, `fk_contracts_text_branch`, `ck_contracts_branch` und `uq_applications_id_branch` sowie `ck_contracts_checksum` in der Anmeldung-Revision; `contract_text_kinds.school_branch_id` samt `uq_contract_text_kinds_code_branch` und `child_file_category_id` in der Querschnitt-Revision; die Pruefsummen an `sepa_mandates` (Stammdaten), `consents` (Querschnitt), `photo_consent_records` und `care_module_agreements` samt dessen `document_id` (Anmeldung). Die Datenbank traegt sie alle.
+
+Kriterium 2 steht. `build_contract_document` schreibt `f"sha256:{hashlib.sha256(pdf).hexdigest()}"`, und `tests/test_anmeldung.py::test_the_release_builds_the_document_and_clears_the_images` vergleicht genau diese Form — ohne das Praefix faellt er rot.
+
+Offen bleiben drei:
+
+- **Kriterium 3 zur Haelfte.** Die Route liest die Schulart aus der Bewerbung und waehlt die Textsorte danach: in `release_decisions` (app/routers/anmeldung.py) kommt `branch` aus `row.school_branch_id` der Bewerbung, der Text ueber `school_contract_text(branch.code)`, und der Vertrag bekommt `school_branch_id=branch.school_branch_id`. Die verlangte Gegenprobe fehlt: kein Test in wb-backend liest `contracts.school_branch_id`, und keiner schickt einen Rumpf mit fremder Schulart. Der Rumpfwert ist dort nur Filter der Freigabe und erreicht den Vertrag nicht — genau das ist ungeprueft.
+- **Kriterium 4.** `release_module_agreement` setzt `valid_from`, `released_at`, `released_by` und stellt die Optigem-Aufgaben; eine Ausfertigung baut es nicht. Neben `build_contract_document`, `build_mandate_document` und `build_consent_document` steht kein Bau fuer die Modulanlage, `document_id` und `document_checksum` bleiben leer.
+- **Kriterium 5.** Einen Loesch-Lauf gibt es in wb-backend nicht; er steht als Aufgabentext in app/services/rollover.py („Loesch-Lauf anstossen (04 Z4, bis Block 17 es anders regelt)"). Solange kein Lauf raeumt, kann seine Reihenfolge nirgends stehen.
+<!-- SECTION:NOTES:END -->
