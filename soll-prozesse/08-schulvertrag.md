@@ -248,16 +248,43 @@ die Klassenstufe von heute statt der von damals. Stattdessen tritt die neue Fass
 Vorgang **neben** den Vertrag, so wie die geänderte Modulanlage den Hortvertrag darunter stehen
 lässt ([09](09-hortvertrag.md)). Drei Fälle, und sie unterscheiden sich darin, was die Familie tut:
 
-- Eine **mitgeltende Anlage** — Betreuungsordnung, Infektionsschutz — gilt „in ihrer jeweils
-  gültigen Fassung" (09) und ab ihrem Gültigkeitstag. Es genügt die Mitteilung, es entsteht nichts
-  am Kind.
+- Eine **mitgeltende Anlage** — Betreuungsordnung, Infektionsschutz, Kleiderordnung, die Regeln zu
+  Putzdienst und Elternmitarbeit — gilt „in ihrer jeweils gültigen Fassung" (09) und ab ihrem
+  Gültigkeitstag. Es entsteht nichts am Kind, und **die Mitteilung geht von selbst hinaus**
+  (Geschäftsführung, 04.09.2026): eine Mail an alle, die ein laufender Vertrag dieser Anlage
+  unterwirft. **Wie viele Tage vor dem Gültigkeitstag**, steht als Wert an der Anlage und nicht im
+  Code — null Tage heißt „am Tag selbst". Es ist eine Vorgangsmail und trägt deshalb keinen
+  [Abmeldelink](hebel.md#abmeldelink): Wer sich von der Betreuungsordnung abmelden könnte, bekäme
+  die nächste Vertragsfrist auch nicht mehr.
+
+  **Welche Anlagen zu welchem Vertrag gehören, ist selbst ein Wert im System** — je Textsorte, nicht
+  je Vertragsart: Heute tragen Grund- und Realschulvertrag dieselben, aber das ist eine Gewohnheit
+  und keine Regel. Angefügt und entfernt wird sie von der Geschäftsführung; die entfernte Zeile
+  bleibt stehen und sagt, was damals galt, sonst wäre „welche Anlagen galten, als dieser Vertrag
+  unterschrieben wurde" nach der ersten Änderung nicht mehr zu beantworten.
+
+  **Die Mail geht je Person, nicht je Vertrag.** Eine Familie mit drei Kindern bekommt eine, nicht
+  drei. Betroffen ist, wer zum Versandzeitpunkt einen laufenden Vertrag der zugeordneten Sorte hat —
+  wer im Juli abgegangen ist, bekommt die Septemberänderung nicht.
 - Ändert sich der **Wortlaut, nicht aber die Gegenleistung**, wird die neue Fassung vorgelegt und
   die Familie bestätigt sie — **Kenntnisnahme**. Eine Urkunde muss dabei nicht entstehen.
+
+  **Vorgelegt wird der Vertrag mit hervorgehobenen Änderungen**, nicht eine Zusammenfassung daneben:
+  Der Vergleich entsteht aus den beiden Fassungen selbst und wird nirgends gepflegt, ein zweites
+  Änderungsdokument gäbe es sonst zweimal und irgendwann verschieden (`backlog/` TASK-259).
+  **Was an die Eltern geht, ist immer ein PDF** — nie eine Word-Datei, auch nicht diese: Sie ist
+  Zwischenprodukt und verlässt das Haus nicht.
 - Ist die Änderung **wesentlich** — Schulgeld, Pflichtstunden, Kündigungsfrist —, braucht es die
   **Zustimmung**, und sie wird als **Nachtrag** festgehalten: ein eigenes kurzes Dokument, das
   Vertrag, Fassung und Geltungstag nennt und **nichts rechnet**, unterschrieben und in der
   Schülerakte abgelegt wie der Vertrag selbst. Weil es nichts rechnet, kann daran auch nichts
   veralten.
+
+**Das SEPA-Mandat wird dabei nie erneuert.** Sein Wortlaut kommt von der Bank und hängt an keiner
+Vertragsfassung; ein Nachtrag berührt es nicht. Ein neues Mandat entsteht allein, wenn die Familie
+ihre Bankverbindung ändert — und dann **ersetzt** es das alte, statt es zu ändern
+([09](09-hortvertrag.md)). Dasselbe gilt für Fotoeinverständnis und Gesundheitsangaben: Sie sind
+eigene Unterlagen mit eigener Frist und keine Anhängsel des Vertragstexts.
 
 Ob eine Änderung wesentlich ist, entscheidet die Geschäftsführung je Fassung und nicht je Familie —
 es ist eine Rechtsfrage, und das System hält nur fest, wie sie ausgefallen ist

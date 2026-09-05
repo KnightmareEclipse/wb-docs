@@ -42,6 +42,8 @@ Nach `prompts/api-planen.md`, aber als Nachtrag zu einer geplanten Domäne und n
 - [ ] #1 Die vier Griffe stehen in api/anmeldung-api.md, je Route mit Rolle, Einschränkung und Quelle
 - [ ] #2 Das Vorlegen ist ein Lauf über die betroffenen Verträge, keine Route je Familie
 - [ ] #3 Alle Sorgeberechtigten zeichnen — die Route sagt es, und sie sagt auch, dass sie nicht rechnet, wie viele es sind
+- [ ] #4 Kein Nachtrag erzeugt ein neues SEPA-Mandat — das Mandat haengt an keiner Vertragsfassung
+- [ ] #5 Die Ansicht des Nachtrags zeigt die Redline der neuen Fassung (TASK-259), nicht den nackten Text
 - [ ] #4 Der Abschluss erzeugt die Urkunde nur, wo die Fassung Zustimmung verlangt; die Kenntnisnahme kommt ohne aus
 - [ ] #5 Die Urkunde landet im Unterordner ihrer Kategorie in der Akte des Kindes, dem der Vertrag gehört
 - [ ] #6 Erst nach TASK-126: wen die Vorlage erreicht und wen nicht

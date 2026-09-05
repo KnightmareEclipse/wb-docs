@@ -4,7 +4,7 @@ title: Die mitgeltenden Anlagen als dritte Klasse
 status: To Do
 assignee: []
 created_date: '2026-09-04 00:20'
-updated_date: '2026-09-04 13:30'
+updated_date: '2026-09-04 21:30'
 labels:
   - wb-docs
   - schema
@@ -31,6 +31,18 @@ Sie brauchen deshalb denselben `contract_texts`-Mechanismus mit `valid_from` —
 
 **Was sich dadurch nicht aendert:** Diese Anlagen tragen keine Personendaten, entstehen nicht je Kind und haben keine Frist am Kind — genau deshalb sind sie Klasse `applies` und werden nicht ins erzeugte PDF geheftet.
 
+**Zwei Dinge kommen am 04.09.2026 dazu (Geschaeftsfuehrung), und beide sind gebaut.**
+
+**Erstens die Zuordnung.** "Die Vertragsanlagen muessen dynamisch pro Vertragsprozess angefuegt werden koennen und geupdatet werden." Welche Anlage zu welcher Vertragssorte gehoert, war nirgends gespeichert — `contract_text_kinds` war eine flache Liste, und nichts verband die Betreuungsordnung mit dem Betreuungsvertrag. Neu: `contract_kind_attachments`, **je Textsorte und nicht je Vertragsart**. Heute tragen Grund- und Realschulvertrag dieselben Anlagen, "aktuell macht man es, weil der Prozess so leichter ist" — aber die Geschaeftsfuehrung kann das fuer die Zukunft nicht garantieren, und an der Vertragsart liesse es sich nie trennen. Fuer die Bedienung aendert das nichts: "fuer alle Schulvertraege" schreibt drei Zeilen statt einer, eine Anzeigeregel und kein zweiter Mechanismus.
+
+Die Zeile traegt `created_at` und `removed_at` statt geloescht zu werden: "Welche Anlagen galten, als dieser Vertrag unterschrieben wurde" ist die Frage, die im Streitfall gestellt wird, und eine entfernte Zeile beantwortet sie nicht mehr. Dazu ein partieller Unique-Index ueber die geltenden, damit dieselbe Anlage nach dem Entfernen wieder angefuegt werden kann.
+
+**Zweitens die Mitteilung.** "Sobald ein Anhang ein Update bekommt, gibt es eine automatische Mail an alle Eltern, die von diesem Anhangsupdate betroffen sind." Block 08 sah die Mitteilung schon vor ("es genuegt die Mitteilung"), aber niemand sagte, wer sie ausloest. Jetzt: Sie geht von selbst, und **wie viele Tage vor dem Gueltigkeitstag** steht als `contract_text_kinds.announcement_lead_days` — je Sorte einstellbar von der Geschaeftsfuehrung, null heisst "am Tag selbst". Je Sorte und nicht je Fassung: An der einzelnen Fassung muesste ihn jemand bei jeder Aenderung erneut setzen, und die vergessene Zahl waere eine Mitteilung, die zu spaet kommt.
+
+Sie geht **je Person, nicht je Vertrag** — eine Familie mit drei Kindern bekommt eine. Betroffen ist, wer zum Versandzeitpunkt einen laufenden Vertrag der zugeordneten Sorte hat. Als Vorgangsmail traegt sie **keinen Abmeldelink**: Wer sich von der Betreuungsordnung abmelden koennte, bekaeme die naechste Vertragsfrist auch nicht mehr.
+
+**Klasse `agreed` bleibt draussen** (Teilnahmebedingungen, Essensbedingungen): Dort merkt sich jeder Vorgang die Fassung, unter der er zustande kam, und eine neue betrifft kuenftige Buchungen statt bestehender. Der CHECK an `announcement_lead_days` haelt das fest — ein Vorlauf an einer anderen Klasse saehe aus wie eine Zusage, die der Versand nicht haelt.
+
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
@@ -40,6 +52,10 @@ Sie brauchen deshalb denselben `contract_texts`-Mechanismus mit `valid_from` —
 - [ ] #3 Welche Anlagen es gibt, folgt aus dem ueberarbeiteten Vertragstext und wird nicht auf Vorrat angelegt
 - [ ] #4 Betreuungsordnung, Infektionsschutz, Kleiderordnung und die Regeln zu Putzdienst und Elternmitarbeit stehen als Sorte der Klasse mitgeltend, mit valid_from und ohne Dokument am Kind
 - [ ] #5 Die vollstaendige Anlagenliste ist aus dem realen Vertragsdokument gezogen und mit der Geschaeftsfuehrung gegengelesen — nicht aus dem Gedaechtnis
+- [x] #6 Welche Anlage zu welcher Vertragssorte gehoert, ist ein Wert im System und wird je Textsorte gepflegt, nicht je Vertragsart
+- [x] #7 Eine entfernte Zuordnung bleibt stehen und sagt, was damals galt; dieselbe Anlage laesst sich danach wieder anfuegen
+- [x] #8 Jede mitgeltende Anlage traegt den Vorlauf ihrer Mitteilung als Wert, jede andere Klasse traegt keinen — beides als Gegenprobe
+- [ ] #9 Eine neue Fassung erzeugt die Mail an die betroffenen Familien: je Person, ohne Abmeldelink, im Vorlauf der Anlage
 <!-- AC:END -->
 
 ## Implementation Notes

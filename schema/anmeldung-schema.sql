@@ -615,7 +615,16 @@ CREATE TABLE admission_day_slots (
 -- Herkunft: 05 (Bewerbung) — „Je Bewerbung ihr Ziel — Schulart, Zielstufe und
 -- Zielschuljahr (Pflicht) …, dazu Eingang und Zahlung." Löschanker: der
 -- Endstatus — „die Frist beginnt mit dem hier gesetzten Ende" (07) — und
--- **sechs Monate danach** (Datenschutzbeauftragter, 02.09.2026). Mit der
+-- **sechs Monate danach** (Datenschutzbeauftragter, 02.09.2026).
+-- **Die sechs Monate treffen nur die Bewerbung ohne Vertrag.** Wo einer
+-- entstanden ist, hält `fk_contracts_application` sie fest, bis der Vertrag
+-- selbst fällt — fünf Jahre nach dem Austritt des Kindes; der Lösch-Lauf räumt
+-- deshalb erst den Vertrag und dann die Bewerbung, und das Prüfskript weist die
+-- umgekehrte Reihenfolge ab. Das ist kein Nebeneffekt, sondern die Bedingung
+-- dafür, dass `target_grade_level` erreichbar bleibt: Der Vertragstext nennt
+-- die Stufe, in die das Kind aufgenommen wurde („ab dem … in die … Klasse
+-- aufgenommen"), und die steht hier und nicht an `children`, wo der Jahreslauf
+-- sie jährlich hochrückt (`backlog/` TASK-260). Mit der
 -- Bewerbung gehen die Personenzeilen, die allein mit ihr entstanden sind;
 -- sonst wüchse der Stammdatenbestand mit Leuten, die nie an der Schule waren.
 -- Die Löschankündigung davor und das Anhalten im Einzelfall stehen als

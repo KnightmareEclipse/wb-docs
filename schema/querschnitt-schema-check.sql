@@ -1,12 +1,14 @@
 -- Prüfskript zu querschnitt-schema.sql.
 --
--- Sollstand: 22 Tabellen — neun Wertelisten (mail_categories, consent_purposes,
+-- Sollstand: 23 Tabellen — neun Wertelisten (mail_categories, consent_purposes,
 -- sharepoint_libraries, child_file_categories, document_types, sync_targets,
 -- contract_text_kinds, retention_subjects, retention_hold_reasons),
 -- Q2 (contract_texts,
 -- signatures, documents, child_file_folders), Q1 (consents,
 -- photo_consent_records), Q3 (payments),
--- Q5 (sync_tasks), die drei übrigen Hebel (configured_values, change_log,
+-- Q5 (sync_tasks), die Zuordnung der mitgeltenden Anlagen
+-- (contract_kind_attachments) samt ihrem partiellen Unique-Index über die
+-- geltenden, die drei übrigen Hebel (configured_values, change_log,
 -- outbound_emails) und die zwei des Lösch-Laufs
 -- (retention_notice_recipients, retention_holds).
 -- Die vertragsgebundenen Gegenproben zu `signatures` stehen in
@@ -57,7 +59,7 @@ BEGIN
         'sync_targets', 'signatures', 'documents', 'child_file_folders',
         'consents', 'photo_consent_records',
         'payments', 'sync_tasks', 'configured_values', 'change_log',
-        'contract_text_kinds',
+        'contract_text_kinds', 'contract_kind_attachments',
         'contract_texts', 'outbound_emails',
         'retention_subjects', 'retention_hold_reasons',
         'retention_notice_recipients', 'retention_holds'
@@ -119,7 +121,12 @@ BEGIN
         'uq_documents_graph_item', 'uq_documents_id_child', 'uq_signatures_id_person',
         'pk_contract_text_kinds', 'uq_contract_text_kinds_code',
         'ck_contract_text_kinds_class', 'ck_contract_text_kinds_working',
-        'ck_contract_text_kinds_class_shape',
+        'ck_contract_text_kinds_class_shape', 'ck_contract_text_kinds_lead',
+        'pk_contract_kind_attachments', 'fk_contract_kind_attachments_contract',
+        'fk_contract_kind_attachments_attachment',
+        'ck_contract_kind_attachments_contract_class',
+        'ck_contract_kind_attachments_attachment_class',
+        'ck_contract_kind_attachments_removed',
         'fk_contract_text_kinds_document_type', 'fk_contract_text_kinds_working_library',
         'ck_contract_texts_frozen', 'ck_contract_texts_checksum',
         'uq_contract_texts_id_consent',
@@ -155,7 +162,7 @@ BEGIN
         'ix_signatures_contract', 'ix_signatures_agreement', 'ix_signatures_mandate',
         'ix_signatures_amendment',
         'ix_outbound_emails_undeliverable', 'ix_retention_holds_held_until',
-        'ix_retention_holds_first'
+        'ix_retention_holds_first', 'ix_contract_kind_attachments_active'
     ]) AS i
     WHERE to_regclass('public.' || i) IS NULL;
     IF missing IS NOT NULL THEN
@@ -1030,9 +1037,9 @@ SELECT pg_temp.expect_accept(
 -- eine mitgeltende Anlage mit Vorlage behauptete ein Dokument am Kind.
 SELECT pg_temp.expect_reject(
     'TASK-225 — mitgeltende Anlage mit Arbeitsfassung',
-    $q$INSERT INTO contract_text_kinds (code, name, kind_class, working_library_id,
-                                       working_item_id, created_by)
-       VALUES ('care_rules', 'Betreuungsordnung', 'applies', 1, 'item-9',
+    $q$INSERT INTO contract_text_kinds (code, name, kind_class, announcement_lead_days,
+                                       working_library_id, working_item_id, created_by)
+       VALUES ('care_rules', 'Betreuungsordnung', 'applies', 14, 1, 'item-9',
                'system:check')$q$);
 
 SELECT pg_temp.expect_reject(
@@ -1050,10 +1057,82 @@ SELECT pg_temp.expect_reject(
 -- `valid_from` und sonst nichts — kein Dokument, keine Unterschrift.
 SELECT pg_temp.expect_accept(
     'TASK-231 — mitgeltende Anlage als reiner Text mit Gültigkeitstag',
-    $q$INSERT INTO contract_text_kinds (code, name, kind_class, created_by)
-       VALUES ('care_rules', 'Betreuungsordnung', 'applies', 'system:check');
+    $q$INSERT INTO contract_text_kinds (code, name, kind_class,
+                                        announcement_lead_days, created_by)
+       VALUES ('care_rules', 'Betreuungsordnung', 'applies', 14, 'system:check');
        INSERT INTO contract_texts (code, valid_from, body, created_by)
        VALUES ('care_rules', DATE '2026-08-01', 'Betreuungsordnung', 'system:check')$q$);
+
+-- Geschäftsführung, 04.09.2026: „Sobald ein Anhang ein Update bekommt, gibt es
+-- eine automatische Mail an alle Eltern, die von diesem Anhangsupdate betroffen
+-- sind." Der Vorlauf sagt, wie viele Tage vor dem Gültigkeitstag sie hinausgeht;
+-- er gehört der Anlage und keiner anderen Klasse.
+SELECT pg_temp.expect_reject(
+    '08 — mitgeltende Anlage ohne Vorlauf für ihre Mitteilung',
+    $q$INSERT INTO contract_text_kinds (code, name, kind_class, created_by)
+       VALUES ('dress_code', 'Kleiderordnung', 'applies', 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    '08 — ein Vorlauf an einer unterschriebenen Sorte',
+    $q$INSERT INTO contract_text_kinds (code, name, kind_class, announcement_lead_days,
+                                        created_by)
+       VALUES ('photo_consent', 'Fotoeinverständnis', 'signed', 14, 'system:check')$q$);
+
+SELECT pg_temp.expect_accept(
+    '08 — ein Vorlauf von null Tagen: die Mitteilung geht am Gültigkeitstag',
+    $q$INSERT INTO contract_text_kinds (code, name, kind_class,
+                                        announcement_lead_days, created_by)
+       VALUES ('dress_code', 'Kleiderordnung', 'applies', 0, 'system:check')$q$);
+
+-- Geschäftsführung, 04.09.2026: „Die Vertragsanlagen müssen dynamisch pro
+-- Vertragsprozess angefügt werden können." Die Zuordnung sagt zugleich, wen ein
+-- Update betrifft.
+SELECT pg_temp.expect_accept(
+    '08 — die Kleiderordnung liegt dem Schulvertrag bei',
+    $q$INSERT INTO contract_kind_attachments (contract_text_kind_id, contract_kind_class,
+                                              attachment_text_kind_id, attachment_kind_class,
+                                              created_by)
+       VALUES ((SELECT contract_text_kind_id FROM contract_text_kinds WHERE code = 'school_contract_gs'), 'signed', (SELECT contract_text_kind_id FROM contract_text_kinds WHERE code = 'dress_code'), 'applies', 'entra:geschaeftsfuehrung')$q$);
+
+SELECT pg_temp.expect_reject(
+    '08 — dieselbe Anlage ein zweites Mal an derselben Vertragssorte',
+    $q$INSERT INTO contract_kind_attachments (contract_text_kind_id, contract_kind_class,
+                                              attachment_text_kind_id, attachment_kind_class,
+                                              created_by)
+       VALUES ((SELECT contract_text_kind_id FROM contract_text_kinds WHERE code = 'school_contract_gs'), 'signed', (SELECT contract_text_kind_id FROM contract_text_kinds WHERE code = 'dress_code'), 'applies', 'entra:geschaeftsfuehrung')$q$);
+
+-- Entfernt und wieder angefügt: dieselbe Paarung ein zweites Mal, und die alte
+-- Zeile trägt weiter, was damals galt — „welche Anlagen galten, als dieser
+-- Vertrag unterschrieben wurde".
+SELECT pg_temp.expect_accept(
+    '08 — entfernt und später wieder angefügt',
+    $q$UPDATE contract_kind_attachments
+          SET removed_at = now(), removed_by = 'entra:geschaeftsfuehrung'
+        WHERE contract_text_kind_id = (SELECT contract_text_kind_id FROM contract_text_kinds WHERE code = 'school_contract_gs') AND attachment_text_kind_id = (SELECT contract_text_kind_id FROM contract_text_kinds WHERE code = 'dress_code');
+       INSERT INTO contract_kind_attachments (contract_text_kind_id, contract_kind_class,
+                                              attachment_text_kind_id, attachment_kind_class,
+                                              created_by)
+       VALUES ((SELECT contract_text_kind_id FROM contract_text_kinds WHERE code = 'school_contract_gs'), 'signed', (SELECT contract_text_kind_id FROM contract_text_kinds WHERE code = 'dress_code'), 'applies', 'entra:geschaeftsfuehrung')$q$);
+
+SELECT pg_temp.expect_reject(
+    '08 — eine unterschriebene Sorte als Anlage',
+    $q$INSERT INTO contract_kind_attachments (contract_text_kind_id, contract_kind_class,
+                                              attachment_text_kind_id, attachment_kind_class,
+                                              created_by)
+       VALUES ((SELECT contract_text_kind_id FROM contract_text_kinds WHERE code = 'school_contract_gs'), 'signed', (SELECT contract_text_kind_id FROM contract_text_kinds WHERE code = 'school_contract_gs'), 'signed', 'entra:geschaeftsfuehrung')$q$);
+
+SELECT pg_temp.expect_reject(
+    '08 — eine Anlage an einer Anlage',
+    $q$INSERT INTO contract_kind_attachments (contract_text_kind_id, contract_kind_class,
+                                              attachment_text_kind_id, attachment_kind_class,
+                                              created_by)
+       VALUES ((SELECT contract_text_kind_id FROM contract_text_kinds WHERE code = 'dress_code'), 'applies', (SELECT contract_text_kind_id FROM contract_text_kinds WHERE code = 'care_rules'), 'applies', 'entra:geschaeftsfuehrung')$q$);
+
+SELECT pg_temp.expect_reject(
+    '08 — entfernt, ohne dass jemand es war',
+    $q$UPDATE contract_kind_attachments SET removed_at = now()
+        WHERE contract_text_kind_id = (SELECT contract_text_kind_id FROM contract_text_kinds WHERE code = 'school_contract_gs') AND attachment_text_kind_id = (SELECT contract_text_kind_id FROM contract_text_kinds WHERE code = 'dress_code')
+          AND removed_at IS NULL$q$);
 
 -- TASK-232: Für `contract_texts.template_docx` trägt die Spur die Prüfsumme
 -- statt des Werts — die eine Ausnahme, und der Versuch, die Bytes abzulegen,

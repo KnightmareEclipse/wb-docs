@@ -139,16 +139,17 @@ akzeptiertes Risiko benannt, nicht als gelöstes.
 dorthin hinterlässt Kopien.** Zwei getrennte Wege, ein Mechanismus (`dokumente.md`). Erstens
 entsteht mit dem **Gesundheitsblatt** eine Urkunde, die Art.-9-Merkmale abdruckt; wer Dokumente
 dieser Art liest, liest sie alle, und der Maßstab ist damit der Leserkreis der Datei und nicht der
-der Zeile. Zweitens konvertiert Graph nur ein Element und keinen Rumpf: Jede Ansicht und jede
-Erzeugung lädt eine vollständig gefüllte `.docx` in die Bibliothek und entfernt sie wieder — ein
-über Graph entferntes Element liegt danach im Papierkorb der Site und anschließend in dem der
-Sammlung, ohne Zeile und damit außerhalb des Lösch-Laufs, der über Zeilen geht. *Abhilfe:* Die
-Freigabe je Vorlagensorte läuft über den bestehenden Sichtkreis und nicht über eine zweite
-Feldliste, und wer sie verbreitern kann, schreibt die Vorlage nicht (`dokumente.md`, TASK-227,
-offen) — dass ihr Torwächter heute an Unterfeldern nichts prüft, ist gemessen und liegt als
-TASK-239; der Zwischenstand gehört an einen Ort, den kein Bestand als Ablage führt, und beide
-Papierkorbstufen gehören zum Entfernen (TASK-238, offen); die Ansicht des gefüllten Vertrags ist
-eine Route mit einer Rolle und folgt der Einsichtsstufe (`api/anmeldung-api.md`,
+der Zeile. Zweitens **hinterließ der Weg zur Konvertierung Kopien**: Graph konvertiert ein Element und keinen
+Rumpf, also lud jede Ansicht und jede Erzeugung eine vollständig gefüllte `.docx` in die Bibliothek
+und entfernte sie wieder — was danach in zwei Papierkörben lag, ohne Zeile und außerhalb des
+Lösch-Laufs, der über Zeilen geht. *Abhilfe:* Die Freigabe je Vorlagensorte läuft über den
+bestehenden Sichtkreis und nicht über eine zweite Feldliste, und wer sie verbreitern kann, schreibt
+die Vorlage nicht (`dokumente.md`, TASK-227, offen) — dass ihr Torwächter heute an Unterfeldern
+nichts prüft, ist gemessen und liegt als TASK-239. **Die zweite Hälfte ist mit der
+Konverterentscheidung entfallen** (04.09.2026): Der Konverter im Container nimmt Bytes und gibt
+Bytes zurück, es gibt keinen Upload und damit keinen Zwischenstand mehr (`container.md`); TASK-238
+verliert seinen Gegenstand. Die Ansicht des gefüllten Vertrags bleibt eine Route mit einer Rolle
+und folgt der Einsichtsstufe (`api/anmeldung-api.md`,
 `GET /contracts/{contract_id}/document`).
 
 **R11 — Der handlungsrelevante Hinweis wird zur Abkürzung um die Freigabe.** Er steht seit dem

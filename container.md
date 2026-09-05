@@ -92,8 +92,8 @@ Drei Eigenheiten von `podman-compose` — die ersten beiden im Deploy-Skript auf
 
 ## Der Stack darüber
 
-Vier Dienste in einem Compose-Stack: Reverse-Proxy (Caddy, automatisches HTTPS), Datenbank
-(PostgreSQL 18), Backend und der Lauf-Dienst daneben. Der Backend-Dienst: Python, FastAPI +
+Fünf Dienste in einem Compose-Stack: Reverse-Proxy (Caddy, automatisches HTTPS), Datenbank
+(PostgreSQL 18), Backend, der Lauf-Dienst und die Dokumentkonvertierung (unten). Der Backend-Dienst: Python, FastAPI +
 SQLAlchemy 2.0 (async) + Alembic-Migrationen, Dependency-Management über `pip` + `pip-tools`
 (Lockfile via `pip-compile`), Lint/Format über `ruff`, Typecheck über `mypy --strict`,
 OIDC-Token-Validierung über `PyJWT`, Constraint-Solver `ortools` für die Putzdienst-Restzuordnung,
@@ -151,6 +151,52 @@ Was zu einem Zeitpunkt von selbst geschieht, hat keinen Aufrufer und keinen Endp
 *   **Ein Prozess, der nichts tut, sieht aus wie einer, der wartet.** Der Dienst bekommt deshalb einen **eigenen** healthchecks.io-Check und nicht den des Hosts. An dem hängt genau ein Herzschlag (`host.md`, alle 15 Minuten); Image-GC und NAS-Backup melden dorthin nur Fehlschläge. Ein zweiter Herzschlag daneben hielte den Check grün, während der Host-Timer tot ist — und umgekehrt —, und der Dead-Man's-Switch verlöre beide Richtungen auf einmal. Ein Lauf, der wirft, pingt `/fail` und die Schleife läuft weiter: Ein Fehlschlag darf den Container nicht in eine Neustartschleife schicken, in der er die Datenbank hämmert, aber geloggt-und-vergessen wäre ein stiller Fehlschlag (`rules.md` Abschnitt 3).
 *   **Was der Dienst zusätzlich braucht**, weil das Backend-Image es nicht mitbringt: das `external`-Netz — `internal: true` sperrt auch ausgehend, ohne es erreicht weder der Ping healthchecks.io noch der Versand Graph —, die Ping-URL als Secret-Datei wie in Phase 2, und `otp_signing_key` gemountet, obwohl er keinen Code hasht (`Settings` verlangt es ohne Default, `wb-backend/CLAUDE.md` Abschnitt 5). Grenzen: `cpus: 0.5`, `mem_limit: 256m` — der laufende Dienst misst 60 MB, die Anwendung samt Web-Teil 77 — und ein Verbindungspool von zwei statt der voreingestellten fünfzehn: Die Schleife ist einfädig, aber ein Lauf, der seine Transaktion offen hält und dabei eine Mail schickt, braucht die zweite — der Versand committet auf einer eigenen. Bei eins liefe er in den Pool-Timeout. Die drei vorhandenen CPU-Grenzen summieren sich bereits auf die vier vCPU der Maschine; die vierte wird aus dem Vorhandenen geschnitten und nicht danebengelegt. **Und die Schleife hört auf ein Signal**: Der Prozess ist PID 1 in seinem Container, und PID 1 bekommt keine Standardbehandlung für SIGTERM — ohne eigenen Handler wartet ein schlafender Tick die Gnadenfrist der Runtime ab und wird dann hart getötet, gemessen zehn Sekunden je Deploy. Später wäre der Preis größer als die Sekunden: Ein abgewürgter Lauf sieht von außen aus wie einer, der still nichts getan hat. Das Signal beendet dabei das **Warten**, nicht einen laufenden Tick — ein Lauf, der länger dauert als die Gnadenfrist, wird weiter getötet; neu zu bewerten mit dem ersten, der Minuten braucht, und das ist der Zuteilungs-Solver. Dass ein Solver-Lauf den Web-Prozess nicht aushungert, kauft nicht die Existenz der Grenze, sondern ihre Höhe.
 *   Verworfen: **ein Scheduler im Web-Prozess** (APScheduler o. Ä.). Preis: eine Abhängigkeit mehr, Läufe, die mit dem Prozess sterben, und ein zweiter Worker täte alles doppelt. Verworfen: **ein Timer je Lauf**. Preis: jede Fälligkeit stünde zweimal — als Datum in der Datenbank und als Kalenderausdruck in einer Unit —, und die Zuteilung eines Putzdienstjahres bekäme einen eigenen Timer je Jahrgang. Verworfen: **ein systemd-Timer beim `deploy`-User, der je Tick einen Container startet** (das Muster des Image-GC). Preis nicht die Rechenzeit — zwei Sekunden CPU alle fünf Minuten sind Rauschen — und auch nicht ein zweites Repo je Lauf: Eine einzige Unit ruft alle auf, und der fünfte Lauf ist so oder so eine Funktion in `wb-backend`. Der Preis ist der Containerstart je Tick samt kaltem Verbindungspool, und dass die Taktweite hinter einem Ansible-Lauf im VPS-Repo läge statt in der Compose-Datei neben dem Dienst. Der Preis der Schleife dagegen sind 60 MB Arbeitsspeicher, die dauerhaft belegt sind, und ein Hängenbleiben, das erst der eigene Check oben sichtbar macht.
+
+### Dokumentkonvertierung
+
+**Gotenberg mit LibreOffice** (`gotenberg/gotenberg:8-libreoffice`), erreichbar allein im internen
+Netz. Er nimmt eine `.docx` als Anfragekörper und gibt das PDF zurück — **Bytes hinein, Bytes
+heraus**, und genau daran hängt die Entscheidung: Der frühere Weg über Graph konvertierte ein
+*Element*, nicht einen Rumpf, und musste deshalb jede gefüllte Datei erst in eine SharePoint-
+Bibliothek laden und wieder entfernen. Was dabei entstand, lag danach in zwei Papierkörben, ohne
+Zeile und außerhalb des Lösch-Laufs (`folgenabschaetzung.md`, R10). Ohne Upload gibt es diesen
+Zwischenstand nicht mehr.
+
+**Gemessen auf dieser Maschine**, am realen Schulvertrag (30 Seiten, 400 KB):
+
+| | Wert |
+|---|---|
+| Ruhezustand | 4,9 MB — der Konverterprozess startet erst mit der ersten Anfrage |
+| unter Last | 245 MB Spitze, danach ~175 MB gehalten |
+| je Dokument | 0,72 s |
+| Durchsatz | ~1,4 Dokumente je Sekunde, **ob nacheinander oder gleichzeitig** |
+| Image | 1,02 GB |
+
+**Der Durchsatz ist die Grenze, nicht der Speicher.** LibreOffice arbeitet die Warteschlange ab;
+mehr Anfragen zugleich verkürzen nichts, sie verlängern die Wartezeit der einzelnen. Für die
+Urkunde und die Ansicht vor der Unterschrift trägt das — beides sind Einzelaufrufe. Ein Lauf über
+fünfhundert Verträge dauert damit rund sechs Minuten und gehört in den Lauf-Dienst, nicht in eine
+Anfrage. Grenzen: `cpus: 0.5`, `mem_limit: 384m`, aus dem Vorhandenen geschnitten wie die vierte
+(oben).
+
+**Was das kostet, und der Preis ist benannt:** die Zusage „kein Konverter im Container"
+(`oberflaechen.md`) und ein zweites Werkzeug, dessen Ausgabe von Word abweichen darf. Gekauft wird
+dafür dreierlei: der Wegfall des Zwischenstands, die **Unabhängigkeit von Microsoft für einen
+Mechanismus** — Entra-ID für Nutzer und SharePoint für Dateien bleiben, der Konverter geht —, und
+ein Weg, der **lokal ohne Tenant läuft**: Eine neue Vertragsfassung lässt sich vor dem Ausrollen
+durchspielen, was über Graph nie ging.
+
+**Der PDF/UA-Prüfer steht daneben** (`verapdf/cli`, 80 MB, Java): kein dauernder Dienst, sondern
+ein Aufruf beim Anlegen einer Fassung. Er war der Auslöser für diese Neubewertung — solange ohnehin
+kein fremder Prozess neben dem Stack stand, trug das Argument gegen den lokalen Konverter
+(`backlog/` TASK-242).
+
+**Gemessen, nicht angenommen:** Das erzeugte PDF ist getaggt und trägt PDF/A-2b und PDF/UA-1;
+`/Lang` steht auf `de-DE`, sofern die Vorlage eine Sprache trägt — LibreOffice übernimmt sie, es
+erfindet keine. veraPDF meldet danach noch fünf verletzte Regeln, von denen die Nachbearbeitung in
+`dokumente.md` drei trägt (Titel im XMP, Alternativtext an Bildern, Beschreibung an Links); eine
+liegt an der Vorlage, die keinen einzigen Überschriften-Stil führt, und eine am Export
+(`LI` außerhalb von `L`). **PDF/UA-konform ist das Ergebnis damit noch nicht.**
 
 ### Container-Hardening
 

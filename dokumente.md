@@ -9,24 +9,35 @@ und was eine neue Vertragsart kostet.
 
 ## Die Kette
 
-Vier Stationen, und die Grenze zwischen zweiter und dritter ist die ganze Konstruktion:
+Vier Stationen, und die Grenze zwischen Zwischenstand und Gültigkeit ist die ganze Konstruktion:
 
 1. **Arbeitsfassung** — eine `.docx` in SharePoint, an der die Geschäftsführung schreibt, so oft sie
-   will. Nichts zeigt darauf, sie hat keinen Gültigkeitstag. Ihre Graph-Kennung steht an
+   will. **Das ist die Werkbank und bleibt es:** In der Datenbank wird an keiner Word-Datei
+   gearbeitet. Nichts zeigt auf sie, sie hat keinen Gültigkeitstag. Ihre Graph-Kennung steht an
    `contract_text_kinds`. Der Weg über den Pfad ist einmalig: `GET /drives/{id}/root:/{pfad}` oder
    der kopierte Link über `GET /shares/{u!…}/driveItem` liefert die Element-Kennung, und nur die
    wird gespeichert.
-2. **Fassung anlegen** — eine Handlung, kein Speichervorgang: Datei über Graph holen, prüfen, als
-   unveränderliche Kopie samt Prüfsumme und Zeitpunkt in `contract_texts` einfrieren. Danach ist die
-   Arbeitsfassung wieder frei. Eine Datei in SharePoint ließe sich nicht einfrieren — sie bleibt
-   bearbeitbar, und der Nachweis „welche Fassung galt" wäre lautlos wertlos.
+2. **Stand einlesen** — die Datei über Graph holen, prüfen und als Kopie samt Prüfsumme in
+   `contract_texts` ablegen. Sie ist damit **noch nicht gültig**: Solange ihr Gültigkeitstag in der
+   Zukunft liegt, ist sie ein Zwischenstand und lässt sich durch einen neueren ersetzen, so oft
+   nötig. **Genau darauf läuft die Vorschau** — der Vergleich gegen die geltende Fassung
+   (`backlog/` TASK-259) lässt sich damit durchspielen, bevor irgendjemand ihn zu sehen bekommt.
+3. **Einfrieren heißt: den Gültigkeitstag erreichen.** Es ist keine eigene Handlung, sondern die
+   Folge einer Entscheidung — die Geschäftsführung setzt `valid_from`, und mit diesem Tag ist die
+   Fassung unveränderlich. Vorher ändern kostet nichts, nachher gar nicht mehr. Eine Datei in
+   SharePoint ließe sich so nicht festhalten: Sie bleibt bearbeitbar, und der Nachweis „welche
+   Fassung galt" wäre lautlos wertlos.
+
+   **Die Änderungsspur trägt die Bytes nie** — für `template_docx` steht dort die Prüfsumme statt
+   des Werts, und ein Constraint erzwingt es (`schema/querschnitt-schema.sql`). Ein ersetzter
+   Zwischenstand kostet damit keinen Plattenplatz in der Spur, sondern eine Zeile.
    **Zwei Dinge fallen an dieser Station leicht durchs Raster.** Die Änderungsspur darf die
    Dateibytes nicht mitschreiben — sie trägt für `template_docx` die Prüfsumme statt des Werts, und
    das gilt auch für das **Anlegen**, wo die Spur die ganze neue Zeile hält und ein Constraint, der
    an einer Spaltenkennung hängt, sie nicht sieht. Und die Bytes werden **nachgeladen**: Eine
    Leseroute über alle Fassungen zöge sonst jedes Mal jede Vorlage mit.
-3. **Rendern** — Fassung plus Daten ergeben ein PDF. Eine Funktion, mehrere Aufrufer (unten).
-4. **Urkunde** — das abgelegte PDF, seine Prüfsumme am Vorgang.
+4. **Rendern** — Fassung plus Daten ergeben ein PDF. Eine Funktion, mehrere Aufrufer (unten).
+5. **Urkunde** — das abgelegte PDF, seine Prüfsumme am Vorgang.
 
 Jede Prüfsumme steht in der Form `sha256:<64 Hexstellen>` — festgelegt und nicht bloß Konvention,
 weil die Änderungsspur sie liest. **Und eine Prüfsumme ohne Leser ist keine Gegenprobe:** Solange
@@ -60,7 +71,10 @@ hinterlässt ein sichtbares Loch statt einer unsichtbar kaputten Feldeigenschaft
 - **Jeder eingesetzte Wert wird escaped.** Ein `&` oder `<` aus einem Freitextfeld geht sonst roh
   ins Word-XML und macht die Datei ungültig — mitten in einer Freigabe, die daran zurückfällt.
 - **Eine Unterlage, eine Datei** (08). Mitgeltende Anlagen werden nicht angeheftet: Sie gelten „in
-  ihrer jeweils gültigen Fassung", angeheftet wären sie je Vertrag eingefroren.
+  ihrer jeweils gültigen Fassung", angeheftet wären sie je Vertrag eingefroren. Welche einem
+  Vertrag beiliegen, steht als Zuordnung im System (`schema/querschnitt-schema.sql`,
+  `contract_kind_attachments`) — der Vertragstext verweist darauf, statt sie mitzuführen, und eine
+  neue Fassung erzeugt von dort aus die Mitteilung an die betroffenen Familien.
 
 ## Der Kontext
 
@@ -138,7 +152,15 @@ Die Renderfunktion nimmt **Bytes, nicht einen Ort** — es gibt keine zweite Ren
 | Vorschau der Arbeitsfassung | SharePoint | Beispieldaten | verworfen |
 | Ansicht einer geltenden Fassung | Postgres | Beispieldaten | verworfen |
 | Ansicht vor der Unterschrift | Postgres | echte Daten, nach Einsichtsstufe | verworfen |
+| Ansicht einer geänderten Fassung | Postgres, **zwei** Fassungen | echte Daten, für beide dieselben | verworfen |
 | Erzeugung der Urkunde | Postgres | echte Daten | abgelegt, Prüfsumme am Vorgang |
+
+**Der fünfte ist der einzige, der zwei Fassungen zugleich braucht** (`backlog/` TASK-259): Beide
+werden mit **denselben** Daten dieser Familie gefüllt, dann verglichen — so heben sich die
+Datenunterschiede auf und übrig bleiben genau die Textänderungen, in der Sprache des eigenen
+Vertrags statt in Platzhaltern. Was die Familie **bisher unterschrieben hat**, steht dabei nicht in
+dieser Tabelle: Das ist die abgelegte Urkunde und kommt aus der Akte, nie aus dem Renderer — siehe
+„Was einmal erzeugt ist, wird nicht neu erzeugt" weiter unten.
 
 Der dritte Aufruf ist der, den 08 Z3 verlangt: Die Eltern lesen **das Dokument, das sie
 unterschreiben** — nicht eine HTML-Zweitfassung des Texts, die ohne Gültigkeitstag und Prüfsumme
@@ -146,23 +168,28 @@ danebenstünde und doppelt gepflegt werden müsste. Der Vertragstext lebt an gen
 der Word-Datei. `contract_texts.body` ist das nicht — er ist der ausgelesene Fließtext für
 Volltextsuche und Fassungsvergleich, ohne Tabellen, Listenebenen und Grafiken.
 
+**Was hinausgeht, ist ein PDF** (Betreiber, 04.09.2026) — an Eltern gibt keine Route eine `.docx`
+heraus, auch nicht die Redline einer geänderten Fassung (`backlog/` TASK-259). Die Word-Datei ist
+Zwischenprodukt: Sie trägt Platzhalter, ihre Formatierung hängt am Programm des Empfängers, und
+Änderungsverfolgungen zeigt Word im Auslieferungszustand nur als Strich am Rand. Im PDF ist beides
+festgelegt.
+
 **Jeder dieser Aufrufe ist eine Route mit einer Rolle.** Wer den gefüllten Vertrag ansehen darf, ist
 dieselbe Frage wie „wer unterschreibt" und nicht dieselbe wie „wer die Vorlage prüft": Ein
 Sorgeberechtigter, dem seine Einsichtsstufe das Zeichnen genommen hat, liest ihn nicht mit
 (`api/anmeldung-api.md`, `GET /contracts/{contract_id}/document`). Dieselbe Route liefert nach der
 Freigabe die abgelegte Urkunde und rendert nichts mehr.
 
-**„Verworfen" heißt nicht „nie geschrieben", und das ist der Preis dieses Wegs.** Graph konvertiert
-nur ein *Element*, nie einen Rumpf: Jeder Aufruf lädt die gefüllte `.docx` erst in eine Bibliothek,
-holt das PDF und entfernt sie wieder. Ein über Graph entferntes Element liegt danach im Papierkorb
-der Site und anschließend in dem der Sammlung (`grenzkarte.md`, Q2) — **beide Stufen gehören zum
-Entfernen**, sonst hinterlässt jede Ansicht eine vollständige Kopie mit echten Daten, die keine
-Zeile kennt und der Lösch-Lauf nie findet, weil er über Zeilen geht. Ein Zwischenstand gehört
-deshalb nicht in die Schülerakte, sondern an einen Ort, den kein Bestand als Ablage führt.
-— Alternative: ein Konverter im Container; Preis: er löst genau dieses Problem, kostet aber die
-Zusage „kein Konverter im Container" (`oberflaechen.md`) und ein zweites Werkzeug, dessen Ausgabe
-von Word abweichen darf. Neu zu bewerten, sobald ein Java-Prozess für die PDF/UA-Prüfung ohnehin
-danebensteht.
+**„Verworfen" heißt hier wirklich „nie geschrieben".** Der Konverter nimmt **Bytes und gibt Bytes
+zurück** (`container.md`): Was verworfen wird, hat nie eine Ablage gesehen. Das ist der Unterschied
+zum früheren Weg über Graph, der ein *Element* konvertierte und keinen Rumpf — dort lud jeder
+Aufruf die gefüllte `.docx` erst in eine Bibliothek, holte das PDF und entfernte sie wieder, und
+das Entfernte lag danach in zwei Papierkörben, ohne Zeile und außerhalb des Lösch-Laufs. Bei der
+Ansicht vor der Unterschrift war das ein vollständig gefüllter Vertragsentwurf je Aufruf, beim
+Gesundheitsblatt mit Art.-9-Daten. Der Grund für den Umstieg ist damit nicht Bequemlichkeit,
+sondern der Wegfall dieses Zwischenstands — dazu die Unabhängigkeit von Microsoft für den
+Mechanismus und ein Renderweg, der ohne Tenant lokal läuft (`container.md`, samt Preis und
+Messwerten).
 
 **Alle Aufrufe laufen durch denselben Pfad**, samt PDF/UA-Nachbearbeitung: XMP-Metadatenstrom,
 korrigiertes `/Lang` (Word schreibt `en`, und veraPDF meldet das nicht — ein Screenreader läse den

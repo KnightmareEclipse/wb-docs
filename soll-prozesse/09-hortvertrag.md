@@ -246,7 +246,10 @@ in der Akte. Der fertige Vertrag liegt im Portal, solange er läuft, und die Elt
 nach ihrer [Einsichtsstufe](hebel.md#einsichtsstufe). Die übrigen Anlagen — Fotoeinwilligung,
 Infektionsschutz, Betreuungsordnung — gelten laut Vertrag **in ihrer jeweils gültigen Fassung**:
 eine geänderte Betreuungsordnung erzeugt deshalb keine neue Unterschrift, sie wird wie ein
-[Preis](hebel.md#geld-und-fristen-im-system-alles-andere-fest) gepflegt und gilt ab ihrem Tag.
+[Preis](hebel.md#geld-und-fristen-im-system-alles-andere-fest) gepflegt und gilt ab ihrem Tag —
+**mit einer Mail an alle, die sie betrifft**, deren Vorlauf an der Anlage steht
+([08](08-schulvertrag.md)). Welche Anlagen diesem Vertrag beiliegen, ist ebenfalls ein Wert und
+wird von der Geschäftsführung gepflegt.
 
 Dazu die **Betreuungsliste**: wer heute in welchem Modul ist, mit der Abholzeit des Moduls und der
 Heimweg-Erlaubnis, [frisch erzeugt](hebel.md#frisch-erzeugte-liste), sichtbar für Hortkräfte,

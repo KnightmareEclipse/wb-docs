@@ -549,6 +549,21 @@ CREATE TABLE contract_text_kinds (
     -- statt einer Zeile plus Vorlage. Nur die Klasse 'signed' trägt eine — die
     -- beiden anderen erzeugen keine Datei.
     document_type_id      integer,
+    -- Wie viele Tage vor dem Gültigkeitstag einer neuen Fassung die Mitteilung
+    -- hinausgeht — 0 heißt „am Gültigkeitstag selbst". Allein an der Klasse
+    -- 'applies': Dort „genügt die Mitteilung, es entsteht nichts am Kind" (08),
+    -- und sie geht seit dem 04.09.2026 automatisch an alle, die ein laufender
+    -- Vertrag dieser Anlage unterwirft. Die beiden anderen Klassen brauchen
+    -- keinen: 'signed' läuft über den Nachtrag mit Kenntnisnahme oder
+    -- Zustimmung, und bei 'agreed' merkt sich jeder Vorgang die Fassung, unter
+    -- der er zustande kam — eine neue betrifft künftige Buchungen, nicht
+    -- bestehende.
+    -- **Je Sorte und nicht je Fassung** (Geschäftsführung, 04.09.2026, „kann man
+    -- das als Variable einstellen lassen"): Einmal eingestellt, gilt der Vorlauf
+    -- für jede Änderung dieser Anlage. An der einzelnen Fassung müsste ihn
+    -- jemand bei jeder Änderung erneut setzen, und die vergessene Zahl wäre
+    -- eine Mitteilung, die zu spät kommt.
+    announcement_lead_days smallint,
     -- Wo die Arbeitsfassung liegt, an der die Geschäftsführung schreibt:
     -- Bibliothek und Element als Graph-Kennung, „nie ein Pfad" (grenzkarte.md,
     -- Q2). Aus ihr entsteht beim Einfrieren die Fassung an `contract_texts`.
@@ -581,8 +596,91 @@ CREATE TABLE contract_text_kinds (
     CONSTRAINT ck_contract_text_kinds_class_shape
         CHECK (kind_class = 'signed'
                OR (working_library_id IS NULL AND document_type_id IS NULL)),
+    -- Den Vorlauf trägt allein die mitgeltende Anlage. An einer der beiden
+    -- anderen Klassen sähe er aus wie eine Zusage, die der Versand nicht hält:
+    -- Dort geht keine solche Mitteilung hinaus.
+    CONSTRAINT ck_contract_text_kinds_lead
+        CHECK ((announcement_lead_days IS NULL) <> (kind_class = 'applies')
+               AND (announcement_lead_days IS NULL OR announcement_lead_days >= 0)),
+    -- Trägt den zusammengesetzten Fremdschlüssel von `contract_kind_attachments`
+    -- unten — beide Seiten der Zuordnung führen ihre Klasse mit.
+    CONSTRAINT uq_contract_text_kinds_id_class
+        UNIQUE (contract_text_kind_id, kind_class),
     CONSTRAINT ck_contract_text_kinds_created_by CHECK (created_by ~ '^(entra:|system:)')
 );
+
+-- Herkunft: Geschäftsführung, 04.09.2026 — „Die Vertragsanlagen müssen dynamisch
+-- pro Vertragsprozess angefügt werden können und geupdatet werden." Welche
+-- mitgeltenden Anlagen zu einer Vertragssorte gehören, war bis dahin nirgends
+-- gespeichert: `contract_text_kinds` war eine flache Liste, und nichts verband
+-- die Betreuungsordnung mit dem Betreuungsvertrag. Ohne diese Zeilen ist weder
+-- „welche Anlagen gelten zu diesem Vertrag" zu beantworten noch „wen betrifft
+-- diese Änderung" — und die automatische Mitteilung hängt an der zweiten Frage.
+-- **Je Textsorte und nicht je Vertragsart** (`school`/`care`): Heute tragen
+-- Grund- und Realschulvertrag dieselben Anlagen, „aktuell macht man es, weil
+-- der Prozess so leichter ist" — aber das ist eine Gewohnheit und keine Regel,
+-- und die Geschäftsführung kann sie für die Zukunft nicht garantieren. An der
+-- Vertragsart ließe sich das nie trennen, an der Sorte kostet es später keine
+-- Migration. **Für die Bedienung ändert das nichts:** Wer eine Anlage „für alle
+-- Schulverträge" anfügt, schreibt drei Zeilen statt einer — das ist eine
+-- Anzeigeregel und kein zweiter Mechanismus (rules.md Abschnitt 1).
+-- **Zwei Zeitpunkte statt einer gelöschten Zeile:** Eine Anlage kommt hinzu und
+-- fällt wieder weg, und „welche Anlagen galten, als dieser Vertrag
+-- unterschrieben wurde" ist die Frage, die im Streitfall gestellt wird. Eine
+-- entfernte Zeile beantwortet sie nicht mehr; `created_at` und `removed_at`
+-- tragen sie zusammen mit `signatures.signed_at`, ohne dass daneben eine
+-- Historientabelle entsteht.
+-- Kein Löschanker: keine Personendaten.
+CREATE TABLE contract_kind_attachments (
+    contract_kind_attachment_id integer GENERATED ALWAYS AS IDENTITY,
+    -- Die Vertragssorte, der die Anlage beiliegt — Schulvertrag je Schulart,
+    -- Betreuungsvertrag.
+    contract_text_kind_id       integer NOT NULL,
+    -- Mitgeführt samt CHECK, damit hier keine Anlage an einer Anlage hängt;
+    -- `fk_contract_kind_attachments_contract` hält sie mit ihrer Quelle
+    -- zusammen (rules.md Abschnitt 1).
+    contract_kind_class         text NOT NULL,
+    -- Die Anlage selbst: Betreuungsordnung, Infektionsschutz, Kleiderordnung,
+    -- die Regeln zu Putzdienst und Elternmitarbeit.
+    attachment_text_kind_id     integer NOT NULL,
+    -- Ebenso mitgeführt: Beigelegt wird allein, was „in seiner jeweils gültigen
+    -- Fassung" gilt. Eine unterschriebene Sorte als Anlage wäre ein zweiter
+    -- Vertrag ohne Unterschrift, eine 'agreed'-Sorte eine Bedingung ohne
+    -- Vorgang, der sie sich merkt.
+    attachment_kind_class       text NOT NULL,
+    created_at                  timestamptz NOT NULL DEFAULT now(),
+    created_by                  text NOT NULL,
+    -- Ab wann sie nicht mehr beiliegt. Leer heißt „gilt weiter".
+    removed_at                  timestamptz,
+    removed_by                  text,
+
+    CONSTRAINT pk_contract_kind_attachments PRIMARY KEY (contract_kind_attachment_id),
+    CONSTRAINT fk_contract_kind_attachments_contract
+        FOREIGN KEY (contract_text_kind_id, contract_kind_class)
+        REFERENCES contract_text_kinds (contract_text_kind_id, kind_class),
+    CONSTRAINT fk_contract_kind_attachments_attachment
+        FOREIGN KEY (attachment_text_kind_id, attachment_kind_class)
+        REFERENCES contract_text_kinds (contract_text_kind_id, kind_class),
+    CONSTRAINT ck_contract_kind_attachments_contract_class
+        CHECK (contract_kind_class = 'signed'),
+    CONSTRAINT ck_contract_kind_attachments_attachment_class
+        CHECK (attachment_kind_class = 'applies'),
+    CONSTRAINT ck_contract_kind_attachments_removed
+        CHECK ((removed_at IS NULL) = (removed_by IS NULL)),
+    CONSTRAINT ck_contract_kind_attachments_created_by
+        CHECK (created_by ~ '^(entra:|system:)'),
+    CONSTRAINT ck_contract_kind_attachments_removed_by
+        CHECK (removed_by ~ '^(entra:|system:)')
+);
+
+-- Je Vertragssorte liegt eine Anlage höchstens einmal bei — aber nur unter den
+-- geltenden: Wer sie entfernt und später wieder anfügt, benutzt dieselbe
+-- Paarung ein zweites Mal, und die alte Zeile trägt weiter, was damals galt.
+-- Dieselbe Bauform wie `ix_holiday_bookings_active` (ferien-schema.sql).
+CREATE UNIQUE INDEX ix_contract_kind_attachments_active
+    ON contract_kind_attachments (contract_text_kind_id, attachment_text_kind_id)
+    WHERE removed_at IS NULL;
+
 
 -- Herkunft: hebel.md, „Geld im System, alles andere fest" — „Dasselbe gilt für
 -- die Texte, an denen ein Vertrag hängt … Es gilt die Fassung, deren
@@ -624,7 +722,14 @@ CREATE TABLE contract_texts (
     -- es liest: Die Änderungsspur trägt für `template_docx` diese Prüfsumme
     -- statt des Werts, und ohne festes Format wäre die Regel nicht prüfbar.
     template_checksum text,
-    -- Wann eingefroren wurde. Eine Fassung ohne Datei friert nichts ein.
+    -- Wann der Stand aus der Arbeitsfassung eingelesen wurde. **Nicht der
+    -- Zeitpunkt, ab dem sie unveränderlich ist** — das ist `valid_from`
+    -- (dokumente.md): Solange der Gültigkeitstag in der Zukunft liegt, ist die
+    -- Zeile ein Zwischenstand und darf durch einen neueren ersetzt werden; die
+    -- Vorschau des Fassungsvergleichs läuft genau darauf. Mit dem Erreichen des
+    -- Tages ist sie fest, und dass danach niemand mehr schreibt, prüft die
+    -- Anwendung — `now()` ist in keinem CHECK zulässig. Eine Fassung ohne Datei
+    -- liest nichts ein.
     frozen_at        timestamptz,
     -- **Ist diese Fassung eine wesentliche Änderung?** Sie entscheidet, was den
     -- laufenden Verträgen vorgelegt wird (`contract_amendments`,
