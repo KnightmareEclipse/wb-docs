@@ -693,13 +693,19 @@ CREATE TABLE family_guardians (
     -- Die Briefanschrift bei einer Amtsvormundschaft — die handelnde Person
     -- steht in `persons`, die Stelle, für die sie handelt, hier.
     acting_for           text,
-    -- „Wer in Briefe einzubeziehen ist" (06, 09). Sie steht neben der
-    -- Einsichtsstufe und ersetzt sie nicht: die Stufe nimmt jemandem den
-    -- Zugriff, dieses Häkchen die Briefpost. Wer beides hat, bekommt nichts.
-    -- [?] Sekretariat: Nimmt das Häkchen auch die Mail oder nur die Briefpost?
-    -- 06 und 09 erheben allein „wer in Briefe einzubeziehen ist", und hebel.md
-    -- („Empfänger") nennt für die Mail allein die Einsichtsstufe als Ausschluss
-    -- — bis zur Antwort trägt das Feld die Briefpost und sonst nichts.
+    -- „Wer in Briefe einzubeziehen ist" (06, 09) — **die Briefpost und sonst
+    -- nichts.** Beide Fundstellen in `prozesse.md` erheben den Haken neben
+    -- einer eigenen Mailangabe (Zeile 168, 196), und der Hortbogen stellt ihn
+    -- im Block der getrenntlebenden Eltern: Er entscheidet, ob an die **zweite
+    -- Anschrift** ein zweiter Brief geht — eine Frage, die nur Papier kennt.
+    -- Die Mail geht ihren eigenen Weg über das Thema in `consent_purposes`
+    -- samt Abmeldelink (querschnitt-schema.sql).
+    -- Er steht neben der Einsichtsstufe und ersetzt sie nicht: die Stufe nimmt
+    -- jemandem den Zugriff, dieses Häkchen die Briefpost. Wer beides hat,
+    -- bekommt nichts. **Bewusst nicht auch die Mail:** Die Stufe setzt das
+    -- Sekretariat auf Vorlage eines Beschlusses (hebel.md), diesen Haken die
+    -- Familie selbst — nähme er die Mail mit, schnitte ein Sorgeberechtigter
+    -- den anderen ohne Beschluss von der gesamten Schulkommunikation ab.
     include_in_correspondence boolean NOT NULL DEFAULT true,
     created_at           timestamptz NOT NULL DEFAULT now(),
     created_by           text NOT NULL,
