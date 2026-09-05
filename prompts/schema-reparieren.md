@@ -3,9 +3,11 @@
 Gegenstück zu [`prompts/schema-pruefen.md`](schema-pruefen.md). Dort wird gemeldet, hier wird
 repariert. **Der Reparateur baut, was der Block hergibt — und fragt, was er nicht hergibt.**
 
-Ein Paket je Lauf. Beim Absenden nennst du die Kennungen (`F3 F7 F12 …`) oder eine
-Paketnummer aus der Liste unten. Effort `xhigh`. Vorher `git status` sauber. Alles unter dem
-Strich ist der Prompt.
+Ein Paket je Lauf. Beim Absenden nennst du die Kennungen (`ANMELDUNG-F3 FERIEN-F7 …`) oder eine
+Paketnummer aus der Liste unten. **Ein Paket darf Funde aus mehreren Berichten tragen** — es ist
+nach dem geschnitten, was du dafür offen haben musst, und mehrere Prüfläufe finden dieselbe Sorte
+Fehler in verschiedenen Domänen. Effort `xhigh`. Vorher `git status` sauber bis auf die Berichte.
+Alles unter dem Strich ist der Prompt.
 
 **Die Pakete**, nach dem gruppiert, was du dafür offen haben musst — nicht nach Gewicht:
 
@@ -22,14 +24,17 @@ Strich ist der Prompt.
 Es gelten [`gemeinsam.md`](gemeinsam.md) (wie du mit mir redest, kein Subagent urteilt) und
 `CLAUDE.md`. Beides liest du zuerst und ich wiederhole es hier nicht.
 
-Wir schließen Funde aus `pruefberichte/aktuell.md` im Datenmodell unter `schema/`. Der Bericht ist
-die Arbeitsliste, nicht die Anweisung.
+Wir schließen Funde aus `pruefberichte/aktuell-*.md` im Datenmodell unter `schema/`. Je Prüflauf
+liegt dort ein Bericht — einer je Domäne, dazu `aktuell-gesamt.md`. Sie sind die Arbeitsliste, nicht
+die Anweisung.
 
-**Liegt die Datei nicht, gibt es hier nichts zu tun** — ein Prüflauf legt sie an, und was aus
+**Liegt keine solche Datei, gibt es hier nichts zu tun** — ein Prüflauf legt sie an, und was aus
 einem geschlossenen Zyklus weiterträgt, steht als Satz an seiner Stelle im Schema und nicht in einer
-Liste daneben. **Am Ende des Zyklus wird die Datei gelöscht** — der Beleg, dass ein Fund geschlossen ist, ist
-die reparierte `.sql` samt grünem Prüfskript, und die Git-Historie hält den Bericht. Die Kennungen
-`[F1]`, `[F2]`, … gehören zu ihrem Lauf und nicht zu einem neuen.
+Liste daneben. **Ein Bericht wird gelöscht, sobald seine Funde zu sind**, einzeln und nicht der
+ganze Stapel auf einmal: Der Beleg, dass ein Fund geschlossen ist, ist die reparierte `.sql` samt
+grünem Prüfskript, und die Git-Historie hält den Bericht. Ein offener Bericht ist damit eine
+liegende Datei, und die Liste der offenen ist `ls pruefberichte/aktuell-*.md`. Die Kennungen
+`[ANMELDUNG-F1]`, `[GESAMT-F1]`, … gehören zu ihrem Lauf und nicht zu einem neuen.
 
 ## Die eine Regel, aus der der Rest folgt
 
@@ -110,7 +115,8 @@ Nicht pushen.
   Umbenennung, kein Nachziehen einer Stelle, die dir unsauber vorkommt.
 - **Keine Abstraktion über den Fund hinaus.** Kein Constraint für einen Fall, den kein Block
   nennt; keine Tabelle auf Vorrat; keine Spalte, die erst die nächste Domäne bräuchte.
-- **`pruefberichte/aktuell.md` bleibt, wie er ist.** Er ist Beweisstück, nicht Arbeitsblatt.
+- **Die Berichte bleiben, wie sie sind.** Sie sind Beweisstück, nicht Arbeitsblatt — gelöscht wird
+  einer erst, wenn kein Fund darin mehr offen ist, und nie ein fremder mit.
 
 ## Was du meldest
 

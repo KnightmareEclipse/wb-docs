@@ -94,9 +94,11 @@ Diese Datei wird automatisch geladen; verlinkt werden muss nichts. Je nach Arbei
 - **Ein Vorgang:** sein Block in `soll-prozesse/`, dazu `hebel.md`. Neuen Block füllen:
   `prompts/block-fuellen.md` nach den Schreibregeln in `soll-prozesse/anleitung.md`.
 - **Eine Domäne ins Schema:** `prompts/schema-bauen.md` → `schema-pruefen.md` **in einer frischen
-  Session**, die den Bau nicht mitgemacht hat → `schema-reparieren.md` → `schema-uebertragen.md`.
-  `schema-normalform.md` ist ein eigener Lauf mit einer einzigen Frage und wird mit dem Prüflauf
-  gegen die Blöcke nicht vermischt.
+  Session je Domäne**, die den Bau nicht mitgemacht hat → `schema-reparieren.md` →
+  `schema-uebertragen.md`. Die Prüfläufe laufen nebeneinander — jeder schreibt seinen eigenen
+  `pruefberichte/aktuell-<domäne>.md` und fährt seinen eigenen Container —, dazu ein letzter für
+  das, was keine einzelne Domäne sieht. `schema-normalform.md` ist ein eigener Lauf mit einer
+  einzigen Frage und wird mit dem Prüflauf gegen die Blöcke nicht vermischt.
 - **Eine Domäne zur API:** `prompts/api-planen.md`, eine Domäne je Durchgang wie beim Schema.
 - **Endpunkte in `wb-backend`:** `prompts/api-bauen.md`, eine Domäne je Durchgang. Dort
   `CLAUDE.md` und `README.md`, hier `api/`, `zugang.md` und `oberflaechen.md`. Die Schreibschicht dort ist nicht optional: ein Endpunkt, der
