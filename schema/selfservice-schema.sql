@@ -20,17 +20,21 @@
 --     Vollimports gibt es diese Zeile nie: „Der Vollimport bringt die
 --     eingeschriebenen Kinder mit, aber nicht die Bestände, die 08 und 09 sonst
 --     anlegen" (README), und Block 08 nennt sie „erkennbar daran, dass diese
---     Strecke bei ihnen nie lief". Was für sie gilt, entscheidet kein Block:
---     Beide Stellen reden vom fehlenden Gesundheits- und Vertragsbestand, nicht
---     vom Schreibpfad der Stammdaten, und die eine Stelle, die für ein
---     Bestandskind überhaupt eine Folge zieht, zieht die umgekehrte („sperrt bei
---     einem Bestandskind nichts", README).
---     `[A]` Die Grenze ist `released_at` **oder** `children.entry_date` gesetzt
---     — die Einschreibung ist bei ihnen, was sonst die Freigabe ist. —
---     Alternative: allein `released_at`, wie 02 es wörtlich sagt; Preis: Die
---     Stammdaten eines Bestandskinds bleiben dauerhaft bei den Eltern, obwohl
---     sie an ASV-BW, am Zeugnis und an der Akte hängen und jede Änderung dort
---     Handarbeit auslöst.
+--     Strecke bei ihnen nie lief". Die Grenze ist deshalb `released_at`
+--     **oder** `children.entry_date` gesetzt — die Einschreibung ist bei ihnen,
+--     was sonst die Freigabe ist.
+--     Kein Block spricht diese zweite Hälfte aus; entschieden ist sie hier,
+--     weil sie kein Übergang ist: Der Nachtrag aus der Akte legt keinen Vertrag
+--     an, sondern füllt Gesundheitsangaben, Fotoeinverständnis, Notfallnummer,
+--     SEPA-Mandat und Hortmodule (README) — `released_at` bleibt bei einem
+--     Bestandskind dauerhaft leer, sofern nicht später ein Hortvertrag dazukommt
+--     (09). Ohne die zweite Hälfte überschrieben die Eltern der gesamten
+--     bestehenden Schülerschaft Name, Geburtsdatum und Staatsangehörigkeit auf
+--     Dauer selbst, obwohl diese Angaben ab dem Import an ASV-BW, am Zeugnis und
+--     an der Akte hängen. Der Preis ist benannt: Bis das Sekretariat den Bestand
+--     nachgetragen hat — „ohne Frist … es darf dauern" (README) —, geht auch
+--     jeder Zahlendreher bei einem Bestandskind über das Sekretariat.
+--     Verworfen: allein `released_at`, wie 02 es wörtlich sagt.
 --   * **Beruf, Konfession und Staatsangehörigkeit der Sorgeberechtigten** an
 --     `guardians` (stammdaten-schema.sql). Hinter derselben Grenze wie die
 --     Stammdaten des Kindes: Die Sparsame Ansicht zählt den Beruf zu den

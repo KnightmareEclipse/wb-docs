@@ -51,21 +51,29 @@ BEGIN
     SELECT string_agg(c, ', ') INTO missing
     FROM unnest(ARRAY['pk_elective_modules', 'uq_elective_modules_code',
                       'ck_elective_modules_code', 'ck_elective_modules_name',
+                      'ck_elective_modules_created_by',
                       'pk_elective_groups', 'fk_elective_groups_module',
                       'fk_elective_groups_branch', 'fk_elective_groups_employee',
                       'uq_elective_groups', 'uq_elective_groups_id_branch_module',
-                      'ck_elective_groups_label',
+                      'ck_elective_groups_label', 'ck_elective_groups_created_by',
+                      'ck_elective_groups_start_school_year',
                       'pk_child_group_memberships', 'fk_child_group_memberships_child',
                       'fk_child_group_memberships_group',
                       'uq_child_group_memberships_module',
+                      'ck_child_group_memberships_created_by',
                       'pk_class_teaching_assignments',
                       'fk_class_teaching_assignments_employee',
                       'fk_class_teaching_assignments_class',
                       'uq_class_teaching_assignments',
+                      'ck_class_teaching_assignments_created_by',
+                      'ck_class_teaching_assignments_school_year',
                       'pk_class_end_times', 'fk_class_end_times_class',
-                      'ck_class_end_times_weekday',
+                      'ck_class_end_times_weekday', 'ck_class_end_times_created_by',
+                      'ck_class_end_times_school_year',
                       'pk_class_representatives', 'fk_class_representatives_class',
-                      'fk_class_representatives_person', 'uq_class_representatives']) AS c
+                      'fk_class_representatives_person', 'uq_class_representatives',
+                      'ck_class_representatives_created_by',
+                      'ck_class_representatives_school_year']) AS c
     WHERE NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = c);
     IF missing IS NOT NULL THEN
         RAISE EXCEPTION 'Fehlende Constraints: %', missing;
@@ -210,6 +218,34 @@ SELECT pg_temp.expect_reject(
     'TASK-161 — Wahlmodul ohne Namen',
     $q$INSERT INTO elective_modules (code, name, created_by)
        VALUES ('leer', '', 'system:check')$q$);
+
+-- Die Herkunft des Schreibenden trägt in allen sechs Tabellen dasselbe Präfix;
+-- eine Probe zeigt, dass der CHECK wirkt und nicht bloß dasteht.
+SELECT pg_temp.expect_reject(
+    'hebel.md — Unterrichtsende von „wer auch immer"',
+    $q$INSERT INTO class_end_times (class_id, school_year, weekday, ends_at, created_by)
+       VALUES (2, 2026, 4, TIME '12:15', 'wer auch immer')$q$);
+
+-- Ein grober Rahmen gegen den Zahlendreher, in allen vier Schuljahr-Spalten:
+-- ohne ihn ging eine Unterrichtsverteilung mit `school_year = 19` durch, ein
+-- Unterrichtsende mit 1899 und eine Elternvertretung mit 32767.
+SELECT pg_temp.expect_reject(
+    '15 — Wahlmodulgruppe mit einer Kohorte von 19',
+    $q$INSERT INTO elective_groups (label, elective_module_id, school_branch_id,
+                                    start_school_year, created_by)
+       VALUES ('Technik 19', 1, 2, 19, 'system:check')$q$);
+SELECT pg_temp.expect_reject(
+    '15 — Unterrichtsverteilung im Schuljahr 19',
+    $q$INSERT INTO class_teaching_assignments (employee_id, class_id, school_year, created_by)
+       VALUES ('88888888-8888-8888-8888-888888888882', 3, 19, 'system:check')$q$);
+SELECT pg_temp.expect_reject(
+    '15 — Unterrichtsende im Schuljahr 1899',
+    $q$INSERT INTO class_end_times (class_id, school_year, weekday, ends_at, created_by)
+       VALUES (2, 1899, 5, TIME '12:15', 'system:check')$q$);
+SELECT pg_temp.expect_reject(
+    '16 — Elternvertretung im Schuljahr 32767',
+    $q$INSERT INTO class_representatives (class_id, school_year, person_id, created_by)
+       VALUES (2, 32767, '22222222-2222-2222-2222-222222222221', 'system:check')$q$);
 
 -- ---------------------------------------------------------------------------
 -- Die zweite Achse: welche Kinder jemand sieht
@@ -364,6 +400,21 @@ BEGIN
     END IF;
     RAISE NOTICE 'ok: ohne Zuordnung sieht die Lehrkraft nichts statt zu viel';
 END $$;
+
+-- 04: „Niemand löst den Lauf aus, niemand gibt ihn frei, niemand kann ihn
+-- aufhalten." Der Wechsel der Schulart bleibt an der Mitgliedschaft hängen,
+-- solange sie steht — der Lauf muss sie deshalb selbst löschen, bevor er die
+-- Schulart setzt. Der reale Wechsel geht von der Grundschule in die eigene
+-- Realschule; er lässt sich hier nicht nachstellen, weil die drei Wahlmodule
+-- Realschule sind und es keine Grundschulgruppe gibt. Die Richtung ist dem
+-- Fremdschlüssel gleich, und alle Begleitspalten stehen im Ziel stimmig, damit
+-- allein er abweist.
+SELECT pg_temp.expect_reject(
+    '04 — Schulartwechsel eines Kindes, dessen Mitgliedschaft noch steht',
+    $q$UPDATE children
+          SET school_branch_id = 1, first_grade_level = 1, final_grade_level = 4,
+              grade_level = 4, class_id = NULL
+        WHERE child_id = '44444444-4444-4444-4444-444444444442'$q$);
 
 -- „Die Gruppe steht still, wenn ihre Lehrkraft geht" — sie verschwindet nicht,
 -- und mit ihr verschwinden auch die Mitgliedschaften nicht; die Zuordnung zur

@@ -105,6 +105,15 @@ CREATE TABLE elective_groups (
     CONSTRAINT uq_elective_groups_id_branch_module
         UNIQUE (elective_group_id, school_branch_id, elective_module_id),
     CONSTRAINT ck_elective_groups_label CHECK (label <> ''),
+    -- Ein grober Rahmen gegen den Zahlendreher, keine Fachregel — dieselbe
+    -- Bauform und dieselben Grenzen wie `ck_alumni_exit_year_range`
+    -- (stammdaten-schema.sql): 19 und 32767 sind Tippfehler, 2019 und 2031 sind
+    -- beide plausibel. Kein Bezug auf `now()`, weil ein CHECK nur
+    -- Unveränderliches duldet. Anders als bei `ck_parent_work_entries_school_year`
+    -- steht in dieser Zeile kein Datum, an das sich das Jahr binden ließe: Die
+    -- Kohorte entsteht mit der Gruppe und folgt aus keiner anderen Spalte.
+    CONSTRAINT ck_elective_groups_start_school_year
+        CHECK (start_school_year BETWEEN 1900 AND 2200),
     CONSTRAINT ck_elective_groups_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
@@ -140,8 +149,13 @@ CREATE TABLE child_group_memberships (
     CONSTRAINT pk_child_group_memberships PRIMARY KEY (child_id, elective_group_id),
     -- Wechselt ein Kind die Schulart (04, Grundschule → eigene Realschule),
     -- scheitert der Jahreslauf hier, solange eine Mitgliedschaft steht: Sie geht
-    -- mit der alten Schulart und muss vorher fallen — dieselbe Handreichung wie
-    -- bei der Klassenzuordnung, die derselbe Lauf leert.
+    -- mit der alten Schulart, und der Lauf löscht sie deshalb selbst, bevor er
+    -- die Schulart setzt — so wie er die Klassenzuordnung leert
+    -- (`fk_children_class`, stammdaten-schema.sql). Eine Handreichung gibt es
+    -- dafür nicht: „niemand kann ihn aufhalten" (04), und keine Stelle räumt
+    -- hier von Hand. Bewusst KEIN ON UPDATE CASCADE: Es zöge die Mitgliedschaft
+    -- in die neue Schulart, während ihre Gruppe bei der alten bleibt — der Lauf
+    -- bliebe am zweiten Fremdschlüssel hängen statt an diesem.
     CONSTRAINT fk_child_group_memberships_child
         FOREIGN KEY (child_id, school_branch_id)
         REFERENCES children (child_id, school_branch_id) ON DELETE CASCADE,
@@ -200,6 +214,9 @@ CREATE TABLE class_teaching_assignments (
     CONSTRAINT fk_class_teaching_assignments_class
         FOREIGN KEY (class_id) REFERENCES classes (class_id) ON DELETE CASCADE,
     CONSTRAINT uq_class_teaching_assignments UNIQUE (employee_id, class_id, school_year),
+    -- Derselbe grobe Rahmen wie `ck_elective_groups_start_school_year`.
+    CONSTRAINT ck_class_teaching_assignments_school_year
+        CHECK (school_year BETWEEN 1900 AND 2200),
     CONSTRAINT ck_class_teaching_assignments_created_by
         CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
@@ -246,6 +263,9 @@ CREATE TABLE class_end_times (
     CONSTRAINT fk_class_end_times_class
         FOREIGN KEY (class_id) REFERENCES classes (class_id) ON DELETE CASCADE,
     CONSTRAINT ck_class_end_times_weekday CHECK (weekday BETWEEN 1 AND 5),
+    -- Derselbe grobe Rahmen wie `ck_elective_groups_start_school_year`.
+    CONSTRAINT ck_class_end_times_school_year
+        CHECK (school_year BETWEEN 1900 AND 2200),
     CONSTRAINT ck_class_end_times_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
@@ -288,6 +308,13 @@ CREATE TABLE class_representatives (
     -- Dieselbe Person hält dasselbe Amt nur einmal; zwei Ämter in zwei Klassen
     -- sind ausdrücklich möglich (16, Sonderfälle).
     CONSTRAINT uq_class_representatives UNIQUE (class_id, school_year, person_id),
+    -- Derselbe grobe Rahmen wie `ck_elective_groups_start_school_year`. Bewusst
+    -- KEINE Bindung an `created_at` wie bei `ck_expense_claims_calendar_year`:
+    -- Das Amt „beginnt mit dem Eintrag" (16), aber der [offizielle
+    -- Umweg](../soll-prozesse/hebel.md#der-offizielle-umweg) trägt auch den
+    -- Nachtrag, und der Vollimport legt Klassen ihrer Kohorte nach an.
+    CONSTRAINT ck_class_representatives_school_year
+        CHECK (school_year BETWEEN 1900 AND 2200),
     CONSTRAINT ck_class_representatives_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 

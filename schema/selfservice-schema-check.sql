@@ -38,8 +38,8 @@ BEGIN
         ('phone_numbers.number'), ('family_contacts.is_emergency_contact'),
         ('family_guardians.access_level_id'), ('login_codes.created_at'),
         -- Die Freigabe des ersten Vertrags (02) und, bei den Kindern des
-        -- Vollimports ohne Vertrag, die Einschreibung — die zweite Seite ist
-        -- die `[A]` in selfservice-schema.sql und kein Satz aus einem Block.
+        -- Vollimports ohne Vertrag, die Einschreibung — die zweite Seite spricht
+        -- kein Block aus, sie ist in selfservice-schema.sql entschieden.
         ('contracts.released_at'), ('children.entry_date'),
         -- Sparsame Ansicht: der Beruf gehört „der Familie bis zur Freigabe des
         -- ersten Vertrags am Kind", samt Konfession und Staatsangehörigkeit der
