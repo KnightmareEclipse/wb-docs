@@ -49,7 +49,7 @@ in `schema/` liegt.
 |---|---|
 | Kinder (eingeschrieben) | Name, Geburtsdatum, Geschlecht, Anschrift, Staatsangehörigkeit, Muttersprache, Klassenzugehörigkeit, Ein- und Abgangsdatum |
 | Kinder (schulfremd, Ferienprogramm und Akademie) | derselbe Kern, ohne Klassen- und Vertragsbezug |
-| Erziehungsberechtigte | Name, Anschrift, Telefon, E-Mail, Familienzugehörigkeit, Vertrags- und Zahlungsbezug, Arbeitsstundenkonto |
+| Erziehungsberechtigte | Name, Anschrift, Telefon, E-Mail, Familienzugehörigkeit, Vertrags- und Zahlungsbezug — darin die **Festlegung der Familie auf Sofortzahlung** samt der Stelle, die sie gesetzt hat: eine Tatsache über den Zahlweg, kein Saldo und kein Mahnstand (`grenzkarte.md`, Q3) —, Arbeitsstundenkonto |
 | Notfallkontakte | Name und Telefonnummer, sonst nichts |
 | Bewerber ohne Aufnahme | die Voranmeldedaten bis zum Ablauf ihrer Frist |
 | Newsletter-Empfänger ohne Vertragsverhältnis | Anrede, Name und die Zustelladresse an der Einwilligung je Thema, dazu die Zugehörigkeit — welcher der drei Kreise, bei Kind und Mitarbeitendem das Jahr des Weggangs, beim Kind der Schulzweig. **Kein Abschluss, keine Note, kein Grund des Ausscheidens.** Mehr nicht; sie hängen an keiner Familie und an keinem Kind. Ihre Frist läuft ab dem Widerspruch: bis dahin unbegrenzt, danach mit dem nächsten Lösch-Lauf (`soll-prozesse/17`) |

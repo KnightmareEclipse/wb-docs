@@ -375,8 +375,13 @@ CREATE TABLE holiday_bookings (
     -- Was an diesem Tag galt — der Modulbetrag; „eine spätere
     -- Änderung rechnet nichts rückwirkend um" (hebel.md).
     amount_cents            integer NOT NULL,
-    -- Online bezahlt oder wird berechnet; im zweiten Fall trägt der Code den
-    -- Satz, an wen.
+    -- Eingezogen, online bezahlt oder berechnet — welcher Weg gilt, entscheidet
+    -- der Zahlweg in drei Stufen (hebel.md, „Der Zahlweg"); im dritten Fall
+    -- trägt der Kostenübernahme-Code den Satz, an wen berechnet wird.
+    -- `direct_debit` steht hier, weil die Spalte den Weg trägt und nicht die
+    -- heutige Regel: Stufe 3 führt die Ferienbuchung derzeit nicht zum Einzug
+    -- (10), und ändert sich das, kostet es eine Zeile im Block statt einer
+    -- Migration.
     payment_mode            text NOT NULL,
     holiday_cost_coverage_code_id uuid,
     -- Die Fassung, die beim Absenden galt; eine Unterschrift entsteht daraus
@@ -419,7 +424,7 @@ CREATE TABLE holiday_bookings (
     CONSTRAINT fk_holiday_bookings_terms
         FOREIGN KEY (terms_contract_text_id) REFERENCES contract_texts (contract_text_id),
     CONSTRAINT ck_holiday_bookings_payment_mode
-        CHECK (payment_mode IN ('paid', 'invoiced')),
+        CHECK (payment_mode IN ('paid', 'direct_debit', 'invoiced')),
     -- Ein Code tritt an die Stelle der Zahlung und nur dort.
     CONSTRAINT ck_holiday_bookings_coverage
         CHECK ((payment_mode = 'invoiced') = (holiday_cost_coverage_code_id IS NOT NULL)),

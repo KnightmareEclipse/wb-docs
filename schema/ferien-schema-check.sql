@@ -14,6 +14,8 @@
 -- `holiday_sessions` trägt die Warnschwelle der letzten Plätze samt ihrer
 -- Lauf-Marke; dieselben zwei Spalten stehen an `academy_offerings`, geprüft
 -- werden sie hier und dort je für sich.
+-- `holiday_bookings.payment_mode` kennt drei Wege (hebel.md, „Der Zahlweg"),
+-- auch den Einzug, zu dem Stufe 3 die Ferienbuchung heute nicht führt.
 --
 -- Setzt stammdaten-schema.sql und querschnitt-schema.sql voraus:
 --   psql -v ON_ERROR_STOP=1 -f ferien-schema-check.sql
@@ -259,6 +261,21 @@ SELECT pg_temp.expect_accept(
 SELECT pg_temp.expect_reject(
     '10 — berechnete Buchung ohne Kostenübernahme-Code',
     $q$UPDATE holiday_bookings SET payment_mode = 'invoiced'
+        WHERE holiday_booking_id = '66666666-6666-6666-6666-666666666661'$q$);
+
+-- hebel.md, „Der Zahlweg": Die Spalte trägt den Weg und nicht die heutige Regel
+-- — `direct_debit` ist eintragbar, obwohl Stufe 3 die Ferienbuchung derzeit
+-- nicht dorthin führt (10). Ein Zahlweg, den es nicht gibt, bleibt draußen.
+SELECT pg_temp.expect_accept(
+    '10 — eingezogene Buchung',
+    $q$UPDATE holiday_bookings SET payment_mode = 'direct_debit'
+        WHERE holiday_booking_id = '66666666-6666-6666-6666-666666666661';
+       UPDATE holiday_bookings SET payment_mode = 'paid'
+        WHERE holiday_booking_id = '66666666-6666-6666-6666-666666666661'$q$);
+
+SELECT pg_temp.expect_reject(
+    '10 — ein Zahlweg, den es nicht gibt',
+    $q$UPDATE holiday_bookings SET payment_mode = 'cash'
         WHERE holiday_booking_id = '66666666-6666-6666-6666-666666666661'$q$);
 
 INSERT INTO holiday_cost_coverage_codes (holiday_cost_coverage_code_id, holiday_programme_id,

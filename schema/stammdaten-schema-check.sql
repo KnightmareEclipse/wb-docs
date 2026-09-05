@@ -20,6 +20,9 @@
 -- unterstützende Indizes (ix_sepa_mandates_current, ix_login_codes_email_created).
 -- `persons.note` trägt, was sich das Sekretariat merkt; `persons.has_note` und
 -- `employees.has_note` halten sie von den Mitarbeitenden fern.
+-- `families` trägt als einzige eigene Angabe die Sperre auf Sofortzahlung
+-- (Stufe 1 des Zahlwegs, hebel.md) — ein Paar aus Zeitpunkt und Akteur, das nur
+-- eine `entra:`-Stelle setzt.
 --
 -- Läuft gegen eine Datenbank, in die stammdaten-schema.sql geladen wurde:
 --   psql -v ON_ERROR_STOP=1 -f stammdaten-schema-check.sql
@@ -82,6 +85,7 @@ BEGIN
         'uq_login_sessions_token_hash', 'fk_login_sessions_person',
         'ck_login_sessions_email',
         'ck_persons_created_by', 'uq_employees_entra',
+        'ck_families_direct_debit_blocked', 'ck_families_blocked_by',
         'fk_phone_numbers_type', 'ck_children_repeats_needs_entry',
         'uq_school_branches_grades', 'uq_roles_branch_bound',
         'fk_employee_roles_role', 'ck_employee_roles_branch_bound',
@@ -154,6 +158,40 @@ INSERT INTO persons (person_id, first_name, last_name, email, created_by) VALUES
 
 INSERT INTO families (family_id, created_by)
     VALUES ('33333333-3333-3333-3333-333333333333', 'system:check');
+
+-- hebel.md, „Der Zahlweg", Stufe 1: Die Sperre steht mit beiden Angaben da oder
+-- mit keiner — eine, zu der niemand einsteht, wäre nicht zurückzunehmen.
+SELECT pg_temp.expect_reject(
+    'Zahlweg — Sperre ohne die Stelle, die sie gesetzt hat',
+    $q$UPDATE families SET direct_debit_blocked_at = now()
+        WHERE family_id = '33333333-3333-3333-3333-333333333333'$q$);
+
+SELECT pg_temp.expect_reject(
+    'Zahlweg — eine Stelle ohne Sperre',
+    $q$UPDATE families SET direct_debit_blocked_by = 'entra:buchhaltung'
+        WHERE family_id = '33333333-3333-3333-3333-333333333333'$q$);
+
+-- Weder `guardian:` noch `system:`: Ein Elternteil darf die Sperre der eigenen
+-- Familie nicht aufheben, und von selbst setzt sie kein Lauf.
+SELECT pg_temp.expect_reject(
+    'Zahlweg — ein Elternteil setzt die Sperre der eigenen Familie',
+    $q$UPDATE families SET direct_debit_blocked_at = now(),
+                          direct_debit_blocked_by = 'guardian:22222222-2222-2222-2222-222222222222'
+        WHERE family_id = '33333333-3333-3333-3333-333333333333'$q$);
+
+SELECT pg_temp.expect_reject(
+    'Zahlweg — ein Lauf setzt die Sperre von selbst',
+    $q$UPDATE families SET direct_debit_blocked_at = now(),
+                          direct_debit_blocked_by = 'system:lauf'
+        WHERE family_id = '33333333-3333-3333-3333-333333333333'$q$);
+
+SELECT pg_temp.expect_accept(
+    'Zahlweg — die Buchhaltung setzt die Sperre und nimmt sie zurück',
+    $q$UPDATE families SET direct_debit_blocked_at = now(),
+                          direct_debit_blocked_by = 'entra:buchhaltung'
+        WHERE family_id = '33333333-3333-3333-3333-333333333333';
+       UPDATE families SET direct_debit_blocked_at = NULL, direct_debit_blocked_by = NULL
+        WHERE family_id = '33333333-3333-3333-3333-333333333333'$q$);
 
 INSERT INTO classes (school_branch_id, start_school_year, stream, created_by)
     VALUES ((SELECT school_branch_id FROM school_branches WHERE code = 'GS'), 2026, 'a', 'system:check'),

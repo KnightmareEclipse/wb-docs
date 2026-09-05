@@ -407,9 +407,9 @@ CREATE TABLE phone_numbers (
 -- Herkunft: hebel.md, „Familie und Kind" — „Familie heißt die Eltern, nicht der
 -- Haushalt. Getrennt lebende Eltern bleiben eine Familie." Löschanker: die
 -- Familie verschwindet, wenn kein Kind mehr eine Verbindung hat (03, „erst,
--- wenn die Familie kein Kind mehr an der Schule hat"). Bewusst ohne eigene
--- Spalten: sie ist der Anker, an dem Putzdienst und Elternbonus hängen, und
--- trägt selbst keine Angabe.
+-- wenn die Familie kein Kind mehr an der Schule hat"). Sie ist im Übrigen der
+-- Anker, an dem Putzdienst und Elternbonus hängen, und trägt selbst nur die eine
+-- Angabe unten, die für alle ihre Kinder zugleich gilt.
 -- „Mindestens eine Mailadresse je Familie ist Pflicht, damit keine Familie ohne
 -- Kanal ist", und „die letzte Mailadresse und die letzte Notfallnummer lassen
 -- sich nur ersetzen, nie löschen" (02). Beides steht bewusst NICHT als
@@ -420,10 +420,34 @@ CREATE TABLE phone_numbers (
 -- Anwendung, die das Löschen der letzten Adresse abweist.
 CREATE TABLE families (
     family_id  uuid NOT NULL DEFAULT gen_random_uuid(),
+    -- Stufe 1 des Zahlwegs (hebel.md, „Der Zahlweg"): Ist der Zeitpunkt gesetzt,
+    -- wird bei dieser Familie nichts mehr eingezogen, gleich welches Mandat an
+    -- ihren Kindern steht — gedacht für die Familie in Zahlungsverzug, damit die
+    -- Schule nicht auf den Kosten sitzenbleibt.
+    -- **An der Familie und nicht am Mandat**: Sie gilt für jedes Kind zugleich,
+    -- auch für das, dessen Mandat gerade abgelöst wird, und ein abgelöstes
+    -- Mandat trüge sie sonst mit ins Archiv.
+    -- Bewusst KEIN Grund-Freitext, kein Saldo und kein Mahnstand daneben: Den
+    -- Zahlungsverzug führt Optigem, hierher wird er nicht gespiegelt, und eine
+    -- Zahl an dieser Stelle wäre der Anfang einer zweiten Buchhaltung
+    -- (grenzkarte.md, Q3). Bewusst auch KEINE Historie: Was gilt, ist eine
+    -- Tatsache über heute; wer sie wann gesetzt hat, trägt das Paar selbst, und
+    -- wer sie zurückgenommen hat, steht in der Änderungsspur (hebel.md).
+    direct_debit_blocked_at timestamptz,
+    direct_debit_blocked_by text,
     created_at timestamptz NOT NULL DEFAULT now(),
     created_by text NOT NULL,
 
     CONSTRAINT pk_families PRIMARY KEY (family_id),
+    -- Entweder steht die Sperre mit beiden Angaben da oder mit keiner — eine
+    -- Sperre, zu der niemand einsteht, wäre nicht zurückzunehmen.
+    CONSTRAINT ck_families_direct_debit_blocked
+        CHECK ((direct_debit_blocked_at IS NULL) = (direct_debit_blocked_by IS NULL)),
+    -- Nur `entra:` und damit weder `guardian:` noch `system:`: Ein Elternteil
+    -- darf die Sperre der eigenen Familie nicht aufheben, und von selbst setzt
+    -- sie nichts — den Verzug erkennt kein Lauf hier, sondern ein Mensch in
+    -- Optigem.
+    CONSTRAINT ck_families_blocked_by CHECK (direct_debit_blocked_by ~ '^entra:'),
     CONSTRAINT ck_families_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 

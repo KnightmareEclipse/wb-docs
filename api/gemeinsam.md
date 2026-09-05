@@ -108,6 +108,17 @@ für den Plan, nicht erst für den Bau:
 
 ## Sofortzahlung
 
+**Wer überhaupt hierher kommt, entscheidet vorher der
+[Zahlweg](../soll-prozesse/hebel.md#der-zahlweg)** — in der Route des Vorgangs und nicht im Rückruf.
+Führt er zum Einzug, entsteht der Vorgang sofort samt seiner Aufgabe bei der Buchhaltung, es wird
+keine Zahlungssitzung eröffnet, und die Schritte unten entfallen. Die drei Stufen liest **eine**
+Stelle für alle Domänen — die Sperre an `families`, dann das laufende Mandat eines Kindes der
+Familie, dann der Anlass —, sonst steht „die Sperre schlägt das Mandat" je Domäne einmal und läuft
+beim ersten Fix auseinander. Der gewählte Weg wird **an der entstehenden Zeile festgehalten**
+(`payment_mode`) und nie nachgerechnet: Wer später fragt, wie bezahlt wurde, darf keine Antwort
+bekommen, die von der heutigen Mandatslage abhängt. — Alternative: der Rückruf entscheidet; Preis:
+Er läuft nur, wo eine Zahlung lief, und der eingezogene Vorgang käme dort nie an.
+
 Drei Vorgänge werden sofort bezahlt ([`hebel.md`](../soll-prozesse/hebel.md#sofortzahlung)). Der Weg
 ist für alle drei derselbe und steht deshalb hier:
 

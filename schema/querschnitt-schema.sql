@@ -1296,9 +1296,10 @@ CREATE TABLE payments (
     cleaning_slot_buyout_id uuid,
     application_id          uuid,
     holiday_booking_id      uuid,
-    -- Der fünfte Anlass: die Akademie-Anmeldung einer Familie **ohne**
-    -- SEPA-Mandat (21). Die mit Mandat erzeugt keine Zahlung, sondern wird
-    -- eingezogen wie das Schulgeld — und der Erwachsenen-Zweig hat nie eines.
+    -- Der fünfte Anlass: die Akademie-Anmeldung, die der Zahlweg **nicht** zum
+    -- Einzug führt (21, hebel.md). Die eingezogene erzeugt keine Zahlung,
+    -- sondern eine Aufgabe bei der Buchhaltung — und der Erwachsenen-Zweig wird
+    -- nie eingezogen.
     -- Der Fremdschlüssel wird in akademie-schema.sql nachgetragen, weil die
     -- Tabelle hier noch nicht existiert.
     academy_registration_id uuid,

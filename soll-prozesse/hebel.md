@@ -177,9 +177,42 @@ Maßgeblich ist der Wert **zum Zeitpunkt der Handlung**, nicht zum Zeitpunkt des
 
 Jede andere Zahl — Fristen, Vorlaufzeiten, Stichtage — ist **fest und nirgends einstellbar**, und ein festes Datum wie „am 1. jedes Monats" schlägt ein gerechnetes.
 
+## Der Zahlweg
+
+Wo ein Vorgang Geld kostet, wird er **eingezogen oder sofort bezahlt**, und das entscheidet niemand
+im Formular. Drei Stufen, in dieser Reihenfolge, und die erste, die greift, entscheidet:
+
+1. **Die Sperre der Familie.** Eine Familie kann auf Sofortzahlung **festgelegt** werden; dann führt
+   kein Vorgang mehr zum Einzug, auch wo ein Mandat steht. Gesetzt wird sie von der Buchhaltung oder
+   der Geschäftsführung, gedacht ist sie für die Familie **in Zahlungsverzug** — eingezogen wird
+   dort nichts mehr, was die Schule danach anmahnen müsste.
+2. **Das SEPA-Mandat.** Ohne Mandat gibt es nichts einzuziehen. Eines hat jede Familie mit einem
+   Schul- oder einem Hortvertrag (08, 09); es steht **am Kind**, und über es wird nichts abgebucht,
+   was nicht dieses Kind betrifft.
+3. **Der Anlass.** Ob ein Vorgang überhaupt eingezogen werden darf, sagt sein Block. Derzeit sagt es
+   einer: die Akademie-Anmeldung (21). Der Putzdienst-Freikauf (01), die Bearbeitungsgebühr der
+   Voranmeldung (05) und die Ferienbuchung (10) werden sofort bezahlt.
+
+**Den Zahlungsverzug führt Weltenbaum nicht.** Er steht in Optigem, und keine Zahl von hier kennt
+ihn; hier steht allein die Festlegung, wer sie gesetzt hat und wann ([Änderungsspur](#änderungsspur)).
+Ein Saldo, eine Forderung oder ein Mahnstand daneben wäre der Anfang einer zweiten Buchhaltung
+(`grenzkarte.md`, Q3). Die Sperre nimmt einer Familie deshalb **keinen Vorgang** — sie nimmt ihr den
+Einzug, und der [offizielle Umweg](#der-offizielle-umweg) bleibt offen wie für jede andere.
+
+**Der Einzug verschiebt, wann der Vorgang entsteht**: mit dem **Absenden**, nicht mit der bestätigten
+Zahlung wie bei der [Sofortzahlung](#sofortzahlung). Es entsteht dabei keine Zahlung, sondern eine
+[Aufgabe](#nachzieh-aufgabe-und-wochenmail) bei der Buchhaltung mit dem einzuziehenden Betrag. Der
+Platz ist damit belegt, bevor das Geld da ist, und eine **Rücklastschrift dreht den Vorgang nicht
+zurück** — sie ist ein Fall für die Buchhaltung wie beim Schulgeld, und die Sperre ist der Hebel,
+der das nächste Mal verhindert.
+
+— Alternative: die Eltern wählen den Weg selbst. Preis: Wer wählen darf, wählt den Einzug, und die
+Schule sammelt genau bei den Familien Forderungen ein, bei denen die Sofortzahlung sie geschützt
+hätte; dazu ein Feld im Formular, das eine Frage stellt, deren Antwort schon feststeht.
+
 ## Sofortzahlung
 
-Vier Vorgänge werden **sofort online bezahlt**, statt aufs Schulgeld zu laufen: der Freikauf eines Putzdiensttermins (01), die Bearbeitungsgebühr der Voranmeldung (05), die Ferienbuchung (10) und die Akademie-Anmeldung einer Familie ohne SEPA-Mandat (21) — die mit Mandat wird eingezogen —, die Anmeldegebühr des Schulvertrags gehört ausdrücklich nicht dazu, sie wird wie das Schulgeld eingezogen (08). Für alle drei gilt dasselbe, und ein Block schreibt nur, wo er davon abweicht.
+Wen [der Zahlweg](#der-zahlweg) nicht zum Einzug führt, der bezahlt **sofort online**, statt aufs Schulgeld zu laufen: der Freikauf eines Putzdiensttermins (01), die Bearbeitungsgebühr der Voranmeldung (05), die Ferienbuchung (10) und die Akademie-Anmeldung, hinter der kein Mandat steht (21). Die Anmeldegebühr des Schulvertrags gehört ausdrücklich nicht dazu, sie wird wie das Schulgeld eingezogen (08). Für alle vier gilt dasselbe, und ein Block schreibt nur, wo er davon abweicht.
 
 Bezahlt wird **im selben Zug wie das Absenden**. Der Vorgang entsteht mit der **bestätigten Zahlung** und nicht mit der Rückkehr aus der Bezahlung — bricht die unterwegs ab, wäre sonst das Geld weg und der Vorgang nie entstanden. Aufs Schulgeld gerechnet wird nichts davon, und eine Forderung entsteht dafür nirgends — es sei denn, ein Block stellt einen zweiten Zahlweg **neben** die Sofortzahlung, wie den Kostenübernahme-Code (10). **Die Buchhaltung berührt es trotzdem an einer Stelle**, und die ist ihr Hauptproblem am heutigen Weg: Der Zahlungsdienst überweist gesammelt und abzüglich seiner Gebühr, und auf dem Kontoauszug steht dabei allein seine Auszahlungskennung — kein Name, kein Verwendungszweck, und beides ist bei ihm auch nicht einstellbar. Für die Sammelgutschrift braucht die Buchhaltung deshalb den Einzelnachweis, wer was wofür gezahlt hat; ihn über die Zahlungszeile des Dienstes zu lösen, ist keine Alternative, die es gibt. Der ist eine [frisch erzeugte Liste](hebel.md#frisch-erzeugte-liste) über die bestätigten Zahlungen eines Zeitraums — Zeitpunkt, Bruttobetrag, Familie, Anlass und die Referenz des Zahlungsdienstes; was der an Gebühr einbehält, steht bei ihm. **Zugeordnet wird dabei nichts von Hand**: Die Zahlung legt den Vorgang selbst an, die Zuordnung entsteht also im selben Zug und wird nur ausgelesen. Ein zweites System, in dem jemand nachschlägt, entsteht damit nicht. Den Zahlungsbeleg schickt der Zahlungsdienst, derzeit Stripe — die Mailadresse dafür tippt der Elternteil auf dessen Bezahlseite selbst ein, sie geht nicht von hier dorthin (`api/gemeinsam.md`). Die [Standardantwort](hebel.md#standardantworten) „keine Bestätigungsmail für selbst Eingetragenes" bleibt damit unangetastet: Der Beleg über das Geld kommt von dem, der es genommen hat, und was gebucht ist, steht wie immer in der eigenen Übersicht. Zurückgezahlt wird nur, wo ein Block es ausdrücklich vorsieht.
 

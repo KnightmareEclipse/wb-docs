@@ -271,8 +271,9 @@ der Eltern.
 
 Strafzahlung muss in Optigem gepflegt werden. Wird eine Strafe zurückgezogen, die dort schon gebucht
 ist, halten wir den Rückzug nur fest — korrigiert wird er in Optigem. Wir sind keine
-Buchhaltungssoftware. Der Freikauf dagegen ist eine [Sofortzahlung](hebel.md#sofortzahlung) und geht
-die Buchhaltung nichts an.
+Buchhaltungssoftware. Der Freikauf dagegen geht die Buchhaltung nichts an: Der
+[Zahlweg](hebel.md#der-zahlweg) führt ihn nicht zum Einzug, er ist eine
+[Sofortzahlung](hebel.md#sofortzahlung).
 
 ## Löschen
 

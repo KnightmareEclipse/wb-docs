@@ -445,10 +445,14 @@ CREATE TABLE academy_registrations (
     -- Was beim Absenden galt — Gebühr plus Zusatzbetrag; „eine spätere
     -- Änderung rechnet nichts rückwirkend um" (hebel.md).
     amount_cents            integer NOT NULL,
-    -- „Eingezogen, online bezahlt oder berechnet": eingezogen wird die Familie
-    -- mit SEPA-Mandat, online zahlt die ohne, und berechnet wird, wo ein
-    -- Kostenübernahme-Code an die Stelle der Zahlung tritt. Der Zahlweg folgt
-    -- dem Mandat und nicht einer Wahl der Eltern.
+    -- „Eingezogen, online bezahlt oder berechnet": welcher Weg gilt, entscheidet
+    -- der Zahlweg in drei Stufen (hebel.md, „Der Zahlweg") — die Sperre der
+    -- Familie schlägt das Mandat, das Mandat schlägt den Anlass —, und berechnet
+    -- wird, wo ein Kostenübernahme-Code an die Stelle der Zahlung tritt. Der
+    -- Zahlweg folgt damit dem Mandat und nicht einer Wahl der Eltern; eine
+    -- Familie, die auf Sofortzahlung festgelegt ist
+    -- (`families.direct_debit_blocked_at`, stammdaten-schema.sql), zahlt hier
+    -- online, obwohl ein Mandat an ihrem Kind steht.
     -- **Im Erwachsenen-Zweig gibt es keinen Einzug** (Betreiber, 03.09.2026):
     -- Das Mandat steht am Kind (`sepa_mandates`, stammdaten-schema.sql), und
     -- über es wird nichts abgebucht, was nicht dieses Kind betrifft — auch dann

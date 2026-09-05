@@ -269,7 +269,8 @@ Absage durch die Stelle steht dort nichts mehr.
 ## Fremdsysteme
 
 Im Regelfall keine: ASV-BW und M365 bekommen nichts, dort stehen Schüler, und ein Ferienkind ist
-keiner ([09](09-hortvertrag.md)); gezahlt wird als [Sofortzahlung](hebel.md#sofortzahlung).
+keiner ([09](09-hortvertrag.md)); der [Zahlweg](hebel.md#der-zahlweg) führt die Buchung nicht zum
+Einzug, gezahlt wird als [Sofortzahlung](hebel.md#sofortzahlung).
 
 **Optigem allein für berechnete Buchungen**: eine
 [Aufgabe](hebel.md#nachzieh-aufgabe-und-wochenmail) je Kind, die alle seine berechneten Termine
