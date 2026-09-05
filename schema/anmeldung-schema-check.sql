@@ -1345,7 +1345,7 @@ SELECT pg_temp.expect_reject(
                '99999999-9999-9999-9999-999999999991',
                '22222222-2222-2222-2222-222222222223', now(), 'system:check')$q$);
 
--- hebel.md, „Geld im System": „Das Schulgeld hängt an Schulart und
+-- hebel.md, „Geld und Fristen im System": „Das Schulgeld hängt an Schulart und
 -- Geschwisterrang — 145 / 125 / 105 € in der Grundschule, 150 / 130 / 110 € in
 -- der Realschule, ab dem vierten Kind beitragsfrei, gezählt über beide Schulen
 -- zusammen (08)"; je Wert ein Gültigkeitstag.

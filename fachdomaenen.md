@@ -202,7 +202,7 @@ die Entscheidung.
 
 Zwei Folgen, die beim Bauen auffallen werden: Der Solver darf keiner Familie Termine zuteilen, die
 ihre Pflichtzahl bereits freigekauft hat — der Freikauf senkt sie, und wer sich für alle freikauft,
-steht in keiner Zuteilung und in keiner Mail dieses Prozesses. Und von den elf `configured_values`
+steht in keiner Zuteilung und in keiner Mail dieses Prozesses. Und von den zwölf `configured_values`
 hält nur die Strafe keinen Lauf an, solange sie außen vor bleibt; der Freikaufbetrag ist ab Zyklus
 eins in Gebrauch, und die Fenster-offen-Mail nennt ihn samt dem Weg dorthin.
 

@@ -387,9 +387,10 @@ CREATE TABLE emergency_care_prices (
     CONSTRAINT ck_emergency_care_prices_created_by CHECK (created_by ~ '^(entra:|system:)')
 );
 
--- Herkunft: hebel.md, „Geld im System, alles andere fest" — „Dazu die beiden
--- größten Beträge, das Schulgeld und der Hortbeitrag; beide Preislisten liegen
--- inzwischen vor. Das Schulgeld hängt an Schulart und Geschwisterrang."
+-- Herkunft: hebel.md, „Geld und Fristen im System, alles andere fest" — „Dazu
+-- die beiden größten Beträge, das Schulgeld und der Hortbeitrag; beide
+-- Preislisten liegen inzwischen vor. Das Schulgeld hängt an Schulart und
+-- Geschwisterrang."
 -- Eigene Tabelle statt `configured_values`, weil der Betrag je Schulart
 -- verschieden ist: „Was je Modul, Termin oder Schulart verschieden ist —
 -- Hortbeitrag, Ferienaufschlag, Schulgeld, Vertragstext —, trägt seine eigene
