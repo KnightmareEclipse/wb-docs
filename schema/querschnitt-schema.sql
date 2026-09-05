@@ -1481,6 +1481,17 @@ CREATE TABLE sync_tasks (
     -- Strafen; als Erster des Monats), die einzelne Ferienbuchung (10), die
     -- einzelne Akademie-Anmeldung (21), der einzelne Putztermin (01) oder die
     -- einzelne Zahlung ohne Vorgang (api/gemeinsam.md).
+    --
+    -- Ein Kind steht dabei immer als `child_id` da, auch bei einer Änderung aus
+    -- 02 („Der Bezug ist hier die Person — beim Kind sein Kindeintrag"): Über
+    -- beide Spalten hätte derselbe Mensch zwei offene Aufgaben desselben Ziels,
+    -- eine je Spalte, und 13 verlangt „je Person eine Aufgabenart und nicht
+    -- zwei — Anlegen und Offboarding ersetzen einander". Bewusst KEIN Constraint
+    -- dagegen: Der Zeile ist nicht anzusehen, ob eine `person_id` einem Kind
+    -- gehört — das steht in `children` —, und ein Trigger kommt in diesem Schema
+    -- an keiner Stelle vor. Die Schreibschicht in `wb-backend` löst deshalb auf
+    -- das Kind auf; hier ist es die benannte Auslassung, wie die letzte
+    -- Admin-Rolle in stammdaten-schema.sql.
     person_id        uuid,
     child_id         uuid,
     family_id        uuid,

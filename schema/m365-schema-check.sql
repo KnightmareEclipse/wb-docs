@@ -4,7 +4,8 @@
 -- 13 namentlich ausschließt. Geprüft wird stattdessen, dass die vier fremden
 -- Strukturen tragen, was Block 13 von ihnen verlangt — die sechs Angaben an
 -- `employees` und keine siebte, die Schuladresse an `children` bis über den
--- Abgang hinaus, die eine Aufgabenart je Person in `sync_tasks` und die
+-- Abgang hinaus und nur an einem Kind, die eine Aufgabenart je Person in
+-- `sync_tasks` und die
 -- Rollen ohne Entzugseintrag in `employee_roles`.
 --
 -- Setzt stammdaten-schema.sql und querschnitt-schema.sql voraus:
@@ -116,7 +117,8 @@ INSERT INTO sync_targets (sync_target_id, code, name, role_id, created_by)
 INSERT INTO persons (person_id, first_name, last_name, created_by) VALUES
     ('22222222-2222-2222-2222-222222222221', 'Neu',  'Muster', 'system:check'),
     ('22222222-2222-2222-2222-222222222222', 'Kita', 'Muster', 'system:check'),
-    ('22222222-2222-2222-2222-222222222223', 'Kind', 'Muster', 'system:check');
+    ('22222222-2222-2222-2222-222222222223', 'Kind', 'Muster', 'system:check'),
+    ('22222222-2222-2222-2222-222222222224', 'Zweit', 'Muster', 'system:check');
 INSERT INTO employees (employee_id, person_id, house_id, created_by) VALUES
     ('55555555-5555-5555-5555-555555555551', '22222222-2222-2222-2222-222222222221', 1, 'system:check'),
     ('55555555-5555-5555-5555-555555555552', '22222222-2222-2222-2222-222222222222', 2, 'system:check');
@@ -131,6 +133,12 @@ INSERT INTO children (child_id, person_id, family_id, birth_date,
             '22222222-2222-2222-2222-222222222223',
             '33333333-3333-3333-3333-333333333333', DATE '2018-05-01',
             1, 1, 4, 2, DATE '2026-08-01', 'system:check');
+-- Das zweite Kind bleibt ohne Einschreibung; es trägt allein die Gegenprobe
+-- gegen die zweimal vergebene Schuladresse.
+INSERT INTO children (child_id, person_id, family_id, birth_date, created_by)
+    VALUES ('44444444-4444-4444-4444-444444444442',
+            '22222222-2222-2222-2222-222222222224',
+            '33333333-3333-3333-3333-333333333333', DATE '2020-03-01', 'system:check');
 
 -- ---------------------------------------------------------------------------
 -- 4. Gegenproben
@@ -195,6 +203,13 @@ SELECT pg_temp.expect_accept(
         WHERE child_id = '44444444-4444-4444-4444-444444444441';
        UPDATE children SET exit_date = DATE '2027-01-31', exit_reason = 'Umzug'
         WHERE child_id = '44444444-4444-4444-4444-444444444441'$q$);
+
+-- 13: „Eine Schuladresse wird nie ein zweites Mal vergeben" — auch nicht an
+-- ein zweites Kind, und auch nicht, nachdem das erste abgegangen ist.
+SELECT pg_temp.expect_reject(
+    '13 — dieselbe Schuladresse an zwei Kindern',
+    $q$UPDATE children SET school_email = 'kind@schule.de'
+        WHERE child_id = '44444444-4444-4444-4444-444444444442'$q$);
 
 DO $$ BEGIN RAISE NOTICE 'm365-schema-check: alle Gegenproben bestanden'; END $$;
 

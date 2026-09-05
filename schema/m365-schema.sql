@@ -19,7 +19,9 @@
 --     stehen als `sync_tasks` in querschnitt-schema.sql: „Je Person gibt es
 --     dabei eine Aufgabenart und nicht zwei — die Art ist das Ziel M365 und
 --     nicht der Anlass: Anlegen und Offboarding ersetzen einander, statt sich
---     zu verdoppeln." Der partielle Unique-Index dort trägt genau diese Regel.
+--     zu verdoppeln." Der partielle Unique-Index dort trägt sie, solange ein
+--     Kind über `child_id` läuft und nicht über seine Person — was der
+--     Kommentar an `sync_tasks` festhält.
 --   * Die Mitarbeiterrollen — „Mit seinem Ablauf enden alle Mitarbeiterrollen
 --     von selbst" (13) — stehen als `employee_roles` in stammdaten-schema.sql.
 --

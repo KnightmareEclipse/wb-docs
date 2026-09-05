@@ -594,6 +594,8 @@ CREATE TABLE children (
     -- (klassenorganisation-schema.sql): Ein Kind kommt nur in eine Gruppe seiner
     -- eigenen Schulart.
     CONSTRAINT uq_children_id_branch    UNIQUE (child_id, school_branch_id),
+    -- Nie ein zweites Mal vergeben, aus demselben Grund wie
+    -- `uq_employees_work_email` (13).
     CONSTRAINT uq_children_school_email UNIQUE (school_email),
     -- 04: Schulart und Stufe entstehen mit der Einschreibung und sind ab ihr
     -- Pflicht; davor trägt das Ziel die Bewerbung.
@@ -891,6 +893,10 @@ CREATE TABLE employees (
     CONSTRAINT ck_employees_note   CHECK (NOT has_note),
     CONSTRAINT fk_employees_house  FOREIGN KEY (house_id)  REFERENCES houses (house_id),
     CONSTRAINT uq_employees_person     UNIQUE (person_id),
+    -- 13: „Eine Schuladresse wird nie ein zweites Mal vergeben." Sie bleibt am
+    -- ausgeschiedenen Eintrag stehen und sagt dort, welches Konto er hatte — für
+    -- zwei Menschen zugleich sagte sie das nicht mehr. Dass der Tenant sie nach
+    -- der Löschung wieder hergäbe, ändert daran nichts.
     CONSTRAINT uq_employees_work_email UNIQUE (work_email),
     CONSTRAINT uq_employees_entra      UNIQUE (entra_object_id),
     CONSTRAINT ck_employees_work_email CHECK (work_email <> ''),

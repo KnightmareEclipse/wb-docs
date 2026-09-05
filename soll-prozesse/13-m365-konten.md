@@ -166,7 +166,11 @@ stehen dort. **SharePoint** bekommt nichts: Dateien legt Weltenbaum selbst ab
 
 Das **Konto** im Tenant nach der Frist oben. Die **Schuladresse** am Kind hat dagegen keine eigene
 Frist: Sie geht mit dem Kind (17) und bleibt stehen, auch wenn dessen Konto längst weg ist — sie
-sagt dann, welches es war.
+sagt dann, welches es war. **Eine Schuladresse wird deshalb nie ein zweites Mal vergeben**, auch
+nicht, nachdem das Konto gelöscht ist und der Tenant sie wieder hergäbe: Sonst sagte dieselbe
+stehengebliebene Adresse für zwei Menschen, welches Konto sie hatten. Dasselbe gilt für die
+Dienstadresse eines Mitarbeitenden; der Namensgleiche und der Wiedereintretende bekommen eine
+andere.
 
 Der **Anker für den Lösch-Lauf** (17) ist der **letzte Arbeitstag** und nicht der Haken des Admins —
 sonst hinge die Löschfrist einer Person daran, dass jemand eine Aufgabe abhakt.
