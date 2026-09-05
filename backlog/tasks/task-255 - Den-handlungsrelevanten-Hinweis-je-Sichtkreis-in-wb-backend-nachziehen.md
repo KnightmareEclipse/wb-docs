@@ -35,7 +35,7 @@ Zu tun in wb-backend: die Ursprungsrevision umschreiben (keine Migrationskette, 
 - [ ] #2 Die Hortleitung schreibt den Hinweis fuer care, die Klassenlehrkraft den fuer school — und keine die des anderen
 - [x] #3 Die Eltern schreiben ihn nicht und lesen ihn nicht
 - [x] #4 Er geht per Cascade mit dem Bestand und damit mit dem Kind — als Gegenprobe
-- [ ] #5 backend_health_note schreibt auf die neue Tabelle, kein DELETE
+- [x] #5 backend_health_note schreibt auf die neue Tabelle: INSERT, DELETE und UPDATE (note), und SELECT nur auf die zwei Schluesselspalten
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -49,8 +49,10 @@ Kriterium 3 steht in beide Richtungen. Lesen: `action_notes=({} if user.is_guard
 
 Kriterium 4 steht. `fk_child_health_action_notes_record` traegt ON DELETE CASCADE; die Gegenprobe „03 — erst der Bestand, dann das Kind" prueft hinterher, dass keine Zeile ihr Kind ueberlebt.
 
-Offen bleiben zwei:
+Kriterium 5 steht, nachdem der Widerspruch in wb-docs aufgeloest ist: `backend_health_note` haelt `INSERT`, `DELETE`, `UPDATE (note)` und `SELECT` allein auf `child_health_record_id` und `health_visibility_scope_id`. Der Rollensatz in api/gesundheit-api.md sagte dagegen „`SELECT`, `INSERT`, `UPDATE` … **kein `DELETE`**“ und war in allen drei Angaben falsch — die Rolle liest den Hinweis gar nicht (das tut `backend_runtime`), ihr `UPDATE` ist auf `note` beschraenkt, und das `DELETE` ist die Form des Leerens: `ck_child_health_action_notes_note` weist den leeren Text ab, also geht beim Leeren die Zeile. Die .md ist nachgezogen, das Kriterium traegt jetzt den gebauten Satz.
+
+Offen bleibt eines:
 
 - **Kriterium 2 haengt an TASK-197 #4.** Den Sichtkreis `school` gibt es als Zeile nicht — der Seed fuehrt weiter sechs Kreise samt `class_lead` und `sports`. Die Route schreibt darum fuer `class_lead`, und app/routers/gesundheit.py traegt die Kruecke ausdruecklich: `_TEACHING_SIGHTS = frozenset({"class_lead", "sports"})` mit dem Kommentar „The two fall together into one sight with TASK-197". Die andere Haelfte fehlt ganz: Es gibt keine Route, ueber die die Hortleitung den Hinweis fuer `care` schreibt — `ChildHealthActionNote(...)` entsteht an genau einer Stelle, und die verlangt die Klassenleitung.
-- **Kriterium 5 ist ein Widerspruch in wb-docs, nicht in wb-backend.** api/gesundheit-api.md sagt „**`backend_health_note`** — `SELECT`, `INSERT`, `UPDATE` auf `child_health_action_notes`, **kein `DELETE`**" und verlangt in derselben Datei „`PUT /children/{child_id}/health-note` — den handlungsrelevanten Hinweis setzen oder **leeren**". Beides zusammen geht nicht: `ck_child_health_action_notes_note` weist den leeren Text ab, Leeren heisst also, dass die Zeile geht. Die Gesundheits-Revision vergibt folgerichtig `GRANT INSERT, DELETE ON child_health_action_notes TO backend_health_note` samt `GRANT UPDATE (note)`, und die Route loescht (`await session.delete(standing)`, mit dem CHECK als Begruendung im Kommentar). Falsch ist der Rollensatz der .md, nicht die Route: er ist nachzuziehen, dann traegt das Kriterium.
+
 <!-- SECTION:NOTES:END -->

@@ -140,9 +140,14 @@ Rollen sind Lesegrenzen.
   Tageslicht; bis dahin ist ein neuer Sichtkreis eine Zeile **und** eine Sicht. — Alternative: eine
   Sicht mit `scope_code`-Spalte und dem Sichtkreis als Parameter der Route; Preis: die Grenze läge
   im Anwendungscode, und dieselbe DB-Rolle könnte jeden Kreis lesen.
-- **`backend_health_note`** — `SELECT`, `INSERT`, `UPDATE` auf `child_health_action_notes`,
-  **kein `DELETE`**. Welche Zeile eine Rolle schreiben darf, entscheidet ihr Sichtkreis und nicht
-  dieses GRANT: Die Hortleitung schreibt den für `care`, die Klassenlehrkraft den für `school`.
+- **`backend_health_note`** — `INSERT`, `DELETE` und `UPDATE (note)` auf
+  `child_health_action_notes`, dazu `SELECT` allein auf die zwei Schlüsselspalten: Ein
+  `UPDATE … WHERE` liest sie, und Postgres verlangt `SELECT` auf jede Spalte, die ein Statement
+  liest. Den Hinweis selbst liest sie nicht — das tut `backend_runtime` (oben). **Das `DELETE` ist
+  die Form des Leerens und kein Zugeständnis:** `ck_child_health_action_notes_note` weist den
+  leeren Text ab, ein geleerter Hinweis ist deshalb keine leere Zeile, sondern keine. Welche Zeile
+  eine Rolle schreiben darf, entscheidet ihr Sichtkreis und nicht dieses GRANT: Die Hortleitung
+  schreibt den für `care`, die Klassenlehrkraft den für `school`.
 - **`backend_kitchen`** bekommt statt `kitchen_health_traits` die Sicht `health_values_kitchen`;
   `kitchen_health_traits` und `everyday_health_traits` bleiben als **abgeleitete Sichten** mit
   ihrer alten Form (`child_id, description`) stehen, damit Tagesliste und Teilnehmerliste
