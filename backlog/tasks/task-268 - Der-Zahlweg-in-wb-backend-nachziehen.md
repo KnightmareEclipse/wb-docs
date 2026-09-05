@@ -4,6 +4,7 @@ title: Der Zahlweg in wb-backend nachziehen
 status: To Do
 assignee: []
 created_date: '2026-09-05 01:05'
+updated_date: '2026-09-05 19:10'
 labels:
   - wb-backend
   - schema
@@ -36,6 +37,20 @@ Was gebraucht wird, steht vollstaendig in den .sql dieses Repos; drei Punkte, di
 <!-- AC:BEGIN -->
 - [ ] #1 families traegt das Sperr-Paar, GRANT UPDATE darauf haelt backend_finance und nicht die Laufzeitrolle
 - [ ] #2 Die drei Vorgangstabellen tragen ihren payment_mode; die Schreibstellen setzen ihn ueber die eine gemeinsame Entscheidung
-- [ ] #3 Die drei Domaenen-Migrationen sind bearbeitet statt ergaenzt und die Datenbank neu aufgesetzt
+- [x] #3 Die drei Domaenen-Migrationen sind bearbeitet statt ergaenzt und die Datenbank neu aufgesetzt
 - [ ] #4 pytest, ruff, ruff format und mypy gruen
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Gemessen am Baum von wb-backend (9be3efa, Branch wertelisten-und-log-filter).
+
+Kriterium 3 steht. Die Revisionen von Stammdaten, Ferien und Putzdienst sind bearbeitet, keine neue Revision daneben, und die Datenbank traegt `families.direct_debit_blocked_at`/`_by` samt `ck_families_direct_debit_blocked` und `ck_families_blocked_by` sowie `payment_mode` an `cleaning_buyouts`, `cleaning_slot_buyouts` und `holiday_bookings` (und an `academy_registrations`).
+
+Offen bleiben drei:
+
+- **Kriterium 1.** Das Sperr-Paar steht, das GRANT zeigt auf die falsche Rolle: Die Stammdaten-Revision vergibt `GRANT UPDATE (direct_debit_blocked_at, direct_debit_blocked_by) ON families TO backend_runtime`. In der Datenbank halten nur `backend_migrator` und `backend_runtime` etwas auf den beiden Spalten, `backend_finance` nichts. `tests/test_privileges.py` kennt die Spalten nicht.
+- **Kriterium 2 zur Haelfte.** Die Spalte steht an allen drei Vorgangstabellen, die eine gemeinsame Entscheidung gibt es nicht. `PAID`/`INVOICED` stehen weiter in app/services/ferien.py, app/services/cleaning.py fuehrt daneben ein eigenes `BUYOUT_PAYMENT_MODE = "paid"`, und keine Schreibstelle liest die Sperre, ein laufendes Mandat oder den Anlass — `direct_debit` kommt in app/services und app/routers ueberhaupt nicht vor. Der Seed kennt zu `payment_modes` nur `paid` und `invoiced`.
+- **Kriterium 4.** ruff check („All checks passed"), ruff format --check („89 files already formatted") und mypy app tests („Success: no issues found in 89 source files") sind sauber. pytest gab beim ersten Lauf rc=1 zurueck, beim zweiten rc=0 mit 804 — der Grund steht in TASK-269.
+<!-- SECTION:NOTES:END -->
