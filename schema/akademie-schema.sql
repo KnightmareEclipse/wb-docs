@@ -459,6 +459,11 @@ CREATE TABLE academy_registrations (
     -- nicht, wenn die Teilnehmerin daneben ein Kind an der Schule hat. Sie zahlt
     -- online oder über einen Kostenübernahme-Code.
     payment_mode            text NOT NULL,
+    -- Die beiden Merkmale des Zahlwegs, hier mitgeführt, damit die zwei CHECKs
+    -- unten sie sehen können; `fk_academy_registrations_payment_mode` hält alle
+    -- drei zusammen (rules.md Abschnitt 1, Ausnahme).
+    is_invoiced             boolean NOT NULL,
+    is_direct_debit         boolean NOT NULL,
     academy_cost_coverage_code_id uuid,
     -- Die Fassung der Abmeldebedingungen, die beim Absenden galt — „sichtbar,
     -- bevor angemeldet wird"; eine Unterschrift entsteht daraus nicht.
@@ -499,15 +504,18 @@ CREATE TABLE academy_registrations (
     CONSTRAINT ck_academy_registrations_participant
         CHECK ((for_adults AND person_id IS NOT NULL AND child_id IS NULL)
                OR (NOT for_adults AND child_id IS NOT NULL AND person_id IS NULL)),
-    CONSTRAINT ck_academy_registrations_payment_mode
-        CHECK (payment_mode IN ('direct_debit', 'paid', 'invoiced')),
+    -- Der Zahlweg ist eine Werteliste (querschnitt-schema.sql); der Schlüssel
+    -- bindet zugleich die beiden Merkmale, die die CHECKs darunter lesen.
+    CONSTRAINT fk_academy_registrations_payment_mode
+        FOREIGN KEY (payment_mode, is_invoiced, is_direct_debit)
+        REFERENCES payment_modes (code, is_invoiced, is_direct_debit),
     -- Der Einzug bleibt dem Kinder-Zweig: Ein Mandat des Kindes deckt den
     -- Seminarbeitrag seiner Mutter nicht.
     CONSTRAINT ck_academy_registrations_adult_payment
-        CHECK (NOT for_adults OR payment_mode <> 'direct_debit'),
+        CHECK (NOT for_adults OR NOT is_direct_debit),
     -- Ein Code tritt an die Stelle der Zahlung und nur dort.
     CONSTRAINT ck_academy_registrations_coverage
-        CHECK ((payment_mode = 'invoiced') = (academy_cost_coverage_code_id IS NOT NULL)),
+        CHECK (is_invoiced = (academy_cost_coverage_code_id IS NOT NULL)),
     CONSTRAINT ck_academy_registrations_amount CHECK (amount_cents >= 0),
     CONSTRAINT ck_academy_registrations_declared
         CHECK ((cancellation_declared_at IS NULL) = (cancellation_declared_by IS NULL)),

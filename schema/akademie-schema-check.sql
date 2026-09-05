@@ -12,8 +12,12 @@
 -- (ferien-schema.sql), ein Mechanismus für beide Domänen. Das enthaltene
 -- Mittagessen steht als Zeile je Tag in `academy_offering_lunch_days` und nicht
 -- als Häkchen am Angebot: Ein Zeitraum sagt nicht, an welchen seiner Tage
--- gegessen wird. Dazu die
--- Fremdschlüssel von Q3 und Q5 auf diese Domäne: die Zahlung der Familie ohne
+-- gegessen wird.
+-- `academy_registrations.payment_mode` zeigt auf die Werteliste `payment_modes`
+-- (querschnitt-schema.sql) und führt beide Merkmale mit: `is_invoiced` für den
+-- Kostenübernahme-Code, `is_direct_debit` für „der Einzug bleibt dem
+-- Kinder-Zweig" — sie ist die einzige Tabelle, die beide liest.
+-- Dazu die Fremdschlüssel von Q3 und Q5 auf diese Domäne: die Zahlung der Familie ohne
 -- SEPA-Mandat und die Aufgabe bei der Buchhaltung, beide mit Cascade.
 --
 -- Setzt stammdaten-schema.sql, querschnitt-schema.sql und anmeldung-schema.sql
@@ -57,7 +61,7 @@ BEGIN
         'ck_academy_offerings_low_places', 'ck_academy_offerings_low_places_notice',
         'ck_academy_offerings_decision', 'ck_academy_offerings_returned',
         'ck_academy_offerings_cancellation',
-        'ck_academy_registrations_participant', 'ck_academy_registrations_payment_mode',
+        'ck_academy_registrations_participant', 'fk_academy_registrations_payment_mode',
         'ck_academy_registrations_coverage', 'ck_academy_registrations_recorded',
         'ck_academy_registrations_retained', 'ck_academy_registrations_declared_by',
         'ck_academy_registrations_recorded_by',
@@ -150,6 +154,12 @@ END $$ LANGUAGE plpgsql;
 -- ---------------------------------------------------------------------------
 -- Stammsätze
 -- ---------------------------------------------------------------------------
+-- Der Zahlweg ist eine Werteliste (querschnitt-schema.sql); ihre beiden
+-- Merkmale lesen die CHECKs, die frueher die Aufzaehlung je Tabelle trug.
+INSERT INTO payment_modes (code, name, is_invoiced, is_direct_debit, created_by) VALUES
+    ('paid',         'online bezahlt', false, false, 'system:check'),
+    ('direct_debit', 'eingezogen',     false, true,  'system:check'),
+    ('invoiced',     'berechnet',      true,  false, 'system:check');
 INSERT INTO houses (house_id, code, name, created_by) OVERRIDING SYSTEM VALUE
     VALUES (1, 'school', 'Schule', 'system:check');
 INSERT INTO school_branches (school_branch_id, code, name, first_grade_level,
@@ -615,68 +625,68 @@ SELECT pg_temp.expect_reject(
 SELECT pg_temp.expect_reject(
     '21 — fremdes Kind an einem Angebot, das keine fremden zulässt',
     $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
-                                          payment_mode,
+                                          payment_mode, is_invoiced, is_direct_debit,
                                           cancellation_terms_contract_text_id, created_by)
        VALUES ('55555555-5555-5555-5555-555555555501',
-               '33333333-3333-3333-3333-333333333302', 3500, 'paid', 1, 'guardian:x')$q$);
+               '33333333-3333-3333-3333-333333333302', 3500, 'paid', false, false, 1, 'guardian:x')$q$);
 
 SELECT pg_temp.expect_accept(
     '21 — Kind mit laufendem Hortvertrag ist kein fremdes Kind',
     $q$INSERT INTO academy_registrations (academy_registration_id, academy_offering_id,
-                                          child_id, amount_cents, payment_mode,
+                                          child_id, amount_cents, payment_mode, is_invoiced, is_direct_debit,
                                           cancellation_terms_contract_text_id, created_by)
        VALUES ('66666666-6666-6666-6666-666666666601',
                '55555555-5555-5555-5555-555555555501',
-               '33333333-3333-3333-3333-333333333305', 3500, 'direct_debit', 1,
+               '33333333-3333-3333-3333-333333333305', 3500, 'direct_debit', false, true, 1,
                'guardian:x')$q$);
 
 SELECT pg_temp.expect_accept(
     '21 — eingeschriebenes Kind an demselben Angebot',
     $q$INSERT INTO academy_registrations (academy_registration_id, academy_offering_id,
-                                          child_id, amount_cents, payment_mode,
+                                          child_id, amount_cents, payment_mode, is_invoiced, is_direct_debit,
                                           cancellation_terms_contract_text_id, created_by)
        VALUES ('66666666-6666-6666-6666-666666666602',
                '55555555-5555-5555-5555-555555555501',
-               '33333333-3333-3333-3333-333333333301', 3500, 'paid', 1, 'guardian:x')$q$);
+               '33333333-3333-3333-3333-333333333301', 3500, 'paid', false, false, 1, 'guardian:x')$q$);
 
 -- „Angemeldet wird zum Angebot als Ganzem" — je Teilnehmer eine offene Anmeldung.
 SELECT pg_temp.expect_reject(
     '21 — dasselbe Kind zweimal an demselben Angebot',
     $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
-                                          payment_mode,
+                                          payment_mode, is_invoiced, is_direct_debit,
                                           cancellation_terms_contract_text_id, created_by)
        VALUES ('55555555-5555-5555-5555-555555555501',
-               '33333333-3333-3333-3333-333333333301', 3500, 'paid', 1, 'guardian:x')$q$);
+               '33333333-3333-3333-3333-333333333301', 3500, 'paid', false, false, 1, 'guardian:x')$q$);
 
 SELECT pg_temp.expect_accept(
     '21 — das dritte Kind belegt den letzten Platz',
     $q$INSERT INTO academy_registrations (academy_registration_id, academy_offering_id,
-                                          child_id, amount_cents, payment_mode,
+                                          child_id, amount_cents, payment_mode, is_invoiced, is_direct_debit,
                                           cancellation_terms_contract_text_id, created_by)
        VALUES ('66666666-6666-6666-6666-666666666603',
                '55555555-5555-5555-5555-555555555501',
-               '33333333-3333-3333-3333-333333333303', 3500, 'paid', 1, 'guardian:x')$q$);
+               '33333333-3333-3333-3333-333333333303', 3500, 'paid', false, false, 1, 'guardian:x')$q$);
 
 -- 21: „Sie ist hart … Wo zwölf Kinder an sechs Herdplatten stehen, ist das
 -- dreizehnte eins zu viel."
 SELECT pg_temp.expect_reject(
     '21 — Anmeldung über die Platzzahl hinaus',
     $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
-                                          payment_mode,
+                                          payment_mode, is_invoiced, is_direct_debit,
                                           cancellation_terms_contract_text_id, created_by)
        VALUES ('55555555-5555-5555-5555-555555555501',
-               '33333333-3333-3333-3333-333333333304', 3500, 'paid', 1, 'guardian:x')$q$);
+               '33333333-3333-3333-3333-333333333304', 3500, 'paid', false, false, 1, 'guardian:x')$q$);
 
 -- „Ein fremdes Kind meldet sich an wie jedes andere, sobald das Angebot ihm
 -- offensteht."
 SELECT pg_temp.expect_accept(
     '21 — fremdes Kind an einem offenen Angebot',
     $q$INSERT INTO academy_registrations (academy_registration_id, academy_offering_id,
-                                          child_id, amount_cents, payment_mode,
+                                          child_id, amount_cents, payment_mode, is_invoiced, is_direct_debit,
                                           cancellation_terms_contract_text_id, created_by)
        VALUES ('66666666-6666-6666-6666-666666666604',
                '55555555-5555-5555-5555-555555555502',
-               '33333333-3333-3333-3333-333333333302', 3000, 'paid', 1, 'guardian:x')$q$);
+               '33333333-3333-3333-3333-333333333302', 3000, 'paid', false, false, 1, 'guardian:x')$q$);
 
 -- Der Erwachsenen-Zweig: „die Anmeldung hängt an einer Person und nicht am
 -- Kind" (03.09.2026).
@@ -684,89 +694,89 @@ SELECT pg_temp.expect_accept(
     '21 — Erwachsene meldet sich zu einem Seminar an',
     $q$INSERT INTO academy_registrations (academy_registration_id, academy_offering_id,
                                           for_adults, person_id, amount_cents,
-                                          payment_mode,
+                                          payment_mode, is_invoiced, is_direct_debit,
                                           cancellation_terms_contract_text_id, created_by)
        VALUES ('66666666-6666-6666-6666-666666666605',
                '55555555-5555-5555-5555-555555555503', true,
-               '11111111-1111-1111-1111-111111111203', 4500, 'paid', 1, 'guardian:x')$q$);
+               '11111111-1111-1111-1111-111111111203', 4500, 'paid', false, false, 1, 'guardian:x')$q$);
 
 -- Das SEPA-Mandat steht am Kind, und über es wird nichts abgebucht, was nicht
 -- dieses Kind betrifft (Betreiber, 03.09.2026).
 SELECT pg_temp.expect_reject(
     '21 — Seminarbeitrag einer Erwachsenen soll eingezogen werden',
     $q$INSERT INTO academy_registrations (academy_offering_id, for_adults, person_id,
-                                          amount_cents, payment_mode,
+                                          amount_cents, payment_mode, is_invoiced, is_direct_debit,
                                           cancellation_terms_contract_text_id, created_by)
        VALUES ('55555555-5555-5555-5555-555555555503', true,
-               '11111111-1111-1111-1111-111111111203', 4500, 'direct_debit', 1,
+               '11111111-1111-1111-1111-111111111203', 4500, 'direct_debit', false, true, 1,
                'guardian:x')$q$);
 
 SELECT pg_temp.expect_reject(
     '21 — Anmeldung ohne Teilnehmer',
-    $q$INSERT INTO academy_registrations (academy_offering_id, amount_cents, payment_mode,
+    $q$INSERT INTO academy_registrations (academy_offering_id, amount_cents, payment_mode, is_invoiced, is_direct_debit,
                                           cancellation_terms_contract_text_id, created_by)
-       VALUES ('55555555-5555-5555-5555-555555555505', 3000, 'paid', 1, 'guardian:x')$q$);
+       VALUES ('55555555-5555-5555-5555-555555555505', 3000, 'paid', false, false, 1, 'guardian:x')$q$);
 
 SELECT pg_temp.expect_reject(
     '21 — Anmeldung mit Kind und Person zugleich',
     $q$INSERT INTO academy_registrations (academy_offering_id, child_id, person_id,
-                                          amount_cents, payment_mode,
+                                          amount_cents, payment_mode, is_invoiced, is_direct_debit,
                                           cancellation_terms_contract_text_id, created_by)
        VALUES ('55555555-5555-5555-5555-555555555505',
                '33333333-3333-3333-3333-333333333304',
-               '11111111-1111-1111-1111-111111111203', 3000, 'paid', 1, 'guardian:x')$q$);
+               '11111111-1111-1111-1111-111111111203', 3000, 'paid', false, false, 1, 'guardian:x')$q$);
 
 SELECT pg_temp.expect_reject(
     '21 — Kind an einem Erwachsenen-Seminar',
     $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
-                                          payment_mode,
+                                          payment_mode, is_invoiced, is_direct_debit,
                                           cancellation_terms_contract_text_id, created_by)
        VALUES ('55555555-5555-5555-5555-555555555503',
-               '33333333-3333-3333-3333-333333333304', 4500, 'paid', 1, 'guardian:x')$q$);
+               '33333333-3333-3333-3333-333333333304', 4500, 'paid', false, false, 1, 'guardian:x')$q$);
 
 SELECT pg_temp.expect_reject(
     '21 — Erwachsene an einem Kinder-Angebot',
     $q$INSERT INTO academy_registrations (academy_offering_id, for_adults, person_id,
-                                          amount_cents, payment_mode,
+                                          amount_cents, payment_mode, is_invoiced, is_direct_debit,
                                           cancellation_terms_contract_text_id, created_by)
        VALUES ('55555555-5555-5555-5555-555555555505', true,
-               '11111111-1111-1111-1111-111111111203', 3000, 'paid', 1, 'guardian:x')$q$);
+               '11111111-1111-1111-1111-111111111203', 3000, 'paid', false, false, 1, 'guardian:x')$q$);
 
 -- 21 Z2: „Bis zur Freigabe steht das Angebot nirgends — nicht im öffentlichen
 -- Teil und nicht im Portal —, und niemand kann sich anmelden."
 SELECT pg_temp.expect_reject(
     '21 — Anmeldung zu einem Angebot, das nicht freigegeben ist',
     $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
-                                          payment_mode,
+                                          payment_mode, is_invoiced, is_direct_debit,
                                           cancellation_terms_contract_text_id, created_by)
        VALUES ('55555555-5555-5555-5555-555555555506',
-               '33333333-3333-3333-3333-333333333304', 3000, 'paid', 1, 'guardian:x')$q$);
+               '33333333-3333-3333-3333-333333333304', 3000, 'paid', false, false, 1, 'guardian:x')$q$);
 
 SELECT pg_temp.expect_reject(
     '21 — Anmeldung zu einem abgesagten Angebot',
     $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
-                                          payment_mode,
+                                          payment_mode, is_invoiced, is_direct_debit,
                                           cancellation_terms_contract_text_id, created_by)
        VALUES ('55555555-5555-5555-5555-555555555507',
-               '33333333-3333-3333-3333-333333333304', 3000, 'paid', 1, 'guardian:x')$q$);
+               '33333333-3333-3333-3333-333333333304', 3000, 'paid', false, false, 1, 'guardian:x')$q$);
 
 -- 21: „wer es verpasst, ist nicht dabei, und der offizielle Umweg trägt den
 -- Einzelfall."
 SELECT pg_temp.expect_reject(
     '21 — Anmeldung, bevor das Anmeldefenster öffnet',
     $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
-                                          payment_mode,
+                                          payment_mode, is_invoiced, is_direct_debit,
                                           cancellation_terms_contract_text_id, created_by)
        VALUES ('55555555-5555-5555-5555-555555555508',
-               '33333333-3333-3333-3333-333333333304', 3000, 'paid', 1, 'guardian:x')$q$);
+               '33333333-3333-3333-3333-333333333304', 3000, 'paid', false, false, 1, 'guardian:x')$q$);
 
 SELECT pg_temp.expect_accept(
     '21 — dasselbe stellvertretend durch das Sekretariat (offizieller Umweg)',
     $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
-                                          payment_mode,
+                                          payment_mode, is_invoiced, is_direct_debit,
                                           cancellation_terms_contract_text_id, created_by)
        VALUES ('55555555-5555-5555-5555-555555555508',
-               '33333333-3333-3333-3333-333333333304', 3000, 'paid', 1,
+               '33333333-3333-3333-3333-333333333304', 3000, 'paid', false, false, 1,
                'entra:sekretariat')$q$);
 
 -- 21 Z4: „Geprüft wird, ob das Kind zur Zielgruppe gehört und ob noch ein Platz
@@ -774,18 +784,18 @@ SELECT pg_temp.expect_accept(
 SELECT pg_temp.expect_reject(
     '21 — Grundschulkind an einem Angebot für die Realschule',
     $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
-                                          payment_mode,
+                                          payment_mode, is_invoiced, is_direct_debit,
                                           cancellation_terms_contract_text_id, created_by)
        VALUES ('55555555-5555-5555-5555-555555555504',
-               '33333333-3333-3333-3333-333333333304', 3000, 'paid', 1, 'guardian:x')$q$);
+               '33333333-3333-3333-3333-333333333304', 3000, 'paid', false, false, 1, 'guardian:x')$q$);
 
 SELECT pg_temp.expect_accept(
     '21 — Realschulkind an demselben Angebot',
     $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
-                                          payment_mode,
+                                          payment_mode, is_invoiced, is_direct_debit,
                                           cancellation_terms_contract_text_id, created_by)
        VALUES ('55555555-5555-5555-5555-555555555504',
-               '33333333-3333-3333-3333-333333333306', 3000, 'paid', 1, 'guardian:x')$q$);
+               '33333333-3333-3333-3333-333333333306', 3000, 'paid', false, false, 1, 'guardian:x')$q$);
 
 -- ---------------------------------------------------------------------------
 -- Gegenproben — Zahlweg und Kostenübernahme
@@ -794,7 +804,7 @@ SELECT pg_temp.expect_accept(
 -- 21: „er tritt an die Stelle der Zahlung".
 SELECT pg_temp.expect_reject(
     '21 — berechnete Anmeldung ohne Kostenübernahme-Code',
-    $q$UPDATE academy_registrations SET payment_mode = 'invoiced'
+    $q$UPDATE academy_registrations SET payment_mode = 'invoiced', is_invoiced = true, is_direct_debit = false
         WHERE academy_registration_id = '66666666-6666-6666-6666-666666666602'$q$);
 
 INSERT INTO academy_cost_coverage_codes (academy_cost_coverage_code_id,
@@ -813,7 +823,7 @@ SELECT pg_temp.expect_reject(
 SELECT pg_temp.expect_accept(
     '21 — berechnete Anmeldung mit Kostenübernahme-Code',
     $q$UPDATE academy_registrations
-          SET payment_mode = 'invoiced',
+          SET payment_mode = 'invoiced', is_invoiced = true, is_direct_debit = false,
               academy_cost_coverage_code_id = '77777777-7777-7777-7777-777777777701'
         WHERE academy_registration_id = '66666666-6666-6666-6666-666666666602'$q$);
 
@@ -839,19 +849,19 @@ INSERT INTO academy_cost_coverage_codes (academy_cost_coverage_code_id,
 SELECT pg_temp.expect_accept(
     '21 — erste Anmeldung mit dem Kostenübernahme-Code',
     $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
-                                          payment_mode, academy_cost_coverage_code_id,
+                                          payment_mode, is_invoiced, is_direct_debit, academy_cost_coverage_code_id,
                                           cancellation_terms_contract_text_id, created_by)
        VALUES ('55555555-5555-5555-5555-555555555509',
-               '33333333-3333-3333-3333-333333333304', 3000, 'invoiced',
+               '33333333-3333-3333-3333-333333333304', 3000, 'invoiced', true, false,
                '77777777-7777-7777-7777-777777777709', 1, 'guardian:x')$q$);
 
 SELECT pg_temp.expect_reject(
     '21 — derselbe Kostenübernahme-Code an einer zweiten offenen Anmeldung',
     $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
-                                          payment_mode, academy_cost_coverage_code_id,
+                                          payment_mode, is_invoiced, is_direct_debit, academy_cost_coverage_code_id,
                                           cancellation_terms_contract_text_id, created_by)
        VALUES ('55555555-5555-5555-5555-555555555509',
-               '33333333-3333-3333-3333-333333333305', 3000, 'invoiced',
+               '33333333-3333-3333-3333-333333333305', 3000, 'invoiced', true, false,
                '77777777-7777-7777-7777-777777777709', 1, 'guardian:x')$q$);
 
 -- 21: erzeugt wird er „für eine Mailadresse und ein Angebot" — er bezahlt
@@ -859,10 +869,10 @@ SELECT pg_temp.expect_reject(
 SELECT pg_temp.expect_reject(
     '21 — Code der offenen Kochwerkstatt an einer Anmeldung zur Werkstatt',
     $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
-                                          payment_mode, academy_cost_coverage_code_id,
+                                          payment_mode, is_invoiced, is_direct_debit, academy_cost_coverage_code_id,
                                           cancellation_terms_contract_text_id, created_by)
        VALUES ('55555555-5555-5555-5555-555555555509',
-               '33333333-3333-3333-3333-333333333305', 3000, 'invoiced',
+               '33333333-3333-3333-3333-333333333305', 3000, 'invoiced', true, false,
                '77777777-7777-7777-7777-777777777702', 1, 'guardian:x')$q$);
 
 -- Wie im Ferienprogramm: Ablauf und Einlösen des Codes haben keine eigene
@@ -930,11 +940,11 @@ SELECT pg_temp.expect_accept(
 SELECT pg_temp.expect_accept(
     '21 — Neuanmeldung desselben Kindes nach der Abmeldung',
     $q$INSERT INTO academy_registrations (academy_registration_id, academy_offering_id,
-                                          child_id, amount_cents, payment_mode,
+                                          child_id, amount_cents, payment_mode, is_invoiced, is_direct_debit,
                                           cancellation_terms_contract_text_id, created_by)
        VALUES ('66666666-6666-6666-6666-666666666606',
                '55555555-5555-5555-5555-555555555501',
-               '33333333-3333-3333-3333-333333333303', 3500, 'paid', 1, 'guardian:x')$q$);
+               '33333333-3333-3333-3333-333333333303', 3500, 'paid', false, false, 1, 'guardian:x')$q$);
 
 DO $$
 BEGIN

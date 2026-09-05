@@ -1,8 +1,9 @@
 -- Prüfskript zu querschnitt-schema.sql.
 --
--- Sollstand: 23 Tabellen — neun Wertelisten (mail_categories, consent_purposes,
+-- Sollstand: 24 Tabellen — zehn Wertelisten (mail_categories, consent_purposes,
 -- sharepoint_libraries, child_file_categories, document_types, sync_targets,
--- contract_text_kinds, retention_subjects, retention_hold_reasons),
+-- contract_text_kinds, payment_modes, retention_subjects,
+-- retention_hold_reasons),
 -- Q2 (contract_texts,
 -- signatures, documents, child_file_folders), Q1 (consents,
 -- photo_consent_records), Q3 (payments),
@@ -64,7 +65,7 @@ BEGIN
         'document_types',
         'sync_targets', 'signatures', 'documents', 'child_file_folders',
         'consents', 'photo_consent_records',
-        'payments', 'sync_tasks', 'configured_values', 'change_log',
+        'payment_modes', 'payments', 'sync_tasks', 'configured_values', 'change_log',
         'contract_text_kinds', 'contract_kind_attachments',
         'contract_texts', 'outbound_emails',
         'retention_subjects', 'retention_hold_reasons',
@@ -75,7 +76,7 @@ BEGIN
     IF missing IS NOT NULL THEN
         RAISE EXCEPTION 'Fehlende Tabellen: %', missing;
     END IF;
-    RAISE NOTICE 'ok: alle 20 Tabellen vorhanden';
+    RAISE NOTICE 'ok: alle 24 Tabellen vorhanden';
 END $$;
 
 -- ---------------------------------------------------------------------------
@@ -137,6 +138,8 @@ BEGIN
         'fk_contract_text_kinds_category', 'fk_contract_text_kinds_branch',
         'uq_contract_text_kinds_code_branch',
         'ck_consents_checksum', 'ck_photo_consent_records_checksum',
+        'pk_payment_modes', 'uq_payment_modes_code', 'uq_payment_modes_invoiced',
+        'uq_payment_modes_traits', 'ck_payment_modes_exclusive',
         'ck_contract_texts_frozen', 'ck_contract_texts_checksum',
         'uq_contract_texts_id_consent',
         'ck_signatures_amendment', 'ck_signatures_agreement_amendment',
@@ -1114,6 +1117,24 @@ SELECT pg_temp.expect_reject(
     $q$INSERT INTO contract_text_kinds (code, name, kind_class, announcement_lead_days,
                                         child_file_category_id, created_by)
        VALUES ('care_rules', 'Betreuungsordnung', 'applies', 14, 1, 'system:check')$q$);
+
+-- hebel.md, „Der Zahlweg": Berechnet und eingezogen zugleich gibt es nicht — wo
+-- ein Kostenübernahme-Code an die Stelle der Zahlung tritt, wird nichts
+-- abgebucht. Der Zahlweg ist seit diesem Lauf eine Werteliste, und die beiden
+-- Merkmale lesen die CHECKs der drei Vorgangstabellen (ferien, akademie,
+-- putzdienst); ihre Gegenproben stehen dort, weil sie einen Vorgang brauchen.
+SELECT pg_temp.expect_reject(
+    'hebel.md — ein Zahlweg, der zugleich berechnet und eingezogen wird',
+    $q$INSERT INTO payment_modes (code, name, is_invoiced, is_direct_debit, created_by)
+       VALUES ('beides', 'Berechnet und eingezogen', true, true, 'system:check')$q$);
+
+-- Und der Code ist die Verankerung: zweimal derselbe wäre ein zweiter Zahlweg
+-- unter demselben Namen.
+SELECT pg_temp.expect_reject(
+    'hebel.md — derselbe Zahlweg-Code zweimal',
+    $q$INSERT INTO payment_modes (code, name, created_by) VALUES
+       ('paid', 'Online bezahlt', 'system:check'),
+       ('paid', 'Noch einmal',    'system:check')$q$);
 
 -- 08: „Der Vertragstext hängt an der Schulart — Grundschule und Realschule haben
 -- je einen eigenen." Die Sorte trägt sie, `contracts` bindet ihre Bewerbung

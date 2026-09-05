@@ -245,12 +245,17 @@ CREATE TABLE cleaning_buyouts (
     -- Die Spalte steht trotzdem schon, weil ihr Fehlen die Entscheidung eine
     -- Migration kosten würde statt einer Zeile.
     -- **Ohne `invoiced`:** Der Putzdienst kennt keinen Kostenübernahme-Code, und
-    -- ein Wert, den keine Route je schreibt, wäre eine Zusage ohne Deckung.
+    -- ein Wert, den keine Route je schreibt, wäre eine Zusage ohne Deckung —
+    -- `ck_cleaning_buyouts_no_invoice` unten hält das fest, seit der Zahlweg
+    -- eine Werteliste ist und die Aufzählung nicht mehr je Tabelle steht.
     -- Kommt `direct_debit` je vor, fehlt der Zeile ihr Betrag — er steckt heute
     -- allein in der Zahlung (siehe oben) und müsste dann aus dem Wert im System
     -- zum Zeitpunkt dieser Zeile folgen; das ist Teil der Entscheidung und
     -- nicht ihre Folge.
     payment_mode          text NOT NULL,
+    -- Das Merkmal des Zahlwegs, mitgeführt für den CHECK unten;
+    -- `fk_cleaning_buyouts_payment_mode` hält beide zusammen.
+    is_invoiced           boolean NOT NULL,
     created_at            timestamptz NOT NULL DEFAULT now(),
     created_by            text NOT NULL,
 
@@ -264,8 +269,10 @@ CREATE TABLE cleaning_buyouts (
     CONSTRAINT fk_cleaning_buyouts_type
         FOREIGN KEY (cleaning_slot_type_id) REFERENCES cleaning_slot_types (cleaning_slot_type_id),
     CONSTRAINT ck_cleaning_buyouts_count CHECK (bought_count > 0),
-    CONSTRAINT ck_cleaning_buyouts_payment_mode
-        CHECK (payment_mode IN ('paid', 'direct_debit')),
+    CONSTRAINT fk_cleaning_buyouts_payment_mode
+        FOREIGN KEY (payment_mode, is_invoiced)
+        REFERENCES payment_modes (code, is_invoiced),
+    CONSTRAINT ck_cleaning_buyouts_no_invoice CHECK (NOT is_invoiced),
     CONSTRAINT ck_cleaning_buyouts_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
@@ -335,8 +342,10 @@ CREATE TABLE cleaning_assignments (
 CREATE TABLE cleaning_slot_buyouts (
     cleaning_slot_buyout_id uuid NOT NULL DEFAULT gen_random_uuid(),
     cleaning_assignment_id  uuid NOT NULL,
-    -- Wie am Jahres-Freikauf nebenan und aus demselben Grund.
+    -- Wie am Jahres-Freikauf nebenan und aus demselben Grund, Merkmal
+    -- eingeschlossen.
     payment_mode            text NOT NULL,
+    is_invoiced             boolean NOT NULL,
     created_at              timestamptz NOT NULL DEFAULT now(),
     created_by              text NOT NULL,
 
@@ -358,8 +367,10 @@ CREATE TABLE cleaning_slot_buyouts (
     -- Ein Termin wird höchstens einmal freigekauft, und „zurücktreten kann man
     -- von einem Freikauf nicht".
     CONSTRAINT uq_cleaning_slot_buyouts UNIQUE (cleaning_assignment_id),
-    CONSTRAINT ck_cleaning_slot_buyouts_payment_mode
-        CHECK (payment_mode IN ('paid', 'direct_debit')),
+    CONSTRAINT fk_cleaning_slot_buyouts_payment_mode
+        FOREIGN KEY (payment_mode, is_invoiced)
+        REFERENCES payment_modes (code, is_invoiced),
+    CONSTRAINT ck_cleaning_slot_buyouts_no_invoice CHECK (NOT is_invoiced),
     CONSTRAINT ck_cleaning_slot_buyouts_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 

@@ -14,8 +14,11 @@
 -- `holiday_sessions` trägt die Warnschwelle der letzten Plätze samt ihrer
 -- Lauf-Marke; dieselben zwei Spalten stehen an `academy_offerings`, geprüft
 -- werden sie hier und dort je für sich.
--- `holiday_bookings.payment_mode` kennt drei Wege (hebel.md, „Der Zahlweg"),
--- auch den Einzug, zu dem Stufe 3 die Ferienbuchung heute nicht führt.
+-- `holiday_bookings.payment_mode` zeigt auf die Werteliste `payment_modes`
+-- (querschnitt-schema.sql) und führt deren `is_invoiced` mit, damit
+-- `ck_holiday_bookings_coverage` es sehen kann. Alle drei Wege sind eintragbar,
+-- auch der Einzug, zu dem Stufe 3 die Ferienbuchung heute nicht führt
+-- (hebel.md, „Der Zahlweg").
 --
 -- Setzt stammdaten-schema.sql und querschnitt-schema.sql voraus:
 --   psql -v ON_ERROR_STOP=1 -f ferien-schema-check.sql
@@ -51,7 +54,7 @@ BEGIN
         'fk_holiday_bookings_programme', 'uq_holiday_sessions_id_programme',
         'uq_holiday_cost_coverage_codes_id_programme',
         'uq_holiday_modules_id_type', 'uq_holiday_sessions_id_type',
-        'ck_holiday_bookings_payment_mode', 'ck_holiday_bookings_coverage',
+        'fk_holiday_bookings_payment_mode', 'ck_holiday_bookings_coverage',
         'ck_holiday_bookings_declared', 'ck_holiday_bookings_recorded',
         'ck_holiday_bookings_retained', 'ck_holiday_sessions_cancellation',
         'ck_holiday_sessions_places', 'ck_holiday_programmes_window',
@@ -104,6 +107,12 @@ END $$ LANGUAGE plpgsql;
 -- ---------------------------------------------------------------------------
 -- Stammsätze
 -- ---------------------------------------------------------------------------
+-- Der Zahlweg ist eine Werteliste (querschnitt-schema.sql); ihre beiden
+-- Merkmale lesen die CHECKs, die frueher die Aufzaehlung je Tabelle trug.
+INSERT INTO payment_modes (code, name, is_invoiced, is_direct_debit, created_by) VALUES
+    ('paid',         'online bezahlt', false, false, 'system:check'),
+    ('direct_debit', 'eingezogen',     false, true,  'system:check'),
+    ('invoiced',     'berechnet',      true,  false, 'system:check');
 INSERT INTO roles (role_id, code, name, created_by) OVERRIDING SYSTEM VALUE
     VALUES (1, 'day_care_management', 'Hortleitung', 'system:check');
 INSERT INTO persons (person_id, first_name, last_name, created_by)
@@ -222,45 +231,45 @@ SELECT pg_temp.expect_reject(
     '10 — Modul einer fremden Terminart gebucht',
     $q$INSERT INTO holiday_bookings (child_id, holiday_session_id, holiday_module_id,
                                      holiday_session_type_id, holiday_programme_id,
-                                     amount_cents, payment_mode,
+                                     amount_cents, payment_mode, is_invoiced,
                                      terms_contract_text_id, created_by)
        VALUES ('44444444-4444-4444-4444-444444444444',
-               '55555555-5555-5555-5555-555555555551', 3, 1, 1, 2000, 'paid', 1, 'system:check')$q$);
+               '55555555-5555-5555-5555-555555555551', 3, 1, 1, 2000, 'paid', false, 1, 'system:check')$q$);
 
 SELECT pg_temp.expect_accept(
     '10 — Buchung mit Modul der eigenen Terminart',
     $q$INSERT INTO holiday_bookings (holiday_booking_id, child_id, holiday_session_id,
                                      holiday_module_id, holiday_session_type_id,
                                      holiday_programme_id, amount_cents,
-                                     payment_mode, terms_contract_text_id, created_by)
+                                     payment_mode, is_invoiced, terms_contract_text_id, created_by)
        VALUES ('66666666-6666-6666-6666-666666666661',
                '44444444-4444-4444-4444-444444444444',
-               '55555555-5555-5555-5555-555555555551', 2, 1, 1, 5000, 'paid', 1, 'system:check')$q$);
+               '55555555-5555-5555-5555-555555555551', 2, 1, 1, 5000, 'paid', false, 1, 'system:check')$q$);
 
 -- 10: „Gebucht wird je Kind und Termin."
 SELECT pg_temp.expect_reject(
     '10 — dasselbe Kind zweimal an demselben Termin',
     $q$INSERT INTO holiday_bookings (child_id, holiday_session_id, holiday_module_id,
                                      holiday_session_type_id, holiday_programme_id,
-                                     amount_cents, payment_mode,
+                                     amount_cents, payment_mode, is_invoiced,
                                      terms_contract_text_id, created_by)
        VALUES ('44444444-4444-4444-4444-444444444444',
-               '55555555-5555-5555-5555-555555555551', 1, 1, 1, 3000, 'paid', 1, 'system:check')$q$);
+               '55555555-5555-5555-5555-555555555551', 1, 1, 1, 3000, 'paid', false, 1, 'system:check')$q$);
 
 -- „mehrere Kinder in einem Zug" und mehrere Termine je Kind bleiben erlaubt.
 SELECT pg_temp.expect_accept(
     '10 — dasselbe Kind an einem zweiten Termin',
     $q$INSERT INTO holiday_bookings (child_id, holiday_session_id, holiday_module_id,
                                      holiday_session_type_id, holiday_programme_id,
-                                     amount_cents, payment_mode,
+                                     amount_cents, payment_mode, is_invoiced,
                                      terms_contract_text_id, created_by)
        VALUES ('44444444-4444-4444-4444-444444444444',
-               '55555555-5555-5555-5555-555555555552', 3, 2, 1, 2500, 'paid', 1, 'system:check')$q$);
+               '55555555-5555-5555-5555-555555555552', 3, 2, 1, 2500, 'paid', false, 1, 'system:check')$q$);
 
 -- 10: „Er tritt an die Stelle der Zahlung."
 SELECT pg_temp.expect_reject(
     '10 — berechnete Buchung ohne Kostenübernahme-Code',
-    $q$UPDATE holiday_bookings SET payment_mode = 'invoiced'
+    $q$UPDATE holiday_bookings SET payment_mode = 'invoiced', is_invoiced = true
         WHERE holiday_booking_id = '66666666-6666-6666-6666-666666666661'$q$);
 
 -- hebel.md, „Der Zahlweg": Die Spalte trägt den Weg und nicht die heutige Regel
@@ -268,9 +277,9 @@ SELECT pg_temp.expect_reject(
 -- nicht dorthin führt (10). Ein Zahlweg, den es nicht gibt, bleibt draußen.
 SELECT pg_temp.expect_accept(
     '10 — eingezogene Buchung',
-    $q$UPDATE holiday_bookings SET payment_mode = 'direct_debit'
+    $q$UPDATE holiday_bookings SET payment_mode = 'direct_debit', is_invoiced = false
         WHERE holiday_booking_id = '66666666-6666-6666-6666-666666666661';
-       UPDATE holiday_bookings SET payment_mode = 'paid'
+       UPDATE holiday_bookings SET payment_mode = 'paid', is_invoiced = false
         WHERE holiday_booking_id = '66666666-6666-6666-6666-666666666661'$q$);
 
 SELECT pg_temp.expect_reject(
@@ -292,7 +301,7 @@ SELECT pg_temp.expect_reject(
 SELECT pg_temp.expect_accept(
     '10 — berechnete Buchung mit Kostenübernahme-Code',
     $q$UPDATE holiday_bookings
-          SET payment_mode = 'invoiced',
+          SET payment_mode = 'invoiced', is_invoiced = true,
               holiday_cost_coverage_code_id = '77777777-7777-7777-7777-777777777771'
         WHERE holiday_booking_id = '66666666-6666-6666-6666-666666666661'$q$);
 
@@ -302,11 +311,11 @@ SELECT pg_temp.expect_reject(
     '10 — derselbe Kostenübernahme-Code an einer zweiten offenen Buchung',
     $q$INSERT INTO holiday_bookings (child_id, holiday_session_id, holiday_module_id,
                                      holiday_session_type_id, holiday_programme_id,
-                                     amount_cents, payment_mode,
+                                     amount_cents, payment_mode, is_invoiced,
                                      holiday_cost_coverage_code_id,
                                      terms_contract_text_id, created_by)
        VALUES ('44444444-4444-4444-4444-444444444445',
-               '55555555-5555-5555-5555-555555555551', 1, 1, 1, 3000, 'invoiced',
+               '55555555-5555-5555-5555-555555555551', 1, 1, 1, 3000, 'invoiced', true,
                '77777777-7777-7777-7777-777777777771', 1, 'system:check')$q$);
 
 -- 10: erzeugt wird er „für eine Mailadresse und ein Programm" — er bezahlt
@@ -319,11 +328,11 @@ SELECT pg_temp.expect_reject(
     '10 — Code des Herbstprogramms an einer Buchung im Sommerprogramm',
     $q$INSERT INTO holiday_bookings (child_id, holiday_session_id, holiday_module_id,
                                      holiday_session_type_id, holiday_programme_id,
-                                     amount_cents, payment_mode,
+                                     amount_cents, payment_mode, is_invoiced,
                                      holiday_cost_coverage_code_id,
                                      terms_contract_text_id, created_by)
        VALUES ('44444444-4444-4444-4444-444444444445',
-               '55555555-5555-5555-5555-555555555551', 1, 1, 1, 3000, 'invoiced',
+               '55555555-5555-5555-5555-555555555551', 1, 1, 1, 3000, 'invoiced', true,
                '77777777-7777-7777-7777-777777777772', 1, 'system:check')$q$);
 
 -- Das Programm an der Buchung ist mitgeführt und nicht frei wählbar: Es gehört
@@ -332,10 +341,10 @@ SELECT pg_temp.expect_reject(
     '10 — Buchung, deren Programm nicht das ihres Termins ist',
     $q$INSERT INTO holiday_bookings (child_id, holiday_session_id, holiday_module_id,
                                      holiday_session_type_id, holiday_programme_id,
-                                     amount_cents, payment_mode,
+                                     amount_cents, payment_mode, is_invoiced,
                                      terms_contract_text_id, created_by)
        VALUES ('44444444-4444-4444-4444-444444444445',
-               '55555555-5555-5555-5555-555555555551', 1, 1, 2, 3000, 'paid', 1,
+               '55555555-5555-5555-5555-555555555551', 1, 1, 2, 3000, 'paid', false, 1,
                'system:check')$q$);
 
 -- 10: „Der Code … verfällt nach 14 Tagen" — eine feste Zahl ist keine Spalte.
@@ -535,20 +544,20 @@ SELECT pg_temp.expect_accept(
     $q$INSERT INTO holiday_bookings (holiday_booking_id, child_id, holiday_session_id,
                                      holiday_module_id, holiday_session_type_id,
                                      holiday_programme_id, amount_cents,
-                                     payment_mode, terms_contract_text_id, created_by)
+                                     payment_mode, is_invoiced, terms_contract_text_id, created_by)
        VALUES ('66666666-6666-6666-6666-666666666662',
                '44444444-4444-4444-4444-444444444444',
-               '55555555-5555-5555-5555-555555555551', 1, 1, 1, 3000, 'paid', 1,
+               '55555555-5555-5555-5555-555555555551', 1, 1, 1, 3000, 'paid', false, 1,
                'system:check')$q$);
 
 SELECT pg_temp.expect_reject(
     '10 — dritte, nicht stornierte Buchung desselben Kindes an demselben Termin',
     $q$INSERT INTO holiday_bookings (child_id, holiday_session_id, holiday_module_id,
                                      holiday_session_type_id, holiday_programme_id,
-                                     amount_cents, payment_mode,
+                                     amount_cents, payment_mode, is_invoiced,
                                      terms_contract_text_id, created_by)
        VALUES ('44444444-4444-4444-4444-444444444444',
-               '55555555-5555-5555-5555-555555555551', 2, 1, 1, 5000, 'paid', 1,
+               '55555555-5555-5555-5555-555555555551', 2, 1, 1, 5000, 'paid', false, 1,
                'system:check')$q$);
 
 -- 10: „der Termin trägt dann, dass er abgesagt ist, samt Grund in einem Satz".
@@ -653,20 +662,20 @@ SELECT pg_temp.expect_reject(
     '10 — fremdes Kind an einer Terminart, die keine fremden zulässt',
     $q$INSERT INTO holiday_bookings (child_id, holiday_session_id, holiday_module_id,
                                      holiday_session_type_id, holiday_programme_id,
-                                     amount_cents, payment_mode,
+                                     amount_cents, payment_mode, is_invoiced,
                                      terms_contract_text_id, created_by)
        VALUES ('44444444-4444-4444-4444-444444444444',
-               '55555555-5555-5555-5555-555555555554', 4, 3, 1, 3000, 'paid', 1,
+               '55555555-5555-5555-5555-555555555554', 4, 3, 1, 3000, 'paid', false, 1,
                'system:check')$q$);
 
 SELECT pg_temp.expect_accept(
     '10 — Kind mit laufendem Hortvertrag an derselben Terminart',
     $q$INSERT INTO holiday_bookings (child_id, holiday_session_id, holiday_module_id,
                                      holiday_session_type_id, holiday_programme_id,
-                                     amount_cents, payment_mode,
+                                     amount_cents, payment_mode, is_invoiced,
                                      terms_contract_text_id, created_by)
        VALUES ('44444444-4444-4444-4444-444444444445',
-               '55555555-5555-5555-5555-555555555554', 4, 3, 1, 3000, 'paid', 1,
+               '55555555-5555-5555-5555-555555555554', 4, 3, 1, 3000, 'paid', false, 1,
                'system:check')$q$);
 
 -- Derselbe Vertrag, 2021 ausgelaufen und ohne `end_date`: „laufend" rechnet über
@@ -675,10 +684,10 @@ SELECT pg_temp.expect_reject(
     '10 — Kind, dessen Hortvertrag 2021 ausgelaufen ist',
     $q$INSERT INTO holiday_bookings (child_id, holiday_session_id, holiday_module_id,
                                      holiday_session_type_id, holiday_programme_id,
-                                     amount_cents, payment_mode,
+                                     amount_cents, payment_mode, is_invoiced,
                                      terms_contract_text_id, created_by)
        VALUES ('44444444-4444-4444-4444-444444444446',
-               '55555555-5555-5555-5555-555555555554', 4, 3, 1, 3000, 'paid', 1,
+               '55555555-5555-5555-5555-555555555554', 4, 3, 1, 3000, 'paid', false, 1,
                'system:check')$q$);
 
 -- 10 Z5: der abgesagte Termin ist „nicht mehr buchbar" — Termin 552 ist eine
@@ -687,10 +696,10 @@ SELECT pg_temp.expect_reject(
     '10 — Buchung an einem abgesagten Termin',
     $q$INSERT INTO holiday_bookings (child_id, holiday_session_id, holiday_module_id,
                                      holiday_session_type_id, holiday_programme_id,
-                                     amount_cents, payment_mode,
+                                     amount_cents, payment_mode, is_invoiced,
                                      terms_contract_text_id, created_by)
        VALUES ('44444444-4444-4444-4444-444444444445',
-               '55555555-5555-5555-5555-555555555552', 3, 2, 1, 2500, 'paid', 1,
+               '55555555-5555-5555-5555-555555555552', 3, 2, 1, 2500, 'paid', false, 1,
                'guardian:x')$q$);
 
 -- 10: „wer es verpasst, ist nicht dabei, und der offizielle Umweg trägt den
@@ -699,20 +708,20 @@ SELECT pg_temp.expect_reject(
     '10 — Buchung, bevor das Anmeldefenster öffnet',
     $q$INSERT INTO holiday_bookings (child_id, holiday_session_id, holiday_module_id,
                                      holiday_session_type_id, holiday_programme_id,
-                                     amount_cents, payment_mode,
+                                     amount_cents, payment_mode, is_invoiced,
                                      terms_contract_text_id, created_by)
        VALUES ('44444444-4444-4444-4444-444444444446',
-               '55555555-5555-5555-5555-555555555551', 1, 1, 1, 3000, 'paid', 1,
+               '55555555-5555-5555-5555-555555555551', 1, 1, 1, 3000, 'paid', false, 1,
                'guardian:x')$q$);
 
 SELECT pg_temp.expect_accept(
     '10 — dasselbe stellvertretend durch das Sekretariat (offizieller Umweg)',
     $q$INSERT INTO holiday_bookings (child_id, holiday_session_id, holiday_module_id,
                                      holiday_session_type_id, holiday_programme_id,
-                                     amount_cents, payment_mode,
+                                     amount_cents, payment_mode, is_invoiced,
                                      terms_contract_text_id, created_by)
        VALUES ('44444444-4444-4444-4444-444444444446',
-               '55555555-5555-5555-5555-555555555551', 1, 1, 1, 3000, 'paid', 1,
+               '55555555-5555-5555-5555-555555555551', 1, 1, 1, 3000, 'paid', false, 1,
                'entra:sekretariat')$q$);
 
 -- F1 — 10: „Erstattungen sind kein Fremdsystem, aber Handarbeit, die auf einen

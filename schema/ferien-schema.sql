@@ -383,6 +383,11 @@ CREATE TABLE holiday_bookings (
     -- (10), und ändert sich das, kostet es eine Zeile im Block statt einer
     -- Migration.
     payment_mode            text NOT NULL,
+    -- Das Merkmal des Zahlwegs, hier mitgeführt, damit der CHECK unten es sehen
+    -- kann; `fk_holiday_bookings_payment_mode` hält beide zusammen (rules.md
+    -- Abschnitt 1, Ausnahme). `is_direct_debit` steht bewusst nicht daneben —
+    -- kein CHECK dieser Tabelle liest es.
+    is_invoiced             boolean NOT NULL,
     holiday_cost_coverage_code_id uuid,
     -- Die Fassung, die beim Absenden galt; eine Unterschrift entsteht daraus
     -- nicht.
@@ -423,11 +428,14 @@ CREATE TABLE holiday_bookings (
                                                 holiday_programme_id),
     CONSTRAINT fk_holiday_bookings_terms
         FOREIGN KEY (terms_contract_text_id) REFERENCES contract_texts (contract_text_id),
-    CONSTRAINT ck_holiday_bookings_payment_mode
-        CHECK (payment_mode IN ('paid', 'direct_debit', 'invoiced')),
+    -- Der Zahlweg ist eine Werteliste (querschnitt-schema.sql); der Schlüssel
+    -- bindet zugleich das Merkmal, das der CHECK darunter liest.
+    CONSTRAINT fk_holiday_bookings_payment_mode
+        FOREIGN KEY (payment_mode, is_invoiced)
+        REFERENCES payment_modes (code, is_invoiced),
     -- Ein Code tritt an die Stelle der Zahlung und nur dort.
     CONSTRAINT ck_holiday_bookings_coverage
-        CHECK ((payment_mode = 'invoiced') = (holiday_cost_coverage_code_id IS NOT NULL)),
+        CHECK (is_invoiced = (holiday_cost_coverage_code_id IS NOT NULL)),
     CONSTRAINT ck_holiday_bookings_amount CHECK (amount_cents >= 0),
     -- Wirksam wird der Storno erst mit dem Eintrag; der einbehaltene Betrag
     -- entsteht mit ihm.

@@ -6,8 +6,11 @@
 -- cleaning_swap_offers und cleaning_swap_acceptances, davon eine Werteliste.
 -- Dazu die beiden Q3-Fremdschlüssel auf `payments` und der Q5-Fremdschlüssel
 -- `fk_sync_tasks_cleaning_slot`.
--- Beide Freikäufe tragen ihren `payment_mode` (hebel.md, „Der Zahlweg"), und
--- zwar ohne `invoiced`: einen Kostenübernahme-Code kennt der Putzdienst nicht.
+-- Beide Freikäufe zeigen mit ihrem `payment_mode` auf die Werteliste
+-- `payment_modes` (querschnitt-schema.sql) und führen deren `is_invoiced` mit —
+-- `ck_cleaning_buyouts_no_invoice` und sein Gegenstück am Einzel-Freikauf halten
+-- fest, was vorher die Aufzählung im CHECK hielt: einen Kostenübernahme-Code
+-- kennt der Putzdienst nicht (hebel.md, „Der Zahlweg").
 --
 -- Setzt stammdaten-schema.sql und querschnitt-schema.sql voraus:
 --   psql -v ON_ERROR_STOP=1 -f putzdienst-schema-check.sql
@@ -57,7 +60,7 @@ BEGIN
         'ck_cleaning_assignments_source',
         'ck_cleaning_assignments_waiver', 'ck_cleaning_assignments_handover',
         'ck_cleaning_cycle_quotas_required', 'ck_cleaning_buyouts_count',
-        'ck_cleaning_buyouts_payment_mode', 'ck_cleaning_slot_buyouts_payment_mode',
+        'fk_cleaning_buyouts_payment_mode', 'ck_cleaning_buyouts_no_invoice', 'fk_cleaning_slot_buyouts_payment_mode', 'ck_cleaning_slot_buyouts_no_invoice',
 
         'fk_payments_cleaning_buyout', 'fk_payments_cleaning_slot_buyout',
         'fk_sync_tasks_cleaning_slot'
@@ -98,6 +101,12 @@ END $$ LANGUAGE plpgsql;
 -- ---------------------------------------------------------------------------
 -- 4. Stammsätze
 -- ---------------------------------------------------------------------------
+-- Der Zahlweg ist eine Werteliste (querschnitt-schema.sql); ihre beiden
+-- Merkmale lesen die CHECKs, die frueher die Aufzaehlung je Tabelle trug.
+INSERT INTO payment_modes (code, name, is_invoiced, is_direct_debit, created_by) VALUES
+    ('paid',         'online bezahlt', false, false, 'system:check'),
+    ('direct_debit', 'eingezogen',     false, true,  'system:check'),
+    ('invoiced',     'berechnet',      true,  false, 'system:check');
 INSERT INTO families (family_id, created_by) VALUES
     ('33333333-3333-3333-3333-333333333331', 'system:check'),
     ('33333333-3333-3333-3333-333333333332', 'system:check');
@@ -183,13 +192,13 @@ SELECT pg_temp.expect_accept(
 -- 01: „Zurücktreten kann man von einem Freikauf nicht" — und zweimal freikaufen
 -- lässt sich derselbe Termin auch nicht.
 INSERT INTO cleaning_slot_buyouts (cleaning_slot_buyout_id, cleaning_assignment_id,
-                                   payment_mode, created_by)
+                                   payment_mode, is_invoiced, created_by)
     VALUES ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1',
-            '99999999-9999-9999-9999-999999999992', 'paid', 'system:check');
+            '99999999-9999-9999-9999-999999999992', 'paid', false, 'system:check');
 SELECT pg_temp.expect_reject(
     '01 — derselbe Termin zweimal freigekauft',
-    $q$INSERT INTO cleaning_slot_buyouts (cleaning_assignment_id, payment_mode, created_by)
-       VALUES ('99999999-9999-9999-9999-999999999992', 'paid', 'system:check')$q$);
+    $q$INSERT INTO cleaning_slot_buyouts (cleaning_assignment_id, payment_mode, is_invoiced, created_by)
+       VALUES ('99999999-9999-9999-9999-999999999992', 'paid', false, 'system:check')$q$);
 
 -- Q3 zeigt auf beide Freikäufe; der Anlass muss existieren.
 SELECT pg_temp.expect_reject(
@@ -225,9 +234,9 @@ SELECT pg_temp.expect_accept(
 
 -- 01: „auch gleich alle auf einmal, ohne einen einzigen zu buchen".
 INSERT INTO cleaning_buyouts (cleaning_buyout_id, cleaning_cycle_id, family_id,
-                              cleaning_slot_type_id, bought_count, payment_mode, created_by)
+                              cleaning_slot_type_id, bought_count, payment_mode, is_invoiced, created_by)
     VALUES ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1', 1,
-            '33333333-3333-3333-3333-333333333331', 1, 5, 'paid', 'system:check');
+            '33333333-3333-3333-3333-333333333331', 1, 5, 'paid', false, 'system:check');
 SELECT pg_temp.expect_accept(
     'Q3 — Zahlung auf den Komplett-Freikauf',
     $q$INSERT INTO payments (cleaning_buyout_id, amount_cents, status, confirmed_at, created_by)
@@ -236,8 +245,8 @@ SELECT pg_temp.expect_accept(
 SELECT pg_temp.expect_reject(
     '01 — Komplett-Freikauf über null Termine',
     $q$INSERT INTO cleaning_buyouts (cleaning_cycle_id, family_id, cleaning_slot_type_id,
-                                     bought_count, payment_mode, created_by)
-       VALUES (1, '33333333-3333-3333-3333-333333333332', 2, 0, 'paid', 'system:check')$q$);
+                                     bought_count, payment_mode, is_invoiced, created_by)
+       VALUES (1, '33333333-3333-3333-3333-333333333332', 2, 0, 'paid', false, 'system:check')$q$);
 
 -- hebel.md, „Der Zahlweg": Die Spalte trägt den Weg, nicht die heutige Regel —
 -- `direct_debit` ist eintragbar, obwohl Stufe 3 den Freikauf derzeit nicht
@@ -246,21 +255,21 @@ SELECT pg_temp.expect_reject(
 SELECT pg_temp.expect_accept(
     '01 — Komplett-Freikauf, eingezogen statt sofort bezahlt',
     $q$INSERT INTO cleaning_buyouts (cleaning_cycle_id, family_id, cleaning_slot_type_id,
-                                     bought_count, payment_mode, created_by)
-       VALUES (1, '33333333-3333-3333-3333-333333333332', 2, 1, 'direct_debit',
+                                     bought_count, payment_mode, is_invoiced, created_by)
+       VALUES (1, '33333333-3333-3333-3333-333333333332', 2, 1, 'direct_debit', false,
                'system:check')$q$);
 
 SELECT pg_temp.expect_reject(
     '01 — Komplett-Freikauf auf Rechnung, den es hier nicht gibt',
     $q$INSERT INTO cleaning_buyouts (cleaning_cycle_id, family_id, cleaning_slot_type_id,
-                                     bought_count, payment_mode, created_by)
-       VALUES (1, '33333333-3333-3333-3333-333333333332', 1, 1, 'invoiced',
+                                     bought_count, payment_mode, is_invoiced, created_by)
+       VALUES (1, '33333333-3333-3333-3333-333333333332', 1, 1, 'invoiced', true,
                'system:check')$q$);
 
 SELECT pg_temp.expect_reject(
     '01 — Einzel-Freikauf auf Rechnung, den es hier nicht gibt',
-    $q$INSERT INTO cleaning_slot_buyouts (cleaning_assignment_id, payment_mode, created_by)
-       VALUES ('99999999-9999-9999-9999-999999999991', 'invoiced', 'system:check')$q$);
+    $q$INSERT INTO cleaning_slot_buyouts (cleaning_assignment_id, payment_mode, is_invoiced, created_by)
+       VALUES ('99999999-9999-9999-9999-999999999991', 'invoiced', true, 'system:check')$q$);
 
 -- Die Q3-Gegenproben, die einen echten Anlass brauchen: der Putzdienst ist die
 -- erste Domäne, die einen mitbringt (grenzkarte.md, Q3).

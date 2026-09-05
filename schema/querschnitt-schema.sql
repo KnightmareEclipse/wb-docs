@@ -6,7 +6,8 @@
 -- Q4 (Mitarbeitende) steht als `employees` in stammdaten-schema.sql.
 -- Lesepfad: `signatures` und `documents` zuerst — beide hängen am Kind bzw. am
 -- Vertragsvorgang; `consents` zeigt optional auf eine Signatur. `payments`,
--- `sync_tasks`, `configured_values` und `change_log` stehen unabhängig daneben.
+-- `sync_tasks`, `configured_values`, `payment_modes` und `change_log` stehen
+-- unabhängig daneben.
 -- Der Lösch-Lauf am Ende ist zweigeteilt: `retention_notice_recipients` sagt,
 -- wer je Bestand die Ankündigung bekommt, `retention_holds`, welcher Anker
 -- gerade übersprungen wird.
@@ -1328,6 +1329,57 @@ CREATE TABLE photo_consent_records (
 -- ---------------------------------------------------------------------------
 -- Q3 — Zahlungsvorgang
 -- ---------------------------------------------------------------------------
+
+-- Herkunft: hebel.md, „Der Zahlweg" — „Wo ein Vorgang Geld kostet, wird er
+-- eingezogen oder sofort bezahlt". Werteliste statt eines aufgezählten CHECK je
+-- Vorgangstabelle: Derselbe Wert stand an vier Tabellen, ein fünfter Weg kostete
+-- vier Migrationen, und die vier Aufzählungen liefen beim ersten Fix
+-- auseinander — dieselbe Umstellung wie bei `payment_routes`
+-- (rechnungsfreigabe-schema.sql). Kein Löschanker: keine Personendaten.
+--
+-- Die beiden Merkmale stehen hier und nicht im Code, weil CHECKs sie lesen und
+-- ein CHECK keine zweite Tabelle sieht: `is_invoiced` trägt die beiden
+-- Kostenübernahme-Regeln („ein Code tritt an die Stelle der Zahlung und nur
+-- dort", 10/21) und die Auslassung des Putzdienstes, der keinen Code kennt;
+-- `is_direct_debit` trägt „der Einzug bleibt dem Kinder-Zweig" (21). Beide
+-- werden an der Vorgangszeile mitgeführt und dort von einem zusammengesetzten
+-- Fremdschlüssel festgehalten (rules.md Abschnitt 1, Ausnahme).
+--
+-- Bewusst KEIN Ändern von `code` und den beiden Merkmalen: alle drei hängen in
+-- den Fremdschlüsseln der Vorgangstabellen. Ein falscher Eintrag wird
+-- stillgelegt.
+CREATE TABLE payment_modes (
+    payment_mode_id integer GENERATED ALWAYS AS IDENTITY,
+    code            text NOT NULL,
+    name            text NOT NULL,
+    -- Der Kostenübernahme-Code tritt an die Stelle der Zahlung.
+    is_invoiced     boolean NOT NULL DEFAULT false,
+    -- Es wird über das Mandat des Kindes abgebucht.
+    is_direct_debit boolean NOT NULL DEFAULT false,
+    -- Deaktiviert statt gelöscht: nimmt den Wert aus jedem Auswahlfeld, lässt
+    -- aber jede Zeile stehen, die schon auf ihn zeigt (rules.md Abschnitt 3).
+    is_active       boolean NOT NULL DEFAULT true,
+    created_at      timestamptz NOT NULL DEFAULT now(),
+    created_by      text NOT NULL,
+
+    CONSTRAINT pk_payment_modes      PRIMARY KEY (payment_mode_id),
+    CONSTRAINT uq_payment_modes_code UNIQUE (code),
+    -- Zwei Ziele für zwei Zuschnitte: Die Akademie liest beide Merkmale, die
+    -- übrigen drei Tabellen nur das erste — und ein Fremdschlüssel verlangt
+    -- seine Zielspalten genau so, wie er sie führt. Eine Tabelle das zweite
+    -- Merkmal mitführen zu lassen, das kein CHECK von ihr liest, wäre eine
+    -- Spalte ohne Leser.
+    CONSTRAINT uq_payment_modes_invoiced UNIQUE (code, is_invoiced),
+    CONSTRAINT uq_payment_modes_traits  UNIQUE (code, is_invoiced, is_direct_debit),
+    CONSTRAINT ck_payment_modes_code CHECK (code <> ''),
+    CONSTRAINT ck_payment_modes_name CHECK (name <> ''),
+    -- Berechnet und eingezogen zugleich gibt es nicht: Wo ein Code an die Stelle
+    -- der Zahlung tritt, wird nichts abgebucht.
+    CONSTRAINT ck_payment_modes_exclusive
+        CHECK (NOT (is_invoiced AND is_direct_debit)),
+    -- Ohne `guardian:`: den Zahlweg pflegt die Buchhaltung, kein Elternteil.
+    CONSTRAINT ck_payment_modes_created_by CHECK (created_by ~ '^(entra:|system:)')
+);
 
 -- Herkunft: grenzkarte.md, Q3 — „Weltenbaum berührt Geld nur an einer Stelle:
 -- wo ein Elternteil im Selbstservice bezahlt und der Prozess erst danach
