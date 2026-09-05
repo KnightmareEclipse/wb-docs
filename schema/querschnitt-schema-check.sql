@@ -33,6 +33,9 @@
 -- ohne Abmeldelink, Schulinformation mit Untergrenze je Familie, Newsletter frei
 -- abwählbar —, und `consent_purposes` führt das Häkchen der Kategorie mit, damit
 -- `outbound_emails` es über einen zusammengesetzten Fremdschlüssel sieht.
+-- Die Untergrenze selbst spannt über zwei Personenzeilen derselben Familie und
+-- ist deshalb kein Constraint, sondern der eine Trigger dieser Datei:
+-- `trg_consents_family_floor` auf `enforce_family_mail_floor()`.
 -- `photo_consent_records` ist der Nachweis der Fotoerlaubnis, nachdem das Kind
 -- gelöscht ist: der einzige Bestand ohne Löschanker, gefüllt vom Lösch-Lauf im
 -- selben Zug, in dem er das Kind räumt — samt der Prüfsumme des Originals.
@@ -182,6 +185,10 @@ BEGIN
     WHERE to_regclass('public.' || i) IS NULL;
     IF missing IS NOT NULL THEN
         RAISE EXCEPTION 'Fehlende Indizes: %', missing;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger
+                    WHERE tgname = 'trg_consents_family_floor') THEN
+        RAISE EXCEPTION 'Fehlender Trigger: trg_consents_family_floor';
     END IF;
     RAISE NOTICE 'ok: alle geprüften Constraints und Indizes vorhanden';
 END $$;
@@ -1385,6 +1392,91 @@ SELECT pg_temp.expect_reject(
        VALUES ('unbekannt2@example.org', 'newsletter',
                (SELECT consent_purpose_id FROM consent_purposes WHERE code='newsletter_alumni'),
                true)$q$);
+
+-- ---------------------------------------------------------------------------
+-- Die Untergrenze der Schulinformation: einer je Familie behält sie
+-- ---------------------------------------------------------------------------
+-- Der Trigger `trg_consents_family_floor` gegen die Zeilen, die er meint. Zwei
+-- Sorgeberechtigte an derselben Familie sind die kleinste Aufstellung, an der
+-- „einer je Familie muss sie bekommen" (00) überhaupt scheitern kann.
+INSERT INTO guardian_relations (code, name) VALUES ('mother', 'Mutter');
+INSERT INTO access_levels (code, name) VALUES ('full', 'voll');
+INSERT INTO consent_purposes (code, name, mail_category_id, is_unsubscribable,
+                              created_by)
+    VALUES ('school_info_general', 'Schulinformation allgemein',
+            (SELECT mail_category_id FROM mail_categories WHERE code='school_info'),
+            true, 'system:check');
+-- Eine eigene Familie: Die Mutter des Hauptbestands traegt den Loesch-Lauf
+-- weiter unten, und eine Sorgeberechtigten-Zeile an ihr hielte ihn auf.
+INSERT INTO families (family_id, created_by)
+    VALUES ('3a333333-3333-3333-3333-333333333333', 'system:check');
+INSERT INTO persons (person_id, first_name, last_name, created_by) VALUES
+    ('2a222222-2222-2222-2222-222222222221', 'Mutter', 'Zweit', 'system:check'),
+    ('2a222222-2222-2222-2222-222222222222', 'Vater',  'Zweit', 'system:check');
+INSERT INTO family_guardians (family_id, person_id, guardian_relation_id,
+                              access_level_id, created_by) VALUES
+    ('3a333333-3333-3333-3333-333333333333', '2a222222-2222-2222-2222-222222222221',
+     (SELECT guardian_relation_id FROM guardian_relations WHERE code='mother'),
+     (SELECT access_level_id FROM access_levels WHERE code='full'), 'system:check'),
+    ('3a333333-3333-3333-3333-333333333333', '2a222222-2222-2222-2222-222222222222',
+     (SELECT guardian_relation_id FROM guardian_relations WHERE code='mother'),
+     (SELECT access_level_id FROM access_levels WHERE code='full'), 'system:check');
+
+-- Der eine von zweien darf: Die Mutter hat nie abgewählt und bekommt sie
+-- weiter — „Versand an Personen, die … ihn nicht abgewählt haben"
+-- (verarbeitungsverzeichnis.md).
+SELECT pg_temp.expect_accept(
+    '00 — der Vater wählt die Schulinformation ab, die Mutter behält sie',
+    $q$INSERT INTO consents (person_id, consent_purpose_id, declined_at,
+                             delivery_address, created_by)
+       VALUES ('2a222222-2222-2222-2222-222222222222',
+               (SELECT consent_purpose_id FROM consent_purposes WHERE code='school_info_general'),
+               now(), 'vater@example.org', 'guardian:x')$q$);
+
+-- Und der Letzte nicht — „die Abwahl des Letzten wird abgewiesen, nicht
+-- stillschweigend übergangen" (hebel.md).
+SELECT pg_temp.expect_reject(
+    '00 — die Mutter wählt als Letzte ihrer Familie ab',
+    $q$INSERT INTO consents (person_id, consent_purpose_id, declined_at,
+                             delivery_address, created_by)
+       VALUES ('2a222222-2222-2222-2222-222222222221',
+               (SELECT consent_purpose_id FROM consent_purposes WHERE code='school_info_general'),
+               now(), 'mutter@example.org', 'guardian:x')$q$);
+
+-- Der Widerruf ist der zweite Weg zur selben Abwahl und wird ebenso abgewiesen:
+-- Sonst wäre die Regel mit zwei Schritten statt einem zu umgehen.
+SELECT pg_temp.expect_accept(
+    '00 — die Mutter trägt ihre Zusage ein',
+    $q$INSERT INTO consents (person_id, consent_purpose_id, granted_at,
+                             delivery_address, created_by)
+       VALUES ('2a222222-2222-2222-2222-222222222221',
+               (SELECT consent_purpose_id FROM consent_purposes WHERE code='school_info_general'),
+               now(), 'mutter@example.org', 'guardian:x')$q$);
+SELECT pg_temp.expect_reject(
+    '00 — die Mutter widerruft als Letzte ihrer Familie',
+    $q$UPDATE consents SET revoked_at = now()
+        WHERE person_id = '2a222222-2222-2222-2222-222222222221'
+          AND consent_purpose_id =
+              (SELECT consent_purpose_id FROM consent_purposes WHERE code='school_info_general')$q$);
+
+-- Die Untergrenze hängt an der Kategorie und nicht am Abmeldelink: Dieselbe
+-- Mutter, dasselbe Alleinsein, aber ein Newsletter — „ja, ohne Untergrenze" (00).
+SELECT pg_temp.expect_accept(
+    '00 — der Newsletter kennt keine Untergrenze, auch die Letzte darf abwählen',
+    $q$INSERT INTO consents (person_id, consent_purpose_id, declined_at,
+                             delivery_address, created_by)
+       VALUES ('2a222222-2222-2222-2222-222222222221',
+               (SELECT consent_purpose_id FROM consent_purposes WHERE code='newsletter_alumni'),
+               now(), 'mutter@example.org', 'guardian:x')$q$);
+
+-- Die Zweitfamilie hat ihren Zweck erfüllt und geht wieder: Der Lösch-Lauf
+-- weiter unten zählt, was nach ihm noch steht, und diese vier Zeilen gehören
+-- keiner seiner Stufen. `family_guardians` geht per Cascade mit der Familie.
+DELETE FROM consents WHERE person_id IN ('2a222222-2222-2222-2222-222222222221',
+                                         '2a222222-2222-2222-2222-222222222222');
+DELETE FROM families WHERE family_id = '3a333333-3333-3333-3333-333333333333';
+DELETE FROM persons  WHERE person_id IN ('2a222222-2222-2222-2222-222222222221',
+                                         '2a222222-2222-2222-2222-222222222222');
 
 -- Die drei Sorten Mail: Eine Untergrenze je Familie an einer Kategorie, die
 -- ohnehin niemand abwählen kann, ist gegenstandslos.

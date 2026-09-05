@@ -224,9 +224,10 @@ CREATE TABLE mail_categories (
     is_unsubscribable boolean NOT NULL DEFAULT false,
     -- Mindestens eine Person je Familie muss sie bekommen (00). Die Regel selbst
     -- spannt über zwei Personenzeilen derselben Familie und kann deshalb kein
-    -- CHECK sein — sie lebt in der Schreibschicht (siehe den ACHTUNG-Block im
-    -- Kopf dieser Datei); dieses Häkchen sagt ihr, an welcher Kategorie sie
-    -- greift, statt die Liste der Kategorien im Code zu führen.
+    -- CHECK sein — sie steht als `enforce_family_mail_floor()` unten bei
+    -- `consents`, wie die vier Zulassungs-Trigger der Domänen; dieses Häkchen
+    -- sagt ihr, an welcher Kategorie sie greift, statt die Liste der Kategorien
+    -- im Code zu führen.
     -- Zwei Folgen, die 00 ausschreibt: Ein alleiniger Sorgeberechtigter kann
     -- nicht abwählen, und scheidet der andere aus, wird der Verbliebene wieder
     -- eingeschaltet.
@@ -1221,6 +1222,90 @@ CREATE UNIQUE INDEX ix_consents_person_child_purpose
 CREATE UNIQUE INDEX ix_consents_person_purpose
     ON consents (person_id, consent_purpose_id)
     WHERE child_id IS NULL AND revoked_at IS NULL;
+
+
+-- Die Untergrenze der Schulinformation: „Bei der **Schulinformation** muss
+-- einer je Familie sie behalten — die Abwahl des Letzten wird deshalb
+-- abgewiesen, nicht stillschweigend übergangen" (hebel.md). Sie spannt über
+-- zwei Personenzeilen derselben Familie, und ein CHECK sieht nur seine eigene —
+-- dieselbe Lage wie bei `enforce_academy_registration` (akademie-schema.sql)
+-- und den drei übrigen Zulassungs-Triggern.
+--
+-- **AFTER statt BEFORE**, anders als jene vier: Geprüft wird der Zustand *nach*
+-- der Änderung, und die geänderte Zeile ist selbst einer der Fälle, die gezählt
+-- werden. Ein BEFORE müsste sie von Hand hineinrechnen.
+--
+-- **„Bekommt sie" heißt zweierlei:** gar keine Zeile — „Versand an Personen,
+-- die sich dafür eingetragen haben **oder ihn nicht abgewählt haben**"
+-- (verarbeitungsverzeichnis.md) — oder eine erteilte, die niemand widerrufen
+-- hat. Die geltende Ablehnung und der Widerruf schalten gleichermaßen ab; über
+-- welchen der beiden Wege jemand abwählt, entscheidet dieser Trigger nicht.
+--
+-- **Kein DELETE**, aus demselben Grund wie bei `enforce_parent_work_capacity`
+-- (elternbonus-schema.sql): Er hielte den Lösch-Lauf (17) auf — und eine
+-- gelöschte Zeile schaltet ohnehin wieder ein statt ab.
+--
+-- **Was er NICHT trägt, und das mit Absicht:** Scheidet der zweite
+-- Sorgeberechtigte aus, steht der Verbliebene allein mit seiner Abwahl da, ohne
+-- dass jemand `consents` angefasst hätte. Diesen Weg sieht kein Trigger auf
+-- dieser Tabelle — „scheidet der zweite Sorgeberechtigte aus, schaltet der
+-- Lösch-Lauf den Verbliebenen wieder ein" (api/querschnitt-api.md), und das
+-- bleibt Arbeit des Laufs.
+CREATE FUNCTION enforce_family_mail_floor() RETURNS trigger AS $$
+DECLARE
+    orphaned uuid;
+BEGIN
+    -- Ohne Untergrenze an der Kategorie greift die Regel nicht: Newsletter und
+    -- die Zustimmungen ohne Mailsorte laufen ungeprüft durch.
+    IF NOT EXISTS (SELECT 1
+                     FROM consent_purposes cp
+                     JOIN mail_categories mc USING (mail_category_id)
+                    WHERE cp.consent_purpose_id = NEW.consent_purpose_id
+                      AND mc.requires_family_recipient) THEN
+        RETURN NULL;
+    END IF;
+
+    -- Serialisiert die Abwahl je Familie: Sonst sehen zwei gleichzeitige
+    -- beide denselben verbliebenen Empfänger und kommen beide durch — dieselbe
+    -- Sperre wie bei der Platzzahl (elternbonus-schema.sql).
+    PERFORM 1
+       FROM families f
+       JOIN family_guardians fg USING (family_id)
+      WHERE fg.person_id = NEW.person_id
+      FOR UPDATE OF f;
+
+    SELECT fg.family_id INTO orphaned
+      FROM family_guardians fg
+     WHERE fg.person_id = NEW.person_id
+       AND NOT EXISTS (
+             SELECT 1
+               FROM family_guardians keeps
+              WHERE keeps.family_id = fg.family_id
+                AND (NOT EXISTS (SELECT 1 FROM consents c
+                                  WHERE c.person_id = keeps.person_id
+                                    AND c.consent_purpose_id = NEW.consent_purpose_id)
+                     OR EXISTS (SELECT 1 FROM consents c
+                                 WHERE c.person_id = keeps.person_id
+                                   AND c.consent_purpose_id = NEW.consent_purpose_id
+                                   AND c.granted_at IS NOT NULL
+                                   AND c.revoked_at IS NULL)))
+     LIMIT 1;
+
+    IF orphaned IS NOT NULL THEN
+        RAISE EXCEPTION 'Familie % behielte niemanden für Thema %: einer je Familie muss die Schulinformation bekommen',
+                        orphaned, NEW.consent_purpose_id
+              USING ERRCODE = 'check_violation';
+    END IF;
+
+    RETURN NULL;
+END $$ LANGUAGE plpgsql;
+
+-- `UPDATE OF` nennt die drei Spalten, die die Antwort tragen: Ein Widerruf ist
+-- ein `revoked_at`, und ohne `granted_at`/`declined_at` käme ein UPDATE, das
+-- die Zusage in eine Ablehnung dreht, an der Regel vorbei.
+CREATE TRIGGER trg_consents_family_floor
+    AFTER INSERT OR UPDATE OF granted_at, declined_at, revoked_at ON consents
+    FOR EACH ROW EXECUTE FUNCTION enforce_family_mail_floor();
 
 
 -- Der Nachweis der Fotoerlaubnis, nachdem das Kind gelöscht ist.
