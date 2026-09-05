@@ -1,10 +1,10 @@
 ---
 id: TASK-240
 title: contracts.document_checksum braucht ein Format und einen Leser
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-04 12:35'
-updated_date: '2026-09-05 00:35'
+updated_date: '2026-09-05 19:09'
 labels:
   - schema
   - api
@@ -29,19 +29,19 @@ Die Pruefsumme am Vertrag ist als Gegenprobe angekuendigt — "damit sich jede s
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [x] #1 ck_contracts_checksum paart Pruefsumme und Dokument und erzwingt sha256:<64 Hex>
-- [ ] #2 Der Bau schreibt dasselbe Format, das der CHECK verlangt
-- [ ] #3 Die Pruefsumme ist ueber eine Route erreichbar, sodass eine vorgelegte Fassung pruefbar wird
+- [x] #2 Der Bau schreibt dasselbe Format, das der CHECK verlangt
+- [x] #3 Die Pruefsumme ist ueber eine Route erreichbar, sodass eine vorgelegte Fassung pruefbar wird
 - [x] #4 Gegenproben fuer beide Richtungen: Dokument ohne Pruefsumme, Pruefsumme im falschen Format
 <!-- AC:END -->
 
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
-Schema gebaut: `ck_contracts_checksum` paart Pruefsumme und Dokument und erzwingt `sha256:<64 Hexstellen>` — dieselbe Form, die `ck_contract_texts_checksum` schon traegt und die die Aenderungsspur liest.
+Schema gebaut: `ck_contracts_checksum` paart Pruefsumme und Dokument und erzwingt `sha256:<64 Hexstellen>` — dieselbe Form, die `ck_contract_texts_checksum` traegt und die die Aenderungsspur liest. `ck_contract_amendments_checksum` prueft das Format ebenfalls; damit tragen alle vier Pruefsummen dieser Domaene dieselbe Form.
 
-Mitgenommen im selben Pfad: `ck_contract_amendments_checksum` prueft das Format jetzt ebenfalls; es paarte bisher nur. Damit tragen alle vier Pruefsummen dieser Domaene dieselbe Form.
+Drei Gegenproben in anmeldung-schema-check.sql, alle gegen ck_contracts_checksum verifiziert: Urkunde ohne Pruefsumme, Pruefsumme im falschen Format, Pruefsumme ohne Urkunde.
 
-Drei Gegenproben in anmeldung-schema-check.sql, alle gegen ck_contracts_checksum verifiziert: Urkunde ohne Pruefsumme, Pruefsumme im falschen Format, Pruefsumme ohne Urkunde. Die beiden Bestandsproben, die 'sha256:abc' setzten, tragen jetzt eine gueltige Summe — sonst waeren sie am Format gescheitert statt an der Regel, die sie belegen sollen.
+Der Bau schreibt dieses Format: `build_contract_document` setzt `f"sha256:{hashlib.sha256(pdf).hexdigest()}"` (wb-backend app/services/anmeldung.py:768), ebenso der Mandats- und der Einverstaendnis-Bau. `tests/test_anmeldung.py::test_the_release_builds_the_document_and_clears_the_images` haelt das Praefix im Vergleich und faellt ohne es rot.
 
-Offen bleiben Kriterium 2 und 3, beide in wb-backend bzw. api/: Der Bau schreibt weiter den rohen `hexdigest()` und laeuft damit gegen den CHECK (TASK-267), und keine Route liefert die Pruefsumme aus. Der Satz in dokumente.md — 'eine Pruefsumme ohne Leser ist keine Gegenprobe' — bleibt deshalb stehen.
+Der Leser steht: `ContractOut.document_checksum` (wb-backend app/routers/anmeldung.py:2382) wird aus `contract.document_checksum` gefuellt und kommt ueber `GET /contracts/{contract_id}` heraus — eine vorgelegte Fassung ist damit nachzurechnen.
 <!-- SECTION:NOTES:END -->
