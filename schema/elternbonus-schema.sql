@@ -1,14 +1,22 @@
 -- Elternbonus Elternmitarbeit (Domäne 11) — gezählt werden die eingetragenen
 -- Stunden je Familie und Schuljahr.
--- Lesepfad: drei Tabellen. `parent_work_sessions` ist der ausgeschriebene
--- Einsatz, `parent_work_signups` die Anmeldung dazu, `parent_work_entries` die
+-- Lesepfad: vier Tabellen. `parent_work_sessions` ist der ausgeschriebene
+-- Einsatz, `parent_work_session_audiences` sagt, wen er anspricht,
+-- `parent_work_signups` ist die Anmeldung dazu, `parent_work_entries` die
 -- geleistete Stunde — mit oder ohne Einsatz. Alles
 -- Weitere wird gerechnet oder anderswo gelesen: Monatsbetrag und
 -- Pflichtstunden als `configured_values`, die Elternvertreter als
--- `class_representatives`, die Mitarbeiterfamilien als `employees` samt Haus.
+-- `class_representatives`, die Mitarbeiterfamilien als `employees` samt Haus,
+-- und die Jahresliste des Jahreslaufs geht als **eine** Aufgabe bei der
+-- Buchhaltung an `sync_tasks` — Bezug ist das Schuljahr, nicht die Familie
+-- (14 Z6, „Legt die Jahresliste als eine Aufgabe bei der Buchhaltung an").
 --
--- Setzt stammdaten-schema.sql, querschnitt-schema.sql und
--- klassenorganisation-schema.sql voraus.
+-- Setzt allein stammdaten-schema.sql voraus: nur dorthin zeigt ein
+-- Fremdschlüssel (`classes`, `school_branches`, `persons`, `families`).
+-- `querschnitt-schema.sql` (Werte im System, die Aufgabe) und
+-- `klassenorganisation-schema.sql` (die Elternvertretung) liest und schreibt
+-- die Anwendung; sie tragen hier keinen Schlüssel. Das Prüfskript braucht beide
+-- trotzdem und sagt es in seinem Kopf.
 -- Bewusst KEINE Jahresliste als Tabelle: sie ist frisch erzeugt, und „unsere
 -- Zahl ist ein Vorschlag" — maßgeblich ist die Abrechnung der Buchhaltung.
 -- Bewusst KEINE Kategorie und kein Bewertungsschlüssel je Tätigkeit: „eine
@@ -25,8 +33,9 @@
 -- Rolle hing; übrig bleibt der Beleg bei der gewählten Führungskraft (12).
 
 
--- Herkunft: 14 (Elternbonus) Z1 — „Schreibt einen Einsatz aus: Tag, Beginn, in
--- einem Satz die Tätigkeit, den Treffpunkt und was mitzubringen ist." Ersetzt
+-- Herkunft: 14 (Elternbonus) Z1 — „Schreiben einen Einsatz aus: Tag, Beginn,
+-- in einem Satz die Tätigkeit, dazu freiwillig ein paar Sätze, warum es ihn
+-- gibt, den Treffpunkt und was mitzubringen ist." Ersetzt
 -- die Mail an alle Eltern samt der fremden Umfrageplattform, auf der heute je
 -- Termin eine offene Namensliste entsteht. Löschanker: wie der Eintrag die
 -- Schuljahresfrist — der Einsatz trägt die Anmeldungen, und keine davon lebt
@@ -53,14 +62,12 @@ CREATE TABLE parent_work_sessions (
     -- Was mitzubringen ist — „Sicherheitsschuhe / Handschuhe". Freiwillig: nicht
     -- jeder Einsatz verlangt etwas.
     bring_along       text,
-    -- Wie viele mitkommen können — freiwillig, denn meistens gibt es keine
-    -- Grenze: „Wir brauchen vier Personen" ist der Fall, für den sie da ist
-    -- (14). Ist sie erreicht, ist zu; kein Nachrücken, dieselbe Regel wie beim
-    -- Ferienprogramm (`ferien-schema.sql`).
-    -- Wo sie steht, ist sie **hart**: „Wenn wir nur vier Leute mitnehmen
-    -- dürfen, ist der fünfte einer zu viel" (14). Durchgesetzt wird sie vom
-    -- Trigger unten — der einzige in diesem Schema, und die Begründung steht
-    -- dort.
+    -- Wie viele mitkommen können — „freiwillig, denn meistens gibt es keine
+    -- Grenze" (14). Ist sie erreicht, ist zu; kein Nachrücken, dieselbe Regel
+    -- wie beim Ferienprogramm (`ferien-schema.sql`).
+    -- Wo sie steht, ist sie **hart**: „Wenn nur vier Personen mitfahren dürfen,
+    -- ist der fünfte einer zu viel" (14). Durchgesetzt wird sie vom Trigger
+    -- unten — der einzige in diesem Schema, und die Begründung steht dort.
     capacity          smallint,
     -- Die Absage. Sie löscht den Einsatz nicht, denn die Angemeldeten bekommen
     -- ihre Mail und die Zeile ist der Beleg dafür (14).
@@ -87,10 +94,15 @@ CREATE TABLE parent_work_sessions (
     -- das nicht passiert ist.
     CONSTRAINT ck_parent_work_sessions_reason_needs_cancel
         CHECK (cancelled_at IS NOT NULL OR cancellation_reason IS NULL),
-    -- Ausgeschrieben wird von der Schule, nie von den Eltern. Wer genau: „jede
-    -- Person mit einer Mitarbeiterrolle der Schule" (14 Z1) — die beiden
-    -- KITA-Rollen ausgenommen. Das prüft die Anwendung, weil das Haus an
-    -- `employees` und die Rolle an `employee_roles` steht.
+    -- Ausgeschrieben wird von der Schule, nie von den Eltern — mehr hält dieses
+    -- Muster nicht. Wer genau: „Ausschreiben dürfen sechs Rollen, nicht jede und
+    -- keine neue: Hausmeister …, Lehrkraft …, Sekretariat …, Schulleitung,
+    -- Hauswirtschaftsleitung … und Hortleitung" (14, Beteiligte); „draußen
+    -- bleiben die Rollen, die niemanden anzusprechen haben — die schlichte
+    -- Mitarbeitendenrolle, Küchenpersonal, Rechnungsfreigabe, Personalwesen" und
+    -- die beiden KITA-Rollen. Die sechs stehen namentlich bei ihrer Route
+    -- (`api/elternbonus-api.md`) und nicht hier: „Das kostet keine neue Rolle
+    -- und keine Spalte."
     CONSTRAINT ck_parent_work_sessions_created_by CHECK (created_by ~ '^(entra:|system:)')
 );
 
@@ -168,6 +180,8 @@ CREATE TABLE parent_work_session_audiences (
 -- (rules.md Abschnitt 1).
 -- Bewusst KEINE Familie an der Zeile: Sie steht über die Sorgeberechtigung
 -- schon fest, und die Stunde daraus hängt ohnehin an der Familie.
+-- „Bis der Einsatz beginnt" hält der Trigger unten, zusammen mit der Platzzahl;
+-- das Abmelden ist ein DELETE und läuft an ihm vorbei (Begründung dort).
 CREATE TABLE parent_work_signups (
     parent_work_signup_id  uuid NOT NULL DEFAULT gen_random_uuid(),
     parent_work_session_id uuid NOT NULL,
@@ -186,27 +200,61 @@ CREATE TABLE parent_work_signups (
     CONSTRAINT ck_parent_work_signups_created_by CHECK (created_by ~ '^(entra:|guardian:)')
 );
 
--- DER EINZIGE TRIGGER DIESES SCHEMAS, und er steht hier, weil die Regel eine
--- Aggregatbedingung ist: „Ist die Platzzahl erreicht, ist zu" (14) zählt die
--- Kindzeilen, und dafür kennt Postgres keinen deklarativen Weg. Die beiden
--- Alternativen sind teurer und stiller falsch: Ein Sentinel-Wert für
--- „unbegrenzt" (damit ein zusammengesetzter Fremdschlüssel griffe) ist eine
--- Zahl, die irgendwann jemand als echte Platzzahl liest; eine Platznummer je
--- Anmeldung mit UNIQUE darüber wäre deklarativ, verlangte aber, dass beim
--- Abmelden entstandene Lücken verwaltet werden.
+-- DER EINZIGE TRIGGER DIESES SCHEMAS. Er hält beides, was eine Anmeldung
+-- zulässig macht: das Anmeldefenster und die Platzzahl.
+-- Er steht hier und nicht als CHECK, weil keine der beiden Regeln eine ist:
+-- „Ist die Platzzahl erreicht, ist zu" (14) zählt die Kindzeilen, und dafür
+-- kennt Postgres keinen deklarativen Weg; „Ein Einsatz nimmt Anmeldungen an,
+-- bis er beginnt" (14, Fristen) liest `now()` und die Nachbarzeile, und beides
+-- ist in einem CHECK nicht zulässig. Die Regel deshalb der Route allein zu
+-- überlassen wäre der zweite Ort für dieselbe Sache — an der Platzzahl ist
+-- genau das schon abgewogen (`api/elternbonus-api.md`).
+-- Zum Fenster gehört die Absage: Ein abgesagter Einsatz findet nicht mehr
+-- statt, und seine Anmeldeliste ist der Beleg für die verschickte Mail (14,
+-- „Abgesagt wird von beiden Seiten") — eine Anmeldung danach stünde auf einer
+-- Liste, die niemand mehr abarbeitet, und ihre Mail wäre schon raus.
+-- Zur Platzzahl die beiden verworfenen Alternativen, teurer und stiller falsch:
+-- Ein Sentinel-Wert für „unbegrenzt" (damit ein zusammengesetzter
+-- Fremdschlüssel griffe) ist eine Zahl, die irgendwann jemand als echte
+-- Platzzahl liest; eine Platznummer je Anmeldung mit UNIQUE darüber wäre
+-- deklarativ, verlangte aber, dass beim Abmelden entstandene Lücken verwaltet
+-- werden.
 -- `FOR UPDATE` ist kein Beiwerk: Ohne die Sperre auf der Einsatzzeile zählen
--- zwei gleichzeitige Anmeldungen beide denselben freien Platz, und bei einer
--- Fahrt mit vier Plätzen ist der fünfte einer zu viel (14). Die Sperre
+-- zwei gleichzeitige Anmeldungen beide denselben freien Platz, und „wenn nur
+-- vier Personen mitfahren dürfen, ist der fünfte einer zu viel" (14). Die Sperre
 -- serialisiert die Anmeldungen je Einsatz und nur dort.
+-- `UPDATE OF parent_work_session_id` ist ebenso wenig Beiwerk: Ohne ihn hängt
+-- ein `UPDATE` die Anmeldung an einen vollen oder vergangenen Einsatz um und
+-- geht an beiden Regeln vorbei.
 CREATE FUNCTION enforce_parent_work_capacity() RETURNS trigger AS $$
 DECLARE
-    seats smallint;
-    taken bigint;
+    seats     smallint;
+    begins_at timestamptz;
+    called_off timestamptz;
+    taken     bigint;
 BEGIN
-    SELECT capacity INTO seats
+    -- Bleibt die Anmeldung an ihrem Einsatz, ändert sich an beiden Regeln
+    -- nichts — sie sind beim Anlegen schon geprüft worden.
+    IF TG_OP = 'UPDATE' AND NEW.parent_work_session_id = OLD.parent_work_session_id THEN
+        RETURN NEW;
+    END IF;
+
+    SELECT capacity, starts_at, cancelled_at INTO seats, begins_at, called_off
       FROM parent_work_sessions
      WHERE parent_work_session_id = NEW.parent_work_session_id
        FOR UPDATE;
+
+    IF called_off IS NOT NULL THEN
+        RAISE EXCEPTION 'Einsatz % ist abgesagt und nimmt keine Anmeldung mehr an',
+                        NEW.parent_work_session_id
+              USING ERRCODE = 'check_violation';
+    END IF;
+
+    IF begins_at <= now() THEN
+        RAISE EXCEPTION 'Einsatz % hat begonnen und nimmt keine Anmeldung mehr an',
+                        NEW.parent_work_session_id
+              USING ERRCODE = 'check_violation';
+    END IF;
 
     IF seats IS NULL THEN
         RETURN NEW;
@@ -225,8 +273,11 @@ BEGIN
     RETURN NEW;
 END $$ LANGUAGE plpgsql;
 
+-- Das Abmelden bleibt ungeprüft und ist es mit Absicht: Ein `BEFORE DELETE`
+-- feuerte auch für den Lösch-Lauf und die Cascade des Einsatzes (17) und hielte
+-- damit genau das auf, was laufen muss.
 CREATE TRIGGER trg_parent_work_signups_capacity
-    BEFORE INSERT ON parent_work_signups
+    BEFORE INSERT OR UPDATE OF parent_work_session_id ON parent_work_signups
     FOR EACH ROW EXECUTE FUNCTION enforce_parent_work_capacity();
 
 
@@ -244,8 +295,11 @@ CREATE TABLE parent_work_entries (
     -- Das Schuljahr, dem die Stunde zugerechnet wird; gerechnet wird nach dem
     -- 31. Juli, und „Mehrgeleistete Stunden verfallen ebenso und werden nicht
     -- ins nächste Schuljahr übernommen". Es folgt aus `worked_on` und steht
-    -- trotzdem hier, weil Zählung und Löschfrist an ihm hängen; der CHECK unten
-    -- hält es an seinem Datum fest (rules.md Abschnitt 1).
+    -- trotzdem hier, weil Zählung und Löschfrist je Familie und Schuljahr
+    -- gruppieren (`ix_parent_work_entries_year`). Auseinanderlaufen können die
+    -- beiden nicht: `ck_parent_work_entries_school_year` unten rechnet den Wert
+    -- aus seinem Datum und ist damit die Bindung, die rules.md Abschnitt 1 sonst
+    -- vom zusammengesetzten Fremdschlüssel verlangt.
     school_year          smallint NOT NULL,
     worked_on            date NOT NULL,
     -- In halben Stunden gezählt statt als Dezimalzahl: so gibt es keinen Wert,

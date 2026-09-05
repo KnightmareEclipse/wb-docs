@@ -254,7 +254,7 @@ Nummerierung wie `fachdomaenen.md` Abschnitt 6.
 | **5 Rechnungsfreigabe** (gebaut, `schema/rechnungsfreigabe-schema.sql`) | Beleg, Freigabeschritt, Aufteilung, Vorlage, Lieferant, 3 weitere Wertelisten | Q2, Q4 | nein |
 | **7 M365-Kontenverwaltung** (gebaut) | **keine** — Mitarbeitendeneintrag, Schuladresse und Offboarding stehen bereits, Anstoß ist eine Q5-Aufgabe | Q4, Q5 | ja (`children.school_email`) |
 | **8 Eltern-Selfservice** (gebaut) | **keine** | Q5 | ja (eigene Daten) |
-| **11 Bonussystem Elternmitarbeit** (gebaut, `schema/elternbonus-schema.sql`) | ausgeschriebener Einsatz, Anmeldung dazu, geleistete Stunde je Familie und Schuljahr | — (Rückzahlung läuft über Optigem) | nein |
+| **11 Bonussystem Elternmitarbeit** (gebaut, `schema/elternbonus-schema.sql`) | ausgeschriebener Einsatz samt seiner Zielgruppe, Anmeldung dazu, geleistete Stunde je Familie und Schuljahr | Q5 (die Jahresliste als **eine** Aufgabe bei der Buchhaltung, Bezug das Schuljahr; die Rückzahlung selbst läuft über Optigem) | nein |
 | **12 Klassenbildung** (gebaut) | **keine** — alle Eingaben sind vorhanden oder ableitbar (siehe unten) | — | ja (`children.class_id`) |
 | **13 Klassenorganisation** (gebaut, `schema/klassenorganisation-schema.sql`) | Elternvertretung je Klasse, Unterrichtsverteilung je Schuljahr, Wahlmodul samt Gruppe und Mitgliedschaft, Unterrichtsende je Klasse und Wochentag | — | nein (Klassenlehrer:in und Raum stehen bereits an `classes`) |
 

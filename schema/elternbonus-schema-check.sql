@@ -3,9 +3,10 @@
 -- Sollstand: vier Tabellen — parent_work_sessions, parent_work_session_audiences,
 -- parent_work_signups und parent_work_entries —, dazu der Index für den
 -- Erinnerungslauf, der für die Jahresrechnung und der einzige Trigger dieses
--- Schemas, der die Platzzahl hält. Geprüft wird zusätzlich, dass die drei Werte im System und
--- die Elternvertretung dort stehen, wo dieser Block sie liest, und dass von der
--- gestrichenen Bestätigung keine Spalte übrig ist.
+-- Schemas, der Anmeldefenster und Platzzahl hält. Geprüft wird zusätzlich, dass
+-- die drei Werte im System und die Elternvertretung dort stehen, wo dieser Block
+-- sie liest, dass die Jahresliste als eine Aufgabe bei der Buchhaltung Platz hat,
+-- und dass von der gestrichenen Bestätigung keine Spalte übrig ist.
 --
 -- Setzt stammdaten-schema.sql, querschnitt-schema.sql und
 -- klassenorganisation-schema.sql voraus:
@@ -151,10 +152,14 @@ INSERT INTO classes (class_id, school_branch_id, start_school_year, stream, crea
 -- Der Einsatz
 -- ---------------------------------------------------------------------------
 
+-- Die vier benannten Einsätze liegen **relativ zu `now()`** und nicht auf einem
+-- festen Datum: Der Trigger misst das Anmeldefenster daran, und ein fester Tag
+-- machte dieses Skript an ihm rot, ohne dass sich am Schema etwas geändert
+-- hätte. Der Tag im Kalender ist für keine Probe hier die Sache.
 INSERT INTO parent_work_sessions (parent_work_session_id, starts_at, activity,
                                   meeting_point, bring_along, created_by)
     VALUES ('77777777-7777-7777-7777-777777777771',
-            TIMESTAMPTZ '2027-04-24 14:00+02', 'Gipswände bauen', 'Aula',
+            now() + interval '60 days', 'Gipswände bauen', 'Aula',
             'Sicherheitsschuhe, Handschuhe', 'entra:hausmeister');
 
 -- 14 Z1: „Mehrere Einsätze sind mehrere Ausschreibungen, auch am selben Tag."
@@ -163,13 +168,13 @@ SELECT pg_temp.expect_accept(
     $q$INSERT INTO parent_work_sessions (parent_work_session_id, starts_at, activity,
                                          meeting_point, created_by)
        VALUES ('77777777-7777-7777-7777-777777777772',
-               TIMESTAMPTZ '2027-04-24 14:00+02', 'Platten legen bei Fahrradständer',
+               now() + interval '60 days', 'Platten legen bei Fahrradständer',
                'Fahrradständer', 'entra:hausmeister')$q$);
 
 INSERT INTO parent_work_sessions (parent_work_session_id, starts_at, activity,
                                   meeting_point, created_by)
     VALUES ('77777777-7777-7777-7777-777777777773',
-            TIMESTAMPTZ '2027-06-12 14:00+02', 'Schullandheim begleiten', 'Aula',
+            now() + interval '90 days', 'Schullandheim begleiten', 'Aula',
             'entra:sekretariat');
 
 SELECT pg_temp.expect_reject(
@@ -191,8 +196,7 @@ SELECT pg_temp.expect_reject(
        VALUES (TIMESTAMPTZ '2027-05-08 14:00+02', 'Decke streichen', 'Aula', '',
                'entra:hausmeister')$q$);
 
--- 14 Z1: „Ausgeschrieben wird von der Schule, nie von den Eltern."
--- 14 Z1: „Wie viele Plätze — freiwillig, denn meistens gibt es keine Grenze."
+-- 14: „Wie viele Plätze — freiwillig, denn meistens gibt es keine Grenze."
 SELECT pg_temp.expect_accept(
     '14 — Einsatz mit Platzzahl, weil nur vier Personen gebraucht werden',
     $q$INSERT INTO parent_work_sessions (starts_at, activity, meeting_point, capacity,
@@ -207,7 +211,7 @@ SELECT pg_temp.expect_reject(
        VALUES (TIMESTAMPTZ '2027-05-15 14:00+02', 'Lampen montieren', 'Flur', 0,
                'entra:hausmeister')$q$);
 
--- 14 Z1: „Ohne Angabe geht er an alle Familien." Die vier Formen, die der
+-- 14: „Ohne Angabe alle Familien." Die vier Formen, die der
 -- Block nennt, müssen alle darstellbar sein — sonst steht in der Ausschreibung
 -- eine Zielgruppe, die das System nicht kennt.
 SELECT pg_temp.expect_accept(
@@ -281,6 +285,8 @@ BEGIN
     RAISE NOTICE 'ok: keine Zeile heißt „alle Familien", ohne zweiten Zustand daneben';
 END $$;
 
+-- „Ausgeschrieben wird von der Schule, nie von den Eltern"
+-- (elternbonus-schema.sql; 14 sagt es über die sechs Rollen, die es dürfen).
 SELECT pg_temp.expect_reject(
     '14 — Einsatz von Eltern ausgeschrieben',
     $q$INSERT INTO parent_work_sessions (starts_at, activity, meeting_point, created_by)
@@ -314,12 +320,12 @@ SELECT pg_temp.expect_reject(
                '22222222-2222-2222-2222-222222222222', 'guardian:mutter')$q$);
 
 -- 14 Z2: „Ist eine Platzzahl gesetzt und erreicht, ist zu." Hart, nicht
--- ungefähr: „Wenn wir nur vier Leute mitnehmen dürfen, ist der fünfte einer zu
+-- ungefähr: „Wenn nur vier Personen mitfahren dürfen, ist der fünfte einer zu
 -- viel."
 INSERT INTO parent_work_sessions (parent_work_session_id, starts_at, activity,
                                   meeting_point, capacity, created_by)
     VALUES ('77777777-7777-7777-7777-777777777774',
-            TIMESTAMPTZ '2027-07-03 08:00+02', 'Fahrt zum Landesmuseum', 'Bushaltestelle',
+            now() + interval '120 days', 'Fahrt zum Landesmuseum', 'Bushaltestelle',
             2, 'entra:klassenlehrkraft');
 INSERT INTO persons (person_id, first_name, last_name, created_by) VALUES
     ('22222222-2222-2222-2222-222222222224', 'Erste',  'Muster', 'system:check'),
@@ -362,6 +368,16 @@ SELECT pg_temp.expect_accept(
               ('77777777-7777-7777-7777-777777777773',
                '22222222-2222-2222-2222-222222222226', 'guardian:dritte')$q$);
 
+-- Die harte Platzzahl gilt auch für die Anmeldung, die umgehängt wird: „daran
+-- ändert auch der Zufall zweier gleichzeitiger Anmeldungen nichts" (14) — ein
+-- `UPDATE` wäre sonst der Weg, auf dem zwei Personen auf einem Platz sitzen.
+SELECT pg_temp.expect_reject(
+    '14 — Anmeldung auf einen vollen Einsatz umgehängt',
+    $q$UPDATE parent_work_signups
+          SET parent_work_session_id = '77777777-7777-7777-7777-777777777774'
+        WHERE parent_work_session_id = '77777777-7777-7777-7777-777777777773'
+          AND person_id = '22222222-2222-2222-2222-222222222224'$q$);
+
 -- Die Absage löscht den Einsatz nicht: Die Angemeldeten bekommen ihre Mail,
 -- und der Grund fährt darin mit.
 SELECT pg_temp.expect_accept(
@@ -369,6 +385,27 @@ SELECT pg_temp.expect_accept(
     $q$UPDATE parent_work_sessions SET cancelled_at = now(),
                                       cancellation_reason = 'Dauerregen angesagt'
         WHERE parent_work_session_id = '77777777-7777-7777-7777-777777777772'$q$);
+
+-- 14, „Abgesagt wird von beiden Seiten": Der abgesagte Einsatz bleibt als Beleg
+-- stehen — er nimmt aber niemanden mehr auf, dessen Mail schon raus ist.
+SELECT pg_temp.expect_reject(
+    '14 — Anmeldung an einem abgesagten Einsatz',
+    $q$INSERT INTO parent_work_signups (parent_work_session_id, person_id, created_by)
+       VALUES ('77777777-7777-7777-7777-777777777772',
+               '22222222-2222-2222-2222-222222222222', 'guardian:mutter')$q$);
+
+-- 14, Fristen: „Ein Einsatz nimmt Anmeldungen an, bis er beginnt; danach ist er
+-- vorbei und trägt nur noch seine Stunden."
+INSERT INTO parent_work_sessions (parent_work_session_id, starts_at, activity,
+                                  meeting_point, created_by)
+    VALUES ('77777777-7777-7777-7777-777777777775',
+            now() - interval '1 day', 'Schulfest aufbauen', 'Hof',
+            'entra:sekretariat');
+SELECT pg_temp.expect_reject(
+    '14 — Anmeldung an einem Einsatz, der schon begonnen hat',
+    $q$INSERT INTO parent_work_signups (parent_work_session_id, person_id, created_by)
+       VALUES ('77777777-7777-7777-7777-777777777775',
+               '22222222-2222-2222-2222-222222222222', 'guardian:mutter')$q$);
 
 -- Ein Grund ohne Absage beschriebe etwas, das nicht passiert ist.
 SELECT pg_temp.expect_reject(
@@ -532,38 +569,41 @@ SELECT pg_temp.expect_reject(
     '03 — Familie gelöscht, obwohl ihre Einträge noch ihre Frist laufen',
     $q$DELETE FROM families WHERE family_id = '33333333-3333-3333-3333-333333333331'$q$);
 
--- 14: „einmal jährlich zum Schuljahresanfang fällt … das Schuljahr davor".
+-- 14: „einmal jährlich zum Schuljahresanfang fällt nicht das gerade vergangene
+-- Schuljahr, sondern das davor".
 SELECT pg_temp.expect_accept(
     '14 — nach dem Jahreslauf geht die Familie',
     $q$DELETE FROM parent_work_entries
         WHERE family_id = '33333333-3333-3333-3333-333333333331';
        DELETE FROM families WHERE family_id = '33333333-3333-3333-3333-333333333331'$q$);
 
--- 14: „Drei Werte im System gehören der Geschäftsführung: der Monatsbetrag
--- (derzeit 10 €) und die beiden Pflichtstundenzahlen (derzeit 15 und 10); sie
--- ändert sie mit Gültigkeit zum 1. August." Sie stehen als `configured_values`
--- und nicht in dieser Domäne — die Probe hält die drei Codes an den Namen fest,
--- unter denen querschnitt-schema.sql sie aufzählt und die Anwendung sie liest.
+-- 14 Z6: „Legt die Jahresliste als **eine** Aufgabe bei der Buchhaltung an", und
+-- „die Rückzahlung des Schuljahres ist eine Aufgabe mit der Jahresliste, nicht
+-- eine je Familie" (14, Fremdsysteme). Der Bezug ist damit das Schuljahr; die
+-- Spalte steht an `sync_tasks` (querschnitt-schema.sql), diese Domäne legt keine
+-- eigene an.
+INSERT INTO roles (code, name, created_by)
+    VALUES ('accounting', 'Buchhaltung', 'system:check');
+INSERT INTO sync_targets (code, name, role_id, created_by)
+    VALUES ('parent_work_annual_list', 'Jahresliste Elternbonus verrechnen',
+            (SELECT role_id FROM roles WHERE code = 'accounting'), 'system:check');
 SELECT pg_temp.expect_accept(
-    '14 — die drei Werte des Bonus haben ihren Ort, mit Gültigkeit zum 1. August',
-    $q$INSERT INTO configured_values (code, valid_from, value, created_by) VALUES
-        ('parent_work_monthly_cents', DATE '2026-08-01', 1000, 'system:check'),
-        ('parent_work_hours_primary', DATE '2026-08-01',   15, 'system:check'),
-        ('parent_work_hours_default', DATE '2026-08-01',   10, 'system:check')$q$);
+    '14 — die Jahresliste ist eine Aufgabe bei der Buchhaltung, Bezug das Schuljahr',
+    $q$INSERT INTO sync_tasks (sync_target_id, school_year, task_text, created_by)
+       VALUES ((SELECT sync_target_id FROM sync_targets
+                 WHERE code = 'parent_work_annual_list'),
+               2026, 'Rückzahlungen des Schuljahres 2026 mit dem Schulgeld verrechnen',
+               'system:parent_work_annual_run')$q$);
 
-DO $$
-DECLARE fehlend text;
-BEGIN
-    SELECT string_agg(c, ', ') INTO fehlend
-    FROM unnest(ARRAY['parent_work_monthly_cents',
-                      'parent_work_hours_primary',
-                      'parent_work_hours_default']) AS c
-    WHERE NOT EXISTS (SELECT 1 FROM configured_values v WHERE v.code = c);
-    IF fehlend IS NOT NULL THEN
-        RAISE EXCEPTION 'REGEL NICHT GEBAUT — Wert des Bonus ohne Ort: %', fehlend;
-    END IF;
-    RAISE NOTICE 'ok: die drei Werte des Bonus stehen als Werte im System';
-END $$;
+-- „**Eine** Aufgabe … nicht eine je Familie": Der Index über Aufgabenart und
+-- Bezug lässt die zweite offene für dasselbe Schuljahr nicht zu — ein zweiter
+-- Lauf ersetzt sie, statt sie danebenzulegen.
+SELECT pg_temp.expect_reject(
+    '14 — eine zweite offene Aufgabe für dasselbe Schuljahr',
+    $q$INSERT INTO sync_tasks (sync_target_id, school_year, task_text, created_by)
+       VALUES ((SELECT sync_target_id FROM sync_targets
+                 WHERE code = 'parent_work_annual_list'),
+               2026, 'Noch einmal dasselbe Schuljahr', 'system:parent_work_annual_run')$q$);
 
 DO $$ BEGIN RAISE NOTICE 'elternbonus-schema-check: alle Gegenproben bestanden'; END $$;
 

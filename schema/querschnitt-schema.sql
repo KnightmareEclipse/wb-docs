@@ -1477,7 +1477,9 @@ CREATE TABLE sync_tasks (
     sync_task_id   uuid NOT NULL DEFAULT gen_random_uuid(),
     sync_target_id integer NOT NULL,
     -- Genau einer der neun Bezüge: die Person (02), das Kind (03, 08), die
-    -- Familie (01), das Schuljahr (04), ein Zeitraum (01, Monatslauf der
+    -- Familie (01), das Schuljahr (04 und 14 — dort die Jahresliste des
+    -- Elternbonus, „eine Aufgabe mit der Jahresliste, nicht eine je Familie"),
+    -- ein Zeitraum (01, Monatslauf der
     -- Strafen; als Erster des Monats), die einzelne Ferienbuchung (10), die
     -- einzelne Akademie-Anmeldung (21), der einzelne Putztermin (01) oder die
     -- einzelne Zahlung ohne Vorgang (api/gemeinsam.md).

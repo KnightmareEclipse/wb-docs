@@ -19,10 +19,12 @@ der bereits gebauten Aufgabenroute des Querschnitts erledigt (Z7,
   eingetragene Stunde zählt sofort, und der Preis steht im Block: Die Jahresliste trägt ungeprüfte
   Zahlen. `GET /employees/selectable` ([`stammdaten-api.md`](stammdaten-api.md)) hat diese Domäne
   damit nicht mehr als Aufrufer.
-- **Die Platzzahl hält die Datenbank.** `trg_parent_work_signups_capacity` zählt unter Sperre und
-  wirft `check_violation`; die Route fängt sie und antwortet `400` mit „Der Einsatz ist voll" — ein
-  500er wäre hier der Fehler. Sie zählt **nicht** selbst vor: Ein `SELECT count(*)` vor dem `INSERT`
-  wäre die zweite Stelle derselben Regel und verlöre das Rennen, das der Trigger gewinnt.
+- **Anmeldefenster und Platzzahl hält die Datenbank.** `trg_parent_work_signups_capacity` weist
+  die Anmeldung an einem begonnenen und an einem abgesagten Einsatz ab und zählt die Plätze unter
+  Sperre; jedes Mal `check_violation`, die die Route fängt und als `400` beantwortet („Der Einsatz
+  hat begonnen", „Der Einsatz ist abgesagt", „Der Einsatz ist voll") — ein 500er wäre hier der
+  Fehler. Sie prüft und zählt **nicht** selbst vor: Ein `SELECT` vor dem `INSERT` wäre die zweite
+  Stelle derselben Regel und verlöre das Rennen, das der Trigger gewinnt.
 
 ## Enge Rolle
 
