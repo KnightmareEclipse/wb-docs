@@ -115,14 +115,19 @@ UNIQUE statt an deiner Mutation — auch das sieht aus wie ein Fund. Also hinter
 ```
 podman exec -i wbp-DOMÄNE_db_1 psql -U postgres -d weltenbaum -q \
   -c "TRUNCATE change_log, persons, families, cleaning_cycles, configured_values,
-      contract_texts, sharepoint_libraries RESTART IDENTITY CASCADE"
+      contract_texts RESTART IDENTITY CASCADE" \
+  -c "DELETE FROM sharepoint_libraries WHERE code = 'app_documents'"
 ```
 
-`sharepoint_libraries` steht nicht in `WIPED`, `contract_texts` erst, seit der Lauf wiederholbar
-ist — hier stehen trotzdem beide: Keine Migration füllt sie (`tests/test_seed.py` schreibt aus, dass
-ein Mensch das tut), also legen die Fixtures sie selbst an, und geräumt wird nur bei sauberem
-Teardown, den eine rote Messung gerade nicht hat. Nach einer roten Messung scheitert der nächste Lauf sonst
-an `uq_sharepoint_libraries_code` statt an deiner Mutation.
+`contract_texts` steht erst in `TRUNCATE`, seit der Lauf wiederholbar ist — keine Migration füllt
+sie (`tests/test_seed.py` schreibt aus, dass ein Mensch das tut), also legt das Fixture sie selbst
+an, und geräumt wird nur bei sauberem Teardown, den eine rote Messung gerade nicht hat. Nach einer
+roten Messung scheitert der nächste Lauf sonst an `uq_contract_texts` statt an deiner Mutation.
+**`sharepoint_libraries` steht nicht in diesem `TRUNCATE`** — sechs Tabellen zeigen darauf, eine
+davon `contract_text_kinds`, deren vierzehn Zeilen ebenfalls keine Migration zurücklegt; ein
+`CASCADE` über `sharepoint_libraries` reißt sie mit, und der nächste Lauf scheitert dann an
+`fk_contract_texts_kind` statt an deiner Mutation. Die einzige Zeile, die das Fixture selbst anlegt
+(`TEST_LIBRARY`/`GENERATED_LIBRARY`, Code `app_documents`), räumt die gezielte `DELETE` danach.
 
 Das ist teuer, also nicht für alles: **gemessen wird bei Fehlerklasse 1 und 2 immer**, dazu bei
 jeder Regel, die laut Plan „kein Constraint trägt". Für den Rest genügt Lesen. Kommst du über
