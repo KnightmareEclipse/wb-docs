@@ -1,10 +1,10 @@
 ---
 id: TASK-270
 title: Die Routen an die uebertragenen Schemata nachziehen
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-05 16:42'
-updated_date: '2026-09-05 16:50'
+updated_date: '2026-09-05 20:35'
 labels:
   - wb-backend
   - pruefzyklus
@@ -46,8 +46,57 @@ Auch `app/seed.py` gehört dazu und bricht als erstes: gemessen scheitert der La
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 pytest sammelt wieder und laeuft gruen, 805 Tests als Nullpunkt
-- [ ] #2 ruff check, ruff format --check und mypy app tests sind sauber
-- [ ] #3 ./schema-check.sh bleibt bei 0 und alembic check meldet nichts
-- [ ] #4 podman-compose --profile tools run --rm seed laeuft durch, der lokale Login steht wieder
+- [x] #1 pytest sammelt wieder und laeuft gruen, 805 Tests als Nullpunkt
+- [x] #2 ruff check, ruff format --check und mypy app tests sind sauber
+- [x] #3 ./schema-check.sh bleibt bei 0 und alembic check meldet nichts
+- [x] #4 podman-compose --profile tools run --rm seed laeuft durch, der lokale Login steht wieder
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Gebaut in wb-backend (**9be3efa**): 804 Tests gruen, mypy app tests und ruff
+sauber, vierzehn Pruefskripte rc=0, alembic check still, Seed durchgelaufen.
+
+**Die beiden Vorentscheidungen** sind gefallen: `expense_claim_items.last_action_at`
+faellt samt Antwortfeld (Betreiber, 05.09.2026) — das Wartealter rechnet fuer
+einen offenen Teil `greatest(created_at, corrected_at)` wie der Index und fuer
+einen entschiedenen die weiteste seiner fuenf Zeitangaben plus die drei am Beleg.
+Die Aufteilungs-Korrektur setzt ihren Geschwisterzeilen jetzt `corrected_at`, sonst
+saehen sie so alt aus wie ihr Anlegen. Das Attest kommt als `true`/`false` im
+selben Feld heraus, und zwar in **jeder** Sicht, wo `presence_only` steht — nicht
+nur in der Notfallsicht.
+
+**Zwei Antwortformen haben sich geaendert**, weil das Schema es erzwingt:
+`action_note` wird `action_notes` (Sichtkreis -> Text), da der Hinweis je Bestand
+**und** Sichtkreis steht; `POST /children/{child_id}/documents` nimmt Kategorie
+und Bezeichnung statt der Bibliothek, und `document_type_code` ist freiwillig.
+
+**Der Ordner entsteht mit der ersten Anforderung** — das war die einzige Stelle,
+die ueber die Domaene hinausgriff: `documents.child_file_folder_id` ist NOT NULL
+und `child_file_folders.graph_item_id` auch, also legt schon `request_papers` den
+SharePoint-Ordner an, und dafuer reicht `Files` bis in den Zahlungs-Callback. Preis:
+eine Graph-Abhaengigkeit im Geldweg. Sie ist idempotent (`files.folder()` sucht,
+bevor es anlegt) und ein Fehlschlag laesst Stripe wiederholen.
+
+**Vier Funde, die der Uebertrag hinterlassen hat und die hier mitgingen**, weil
+ohne sie nichts lief: die Vorlagendatei gehoert in die geschuetzten Spalten von
+`ContractText` (`ck_change_log_template_row` wies sonst jedes Anlegen einer
+Fassung ab); `sync_tasks.is_branch_bound` wird beim Schreiben mitgefuehrt;
+`child_health_answers` bekommt beide Zeitpunkte schon beim INSERT; die Pruefsumme
+einer Urkunde traegt `sha256:`.
+
+**Genannt und nicht angefasst:**
+
+- `api/gesundheit-api.md` schreibt „`backend_health_note` — kein `DELETE`", die
+  Migration vergibt es, und die Route braucht es: Leeren heisst, dass die Zeile
+  geht, denn `ck_child_health_action_notes_note` weist den leeren Text ab. Die
+  Routenzeile derselben Datei verlangt „setzen oder leeren" — der Aufzaehlungspunkt
+  ist die Stelle, die nachzuziehen ist.
+- Der Sichtkreis-Rueckbau (`class_lead` + `sports` -> `school`, drei Rollen -> eine)
+  steht als TASK-197 #4 und ist hier bewusst unberuehrt geblieben; der Hinweis
+  wird deshalb heute fuer `class_lead` geschrieben und von beiden gelesen.
+- `test_a_kind_of_date_without_a_deadline_locks_nobody` ist ersatzlos gestrichen:
+  Sein Gegenstand war die Kochwerkstatt, und keine der zwei verbliebenen
+  Terminarten traegt eine leere Frist.
+<!-- SECTION:NOTES:END -->
