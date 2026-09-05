@@ -43,5 +43,5 @@ Drei Gegenproben in anmeldung-schema-check.sql, alle gegen ck_contracts_checksum
 
 Der Bau schreibt dieses Format: `build_contract_document` setzt `f"sha256:{hashlib.sha256(pdf).hexdigest()}"` (wb-backend app/services/anmeldung.py:768), ebenso der Mandats- und der Einverstaendnis-Bau. `tests/test_anmeldung.py::test_the_release_builds_the_document_and_clears_the_images` haelt das Praefix im Vergleich und faellt ohne es rot.
 
-Der Leser steht: `ContractOut.document_checksum` (wb-backend app/routers/anmeldung.py:2382) wird aus `contract.document_checksum` gefuellt und kommt ueber `GET /contracts/{contract_id}` heraus — eine vorgelegte Fassung ist damit nachzurechnen.
+Der Leser steht und ist gehalten: `ContractOut.document_checksum` (wb-backend app/routers/anmeldung.py:2382) wird aus `contract.document_checksum` gefuellt und kommt ueber `GET /contracts/{contract_id}` heraus; `tests/test_anmeldung.py::test_the_checksum_comes_back_out_of_the_contract_route` liest sie aus der Antwort statt aus der Zeile. Die Sicherung wurde gezogen: mit `document_checksum=None` in `_contract_out` faellt der Test rot.
 <!-- SECTION:NOTES:END -->

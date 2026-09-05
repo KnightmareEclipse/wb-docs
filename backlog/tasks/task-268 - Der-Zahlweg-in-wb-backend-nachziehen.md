@@ -31,12 +31,14 @@ Was gebraucht wird, steht vollstaendig in den .sql dieses Repos; drei Punkte, di
 - Die Entscheidung gehoert an eine Stelle fuer alle Domaenen, nicht je Schreibstelle: eine Funktion, die die Sperre an families, dann ein laufendes Mandat eines Kindes der Familie, dann den Anlass liest. Welcher Anlass eingezogen werden darf, ist eine Liste im Code und keine Zeile in configured_values — das entscheidet der Soll-Block (TASK-265) und heute keiner.
 - GRANT UPDATE auf das Sperr-Paar geht an backend_finance und nicht an die Laufzeitrolle: Es ist die eine Spalte, die eine Familie am liebsten selbst aendern wuerde. tests/test_privileges.py prueft das mit.
 - PAID und INVOICED stehen heute in app/services/ferien.py; mit drei schreibenden Domaenen gehoeren sie neben die Entscheidung.
+- Die Entscheidung faellt je Vorgang und nicht je Domaene: eingezogen oder sofort ueber Stripe bezahlt. `payment_modes` traegt `is_direct_debit` und `uq_payment_modes_traits` dafuer, der Seed kennt aber nur `paid` und `invoiced` — die Zeile fuer den Einzug fehlt, und ohne sie hat die Entscheidung keinen Wert zu setzen.
+- Es sind vier Vorgangstabellen, nicht drei: `academy_registrations` traegt `payment_mode` seit dem Uebertrag der Akademie und ist die einzige, deren Fremdschluessel `is_direct_debit` schon mitfuehrt (`fk_academy_registrations_payment_mode`). Die drei anderen paaren nur `code` und `is_invoiced` und muessen die dritte Spalte mitnehmen, sonst kann der Einzug an ihnen nicht stehen.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [ ] #1 families traegt das Sperr-Paar, GRANT UPDATE darauf haelt backend_finance und nicht die Laufzeitrolle
-- [ ] #2 Die drei Vorgangstabellen tragen ihren payment_mode; die Schreibstellen setzen ihn ueber die eine gemeinsame Entscheidung
+- [ ] #2 Die vier Vorgangstabellen tragen ihren payment_mode; die Schreibstellen setzen ihn ueber die eine gemeinsame Entscheidung, die je Vorgang zwischen Einzug und Sofortzahlung ueber Stripe waehlt
 - [x] #3 Die drei Domaenen-Migrationen sind bearbeitet statt ergaenzt und die Datenbank neu aufgesetzt
 - [ ] #4 pytest, ruff, ruff format und mypy gruen
 <!-- AC:END -->
@@ -51,6 +53,6 @@ Kriterium 3 steht. Die Revisionen von Stammdaten, Ferien und Putzdienst sind bea
 Offen bleiben drei:
 
 - **Kriterium 1.** Das Sperr-Paar steht, das GRANT zeigt auf die falsche Rolle: Die Stammdaten-Revision vergibt `GRANT UPDATE (direct_debit_blocked_at, direct_debit_blocked_by) ON families TO backend_runtime`. In der Datenbank halten nur `backend_migrator` und `backend_runtime` etwas auf den beiden Spalten, `backend_finance` nichts. `tests/test_privileges.py` kennt die Spalten nicht.
-- **Kriterium 2 zur Haelfte.** Die Spalte steht an allen drei Vorgangstabellen, die eine gemeinsame Entscheidung gibt es nicht. `PAID`/`INVOICED` stehen weiter in app/services/ferien.py, app/services/cleaning.py fuehrt daneben ein eigenes `BUYOUT_PAYMENT_MODE = "paid"`, und keine Schreibstelle liest die Sperre, ein laufendes Mandat oder den Anlass — `direct_debit` kommt in app/services und app/routers ueberhaupt nicht vor. Der Seed kennt zu `payment_modes` nur `paid` und `invoiced`.
+- **Kriterium 2 zur Haelfte.** Die Spalte steht an allen vier Vorgangstabellen, die eine gemeinsame Entscheidung gibt es nicht. `PAID`/`INVOICED` stehen weiter in app/services/ferien.py, app/services/cleaning.py fuehrt daneben ein eigenes `BUYOUT_PAYMENT_MODE = "paid"`, und keine Schreibstelle liest die Sperre, ein laufendes Mandat oder den Anlass — `direct_debit` kommt in app/services und app/routers ueberhaupt nicht vor. Waehlbar ist der Einzug bis heute auch gar nicht: Der Seed kennt zu `payment_modes` nur `paid` und `invoiced`, und von den vier Fremdschluesseln fuehrt allein der der Akademie `is_direct_debit` mit.
 - **Kriterium 4.** ruff check („All checks passed"), ruff format --check („89 files already formatted") und mypy app tests („Success: no issues found in 89 source files") sind sauber. pytest gab beim ersten Lauf rc=1 zurueck, beim zweiten rc=0 mit 804 — der Grund steht in TASK-269.
 <!-- SECTION:NOTES:END -->
