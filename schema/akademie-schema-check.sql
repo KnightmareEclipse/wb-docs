@@ -6,7 +6,14 @@
 -- academy_cost_coverage_codes und academy_registrations. Dazu zwei partielle
 -- Unique-Indizes über die nicht abgemeldeten Anmeldungen (je einer für den
 -- Kinder- und den Erwachsenen-Zweig), ein Lese-Index auf die Teilnehmerliste
--- und der eine Trigger, der Platzzahl und fremde Kinder abweist.
+-- und der eine Trigger. Er weist ab, was für jeden gilt — Platzzahl, fremde
+-- Kinder, das abgesagte Angebot und die beiden ersten Stufen des Zahlwegs —,
+-- und beim Anlegen dazu, was allein die Selbstanmeldung anhält: Freigabe,
+-- Anmeldefenster und Zielgruppe. Er fasst auch das Ändern, damit ein
+-- zurückgenommener Abmeldevermerk keinen vergebenen Platz belegt.
+-- Die Absagefrist je Angebot ist der Parameter, aus dem die Oberfläche den
+-- Termin rechnet (TASK-176 AC#10/#13) — eine Sperre folgt daraus nicht, „das
+-- System rechnet daraus nichts" (21).
 -- `academy_offerings` trägt die Warnschwelle der letzten Plätze samt ihrer
 -- Lauf-Marke — dieselben zwei Spalten wie `holiday_sessions`
 -- (ferien-schema.sql), ein Mechanismus für beide Domänen. Das enthaltene
@@ -57,7 +64,8 @@ BEGIN
         'uq_academy_offering_leads', 'uq_academy_approvers',
         'uq_academy_offering_audiences', 'ck_academy_offering_audiences_form',
         'ck_academy_offerings_period', 'ck_academy_offerings_window',
-        'ck_academy_offerings_places', 'ck_academy_offerings_deadline',
+        'ck_academy_offerings_places', 'ck_academy_offerings_approved',
+        'ck_academy_offerings_deadline',
         'ck_academy_offerings_low_places', 'ck_academy_offerings_low_places_notice',
         'ck_academy_offerings_decision', 'ck_academy_offerings_returned',
         'ck_academy_offerings_cancellation',
@@ -91,7 +99,7 @@ BEGIN
     END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_trigger
                     WHERE tgname = 'trg_academy_registrations_admission') THEN
-        RAISE EXCEPTION 'Der Trigger fehlt — Platzzahl und fremde Kinder wären ungeprüft';
+        RAISE EXCEPTION 'Der Trigger fehlt — Platzzahl, fremde Kinder, Absage und Zahlweg wären ungeprüft';
     END IF;
     RAISE NOTICE 'ok: alle geprüften Constraints, Indizes und der Trigger vorhanden';
 END $$;
@@ -242,6 +250,15 @@ INSERT INTO contracts (contract_id, child_id, contract_type, contract_text_id, c
             '33333333-3333-3333-3333-333333333305', 'care', 2, 'care_contract', false,
             DATE '2026-08-01', now(), 'entra:hortleitung', 'system:check');
 
+-- „Eines hat jede Familie mit einem Schul- oder einem Hortvertrag (08, 09); es
+-- steht am Kind" (hebel.md, „Der Zahlweg") — das Hortkind unten wird eingezogen
+-- und braucht es deshalb.
+INSERT INTO sepa_mandates (child_id, account_holder_person_id, iban,
+                           credit_institution, mandate_reference, created_by)
+    VALUES ('33333333-3333-3333-3333-333333333305',
+            '11111111-1111-1111-1111-111111111105', 'DE02120300000000202051',
+            'Musterbank', 'WB-2026-0001', 'system:check');
+
 INSERT INTO academy_categories (academy_category_id, code, name, created_by)
     OVERRIDING SYSTEM VALUE
     VALUES (1, 'cooking', 'Kochen', 'entra:geschaeftsfuehrung');
@@ -324,8 +341,10 @@ SELECT pg_temp.expect_reject(
                'academy_cancellation_cookng', TIMESTAMPTZ '2026-01-01 08:00+01',
                'entra:lehrkraft')$q$);
 
--- 21: „bis 9 Uhr am Kurstag kostenlos" ist null Tage und eine Uhrzeit; eine
--- Uhrzeit ohne Tageszahl beschriebe eine Frist, die es nicht gibt.
+-- 21: Ein Zusatzbetrag ohne Etikett stünde in der Ausschreibung, ohne dass
+-- jemand ihn erklären könnte — und ein Etikett ohne Betrag benennt nichts.
+-- „bis 9 Uhr am Kurstag kostenlos" ist null Tage und eine Uhrzeit; eine Uhrzeit
+-- ohne Tageszahl beschriebe einen Termin, den es nicht gibt.
 SELECT pg_temp.expect_reject(
     '21 — Absagefrist als Uhrzeit ohne Tageszahl',
     $q$INSERT INTO academy_offerings (academy_category_id, title, starts_on, ends_on,
@@ -336,8 +355,6 @@ SELECT pg_temp.expect_reject(
                'academy_cancellation_cooking', TIME '09:00',
                TIMESTAMPTZ '2027-01-01 08:00+01', 'entra:lehrkraft')$q$);
 
--- 21: Ein Zusatzbetrag ohne Etikett stünde in der Ausschreibung, ohne dass
--- jemand ihn erklären könnte — und ein Etikett ohne Betrag benennt nichts.
 SELECT pg_temp.expect_reject(
     '21 — Zusatzbetrag ohne Etikett',
     $q$INSERT INTO academy_offerings (academy_category_id, title, starts_on, ends_on,
@@ -430,16 +447,6 @@ SELECT pg_temp.expect_accept(
               ('55555555-5555-5555-5555-555555555520', DATE '2027-05-28',
                DATE '2027-05-25', DATE '2027-05-29', 'entra:hauswirtschaftsleitung')$q$);
 
--- Ein Angebot ohne Esstag ist der Normalfall: Chor, Theater, jede Reihe.
-DO $$
-BEGIN
-    IF EXISTS (SELECT 1 FROM academy_offering_lunch_days
-                WHERE academy_offering_id = '55555555-5555-5555-5555-555555555502') THEN
-        RAISE EXCEPTION 'Testaufbau falsch: die offene Kochwerkstatt sollte keinen Esstag haben';
-    END IF;
-    RAISE NOTICE 'ok: „enthält ein Mittagessen" ist die Frage, ob eine Zeile steht';
-END $$;
-
 -- Das Angebot lässt sich nicht hinter seinem Esstag zusammenziehen: Erst den
 -- Tag streichen, dann den Zeitraum. `ON UPDATE CASCADE` zieht den mitgeführten
 -- Zeitraum nach, und der CHECK sieht den Tag dann draußen liegen.
@@ -465,6 +472,23 @@ INSERT INTO academy_offerings (academy_offering_id, academy_category_id, title,
             DATE '2027-05-08', DATE '2027-05-08', true, 1, 3000, 3,
             'academy_cancellation_cooking', TIMESTAMPTZ '2026-01-01 08:00+01',
             now(), 'entra:gf', 'entra:hauswirtschaftsleitung');
+
+-- 21: „Kein Häkchen daneben: ‚enthält ein Mittagessen' ist die Frage, ob ein
+-- Esstag eingetragen ist." Die offene Kochwerkstatt hat keinen — die Probe steht
+-- deshalb hier und nicht, bevor es das Angebot gibt.
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM academy_offering_lunch_days
+                WHERE academy_offering_id = '55555555-5555-5555-5555-555555555502') THEN
+        RAISE EXCEPTION 'Testaufbau falsch: die offene Kochwerkstatt sollte keinen Esstag haben';
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns
+                WHERE table_name = 'academy_offerings'
+                  AND column_name IN ('includes_lunch', 'lunch_included')) THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — das Angebot trägt das Mittagessen wieder als Häkchen';
+    END IF;
+    RAISE NOTICE 'ok: „enthält ein Mittagessen" ist die Frage, ob eine Zeile steht';
+END $$;
 
 -- Der Erwachsenen-Zweig: „Seminarangebote für Erwachsene" (03.09.2026).
 INSERT INTO academy_offerings (academy_offering_id, academy_category_id, for_adults,
@@ -515,6 +539,31 @@ INSERT INTO academy_offerings (academy_offering_id, academy_category_id, for_adu
      DATE '2027-03-01', DATE '2027-03-01', 20, 3000, 'academy_cancellation_cooking',
      TIMESTAMPTZ '2026-01-01 08:00+01', NULL, now(), 'entra:gf', NULL, NULL,
      'entra:lehrkraft');
+
+-- Vier weitere, aus demselben Grund je eines: ein Angebot mit Zielgruppe, das
+-- fremde Kinder zulässt; das von Hand geschlossene; das mit abgelaufenem
+-- Fenster; und eines mit einem einzigen Platz für die Proben zum Ändern.
+INSERT INTO academy_offerings (academy_offering_id, academy_category_id, title,
+                               starts_on, ends_on, allows_external_children, places,
+                               amount_cents, cancellation_terms_code,
+                               registration_opens_at, registration_closes_at,
+                               closed_at, approved_at, approved_by, created_by) VALUES
+    ('55555555-5555-5555-5555-555555555510', 1, 'Trommeln für alle',
+     DATE '2027-03-02', DATE '2027-03-02', true, 5, 3000,
+     'academy_cancellation_cooking', TIMESTAMPTZ '2026-01-01 08:00+01', NULL,
+     NULL, now(), 'entra:gf', 'entra:lehrkraft'),
+    ('55555555-5555-5555-5555-555555555511', 1, 'Von Hand geschlossen',
+     DATE '2027-03-03', DATE '2027-03-03', true, 20, 3000,
+     'academy_cancellation_cooking', TIMESTAMPTZ '2026-01-01 08:00+01', NULL,
+     now(), now(), 'entra:gf', 'entra:lehrkraft'),
+    ('55555555-5555-5555-5555-555555555512', 1, 'Fenster zu',
+     DATE '2027-03-04', DATE '2027-03-04', true, 20, 3000,
+     'academy_cancellation_cooking', TIMESTAMPTZ '2026-01-01 08:00+01',
+     TIMESTAMPTZ '2026-02-01 08:00+01', NULL, now(), 'entra:gf', 'entra:lehrkraft'),
+    ('55555555-5555-5555-5555-555555555513', 1, 'Werkbank',
+     DATE '2027-03-05', DATE '2027-03-05', true, 1, 3000,
+     'academy_cancellation_cooking', TIMESTAMPTZ '2026-01-01 08:00+01', NULL,
+     NULL, now(), 'entra:gf', 'entra:lehrkraft');
 
 SELECT pg_temp.expect_reject(
     '21 — negativer Zusatzbetrag',
@@ -616,6 +665,12 @@ SELECT pg_temp.expect_reject(
                                                created_by)
        VALUES ('55555555-5555-5555-5555-555555555504', 4, 2,
                'entra:hauswirtschaftsleitung')$q$);
+
+-- Das Angebot 510 spricht die Grundschule an und lässt zugleich fremde Kinder zu
+-- — der Fall, an dem sich die beiden Angaben nicht ins Gehege kommen dürfen.
+INSERT INTO academy_offering_audiences (academy_offering_id, school_branch_id,
+                                        grade_from, grade_to, created_by)
+    VALUES ('55555555-5555-5555-5555-555555555510', 1, 1, 4, 'entra:lehrkraft');
 
 -- ---------------------------------------------------------------------------
 -- Gegenproben — die Anmeldung
@@ -761,6 +816,18 @@ SELECT pg_temp.expect_reject(
        VALUES ('55555555-5555-5555-5555-555555555507',
                '33333333-3333-3333-3333-333333333304', 3000, 'paid', false, false, 1, 'guardian:x')$q$);
 
+-- „Umgekehrt sagt auch sie ab — … das ganze Angebot" (21 Z7): Danach nimmt es
+-- niemanden mehr auf, auch nicht über den offiziellen Umweg — es gibt nichts,
+-- was das Sekretariat dort stellvertretend täte.
+SELECT pg_temp.expect_reject(
+    '21 — dasselbe stellvertretend durch das Sekretariat',
+    $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
+                                          payment_mode, is_invoiced, is_direct_debit,
+                                          cancellation_terms_contract_text_id, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555507',
+               '33333333-3333-3333-3333-333333333304', 3000, 'paid', false, false, 1,
+               'entra:sekretariat')$q$);
+
 -- 21: „wer es verpasst, ist nicht dabei, und der offizielle Umweg trägt den
 -- Einzelfall."
 SELECT pg_temp.expect_reject(
@@ -780,6 +847,27 @@ SELECT pg_temp.expect_accept(
                '33333333-3333-3333-3333-333333333304', 3000, 'paid', false, false, 1,
                'entra:sekretariat')$q$);
 
+-- 21 Z6: „Schließt die Anmeldung — zum gesetzten Datum oder jederzeit von Hand."
+-- Beide Wege weisen ab, und beide brauchen ihre eigene Probe: Der eine liest
+-- `closed_at`, der andere `registration_closes_at`.
+SELECT pg_temp.expect_reject(
+    '21 — Anmeldung zu einem von Hand geschlossenen Angebot',
+    $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
+                                          payment_mode, is_invoiced, is_direct_debit,
+                                          cancellation_terms_contract_text_id, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555511',
+               '33333333-3333-3333-3333-333333333304', 3000, 'paid', false, false, 1,
+               'guardian:x')$q$);
+
+SELECT pg_temp.expect_reject(
+    '21 — Anmeldung, nachdem das Anmeldefenster geschlossen hat',
+    $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
+                                          payment_mode, is_invoiced, is_direct_debit,
+                                          cancellation_terms_contract_text_id, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555512',
+               '33333333-3333-3333-3333-333333333304', 3000, 'paid', false, false, 1,
+               'guardian:x')$q$);
+
 -- 21 Z4: „Geprüft wird, ob das Kind zur Zielgruppe gehört und ob noch ein Platz
 -- frei ist." Angebot 504 spricht die Realschule ab Stufe 5 an.
 SELECT pg_temp.expect_reject(
@@ -798,9 +886,82 @@ SELECT pg_temp.expect_accept(
        VALUES ('55555555-5555-5555-5555-555555555504',
                '33333333-3333-3333-3333-333333333306', 3000, 'paid', false, false, 1, 'guardian:x')$q$);
 
+-- 21: „Ein fremdes Kind meldet sich an wie jedes andere, sobald das Angebot ihm
+-- offensteht; es hat keine Klassenstufe, und gebraucht wird sie hier nicht."
+-- Angebot 510 spricht die Grundschule an und lässt fremde Kinder zu: Der
+-- Zuschnitt weist das Realschulkind ab und das schulfremde nicht.
+SELECT pg_temp.expect_reject(
+    '21 — Realschulkind an einem Angebot für die Grundschule',
+    $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
+                                          payment_mode, is_invoiced, is_direct_debit,
+                                          cancellation_terms_contract_text_id, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555510',
+               '33333333-3333-3333-3333-333333333306', 3000, 'paid', false, false, 1, 'guardian:x')$q$);
+
+SELECT pg_temp.expect_accept(
+    '21 — fremdes Kind an einem Angebot mit Zielgruppe',
+    $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
+                                          payment_mode, is_invoiced, is_direct_debit,
+                                          cancellation_terms_contract_text_id, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555510',
+               '33333333-3333-3333-3333-333333333302', 3000, 'paid', false, false, 1, 'guardian:x')$q$);
+
 -- ---------------------------------------------------------------------------
 -- Gegenproben — Zahlweg und Kostenübernahme
 -- ---------------------------------------------------------------------------
+
+-- Das mitgeführte Tripel darf nicht lügen: `payment_mode` und die beiden
+-- Merkmale kommen zusammen aus `payment_modes` (querschnitt-schema.sql). Die
+-- Probe läuft über das Hortkind, das sein Mandat hat — sonst wiese sie schon der
+-- Zahlweg ab, und der Fremdschlüssel bliebe unbelegt.
+SELECT pg_temp.expect_reject(
+    'querschnitt — online bezahlt und zugleich als Einzug ausgegeben',
+    $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
+                                          payment_mode, is_invoiced, is_direct_debit,
+                                          cancellation_terms_contract_text_id, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555505',
+               '33333333-3333-3333-3333-333333333305', 3000, 'paid', false, true, 1,
+               'guardian:x')$q$);
+
+-- hebel.md, „Der Zahlweg", zweite Stufe: „Ohne Mandat gibt es nichts
+-- einzuziehen." Kind 304 ist eingeschrieben, seine Familie hat kein Mandat.
+SELECT pg_temp.expect_reject(
+    'hebel.md — Einzug ohne SEPA-Mandat',
+    $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
+                                          payment_mode, is_invoiced, is_direct_debit,
+                                          cancellation_terms_contract_text_id, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555505',
+               '33333333-3333-3333-3333-333333333304', 3000, 'direct_debit', false, true,
+               1, 'guardian:x')$q$);
+
+-- Erste Stufe, und sie schlägt die zweite: „Eine Familie kann auf Sofortzahlung
+-- festgelegt werden; dann führt kein Vorgang mehr zum Einzug, auch wo ein Mandat
+-- steht." Das Hortkind 305 hat eines — abgewiesen wird es trotzdem, und nach dem
+-- Aufheben der Sperre geht dieselbe Anmeldung durch.
+UPDATE families SET direct_debit_blocked_at = now(),
+                    direct_debit_blocked_by = 'entra:buchhaltung'
+    WHERE family_id = '22222222-2222-2222-2222-222222222201';
+
+SELECT pg_temp.expect_reject(
+    'hebel.md — Einzug bei einer Familie, die auf Sofortzahlung festgelegt ist',
+    $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
+                                          payment_mode, is_invoiced, is_direct_debit,
+                                          cancellation_terms_contract_text_id, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555505',
+               '33333333-3333-3333-3333-333333333305', 3000, 'direct_debit', false, true,
+               1, 'guardian:x')$q$);
+
+UPDATE families SET direct_debit_blocked_at = NULL, direct_debit_blocked_by = NULL
+    WHERE family_id = '22222222-2222-2222-2222-222222222201';
+
+SELECT pg_temp.expect_accept(
+    'hebel.md — dieselbe Anmeldung, nachdem die Sperre aufgehoben ist',
+    $q$INSERT INTO academy_registrations (academy_offering_id, child_id, amount_cents,
+                                          payment_mode, is_invoiced, is_direct_debit,
+                                          cancellation_terms_contract_text_id, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555505',
+               '33333333-3333-3333-3333-333333333305', 3000, 'direct_debit', false, true,
+               1, 'guardian:x')$q$);
 
 -- 21: „er tritt an die Stelle der Zahlung".
 SELECT pg_temp.expect_reject(
@@ -966,6 +1127,70 @@ BEGIN
     END IF;
     RAISE NOTICE 'ok: 21 — die Teilnehmerliste trägt die drei belegten Plätze';
 END $$;
+
+-- ---------------------------------------------------------------------------
+-- Gegenproben — dieselben Regeln beim Ändern
+-- ---------------------------------------------------------------------------
+
+-- Der reale Fall: ein versehentlich eingetragener Abmeldevermerk wird
+-- zurückgenommen. Angebot 513 hat einen Platz, und der ist inzwischen vergeben —
+-- „daran ändert der Zufall zweier gleichzeitiger Anmeldungen nichts" (21) gilt
+-- auch, wenn die zweite ein UPDATE ist.
+INSERT INTO academy_registrations (academy_registration_id, academy_offering_id,
+                                   child_id, amount_cents, payment_mode, is_invoiced,
+                                   is_direct_debit, cancellation_terms_contract_text_id,
+                                   created_by)
+    VALUES ('66666666-6666-6666-6666-666666666607',
+            '55555555-5555-5555-5555-555555555513',
+            '33333333-3333-3333-3333-333333333304', 3000, 'paid', false, false, 1,
+            'guardian:x');
+UPDATE academy_registrations
+    SET cancellation_recorded_at = now(), cancellation_recorded_by = 'entra:hw',
+        retained_amount_cents = 0
+    WHERE academy_registration_id = '66666666-6666-6666-6666-666666666607';
+INSERT INTO academy_registrations (academy_registration_id, academy_offering_id,
+                                   child_id, amount_cents, payment_mode, is_invoiced,
+                                   is_direct_debit, cancellation_terms_contract_text_id,
+                                   created_by)
+    VALUES ('66666666-6666-6666-6666-666666666608',
+            '55555555-5555-5555-5555-555555555513',
+            '33333333-3333-3333-3333-333333333306', 3000, 'paid', false, false, 1,
+            'guardian:x');
+
+SELECT pg_temp.expect_reject(
+    '21 — Abmeldevermerk zurückgenommen, während der Platz vergeben ist',
+    $q$UPDATE academy_registrations
+          SET cancellation_recorded_at = NULL, cancellation_recorded_by = NULL,
+              retained_amount_cents = NULL
+        WHERE academy_registration_id = '66666666-6666-6666-6666-666666666607'$q$);
+
+UPDATE academy_registrations
+    SET cancellation_recorded_at = now(), cancellation_recorded_by = 'entra:hw',
+        retained_amount_cents = 0
+    WHERE academy_registration_id = '66666666-6666-6666-6666-666666666608';
+
+SELECT pg_temp.expect_accept(
+    '21 — derselbe Vermerk zurückgenommen, nachdem der Platz frei ist',
+    $q$UPDATE academy_registrations
+          SET cancellation_recorded_at = NULL, cancellation_recorded_by = NULL,
+              retained_amount_cents = NULL
+        WHERE academy_registration_id = '66666666-6666-6666-6666-666666666607'$q$);
+
+-- Umgehängt geht ebenso wenig an Platzzahl und Zulassung vorbei wie neu
+-- angelegt — weder mit einem anderen Angebot in der Zeile noch mit einem anderen
+-- Kind. Angebot 501 hat seine drei Plätze vergeben und lässt keine fremden
+-- Kinder zu.
+SELECT pg_temp.expect_reject(
+    '21 — Anmeldung an ein volles Angebot umgehängt',
+    $q$UPDATE academy_registrations
+          SET academy_offering_id = '55555555-5555-5555-5555-555555555501'
+        WHERE academy_registration_id = '66666666-6666-6666-6666-666666666604'$q$);
+
+SELECT pg_temp.expect_reject(
+    '21 — fremdes Kind in eine bestehende Anmeldung eingetragen',
+    $q$UPDATE academy_registrations
+          SET child_id = '33333333-3333-3333-3333-333333333302'
+        WHERE academy_registration_id = '66666666-6666-6666-6666-666666666601'$q$);
 
 -- ---------------------------------------------------------------------------
 -- Gegenproben — Q3 und Q5

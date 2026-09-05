@@ -133,12 +133,20 @@ CREATE TABLE academy_offerings (
     registration_closes_at timestamptz,
     -- „Schließt die Anmeldung — zum gesetzten Datum oder jederzeit von Hand."
     closed_at           timestamptz,
-    -- Die Sperre der Eltern als Zahl und Uhrzeit: „bis 9 Uhr am Kurstag
-    -- kostenlos" ist null Tage und 09:00, „bis 3 Tage davor" drei Tage ohne
-    -- Uhrzeit. Gezählt wird zum ersten Tag des Angebots. **Leere Uhrzeit heißt
-    -- 0 Uhr** — der ganze Fristtag ist dann gesperrt; leere Tageszahl heißt
-    -- „keine Sperre". Den Eltern wird nie der Abstand gezeigt, sondern der
-    -- daraus gerechnete Termin.
+    -- Die Abmeldebedingungen als Zahl und Uhrzeit (TASK-176 AC#10): „bis 9 Uhr
+    -- am Kurstag kostenlos" ist null Tage und 09:00, „bis 3 Tage davor" drei
+    -- Tage ohne Uhrzeit. Gezählt wird zum ersten Tag des Angebots. **Leere
+    -- Uhrzeit heißt 0 Uhr**; leere Tageszahl heißt „keine Bedingung, die an
+    -- einem Termin hängt". Sie sind der Parameter, aus dem die Oberfläche den
+    -- Termin rechnet — „Den Eltern wird nie der Abstand gezeigt, sondern der
+    -- daraus gerechnete Termin" (TASK-176 AC#13).
+    -- **Eine Sperre folgt daraus nicht**, und das ist der Unterschied zum
+    -- Ferienprogramm: 21 sagt „Das System rechnet daraus nichts: Es zeigt den
+    -- Eltern die Bedingungen und der anbietenden Stelle den Tag der Erklärung;
+    -- welcher Betrag berechnet wird, trägt sie ein." Wer nach dem Termin
+    -- abmeldet, meldet trotzdem ab und zahlt, was die anbietende Stelle
+    -- einträgt — „ab 3 Tagen ist ein Storno nicht mehr möglich" (10) ist der
+    -- Satz des Ferienprogramms und steht nicht in 21.
     cancellation_deadline_days smallint,
     cancellation_deadline_time time,
     -- Der Code des Textes, unter dem die Abmeldebedingungen dieses Angebots in
@@ -205,7 +213,7 @@ CREATE TABLE academy_offerings (
     CONSTRAINT ck_academy_offerings_surcharge_label
         CHECK ((surcharge_cents > 0) = (surcharge_label IS NOT NULL)
                AND surcharge_label <> ''),
-    -- Eine Uhrzeit ohne Tageszahl beschriebe eine Frist, die es nicht gibt.
+    -- Eine Uhrzeit ohne Tageszahl beschriebe einen Termin, den es nicht gibt.
     CONSTRAINT ck_academy_offerings_deadline
         CHECK (cancellation_deadline_time IS NULL OR cancellation_deadline_days IS NOT NULL),
     CONSTRAINT ck_academy_offerings_deadline_days
@@ -573,17 +581,36 @@ CREATE INDEX ix_academy_registrations_offering
 --     das eingeschrieben ist (08) oder einen laufenden Hortvertrag hat (09)"
 --     (10 Z3) — beides steht in anderen Tabellen, und ein CHECK sieht nur seine
 --     eigene Zeile.
+--   * **Das abgesagte Angebot**: „Umgekehrt sagt auch sie ab — … das ganze
+--     Angebot" (21 Z7), und danach nimmt es niemanden mehr auf.
+--   * **Die beiden ersten Stufen des Zahlwegs** (hebel.md, „Der Zahlweg"): „Die
+--     Sperre der Familie … dann führt kein Vorgang mehr zum Einzug, auch wo ein
+--     Mandat steht", und „Ohne Mandat gibt es nichts einzuziehen". Die dritte
+--     Stufe, der Anlass, ist diese Domäne selbst — „derzeit sagt es einer: die
+--     Akademie-Anmeldung (21)". Beide Stufen stehen in anderen Tabellen; der
+--     Erwachsenen-Zweig braucht sie nicht, dort hält
+--     `ck_academy_registrations_adult_payment` den Einzug schon als CHECK auf.
 --   * **Was den Vorgang anhält**, sobald ein Elternteil selbst absendet: „Bis
 --     zur Freigabe steht das Angebot nirgends … und niemand kann sich anmelden"
---     (21 Z2), ein abgesagtes Angebot nimmt niemanden mehr auf, das
---     Anmeldefenster gilt, und „geprüft wird, ob das Kind zur Zielgruppe gehört"
---     (21 Z4). Alle vier hängen an Zeilen, die diese nicht sieht.
--- **Für Mitarbeitende sperren die letzten vier nicht**: „Das Sekretariat
+--     (21 Z2), das Anmeldefenster gilt, und „geprüft wird, ob das Kind zur
+--     Zielgruppe gehört" (21 Z4). Alle drei hängen an Zeilen, die diese nicht
+--     sieht.
+-- **Für Mitarbeitende sperren die letzten drei nicht**: „Das Sekretariat
 -- erledigt den Vorgang stellvertretend" und kann „jedes Datum setzen, auch eines
 -- in der Vergangenheit" (hebel.md, der offizielle Umweg) — der Trigger liest das
--- am Urheber ab, wie es sonst nur der `created_by`-CHECK tut. Platzzahl und
--- fremdes Kind gelten dagegen für alle: Die eine ist eine physische Grenze, die
--- andere die Zulassung des Angebots, und für beide nennt kein Block einen Ausweg.
+-- am Urheber ab, wie es sonst nur der `created_by`-CHECK tut. Die vier davor
+-- gelten dagegen für alle: die physische Grenze, die Zulassung des Angebots,
+-- seine Absage und die Ermächtigung zum Einzug — für keine davon nennt ein Block
+-- einen Ausweg, und beim abgesagten Angebot gibt es nichts, was das Sekretariat
+-- stellvertretend täte.
+-- **Er prüft auch beim Ändern**, nicht nur beim Anlegen: Ein zurückgenommener
+-- Abmeldevermerk macht die Zeile wieder zu einer offenen Anmeldung und belegt
+-- einen Platz, ein umgehängtes Angebot oder ein ausgetauschter Teilnehmer geht
+-- sonst an Platzzahl und Zulassung vorbei. Die drei Regeln des Absendens laufen
+-- dabei nicht noch einmal: `created_by` sagt beim UPDATE, wer die Zeile angelegt
+-- hat, und nicht, wer sie ändert — und ändern tut sie nach 21 die anbietende
+-- Stelle oder das Sekretariat, denn „die Anmeldung selbst ändern Eltern nicht —
+-- sie melden ab und neu an".
 -- `FOR UPDATE` serialisiert die Anmeldungen je Angebot, sonst zählen zwei
 -- gleichzeitige denselben freien Platz. Das Prädikat des laufenden Hortvertrags
 -- ist dasselbe wie in `ex_contracts_care_period` (anmeldung-schema.sql) — zwei
@@ -593,6 +620,19 @@ DECLARE
     offering record;
     taken    bigint;
 BEGIN
+    -- Bleibt die Zeile an ihrem Angebot und ihrem Teilnehmer und wird sie nicht
+    -- wieder zu einer offenen Anmeldung, ändert sich an keiner Regel etwas — sie
+    -- sind beim Anlegen geprüft worden. Dieselbe Abkürzung wie in
+    -- `enforce_parent_work_capacity` (elternbonus-schema.sql).
+    IF TG_OP = 'UPDATE'
+       AND NEW.academy_offering_id = OLD.academy_offering_id
+       AND NEW.child_id  IS NOT DISTINCT FROM OLD.child_id
+       AND NEW.person_id IS NOT DISTINCT FROM OLD.person_id
+       AND NOT (OLD.cancellation_recorded_at IS NOT NULL
+                AND NEW.cancellation_recorded_at IS NULL) THEN
+        RETURN NEW;
+    END IF;
+
     SELECT places, allows_external_children, approved_at, cancelled_at, closed_at,
            registration_opens_at, registration_closes_at
       INTO offering
@@ -600,10 +640,13 @@ BEGIN
      WHERE academy_offering_id = NEW.academy_offering_id
        FOR UPDATE;
 
+    -- Die eigene Zeile zählt nie mit: Beim Anlegen steht sie noch nicht in der
+    -- Tabelle, beim Ändern belegt sie den Platz, den sie behält.
     SELECT count(*) INTO taken
       FROM academy_registrations
      WHERE academy_offering_id = NEW.academy_offering_id
-       AND cancellation_recorded_at IS NULL;
+       AND cancellation_recorded_at IS NULL
+       AND academy_registration_id <> NEW.academy_registration_id;
 
     IF taken >= offering.places THEN
         RAISE EXCEPTION 'Angebot % ist voll: % von % Plätzen belegt',
@@ -627,21 +670,46 @@ BEGIN
               USING ERRCODE = 'check_violation';
     END IF;
 
+    -- Die Absage gilt für jeden: Ein abgesagtes Angebot findet nicht statt, und
+    -- kein Block nennt etwas, was das Sekretariat dort stellvertretend täte.
+    IF offering.cancelled_at IS NOT NULL THEN
+        RAISE EXCEPTION 'Angebot % ist abgesagt', NEW.academy_offering_id
+              USING ERRCODE = 'check_violation';
+    END IF;
+
+    -- Die beiden ersten Stufen des Zahlwegs (hebel.md). Sie gelten für jeden:
+    -- Auch das Sekretariat zieht nicht ein, wo keine Ermächtigung steht oder wo
+    -- die Buchhaltung die Familie festgelegt hat.
+    IF NEW.is_direct_debit AND NEW.child_id IS NOT NULL THEN
+        IF EXISTS (SELECT 1 FROM children c
+                     JOIN families f ON f.family_id = c.family_id
+                    WHERE c.child_id = NEW.child_id
+                      AND f.direct_debit_blocked_at IS NOT NULL) THEN
+            RAISE EXCEPTION 'Familie des Kindes % ist auf Sofortzahlung festgelegt',
+                            NEW.child_id
+                  USING ERRCODE = 'check_violation';
+        END IF;
+
+        IF NOT EXISTS (SELECT 1 FROM sepa_mandates
+                        WHERE child_id = NEW.child_id
+                          AND superseded_at IS NULL) THEN
+            RAISE EXCEPTION 'Kind % hat kein SEPA-Mandat, es gibt nichts einzuziehen',
+                            NEW.child_id
+                  USING ERRCODE = 'check_violation';
+        END IF;
+    END IF;
+
     -- Ab hier nur die Selbstanmeldung der Eltern: „wer es verpasst, ist nicht
     -- dabei, und der offizielle Umweg trägt den Einzelfall" (21). Das
     -- Sekretariat trägt stellvertretend ein und kann „jedes Datum setzen, auch
-    -- eines in der Vergangenheit" (hebel.md) — für es sperrt hier nichts.
-    IF NEW.created_by NOT LIKE 'guardian:%' THEN
+    -- eines in der Vergangenheit" (hebel.md) — für es sperrt hier nichts. Beim
+    -- Ändern sperrt es für niemanden: siehe den Kopfkommentar.
+    IF TG_OP = 'UPDATE' OR NEW.created_by NOT LIKE 'guardian:%' THEN
         RETURN NEW;
     END IF;
 
     IF offering.approved_at IS NULL THEN
         RAISE EXCEPTION 'Angebot % ist nicht freigegeben', NEW.academy_offering_id
-              USING ERRCODE = 'check_violation';
-    END IF;
-
-    IF offering.cancelled_at IS NOT NULL THEN
-        RAISE EXCEPTION 'Angebot % ist abgesagt', NEW.academy_offering_id
               USING ERRCODE = 'check_violation';
     END IF;
 
@@ -653,9 +721,20 @@ BEGIN
               USING ERRCODE = 'check_violation';
     END IF;
 
+    -- 21: „Ein fremdes Kind meldet sich an wie jedes andere, sobald das Angebot
+    -- ihm offensteht; es hat keine Klassenstufe, und gebraucht wird sie hier
+    -- nicht." Wer weder Klasse noch Schulart noch Stufe trägt, verfehlt einen
+    -- Zuschnitt nicht — er trifft ihn nur nicht, und ob er mitmachen darf,
+    -- entscheidet allein das Häkchen oben. Ohne diese Bedingung wiese jede
+    -- Zielgruppenzeile jedes fremde Kind ab, weil jeder Vergleich gegen NULL
+    -- selbst NULL ist.
     IF NEW.child_id IS NOT NULL
        AND EXISTS (SELECT 1 FROM academy_offering_audiences a
                     WHERE a.academy_offering_id = NEW.academy_offering_id)
+       AND EXISTS (SELECT 1 FROM children c
+                    WHERE c.child_id = NEW.child_id
+                      AND num_nonnulls(c.class_id, c.school_branch_id,
+                                       c.grade_level) > 0)
        AND NOT EXISTS (
             SELECT 1
               FROM academy_offering_audiences a
@@ -676,7 +755,9 @@ BEGIN
 END $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trg_academy_registrations_admission
-    BEFORE INSERT ON academy_registrations
+    BEFORE INSERT OR UPDATE OF academy_offering_id, child_id, person_id,
+                               cancellation_recorded_at
+        ON academy_registrations
     FOR EACH ROW EXECUTE FUNCTION enforce_academy_registration();
 
 
