@@ -162,7 +162,12 @@ ihre Aufgabe abarbeitet.
 - **Elternvertreter** haben mit dem Amt die vollen Stunden, ohne einen einzigen Eintrag; das Amt
   entsteht in [16](16-elternvertretung.md) und wird hier nur gelesen. Sie
   gelten damit für jeden Zweck als voll — also auch für die Mail am 1. Juni, die sie deshalb nicht
-  bekommen. Gehört ein Amtsträger zu **zwei [Familien](hebel.md#familie-und-kind)** — ein Elternteil
+  bekommen. **Erlassen wird jeder Familie, in der der Amtsträger sorgeberechtigt ist.** Das Amt
+  hängt an der Klasse und benennt keine Familie ([16](16-elternvertretung.md)); wer in zwei
+  Familien sorgeberechtigt ist, entlastet damit beide. Der Preis ist ehrlich zu nennen und wird in
+  Kauf genommen: In diesem seltenen Fall erlässt ein Amt zweimal. Eine benannte Familie am Amt
+  wäre die Alternative und kostete die Klassenlehrkraft bei **jeder** Wahl eine Angabe, die fast
+  immer eindeutig ist. Gehört ein Amtsträger zu **zwei [Familien](hebel.md#familie-und-kind)** — ein Elternteil
   mit Kindern aus zwei Beziehungen —, sind **beide** voll: Der Erlass trifft jede Familie, in der er
   sorgeberechtigt ist. Es ist dieselbe Mechanik wie bei zwei Ämtern in einer Familie
   ([16](16-elternvertretung.md), Sonderfälle) — der Erlass folgt der Sorgeberechtigung und nicht dem
@@ -238,4 +243,4 @@ gebucht ist, hängt an dessen eigenen Fristen.
 - Ein Bewertungsschlüssel je Tätigkeit: gibt es nicht.
 - AGs.
 
-> **Vorgemerkt aus [14](14-elternbonus.md)**, für den Block, der daran anschließt: **Block 16** muss sagen, wer wann Elternvertreter war — dieser Block liest es und erlässt daran die vollen Stunden, ohne einen einzigen Eintrag; ohne Zeitraum ließe sich nicht sagen, für welches Schuljahr. Er muss außerdem sagen, ob das Amt an der Person hängt oder an einer Klasse: Der Bonus hängt an der Familie, und ein Klassenamt muss trotzdem eine benennen.
+> **Vorgemerkt aus [14](14-elternbonus.md)**, für den Block, der daran anschließt: **Block 16** muss sagen, wer wann Elternvertreter war — dieser Block liest es und erlässt daran die vollen Stunden, ohne einen einzigen Eintrag; ohne Zeitraum ließe sich nicht sagen, für welches Schuljahr. Er muss außerdem sagen, ob das Amt an der Person hängt oder an einer Klasse — eingelöst: Es hängt an der Klasse und trägt eine Person; die Familie benennt es nicht, dieser Block findet sie über die Sorgeberechtigung (Sonderfälle oben).

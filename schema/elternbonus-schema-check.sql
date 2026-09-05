@@ -5,8 +5,9 @@
 -- Erinnerungslauf, der für die Jahresrechnung und der einzige Trigger dieses
 -- Schemas, der Anmeldefenster und Platzzahl hält. Geprüft wird zusätzlich, dass
 -- die drei Werte im System und die Elternvertretung dort stehen, wo dieser Block
--- sie liest, dass die Jahresliste als eine Aufgabe bei der Buchhaltung Platz hat,
--- und dass von der gestrichenen Bestätigung keine Spalte übrig ist.
+-- sie liest und ohne eigene Familienspalte, dass die Jahresliste als eine Aufgabe
+-- bei der Buchhaltung Platz hat, und dass von der gestrichenen Bestätigung keine
+-- Spalte übrig ist.
 --
 -- Setzt stammdaten-schema.sql, querschnitt-schema.sql und
 -- klassenorganisation-schema.sql voraus:
@@ -576,6 +577,24 @@ SELECT pg_temp.expect_accept(
     $q$DELETE FROM parent_work_entries
         WHERE family_id = '33333333-3333-3333-3333-333333333331';
        DELETE FROM families WHERE family_id = '33333333-3333-3333-3333-333333333331'$q$);
+
+-- 14, Sonderfälle: „Erlassen wird jeder Familie, in der der Amtsträger
+-- sorgeberechtigt ist." Der Weg läuft von `class_representatives.person_id`
+-- über `family_guardians` — das Amt selbst benennt keine Familie, und eine
+-- Spalte dafür wäre der zweite Ort für dieselbe Zuordnung. Die Probe steht hier
+-- und nicht bei der Klassenorganisation, weil allein diese Domäne den Weg geht.
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns
+                WHERE table_name = 'class_representatives' AND column_name = 'family_id') THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — das Amt benennt eine Familie, statt sie über die Sorgeberechtigung zu finden';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                    WHERE table_name = 'family_guardians' AND column_name = 'person_id') THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — der Weg vom Amtsträger zu seinen Familien fehlt';
+    END IF;
+    RAISE NOTICE 'ok: der Erlass findet seine Familien über die Sorgeberechtigung';
+END $$;
 
 -- 14 Z6: „Legt die Jahresliste als **eine** Aufgabe bei der Buchhaltung an", und
 -- „die Rückzahlung des Schuljahres ist eine Aufgabe mit der Jahresliste, nicht

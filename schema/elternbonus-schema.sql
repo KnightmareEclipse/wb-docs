@@ -6,7 +6,9 @@
 -- geleistete Stunde — mit oder ohne Einsatz. Alles
 -- Weitere wird gerechnet oder anderswo gelesen: Monatsbetrag und
 -- Pflichtstunden als `configured_values`, die Elternvertreter als
--- `class_representatives`, die Mitarbeiterfamilien als `employees` samt Haus,
+-- `class_representatives` — von dort über `family_guardians` auf jede Familie,
+-- in der die Person sorgeberechtigt ist (14, Sonderfälle) —, die
+-- Mitarbeiterfamilien als `employees` samt Haus,
 -- und die Jahresliste des Jahreslaufs geht als **eine** Aufgabe bei der
 -- Buchhaltung an `sync_tasks` — Bezug ist das Schuljahr, nicht die Familie
 -- (14 Z6, „Legt die Jahresliste als eine Aufgabe bei der Buchhaltung an").
