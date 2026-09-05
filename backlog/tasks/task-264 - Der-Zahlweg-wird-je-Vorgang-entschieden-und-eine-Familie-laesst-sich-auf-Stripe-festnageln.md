@@ -6,7 +6,7 @@ title: >-
 status: Done
 assignee: []
 created_date: '2026-09-05 00:18'
-updated_date: '2026-09-05 00:40'
+updated_date: '2026-09-05 01:05'
 labels:
   - wb-docs
   - wb-backend
@@ -46,15 +46,15 @@ Die Regel steht danach einmal in hebel.md und in drei Stufen: Sperre schlaegt Ma
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
-Reihenfolge wie in CLAUDE.md: hebel.md bekam den eigenen Abschnitt "Der Zahlweg" (der Anker #sofortzahlung bleibt, damit die zehn Verweise darauf stehen bleiben), danach 01, 10, 21, grenzkarte.md Q3, dann wb-backend, dann schema/ samt Pruefskripten, zuletzt api/gemeinsam.md und verarbeitungsverzeichnis.md.
-
-wb-backend: app/services/payments.py traegt die Entscheidung als payment_mode_for() samt DIRECT_DEBIT_CAUSES — heute leer, weil Stufe 3 keinen der hier gebauten Anlaesse zum Einzug fuehrt; die drei Schreibstellen in services/cleaning.py und services/ferien.py rufen sie. Die Migrationen der drei Domaenen wurden nach CLAUDE.md Abschnitt 6 bearbeitet statt ergaenzt, die Datenbank also neu aufgesetzt. GRANT UPDATE auf das Sperr-Paar geht an backend_finance und nicht an die Laufzeitrolle.
+Reihenfolge wie in CLAUDE.md: hebel.md bekam den eigenen Abschnitt "Der Zahlweg" (der Anker #sofortzahlung bleibt, damit die zehn Verweise darauf stehen bleiben), danach 01, 10, 21, grenzkarte.md Q3, dann schema/ samt Pruefskripten, zuletzt api/gemeinsam.md und verarbeitungsverzeichnis.md.
 
 Gegenproben: fuenf an families (halbes Paar in beide Richtungen, guardian:, system:, und der erlaubte Fall samt Ruecknahme), drei am Putzdienst (direct_debit erlaubt, invoiced an beiden Freikaeufen abgewiesen), zwei an der Ferienbuchung.
+
+wb-backend blieb auf Wunsch des Betreibers unberuehrt: schema/ liegt damit vor dem Code, also andersherum als CLAUDE.md es vorsieht. TASK-268 dreht es um und traegt die drei Punkte, die in den .sql keinen Anker haben — die gemeinsame Entscheidungsstelle, den GRANT an backend_finance und den Umzug von PAID/INVOICED.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
 
 <!-- SECTION:FINAL_SUMMARY:BEGIN -->
-Der Zahlweg steht als eigene Regel in hebel.md und wird in drei Stufen entschieden: die Sperre der Familie schlaegt das Mandat, das Mandat schlaegt den Anlass. families traegt die Sperre als Paar aus Zeitpunkt und entra:-Akteur, cleaning_buyouts, cleaning_slot_buyouts und holiday_bookings tragen ihren payment_mode. Welcher Anlass eingezogen wird, bleibt TASK-265 — heute keiner ausser der Akademie. Alle 14 Schemata und alle 14 Pruefskripte gruen (ON_ERROR_STOP=1), wb-backend 805 Tests, ruff, ruff format und mypy gruen.
+Der Zahlweg steht als eigene Regel in hebel.md und wird in drei Stufen entschieden: die Sperre der Familie schlaegt das Mandat, das Mandat schlaegt den Anlass. families traegt die Sperre als Paar aus Zeitpunkt und entra:-Akteur, cleaning_buyouts, cleaning_slot_buyouts und holiday_bookings tragen ihren payment_mode. Welcher Anlass eingezogen wird, bleibt TASK-265 — heute keiner ausser der Akademie; der Code zieht mit TASK-268 nach. Alle 14 Schemata und alle 14 Pruefskripte gruen (ON_ERROR_STOP=1).
 <!-- SECTION:FINAL_SUMMARY:END -->
