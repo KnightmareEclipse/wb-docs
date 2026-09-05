@@ -20,10 +20,23 @@
 --     Vollimports gibt es diese Zeile nie: „Der Vollimport bringt die
 --     eingeschriebenen Kinder mit, aber nicht die Bestände, die 08 und 09 sonst
 --     anlegen" (README), und Block 08 nennt sie „erkennbar daran, dass diese
---     Strecke bei ihnen nie lief". Ihre Stammdaten hängen trotzdem an ASV-BW,
---     am Zeugnis und an der Akte. Die Grenze ist deshalb `released_at` **oder**
---     `children.entry_date` gesetzt — die Einschreibung ist bei ihnen, was
---     sonst die Freigabe ist.
+--     Strecke bei ihnen nie lief". Was für sie gilt, entscheidet kein Block:
+--     Beide Stellen reden vom fehlenden Gesundheits- und Vertragsbestand, nicht
+--     vom Schreibpfad der Stammdaten, und die eine Stelle, die für ein
+--     Bestandskind überhaupt eine Folge zieht, zieht die umgekehrte („sperrt bei
+--     einem Bestandskind nichts", README).
+--     `[A]` Die Grenze ist `released_at` **oder** `children.entry_date` gesetzt
+--     — die Einschreibung ist bei ihnen, was sonst die Freigabe ist. —
+--     Alternative: allein `released_at`, wie 02 es wörtlich sagt; Preis: Die
+--     Stammdaten eines Bestandskinds bleiben dauerhaft bei den Eltern, obwohl
+--     sie an ASV-BW, am Zeugnis und an der Akte hängen und jede Änderung dort
+--     Handarbeit auslöst.
+--   * **Beruf, Konfession und Staatsangehörigkeit der Sorgeberechtigten** an
+--     `guardians` (stammdaten-schema.sql). Hinter derselben Grenze wie die
+--     Stammdaten des Kindes: Die Sparsame Ansicht zählt den Beruf zu den
+--     Angaben, die „der Familie bis zur Freigabe des ersten Vertrags am Kind"
+--     gehören und die „von da an nur noch das Sekretariat (02)" ändert
+--     (hebel.md).
 --   * **Die Einsichtsstufe** als `family_guardians.access_level_id` auf
 --     `access_levels`, mit ihren drei Zeilen voll / nur lesen / gesperrt
 --     (hebel.md).
@@ -31,6 +44,12 @@
 --     (stammdaten-schema.sql) und als abgeleitete Frage nach einer laufenden
 --     Verbindung — Bewerbung, Warteplatz, Einschreibung, Hortvertrag,
 --     Ferienbuchung; jede dieser Verbindungen steht in ihrer eigenen Domäne.
+--   * **Die Nachzieh-Aufgabe** als `sync_tasks` (querschnitt-schema.sql, Q5).
+--     Block 02 führt sie unter „Was dabei erhoben wird" mit — „Welche
+--     Aufgabenart … Ob sie offen ist … Wer sie abgehakt hat und mit welchem
+--     Ergebnis" —, und die Schritte 3 und 4 seines Ablaufs sind sie. Ausgelöst
+--     wird sie hier, gebaut ist sie im Querschnitt, weil jede Domäne sie
+--     auslöst.
 --
 -- Drei Dinge bekommen bewusst keine Struktur:
 --
@@ -47,7 +66,7 @@
 --     Änderungsspur (querschnitt-schema.sql), nicht ein eigenes Feld.
 --
 -- Es gibt deshalb keine CREATE-Anweisung in dieser Datei. Das Prüfskript
--- daneben belegt, dass die fünf Strukturen tragen, was dieser Block von ihnen
+-- daneben belegt, dass die sieben Strukturen tragen, was dieser Block von ihnen
 -- verlangt.
 
 

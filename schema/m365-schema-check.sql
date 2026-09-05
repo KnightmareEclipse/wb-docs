@@ -1,9 +1,11 @@
 -- Prüfskript zu m365-schema.sql.
 --
--- Sollstand: keine eigenen Tabellen. Geprüft wird stattdessen, dass die vier
--- fremden Strukturen tragen, was Block 13 von ihnen verlangt — die sechs
--- Angaben an `employees`, die Schuladresse an `children`, die eine Aufgabenart
--- je Person in `sync_tasks` und die Rollen, die am letzten Arbeitstag hängen.
+-- Sollstand: keine eigenen Tabellen — und keine der drei Entitäten, die Block
+-- 13 namentlich ausschließt. Geprüft wird stattdessen, dass die vier fremden
+-- Strukturen tragen, was Block 13 von ihnen verlangt — die sechs Angaben an
+-- `employees` und keine siebte, die Schuladresse an `children` bis über den
+-- Abgang hinaus, die eine Aufgabenart je Person in `sync_tasks` und die
+-- Rollen ohne Entzugseintrag in `employee_roles`.
 --
 -- Setzt stammdaten-schema.sql und querschnitt-schema.sql voraus:
 --   psql -v ON_ERROR_STOP=1 -f m365-schema-check.sql
@@ -11,8 +13,14 @@
 BEGIN;
 
 -- ---------------------------------------------------------------------------
--- 1. Es gibt bewusst keine eigenen Tabellen
+-- 1. Die drei Entitäten, die Block 13 ausschließt, gibt es nicht
 -- ---------------------------------------------------------------------------
+-- Dass diese Domäne überhaupt keine Tabelle anlegt, steht in m365-schema.sql
+-- und ist dort an der fehlenden CREATE-Anweisung ablesbar; in der Datenbank
+-- sieht ein Skript nur Tabellen, nicht ihre Herkunft. Geprüft wird deshalb,
+-- was der Block namentlich ausschließt: der Spiegel des Tenants („Weltenbaum
+-- schreibt dabei nichts in den Tenant und liest keine Gruppen"), der
+-- Kontostatus und der Offboarding-Schritt als eigene Entität.
 DO $$
 DECLARE unexpected text;
 BEGIN
@@ -22,7 +30,7 @@ BEGIN
     IF unexpected IS NOT NULL THEN
         RAISE EXCEPTION 'Domäne 7 hat entgegen Block 13 eigene Tabellen: %', unexpected;
     END IF;
-    RAISE NOTICE 'ok: keine eigenen Tabellen, wie Block 13 es festlegt';
+    RAISE NOTICE 'ok: keine der drei Entitäten, die Block 13 ausschließt';
 END $$;
 
 -- ---------------------------------------------------------------------------
@@ -30,6 +38,7 @@ END $$;
 -- ---------------------------------------------------------------------------
 DO $$
 DECLARE missing text;
+        unexpected text;
 BEGIN
     SELECT string_agg(c, ', ') INTO missing
     FROM unnest(ARRAY['person_id', 'house_id', 'work_email', 'first_working_day',
@@ -41,20 +50,39 @@ BEGIN
         RAISE EXCEPTION 'Dem Mitarbeitendeneintrag fehlen Angaben: %', missing;
     END IF;
 
-    -- „Mehr Personaldaten entstehen hier nicht — kein Vertrag, kein
-    -- Stundenumfang, kein Gehalt."
+    -- „sechs Angaben und keine siebte" — als Sollliste über alle Spalten und
+    -- nicht als Ausschluss geratener Namen: „Mehr Personaldaten entstehen hier
+    -- nicht — kein Vertrag, kein Stundenumfang, kein Gehalt." Mitgezählt sind
+    -- die Schlüssel- und Urheberspalten, die jede Tabelle trägt, `has_note`
+    -- (die Grenze gegen die Notiz an `persons`) und `entra_object_id` — die
+    -- Anmeldeidentität, in stammdaten-schema.sql als „keine siebte Angabe"
+    -- begründet.
+    SELECT string_agg(column_name, ', ') INTO unexpected
+      FROM information_schema.columns
+     WHERE table_name = 'employees'
+       AND column_name <> ALL (ARRAY['employee_id', 'person_id', 'has_note',
+                                     'house_id', 'work_email', 'entra_object_id',
+                                     'first_working_day', 'last_working_day',
+                                     'successor_note', 'created_at', 'created_by']);
+    IF unexpected IS NOT NULL THEN
+        RAISE EXCEPTION 'Der Mitarbeitendeneintrag führt Angaben, die Block 13 ausschließt: %', unexpected;
+    END IF;
+
+    -- „eine Rollenhistorie mit einem Entzugseintrag gibt es dafür nicht,
+    -- weil niemand entzieht" (13) — die Rollenzeile endet mit dem letzten
+    -- Arbeitstag des Mitarbeitenden und sonst gar nicht.
     IF EXISTS (SELECT 1 FROM information_schema.columns
-                WHERE table_name = 'employees'
-                  AND column_name IN ('salary', 'contract_type', 'weekly_hours',
-                                      'vacation_days')) THEN
-        RAISE EXCEPTION 'Der Mitarbeitendeneintrag führt Personaldaten, die Block 13 ausschließt';
+                WHERE table_name = 'employee_roles'
+                  AND column_name IN ('revoked_at', 'revoked_by', 'ended_at',
+                                      'valid_until')) THEN
+        RAISE EXCEPTION 'Die Rollenzeile trägt einen Entzug oder ein Ende, das Block 13 ausschließt';
     END IF;
 
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns
                     WHERE table_name = 'children' AND column_name = 'school_email') THEN
         RAISE EXCEPTION 'Die Schuladresse am Kind fehlt';
     END IF;
-    RAISE NOTICE 'ok: sechs Angaben am Mitarbeitenden, Schuladresse am Kind, keine siebte';
+    RAISE NOTICE 'ok: sechs Angaben und keine siebte, Schuladresse am Kind, Rollen ohne Entzug';
 END $$;
 
 CREATE FUNCTION pg_temp.expect_reject(rule text, stmt text) RETURNS void AS $$
@@ -80,6 +108,9 @@ INSERT INTO houses (house_id, code, name, created_by) OVERRIDING SYSTEM VALUE
     VALUES (1, 'school', 'Schule', 'system:check'), (2, 'kita', 'KITA', 'system:check');
 INSERT INTO roles (role_id, code, name, created_by) OVERRIDING SYSTEM VALUE
     VALUES (1, 'admin', 'Admin', 'system:check');
+INSERT INTO school_branches (school_branch_id, code, name, first_grade_level,
+                             final_grade_level, created_by)
+    OVERRIDING SYSTEM VALUE VALUES (1, 'GS', 'Grundschule', 1, 4, 'system:check');
 INSERT INTO sync_targets (sync_target_id, code, name, role_id, created_by)
     OVERRIDING SYSTEM VALUE VALUES (1, 'm365', 'M365', 1, 'system:check');
 INSERT INTO persons (person_id, first_name, last_name, created_by) VALUES
@@ -91,10 +122,15 @@ INSERT INTO employees (employee_id, person_id, house_id, created_by) VALUES
     ('55555555-5555-5555-5555-555555555552', '22222222-2222-2222-2222-222222222222', 2, 'system:check');
 INSERT INTO families (family_id, created_by)
     VALUES ('33333333-3333-3333-3333-333333333333', 'system:check');
-INSERT INTO children (child_id, person_id, family_id, birth_date, created_by)
+-- Eingeschrieben, damit es unten abgehen kann: „bleibt stehen, auch wenn
+-- dessen Konto längst weg ist" trägt nur an einem Kind, das je eines hatte.
+INSERT INTO children (child_id, person_id, family_id, birth_date,
+                      school_branch_id, first_grade_level, final_grade_level,
+                      grade_level, entry_date, created_by)
     VALUES ('44444444-4444-4444-4444-444444444441',
             '22222222-2222-2222-2222-222222222223',
-            '33333333-3333-3333-3333-333333333333', DATE '2018-05-01', 'system:check');
+            '33333333-3333-3333-3333-333333333333', DATE '2018-05-01',
+            1, 1, 4, 2, DATE '2026-08-01', 'system:check');
 
 -- ---------------------------------------------------------------------------
 -- 4. Gegenproben
@@ -114,8 +150,9 @@ SELECT pg_temp.expect_reject(
     $q$UPDATE employees SET work_email = 'kita@kita.de'
         WHERE employee_id = '55555555-5555-5555-5555-555555555551'$q$);
 
--- 13: „Je Person gibt es dabei eine Aufgabenart und nicht zwei — Anlegen und
--- Offboarding ersetzen einander, statt sich zu verdoppeln."
+-- 13: „Je Person gibt es dabei eine Aufgabenart und nicht zwei — die Art ist
+-- das Ziel M365 und nicht der Anlass: Anlegen und Offboarding ersetzen
+-- einander, statt sich zu verdoppeln."
 INSERT INTO sync_tasks (sync_task_id, sync_target_id, person_id, task_text, created_by)
     VALUES ('66666666-6666-6666-6666-666666666661', 1,
             '22222222-2222-2222-2222-222222222221', 'Konto anlegen', 'system:check');
@@ -154,10 +191,9 @@ SELECT pg_temp.expect_reject(
 -- weg ist — sie sagt dann, welches es war."
 SELECT pg_temp.expect_accept(
     '13 — Schuladresse bleibt am abgegangenen Kind stehen',
-    $q$UPDATE children SET school_email = 'kind@schule.de',
-                           school_branch_id = NULL, grade_level = NULL,
-                           first_grade_level = NULL, final_grade_level = NULL,
-                           exit_date = NULL, exit_reason = NULL
+    $q$UPDATE children SET school_email = 'kind@schule.de'
+        WHERE child_id = '44444444-4444-4444-4444-444444444441';
+       UPDATE children SET exit_date = DATE '2027-01-31', exit_reason = 'Umzug'
         WHERE child_id = '44444444-4444-4444-4444-444444444441'$q$);
 
 DO $$ BEGIN RAISE NOTICE 'm365-schema-check: alle Gegenproben bestanden'; END $$;

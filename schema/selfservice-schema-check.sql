@@ -1,6 +1,6 @@
 -- Prüfskript zu selfservice-schema.sql.
 --
--- Sollstand: keine eigenen Tabellen. Geprüft wird, dass die fünf Strukturen
+-- Sollstand: keine eigenen Tabellen. Geprüft wird, dass die sieben Strukturen
 -- stehen, auf denen der Selfservice arbeitet, und dass die drei bewusst nicht
 -- gebauten Dinge auch wirklich nicht da sind.
 --
@@ -37,9 +37,19 @@ BEGIN
         ('persons.email'), ('persons.last_login_at'), ('addresses.street'),
         ('phone_numbers.number'), ('family_contacts.is_emergency_contact'),
         ('family_guardians.access_level_id'), ('login_codes.created_at'),
-        -- Die Grenze aus 02 hat zwei Seiten: die Freigabe des ersten Vertrags
-        -- und, bei den Kindern des Vollimports ohne Vertrag, die Einschreibung.
-        ('contracts.released_at'), ('children.entry_date')
+        -- Die Freigabe des ersten Vertrags (02) und, bei den Kindern des
+        -- Vollimports ohne Vertrag, die Einschreibung — die zweite Seite ist
+        -- die `[A]` in selfservice-schema.sql und kein Satz aus einem Block.
+        ('contracts.released_at'), ('children.entry_date'),
+        -- Sparsame Ansicht: der Beruf gehört „der Familie bis zur Freigabe des
+        -- ersten Vertrags am Kind", samt Konfession und Staatsangehörigkeit der
+        -- Sorgeberechtigten — dieselbe Grenze, eine andere Tabelle.
+        ('guardians.occupation'), ('guardians.denomination_id'),
+        ('guardians.nationality_country_id'),
+        -- 02, „Je Nachzieh-Aufgabe": Aufgabenart, ob sie offen ist, wer sie
+        -- abgehakt hat und mit welchem Ergebnis.
+        ('sync_tasks.sync_target_id'), ('sync_tasks.completed_at'),
+        ('sync_tasks.completed_by'), ('sync_tasks.outcome')
     ) AS v(x)
     WHERE NOT EXISTS (
         SELECT 1 FROM information_schema.columns
@@ -48,7 +58,7 @@ BEGIN
     IF missing IS NOT NULL THEN
         RAISE EXCEPTION 'Dem Selfservice fehlen Strukturen: %', missing;
     END IF;
-    RAISE NOTICE 'ok: alle fünf Strukturen stehen';
+    RAISE NOTICE 'ok: alle sieben Strukturen stehen';
 END $$;
 
 CREATE FUNCTION pg_temp.expect_reject(rule text, stmt text) RETURNS void AS $$
@@ -88,7 +98,9 @@ INSERT INTO persons (person_id, first_name, last_name, email, address_id, create
      '11111111-1111-1111-1111-111111111111', 'guardian:22222222-2222-2222-2222-222222222221'),
     ('22222222-2222-2222-2222-222222222222', 'Vater',  'Muster', 'fam@example.org',
      '11111111-1111-1111-1111-111111111111', 'guardian:22222222-2222-2222-2222-222222222221'),
-    ('22222222-2222-2222-2222-222222222223', 'Oma',    'Muster', NULL, NULL, 'entra:sekretariat');
+    ('22222222-2222-2222-2222-222222222223', 'Oma',    'Muster', NULL, NULL, 'entra:sekretariat'),
+    ('22222222-2222-2222-2222-222222222224', 'Kind',   'Muster', NULL,
+     '11111111-1111-1111-1111-111111111111', 'guardian:22222222-2222-2222-2222-222222222221');
 INSERT INTO families (family_id, created_by)
     VALUES ('33333333-3333-3333-3333-333333333331', 'guardian:22222222-2222-2222-2222-222222222221');
 INSERT INTO family_guardians (family_id, person_id, guardian_relation_id,
@@ -97,6 +109,14 @@ INSERT INTO family_guardians (family_id, person_id, guardian_relation_id,
      'guardian:22222222-2222-2222-2222-222222222221'),
     ('33333333-3333-3333-3333-333333333331', '22222222-2222-2222-2222-222222222222', 2, 1,
      'guardian:22222222-2222-2222-2222-222222222221');
+-- Das Kind auf derselben `addresses`-Zeile wie seine Eltern. Ohne es belegt die
+-- Gegenprobe zum Umzug unten nur, dass ein UPDATE durchgeht — der Fall, um den
+-- die Regel aus 02 geht, kommt darin gar nicht vor.
+INSERT INTO children (child_id, person_id, family_id, birth_date, created_by)
+    VALUES ('44444444-4444-4444-4444-444444444441',
+            '22222222-2222-2222-2222-222222222224',
+            '33333333-3333-3333-3333-333333333331', '2018-05-04',
+            'guardian:22222222-2222-2222-2222-222222222221');
 
 -- ---------------------------------------------------------------------------
 -- Gegenproben
@@ -129,11 +149,49 @@ SELECT pg_temp.expect_accept(
 
 -- 02: „Wer die eigene Anschrift ändert, wird gefragt, ob sie auch für die
 -- Kinder gilt — ein Häkchen, kein zweiter Vorgang": eine Zeile, mehrere
--- Personen darauf.
+-- Personen darauf — die beiden Sorgeberechtigten und das Kind.
 SELECT pg_temp.expect_accept(
     '02 — Umzug einer Familie als eine Änderung',
     $q$UPDATE addresses SET street = 'Nebenstr.', house_number = '7'
         WHERE address_id = '11111111-1111-1111-1111-111111111111'$q$);
+
+DO $$
+BEGIN
+    IF (SELECT count(*) FROM children c
+          JOIN persons p   ON p.person_id = c.person_id
+          JOIN addresses a ON a.address_id = p.address_id
+         WHERE a.street = 'Nebenstr.') <> 1
+       OR (SELECT count(*) FROM family_guardians fg
+             JOIN persons p   ON p.person_id = fg.person_id
+             JOIN addresses a ON a.address_id = p.address_id
+            WHERE a.street = 'Nebenstr.') <> 2 THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — der Umzug erreicht nicht Eltern und Kind zugleich';
+    END IF;
+    RAISE NOTICE 'ok (erlaubt): 02 — der Umzug erreicht Eltern und Kind in einem Vorgang';
+END $$;
+
+-- Und die Gegenrichtung, ohne die die obige nur belegt, dass ein UPDATE
+-- durchgeht: Wird das Häkchen nicht gesetzt, hängt allein der Umziehende an der
+-- neuen Zeile und das Kind bleibt an seiner.
+INSERT INTO addresses (address_id, street, house_number, postal_code, city, country_id, created_by)
+    VALUES ('11111111-1111-1111-1111-111111111112', 'Einzelweg', '3', '12345',
+            'Musterstadt', 1, 'guardian:22222222-2222-2222-2222-222222222221');
+
+SELECT pg_temp.expect_accept(
+    '02 — Umzug eines Elternteils allein, ohne das Häkchen',
+    $q$UPDATE persons SET address_id = '11111111-1111-1111-1111-111111111112'
+        WHERE person_id = '22222222-2222-2222-2222-222222222221'$q$);
+
+DO $$
+BEGIN
+    IF (SELECT a.street FROM children c
+          JOIN persons p   ON p.person_id = c.person_id
+          JOIN addresses a ON a.address_id = p.address_id
+         WHERE c.child_id = '44444444-4444-4444-4444-444444444441') <> 'Nebenstr.' THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — das Kind zieht ungefragt mit';
+    END IF;
+    RAISE NOTICE 'ok (erlaubt): 02 — ohne Häkchen bleibt das Kind an seiner Anschrift';
+END $$;
 
 -- 02: die Eltern tragen selbst ein — der Urheber trägt das guardian-Präfix.
 SELECT pg_temp.expect_accept(
@@ -169,8 +227,9 @@ BEGIN
     RAISE NOTICE 'ok (erlaubt): 00 — zwei Sorgeberechtigte teilen sich eine Mailadresse';
 END $$;
 
--- hebel.md, Anmeldecode: er hängt an der Adresse und nicht an einer Person —
--- „bevor dort irgendetwas entsteht, bestätigen sie ihre Mailadresse".
+-- Der Anmeldecode hängt an der Adresse und nicht an einer Person (hebel.md,
+-- „Zugang und Anmeldecode"); 00: „bevor dort irgendetwas entsteht, bestätigen
+-- sie ihre Mailadresse mit demselben Code".
 SELECT pg_temp.expect_accept(
     '00 — Anmeldecode für eine Adresse, die der Schule unbekannt ist',
     $q$INSERT INTO login_codes (email, code_hash, purpose)
