@@ -29,7 +29,9 @@ Drei Strukturaenderungen in einer Revision — solange nichts produktiv laeuft, 
 - consent_purposes: drei Themen fuer die Ehemaligen — Kind, Elternteil, Mitarbeitende —, alle auf newsletter.
 - alumni_kinds: former_pupil (mit Jahrgang), former_guardian (ohne), former_employee (mit).
 
-Dazu die Schreibschicht: Die Untergrenze je Familie bei der Schulinformation spannt ueber zwei Personenzeilen und kann kein CHECK sein (Trigger sind ausgeschlossen). Sie lebt in der Schreibschicht, und die Gegenprobe ist, dass die Route die Abwahl des Letzten abweist. Zwei Folgen: ein alleiniger Sorgeberechtigter kann nicht abwaehlen, und scheidet der zweite aus, wird der Verbliebene wieder eingeschaltet.
+Die Untergrenze je Familie bei der Schulinformation spannt ueber zwei Personenzeilen und kann kein CHECK sein — **sie steht seit dem Trigger `trg_consents_family_floor` in der Datenbank** (schema/querschnitt-schema.sql) und nicht mehr in der Schreibschicht. Der frueher hier stehende Nebensatz "Trigger sind ausgeschlossen" trug nicht: Er gilt der Aenderungsspur (ACHTUNG-Block im Kopf derselben Datei), und fuenf Domaenen fuehren laengst Zulassungs-Trigger. Fuer wb-backend bleibt damit **die Uebersetzung**: Die Route faengt den Fehler und macht eine Meldung daraus, statt die Regel ein zweites Mal zu fuehren.
+
+Was der Trigger nicht sieht, weil dabei niemand `consents` anfasst: das Ausscheiden des zweiten Sorgeberechtigten. Ein Trigger auf `family_guardians` waere der falsche Ort — er muesste eine Einwilligung von Maschinenhand zuruecknehmen und feuerte auch fuer die Cascade des Loesch-Laufs. Das Wiedereinschalten bleibt deshalb Arbeit des Laufs (#5); das Pruefskript haelt die Luecke als benannte Auslassung fest.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
@@ -37,7 +39,7 @@ Dazu die Schreibschicht: Die Untergrenze je Familie bei der Schulinformation spa
 - [ ] #1 mail_categories steht, drei Zeilen als Anfangsbestand, ein viertes Thema ist eine Zeile
 - [ ] #2 fk_consents_person haelt fest; die Gegenprobe: eine Person mit offener Newsletter-Zeile laesst sich nicht loeschen
 - [ ] #3 photo_consent_records steht samt vierter Bibliothek; die Gegenprobe: Kind und Person gehen, der Nachweis bleibt
-- [ ] #4 Die Route weist die Abwahl der letzten Schulinformation einer Familie ab — Test erst rot, dann gruen
+- [ ] #4 Die Route uebersetzt den Fehler von `trg_consents_family_floor` in eine Meldung, die sagt, wer die Schulinformation behalten muss — Test erst rot, dann gruen
 - [ ] #5 Scheidet ein Sorgeberechtigter aus, ist der Verbliebene wieder eingeschaltet
 - [ ] #6 alumni steht; die Gegenprobe: dieselbe Person als ehemaliges Kind und als ehemalige Mitarbeitende geht, zweimal dieselbe Art nicht
 - [ ] #7 Der Juni-Lauf legt Einwilligung und Zugehoerigkeit zusammen an; ohne Zustimmung entsteht keine Zeile

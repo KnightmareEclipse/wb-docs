@@ -43,7 +43,7 @@ Der Widerspruch löscht nicht, er setzt einen Zeitpunkt. Sonst ist später nicht
 
 **Nachtrag 04.09.2026 (Geschäftsführung), zwei Dinge:**
 
-**Erstens ist der Verteiler kein Bestand für Ehemalige allein.** Auch eine laufende Familie muss sich abmelden können, und dabei entsteht eine dritte Sorte Mail neben Newsletter und Vorgangsmail: die **Schulinformation**, abwählbar, aber **einer je Familie muss sie bekommen**. Ein Boolean trennt drei Fälle nicht — `is_newsletter_topic` ist deshalb eine Werteliste `mail_categories` geworden, an der zugleich die Untergrenze hängt; eine feinere Aufteilung (Ferienprogramm, Akademie) ist danach eine Zeile und kein Bau. Die Untergrenze selbst spannt über zwei Personenzeilen und kann kein CHECK sein: sie lebt in der Schreibschicht (TASK-246).
+**Erstens ist der Verteiler kein Bestand für Ehemalige allein.** Auch eine laufende Familie muss sich abmelden können, und dabei entsteht eine dritte Sorte Mail neben Newsletter und Vorgangsmail: die **Schulinformation**, abwählbar, aber **einer je Familie muss sie bekommen**. Ein Boolean trennt drei Fälle nicht — `is_newsletter_topic` ist deshalb eine Werteliste `mail_categories` geworden, an der zugleich die Untergrenze hängt; eine feinere Aufteilung (Ferienprogramm, Akademie) ist danach eine Zeile und kein Bau. Die Untergrenze selbst spannt über zwei Personenzeilen und kann kein CHECK sein: sie steht als Trigger `trg_consents_family_floor` in `schema/querschnitt-schema.sql`, und die Route übersetzt seinen Fehler (TASK-246).
 
 **Zweitens hätte Stufe 6 des Lösch-Laufs den Verteiler still abgeräumt.** `fk_consents_person` stand auf `ON DELETE CASCADE` — die Einwilligung ging mit der Person, statt sie festzuhalten, und niemand hätte widersprochen. Sie steht jetzt auf NO ACTION, der Lauf räumt die kindlosen Zustimmungen selbst und lässt genau die stehen, die abbestellbar und nicht widerrufen ist; die Person wird dann reduziert statt gelöscht (Anrede und Name bleiben, Anschrift und Telefon gehen). Die Regel dafür steht in `soll-prozesse/17`: Was seinen Anker überdauern muss, hält ihn fest.
 
@@ -65,7 +65,7 @@ Der Widerspruch löscht nicht, er setzt einen Zeitpunkt. Sonst ist später nicht
 - [x] #7 Die Sammelmail ist mitgedacht: outbound_emails trägt je Empfänger eine Zeile, und der Verweis auf eine Sendung ist später eine nullable Spalte — kein Umbau
 - [ ] #8 Entschieden, ab welcher Menge der Versand aus dem Portal an die Grenzen des Tenants stößt
 - [x] #9 Die drei Sorten Mail stehen als Werteliste; eine Untergrenze an einer nicht abwählbaren Kategorie wird abgewiesen
-- [ ] #10 Die Schreibschicht weist die Abwahl der letzten Schulinformation einer Familie ab (TASK-246)
+- [x] #10 Die Abwahl der letzten Schulinformation einer Familie wird abgewiesen — `trg_consents_family_floor`, fünf Gegenproben samt Rot-Beleg; die Übersetzung in eine Meldung ist TASK-246 #4
 - [x] #11 Die Zugehörigkeit steht neben der Person: je Person und Art eine Zeile, Jahrgang wo die Art ihn verlangt, und sie hält die Person fest
 - [ ] #12 Die drei Themen und die drei Arten stehen als Anfangsbestand der Wertelisten (TASK-246)
 <!-- AC:END -->

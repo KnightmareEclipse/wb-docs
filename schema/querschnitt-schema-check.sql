@@ -1469,14 +1469,37 @@ SELECT pg_temp.expect_accept(
                (SELECT consent_purpose_id FROM consent_purposes WHERE code='newsletter_alumni'),
                now(), 'mutter@example.org', 'guardian:x')$q$);
 
--- Die Zweitfamilie hat ihren Zweck erfüllt und geht wieder: Der Lösch-Lauf
--- weiter unten zählt, was nach ihm noch steht, und diese vier Zeilen gehören
--- keiner seiner Stufen. `family_guardians` geht per Cascade mit der Familie.
-DELETE FROM consents WHERE person_id IN ('2a222222-2222-2222-2222-222222222221',
-                                         '2a222222-2222-2222-2222-222222222222');
-DELETE FROM families WHERE family_id = '3a333333-3333-3333-3333-333333333333';
-DELETE FROM persons  WHERE person_id IN ('2a222222-2222-2222-2222-222222222221',
-                                         '2a222222-2222-2222-2222-222222222222');
+-- **Die benannte Auslassung**, wie die Mail ohne Löschanker weiter unten. Kein
+-- Trigger auf `consents` sieht den einen Weg, auf dem eine Familie ihren
+-- letzten Empfänger verliert, ohne dass jemand `consents` anfasst: das
+-- Ausscheiden des zweiten Sorgeberechtigten. Ein Trigger auf
+-- `family_guardians` wäre der falsche Ort — er müsste eine Einwilligung von
+-- Maschinenhand zurücknehmen (Art. 7 DSGVO steht an dieser Zeile) und feuerte
+-- dabei auch für die Cascade des Lösch-Laufs (17), also genau dort, wo nichts
+-- mehr einzuschalten ist. „Scheidet der zweite Sorgeberechtigte aus, schaltet
+-- der Lösch-Lauf den Verbliebenen wieder ein" (00, api/querschnitt-api.md) —
+-- TASK-246 #5. Diese Probe hält fest, dass die Datenbank es **nicht** tut,
+-- damit niemand die Lücke später für gebaut hält.
+SELECT pg_temp.expect_accept(
+    '00 — die Mutter scheidet aus, obwohl der Vater abgewählt hat',
+    $q$DELETE FROM family_guardians
+        WHERE family_id = '3a333333-3333-3333-3333-333333333333'
+          AND person_id = '2a222222-2222-2222-2222-222222222221'$q$);
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM family_guardians fg
+                WHERE fg.family_id = '3a333333-3333-3333-3333-333333333333'
+                  AND NOT EXISTS (
+                        SELECT 1 FROM consents c
+                         WHERE c.person_id = fg.person_id
+                           AND c.consent_purpose_id =
+                               (SELECT consent_purpose_id FROM consent_purposes
+                                 WHERE code='school_info_general')
+                           AND c.declined_at IS NOT NULL)) THEN
+        RAISE EXCEPTION 'unerwartet: die Familie hat noch einen Empfänger — dann prüft diese Probe nichts';
+    END IF;
+    RAISE NOTICE 'ok (erlaubt): 00 — die Familie steht ohne Empfänger da; das Wiedereinschalten ist Arbeit des Lösch-Laufs (TASK-246 #5)';
+END $$;
 
 -- Die drei Sorten Mail: Eine Untergrenze je Familie an einer Kategorie, die
 -- ohnehin niemand abwählen kann, ist gegenstandslos.
@@ -1776,8 +1799,14 @@ SELECT pg_temp.expect_reject(
 
 DO $$
 BEGIN
+    -- Gezählt wird der Bestand, den dieser Lauf geräumt hat, und nicht jede
+    -- Zustimmung der Datenbank: Wer sonst noch eine trägt, gehört einer anderen
+    -- Probe. Sonst bräche diese Stelle bei jeder Person, die eine spätere
+    -- Gegenprobe anlegt — und meldete einen Fehler, der keiner ist.
     IF EXISTS (SELECT 1 FROM consents
-                WHERE person_id <> '22222222-2222-2222-2222-222222222229')
+                WHERE person_id IN ('22222222-2222-2222-2222-222222222221',
+                                    '22222222-2222-2222-2222-222222222222',
+                                    '22222222-2222-2222-2222-222222222228'))
        OR EXISTS (SELECT 1 FROM outbound_emails WHERE recipient_email = 'mutter@example.org') THEN
         RAISE EXCEPTION 'REGEL NICHT GEBAUT — Zustimmung oder Mail überlebt ihre Person';
     END IF;
