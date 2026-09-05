@@ -20,7 +20,7 @@ ordinal: 235000
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Die Freigabe je Instanz steht (TASK-205), und eine außerunterrichtliche Veranstaltung ist eine solche Instanz: Die Eltern geben ihr die Angaben befristet frei, vier Wochen nach dem Ende der Fahrt sind sie fort (19, `health_trait_releases.is_temporary`). Offen ist die andere Hälfte — **wer die Instanz lesen darf**.
+Die Freigabe je Instanz steht (TASK-205), und eine außerunterrichtliche Veranstaltung ist eine solche Instanz: Die Eltern geben ihr die Angaben befristet frei, vier Wochen nach dem Ende der Fahrt sind sie fort (19, `health_visibility_scopes.is_temporary`). Offen ist die andere Hälfte — **wer die Instanz lesen darf**.
 
 Block 19 sagt es namentlich: „Wer die Angaben sehen darf, bestimmt die Lehrkraft — sie benennt Verantwortlichen und Begleitperson, beides nur interne Mitarbeitende, dazu die Schulleitung." Das Modell kann das nicht ausdrücken. Ein Sichtkreis ist eine Sicht in der Datenbank mit einer eigenen DB-Rolle, vergeben per GRANT (`api/gesundheit-api.md`): Eine je Fahrt benannte Person ist darin nicht darstellbar, und jede Fahrt kostete eine Sicht und ein GRANT.
 

@@ -10,8 +10,9 @@
 -- Freigaben child_health_releases und health_trait_releases; dazu
 -- health_emergency_accesses und measles_proofs. Ein partieller Unique-Index
 -- gegen die zweite Zeile einer Kategorie, die nur eine erlaubt, ein Index
--- auf dem Paar (Kategorie, Feld), über das jede Sicht filtert, und einer auf
--- dem Löschtermin der Freigabe.
+-- auf dem Paar (Kategorie, Feld), über das jede Sicht filtert, und ein
+-- partieller auf der Herkunft der Angabe — die Frage des Lösch-Laufs, welche
+-- Angaben an einem abgelaufenen Anlass hängen.
 --
 -- Setzt stammdaten-schema.sql und querschnitt-schema.sql voraus:
 --   psql -v ON_ERROR_STOP=1 -f gesundheit-schema-check.sql
@@ -50,7 +51,7 @@ BEGIN
         'pk_health_visibility_scopes', 'uq_health_visibility_scopes_release',
         'uq_health_visibility_scopes_emergency',
         'uq_health_visibility_scopes_temporary', 'ck_health_visibility_scopes_temporary',
-        'fk_health_trait_releases_scope', 'ck_health_trait_releases_temporary',
+        'ck_health_visibility_scopes_ends',
         'pk_health_field_visibility', 'fk_health_field_visibility_pair',
         'fk_health_field_visibility_kind', 'ck_health_field_visibility_presence',
         'ck_health_field_visibility_emergency',
@@ -64,13 +65,14 @@ BEGIN
         'uq_child_health_answers_record',
         'pk_health_traits', 'fk_health_traits_answer', 'fk_health_traits_record',
         'fk_health_traits_type', 'uq_health_traits_type', 'uq_health_traits_record',
+        'fk_health_traits_origin', 'ck_health_traits_origin',
+        'ck_health_traits_origin_temporary',
         'pk_child_health_releases', 'fk_child_health_releases_record',
         'fk_child_health_releases_scope', 'uq_child_health_releases',
         'uq_child_health_releases_state', 'ck_child_health_releases_needs',
         'ck_child_health_releases_answer',
         'pk_health_trait_releases', 'fk_health_trait_releases_trait',
         'fk_health_trait_releases_release', 'ck_health_trait_releases_released',
-        'ck_health_trait_releases_dates',
         'pk_health_trait_values', 'fk_health_trait_values_trait',
         'fk_health_trait_values_pair', 'fk_health_trait_values_kind',
         'fk_health_trait_values_document', 'uq_health_trait_values',
@@ -89,8 +91,8 @@ BEGIN
     IF to_regclass('public.ix_health_trait_values_pair') IS NULL THEN
         RAISE EXCEPTION 'Fehlender Index: ix_health_trait_values_pair';
     END IF;
-    IF to_regclass('public.ix_health_trait_releases_delete_on') IS NULL THEN
-        RAISE EXCEPTION 'Fehlender Index: ix_health_trait_releases_delete_on';
+    IF to_regclass('public.ix_health_traits_origin') IS NULL THEN
+        RAISE EXCEPTION 'Fehlender Index: ix_health_traits_origin';
     END IF;
     RAISE NOTICE 'ok: alle geprüften Constraints und Indizes vorhanden';
 END $$;
@@ -158,7 +160,10 @@ INSERT INTO health_trait_types (health_trait_type_id, code, name, allows_multipl
     (2, 'emergency_med',  'Notfallmedikament',       true,  'system:check'),
     (3, 'diagnosis',      'Chronische Erkrankung',   true,  'system:check'),
     (4, 'school_support', 'Schulbegleitung',         false, 'system:check'),
-    (5, 'tick_removal',   'Zeckenentfernung',        false, 'system:check');
+    (5, 'tick_removal',   'Zeckenentfernung',        false, 'system:check'),
+    -- 19: „Schwimmfähigkeit … verschwindet mit der Fahrt" — die Kategorie, die
+    -- der Vertrag nicht erhebt und die deshalb nur über einen Anlass hereinkommt.
+    (6, 'swimming',       'Schwimmfähigkeit',        false, 'system:check');
 
 INSERT INTO health_fields (health_field_id, code, name, value_kind_code, created_by)
     OVERRIDING SYSTEM VALUE VALUES
@@ -167,7 +172,8 @@ INSERT INTO health_fields (health_field_id, code, name, value_kind_code, created
     (3, 'permission',    'Erlaubnis',              'bool',     'system:check'),
     (4, 'certificate',   'Attest',                 'document', 'system:check'),
     (5, 'period',        'Zeitraum',               'period',   'system:check'),
-    (6, 'vaccinated_on', 'Datum der letzten Impfung', 'date',  'system:check');
+    (6, 'vaccinated_on', 'Datum der letzten Impfung', 'date',  'system:check'),
+    (7, 'can_swim',      'Kann schwimmen',         'bool',     'system:check');
 
 INSERT INTO health_type_fields (health_trait_type_id, health_field_id, created_by) VALUES
     (1, 1, 'system:check'), (1, 2, 'system:check'),
@@ -175,7 +181,8 @@ INSERT INTO health_type_fields (health_trait_type_id, health_field_id, created_b
     (3, 1, 'system:check'), (3, 2, 'system:check'), (3, 4, 'system:check'),
     (3, 5, 'system:check'),
     (4, 1, 'system:check'),
-    (5, 3, 'system:check');
+    (5, 3, 'system:check'),
+    (6, 7, 'system:check');
 
 -- Fünf Sichtkreise, und `needs_release` sagt, welche Freigabeziele sind:
 -- `school` und `care`, nicht `full`, `kitchen` und `emergency`.
@@ -318,8 +325,18 @@ SELECT pg_temp.expect_reject(
     $q$UPDATE child_health_records SET declined_at = now()
         WHERE child_health_record_id = '55555555-5555-5555-5555-555555555551'$q$);
 
--- grenzkarte.md: „Der kurze handlungsrelevante Hinweis … ein Feld am Bestand,
--- nicht am Merkmal." Seit dem 04.09.2026 eine Zeile je Sichtkreis: Schule und
+-- Und die eine Stelle, an der beide leer bleiben dürfen: der Bestand eines
+-- Kindes aus dem Vollimport, bei dem diese Strecke nie lief. Eine Ebene tiefer
+-- gibt es diesen Fall nicht, und dort prüft der CHECK deshalb mit `<>`.
+SELECT pg_temp.expect_accept(
+    '08 — der Bestand des Vollimports: weder beantwortet noch verweigert',
+    $q$UPDATE child_health_records SET answered_at = NULL
+        WHERE child_health_record_id = '55555555-5555-5555-5555-555555555551';
+       UPDATE child_health_records SET answered_at = now()
+        WHERE child_health_record_id = '55555555-5555-5555-5555-555555555551'$q$);
+
+-- grenzkarte.md: „Der kurze handlungsrelevante Hinweis steht daneben: am
+-- Bestand, nicht am Merkmal … Er steht je Sichtkreis." Schule und
 -- Hort schreiben je für ihren eigenen Alltag, und ein externes Hortkind hat
 -- gar keine Klassenlehrkraft, die schriebe.
 SELECT pg_temp.expect_accept(
@@ -362,12 +379,14 @@ SELECT pg_temp.expect_reject(
     $q$INSERT INTO child_health_records (child_id, declined_at, created_by)
        VALUES ('44444444-4444-4444-4444-444444444441', now(), 'system:check')$q$);
 
--- Zustand 1: gefragt, es gibt nichts — eine Antwortzeile ohne Merkmal.
+-- Zustand 1: gefragt, es gibt nichts — eine Antwortzeile ohne Merkmal. Die
+-- Kategorie 2 bleibt bis zum Schluss ohne Angabe, sonst wäre die Zeile hinterher
+-- keine Entwarnung mehr.
 SELECT pg_temp.expect_accept(
     '3a — beantwortet, ohne dass es etwas zu nennen gibt',
     $q$INSERT INTO child_health_answers (child_health_record_id, health_trait_type_id,
                                          answered_at, created_by)
-       VALUES ('55555555-5555-5555-5555-555555555551', 1, now(), 'system:check')$q$);
+       VALUES ('55555555-5555-5555-5555-555555555551', 2, now(), 'system:check')$q$);
 
 -- Zustand 2: gefragt, will nicht sagen — die Freiwilligkeit je Kategorie.
 SELECT pg_temp.expect_accept(
@@ -380,13 +399,22 @@ SELECT pg_temp.expect_reject(
     '3a — Kategorie zugleich beantwortet und verweigert',
     $q$INSERT INTO child_health_answers (child_health_record_id, health_trait_type_id,
                                          answered_at, declined_at, created_by)
-       VALUES ('55555555-5555-5555-5555-555555555551', 2, now(), now(), 'system:check')$q$);
+       VALUES ('55555555-5555-5555-5555-555555555551', 6, now(), now(), 'system:check')$q$);
+
+-- Und weder noch ist kein vierter Zustand: „nie gefragt" ist die fehlende
+-- Zeile, und eine Zeile ohne beides läse sich in jedem Join wie „will nicht
+-- sagen" (dieselbe `<>`-Form wie `consents` in querschnitt-schema.sql).
+SELECT pg_temp.expect_reject(
+    '3a — Kategorie weder beantwortet noch verweigert',
+    $q$INSERT INTO child_health_answers (child_health_record_id, health_trait_type_id,
+                                         created_by)
+       VALUES ('55555555-5555-5555-5555-555555555551', 6, 'system:check')$q$);
 
 SELECT pg_temp.expect_reject(
     '3a — dieselbe Kategorie zweimal beantwortet',
     $q$INSERT INTO child_health_answers (child_health_record_id, health_trait_type_id,
                                          answered_at, created_by)
-       VALUES ('55555555-5555-5555-5555-555555555551', 1, now(), 'system:check')$q$);
+       VALUES ('55555555-5555-5555-5555-555555555551', 2, now(), 'system:check')$q$);
 
 -- Zustand 3 ist die fehlende Zeile: Kategorie 3 wurde nie gefragt.
 DO $$
@@ -409,15 +437,19 @@ INSERT INTO child_health_answers (child_health_answer_id, child_health_record_id
             '55555555-5555-5555-5555-555555555551', 3, now(), 'system:check'),
            ('77777777-7777-7777-7777-777777777772',
             '55555555-5555-5555-5555-555555555551', 5, now(), 'system:check'),
-           ('77777777-7777-7777-7777-777777777773',
-            '55555555-5555-5555-5555-555555555551', 2, now(), 'system:check');
+           ('77777777-7777-7777-7777-777777777774',
+            '55555555-5555-5555-5555-555555555551', 1, now(), 'system:check'),
+           ('77777777-7777-7777-7777-777777777775',
+            '55555555-5555-5555-5555-555555555551', 6, now(), 'system:check');
 
 INSERT INTO health_traits (health_trait_id, child_health_answer_id, health_trait_type_id,
                            child_health_record_id, allows_multiple, created_by)
     VALUES ('66666666-6666-6666-6666-666666666661',
             '77777777-7777-7777-7777-777777777771', 3, '55555555-5555-5555-5555-555555555551', true, 'system:check'),
            ('66666666-6666-6666-6666-666666666662',
-            '77777777-7777-7777-7777-777777777772', 5, '55555555-5555-5555-5555-555555555551', false, 'system:check');
+            '77777777-7777-7777-7777-777777777772', 5, '55555555-5555-5555-5555-555555555551', false, 'system:check'),
+           ('66666666-6666-6666-6666-666666666664',
+            '77777777-7777-7777-7777-777777777774', 1, '55555555-5555-5555-5555-555555555551', true, 'system:check');
 
 -- Ein Merkmal kann seine Kategorie nicht von der Antwort abweichen lassen.
 SELECT pg_temp.expect_reject(
@@ -498,6 +530,17 @@ SELECT pg_temp.expect_accept(
                                         created_by)
        VALUES ('66666666-6666-6666-6666-666666666661', 3, 5, 'period',
                daterange(DATE '2026-09-01', DATE '2027-07-31'), 'system:check')$q$);
+
+-- Die Allergie, und genau ihre beiden Felder sieht auch die Küche (11).
+SELECT pg_temp.expect_accept(
+    '11 — die Allergie mit Bezeichnung und Hinweis',
+    $q$INSERT INTO health_trait_values (health_trait_id, health_trait_type_id,
+                                        health_field_id, value_kind_code, value_text,
+                                        created_by)
+       VALUES ('66666666-6666-6666-6666-666666666664', 1, 1, 'text', 'Erdnuss',
+               'system:check'),
+              ('66666666-6666-6666-6666-666666666664', 1, 2, 'text',
+               'Kein Erdnussöl, auch keine Spuren', 'system:check')$q$);
 
 -- Die Zeckenerlaubnis ist eine einzige Zeile — die Tiefe steht an der
 -- Kategorie und nicht in leeren Spalten.
@@ -623,23 +666,113 @@ SELECT pg_temp.expect_accept(
 -- Die Freigabe: wem die Angabe überhaupt vorliegt
 -- ---------------------------------------------------------------------------
 
--- Eine Anlass-Instanz neben den beiden dauerhaften: dieselbe Bauform, nur mit
--- Zweckende und Löschtermin.
+-- Eine Anlass-Instanz neben den beiden dauerhaften: dieselbe Bauform, nur
+-- befristet — und mit dem Ende, ab dem ihre Frist rechnet. Die Fahrt ist
+-- vorbei, damit unten das Zweckende greift.
 INSERT INTO health_visibility_scopes (health_visibility_scope_id, code, name,
-                                      needs_release, is_temporary, created_by)
+                                      needs_release, is_temporary, ends_on, created_by)
     OVERRIDING SYSTEM VALUE
-    VALUES (6, 'trip_2026_10', 'Klassenfahrt Oktober 2026', true, true, 'system:check');
+    VALUES (6, 'trip_2026_10', 'Klassenfahrt Oktober 2026', true, true,
+            CURRENT_DATE - 1, 'system:check');
 
 -- 19: Eine befristete Instanz ist immer ein Freigabeziel — ohne Freigabe gäbe es
 -- nichts, das nach vier Wochen verfiele.
 SELECT pg_temp.expect_reject(
     '19 — befristete Instanz, die kein Freigabeziel ist',
     $q$INSERT INTO health_visibility_scopes (code, name, needs_release, is_temporary,
+                                             ends_on, created_by)
+       VALUES ('trip_bad', 'Fahrt ohne Freigabe', false, true, CURRENT_DATE + 30,
+               'system:check')$q$);
+
+-- 17: „Der Lauf rechnet je Bestand den Löschtermin aus dem Anker seiner
+-- Domäne." Beim Anlass ist der Anker sein Ende — eine Instanz ohne Ende hat
+-- keinen, ihre vier Wochen liefen nie an, und sie sähe aus wie eine dauerhafte.
+SELECT pg_temp.expect_reject(
+    '17 — Anlass-Instanz ohne Ende',
+    $q$INSERT INTO health_visibility_scopes (code, name, needs_release, is_temporary,
                                              created_by)
-       VALUES ('trip_bad', 'Fahrt ohne Freigabe', false, true, 'system:check')$q$);
+       VALUES ('trip_no_end', 'Fahrt ohne Ende', true, true, 'system:check')$q$);
+
+-- Und umgekehrt: Ein Ende an `school` wäre ein zweiter Löschanker neben dem
+-- Austritt des Kindes.
+SELECT pg_temp.expect_reject(
+    '17 — dauerhafte Instanz mit eigenem Ende',
+    $q$UPDATE health_visibility_scopes SET ends_on = CURRENT_DATE + 30
+        WHERE health_visibility_scope_id = 3$q$);
+
 INSERT INTO health_field_visibility (health_visibility_scope_id, health_trait_type_id,
                                      health_field_id, value_kind_code, created_by)
     VALUES (6, 3, 1, 'text', 'system:check'), (6, 3, 2, 'text', 'system:check');
+
+-- ---------------------------------------------------------------------------
+-- Woher die Angabe kam — der zweite Löschanker der Domäne
+-- ---------------------------------------------------------------------------
+-- 19: „Alle Gesundheitsangaben, die nur über diese Fahrt hereinkommen,
+-- verschwinden mit ihr … In den Bestand am Kind kommt nur, was der Vertrag
+-- erhebt." Ohne die Herkunft an der Angabe ist der Satz nicht ausführbar — eine
+-- Freigabe sagt, wer liest, nicht, woher der Wert kam.
+SELECT pg_temp.expect_accept(
+    '19 — die Schwimmfähigkeit kommt nur über die Fahrt herein',
+    $q$INSERT INTO health_traits (health_trait_id, child_health_answer_id,
+                                  health_trait_type_id, child_health_record_id,
+                                  allows_multiple, origin_scope_id, origin_is_temporary,
+                                  created_by)
+       VALUES ('66666666-6666-6666-6666-666666666665',
+               '77777777-7777-7777-7777-777777777775', 6,
+               '55555555-5555-5555-5555-555555555551', false, 6, true, 'entra:lehrkraft');
+       INSERT INTO health_trait_values (health_trait_id, health_trait_type_id,
+                                        health_field_id, value_kind_code, value_bool,
+                                        created_by)
+       VALUES ('66666666-6666-6666-6666-666666666665', 6, 7, 'bool', true,
+               'entra:lehrkraft')$q$);
+
+-- „Leer heißt: über den Vertrag": Eine dauerhafte Instanz als Herkunft wäre
+-- dieselbe Tatsache in zweiter Schreibweise (rules.md 1).
+SELECT pg_temp.expect_reject(
+    '19 — die Schule als Herkunft einer Angabe',
+    $q$INSERT INTO health_traits (child_health_answer_id, health_trait_type_id,
+                                  child_health_record_id, allows_multiple,
+                                  origin_scope_id, origin_is_temporary, created_by)
+       VALUES ('77777777-7777-7777-7777-777777777771', 3,
+               '55555555-5555-5555-5555-555555555551', true, 3, false,
+               'system:check')$q$);
+
+-- Und keine halbe Herkunft: Ohne das mitgeführte Häkchen prüfte der
+-- zusammengesetzte Fremdschlüssel gar nichts (MATCH SIMPLE).
+SELECT pg_temp.expect_reject(
+    '19 — Herkunft ohne ihr Häkchen',
+    $q$INSERT INTO health_traits (child_health_answer_id, health_trait_type_id,
+                                  child_health_record_id, allows_multiple,
+                                  origin_scope_id, created_by)
+       VALUES ('77777777-7777-7777-7777-777777777771', 3,
+               '55555555-5555-5555-5555-555555555551', true, 6, 'system:check')$q$);
+
+-- Die Frage des Lösch-Laufs, und genau die, die das Modell vorher nicht
+-- beantworten konnte: Welche Angabe hängt am Anlass, und welche nicht? Die
+-- Zeckenerlaubnis ist an niemanden freigegeben und bleibt trotzdem Bestand.
+DO $$
+DECLARE am_anlass int; anker date; zecke_am_anlass boolean;
+BEGIN
+    SELECT count(*) INTO am_anlass FROM health_traits WHERE origin_scope_id IS NOT NULL;
+    IF am_anlass <> 1 THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — % Angaben hängen am Anlass statt einer', am_anlass;
+    END IF;
+    SELECT origin_scope_id IS NOT NULL INTO zecke_am_anlass FROM health_traits
+     WHERE health_trait_id = '66666666-6666-6666-6666-666666666662';
+    IF zecke_am_anlass THEN
+        RAISE EXCEPTION 'ZU VIEL GELÖSCHT — die Zeckenerlaubnis gilt als Anlass-Angabe';
+    END IF;
+    -- Und der Anker der Anlass-Angabe ist erreichbar: das Ende der Fahrt. Die
+    -- Frist dazu steht als Wert im System (querschnitt-schema.sql), nicht hier.
+    SELECT s.ends_on INTO anker
+      FROM health_traits t
+      JOIN health_visibility_scopes s ON s.health_visibility_scope_id = t.origin_scope_id
+     WHERE t.health_trait_id = '66666666-6666-6666-6666-666666666665';
+    IF anker IS NULL THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — die Anlass-Angabe hat keinen Löschanker';
+    END IF;
+    RAISE NOTICE 'ok: der Lauf trennt die Anlass-Angabe vom Bestand und findet ihren Anker';
+END $$;
 
 -- TASK-205: „erst überhaupt freigeben oder ablehnen" — je Instanz, mit
 -- denselben drei Zuständen wie überall: freigegeben, abgelehnt, nie gefragt.
@@ -694,6 +827,15 @@ SELECT pg_temp.expect_reject(
                                           created_by)
        VALUES ('55555555-5555-5555-5555-555555555551', 1, now(), 'system:check')$q$);
 
+-- Und weder noch ist auch hier kein Zustand — hier wiegt es schwerer als eine
+-- Ebene höher: `is_released` würde false, die Zeile läse sich wie eine
+-- Ablehnung, und `uq_child_health_releases` blockierte danach die richtige.
+SELECT pg_temp.expect_reject(
+    'TASK-205 — Instanz weder freigegeben noch abgelehnt',
+    $q$INSERT INTO child_health_releases (child_health_record_id,
+                                          health_visibility_scope_id, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555551', 6, 'system:check')$q$);
+
 -- Die Einzelfreigabe hängt an der Instanz-Freigabe: an die Schule geht sie, an
 -- den abgelehnten Hort nicht.
 SELECT pg_temp.expect_accept(
@@ -713,11 +855,9 @@ SELECT pg_temp.expect_reject(
 SELECT pg_temp.expect_reject(
     'TASK-205 — Einzelfreigabe an eine nie gefragte Instanz',
     $q$INSERT INTO health_trait_releases (health_trait_id, health_visibility_scope_id,
-                                          child_health_record_id, is_temporary,
-                                          delete_on, created_by)
+                                          child_health_record_id, created_by)
        VALUES ('66666666-6666-6666-6666-666666666661', 6,
-               '55555555-5555-5555-5555-555555555551', true,
-               CURRENT_DATE + 27, 'system:check')$q$);
+               '55555555-5555-5555-5555-555555555551', 'system:check')$q$);
 
 -- Der Widerruf der Instanz setzt voraus, dass keine Einzelfreigabe mehr hängt —
 -- die gewollte Reihenfolge, damit keine Angabe an einer widerrufenen Instanz
@@ -756,6 +896,43 @@ BEGIN
         RAISE EXCEPTION 'REGEL NICHT GEBAUT — der Hort sieht % Werte ohne Freigabe', fuer_hort;
     END IF;
     RAISE NOTICE 'ok: dieselben Felder, und trotzdem sieht der Hort ohne Freigabe nichts';
+END $$;
+
+-- 09: „Was das für die Küche heißt, entscheidet nicht diese Freigabe, sondern
+-- die Liste: Über die Hortliste gilt die Freigabe an den Hort, über die
+-- Mensa-Tagesliste die an die Schule (11)." `needs_release = false` heißt an der
+-- Küche also „keine eigene", nicht „keine" — und diese Hälfte sieht sonst kein
+-- Prüfskript, weil das Erben in der abgeleiteten Sicht liegt
+-- (`api/mensa-api.md`). Hier steht die Schule frei und der Hort abgelehnt.
+INSERT INTO health_trait_releases (health_trait_id, health_visibility_scope_id,
+                                   child_health_record_id, created_by)
+    VALUES ('66666666-6666-6666-6666-666666666664', 3,
+            '55555555-5555-5555-5555-555555555551', 'system:check');
+
+DO $$
+DECLARE ueber_mensa int; ueber_hort int;
+BEGIN
+    SELECT count(*) INTO ueber_mensa
+    FROM health_trait_values v
+    JOIN health_field_visibility f ON f.health_visibility_scope_id = 1
+                                 AND f.health_trait_type_id = v.health_trait_type_id
+                                 AND f.health_field_id      = v.health_field_id
+    JOIN health_trait_releases r ON r.health_trait_id = v.health_trait_id
+                                AND r.health_visibility_scope_id = 3;
+    SELECT count(*) INTO ueber_hort
+    FROM health_trait_values v
+    JOIN health_field_visibility f ON f.health_visibility_scope_id = 1
+                                 AND f.health_trait_type_id = v.health_trait_type_id
+                                 AND f.health_field_id      = v.health_field_id
+    JOIN health_trait_releases r ON r.health_trait_id = v.health_trait_id
+                                AND r.health_visibility_scope_id = 2;
+    IF ueber_mensa = 0 THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — die Küche sieht über die Mensa-Tagesliste nichts, obwohl die Schule freigegeben hat';
+    END IF;
+    IF ueber_hort <> 0 THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — die Küche sieht über die Hortliste % Werte, obwohl der Hort abgelehnt hat', ueber_hort;
+    END IF;
+    RAISE NOTICE 'ok: die Küche erbt die Freigabe der Liste, auf der das Kind steht';
 END $$;
 
 -- „Der Mitarbeitende sieht im Notfall alles" (TASK-205), nicht nur einen Ausschnitt:
@@ -799,40 +976,35 @@ END $$;
 INSERT INTO child_health_releases (child_health_record_id, health_visibility_scope_id,
                                    released_at, created_by)
     VALUES ('55555555-5555-5555-5555-555555555551', 6, now(), 'system:check');
--- 19: „vier Wochen für die Gesundheitsangaben", gerechnet ab dem Ende der Fahrt
--- — ohne Löschtermin wäre die befristete Freigabe von einer dauerhaften nicht zu
--- unterscheiden, und der Lösch-Lauf fände sie nie.
-SELECT pg_temp.expect_reject(
-    '19 — Freigabe an eine Fahrt ohne Löschtermin',
-    $q$INSERT INTO health_trait_releases (health_trait_id, health_visibility_scope_id,
-                                          child_health_record_id, is_temporary, created_by)
-       VALUES ('66666666-6666-6666-6666-666666666661', 6,
-               '55555555-5555-5555-5555-555555555551', true, 'system:check')$q$);
-
--- Und das Häkchen kommt von der Instanz, nicht vom Schreibenden.
-SELECT pg_temp.expect_reject(
-    '19 — dauerhafte Freigabe mit geliehener Befristung',
-    $q$INSERT INTO health_trait_releases (health_trait_id, health_visibility_scope_id,
-                                          child_health_record_id, is_temporary,
-                                          delete_on, created_by)
-       VALUES ('66666666-6666-6666-6666-666666666662', 3,
-               '55555555-5555-5555-5555-555555555551', true,
-               CURRENT_DATE + 27, 'system:check')$q$);
-
 SELECT pg_temp.expect_accept(
     'TASK-162 — dieselbe Angabe, der Fahrt befristet freigegeben',
     $q$INSERT INTO health_trait_releases (health_trait_id, health_visibility_scope_id,
-                                          child_health_record_id, is_temporary,
-                                          purpose_ends_on, delete_on, created_by)
+                                          child_health_record_id,
+                                          purpose_ends_on, created_by)
        VALUES ('66666666-6666-6666-6666-666666666661', 6,
-               '55555555-5555-5555-5555-555555555551', true,
-               CURRENT_DATE - 1, CURRENT_DATE + 27, 'system:check')$q$);
+               '55555555-5555-5555-5555-555555555551',
+               CURRENT_DATE - 1, 'system:check')$q$);
 
-SELECT pg_temp.expect_reject(
-    'TASK-162 — Löschtermin vor dem Zweckende',
-    $q$UPDATE health_trait_releases SET delete_on = CURRENT_DATE - 30
-        WHERE health_trait_id = '66666666-6666-6666-6666-666666666661'
-          AND health_visibility_scope_id = 6$q$);
+-- 17: „Der Lauf rechnet je Bestand den Löschtermin aus dem Anker seiner
+-- Domäne", und die Frist steht als Wert im System (hebel.md, 04.09.2026).
+-- Gespeichert wird der Termin deshalb nirgends — sonst erreichte eine gesenkte
+-- Frist keine bestehende Zeile, und die Vierzehn-Tage-Regel griffe nicht.
+DO $$
+DECLARE gespeichert text;
+BEGIN
+    SELECT string_agg(table_name || '.' || column_name, ', ') INTO gespeichert
+    FROM information_schema.columns
+    WHERE table_name IN ('health_visibility_scopes', 'child_health_records',
+                         'child_health_answers', 'health_traits',
+                         'health_trait_values', 'child_health_releases',
+                         'health_trait_releases')
+      AND column_name IN ('delete_on', 'deleted_on', 'delete_after',
+                          'retention_until');
+    IF gespeichert IS NOT NULL THEN
+        RAISE EXCEPTION 'Ein Löschtermin steht gespeichert statt gerechnet: %', gespeichert;
+    END IF;
+    RAISE NOTICE 'ok: kein gespeicherter Löschtermin — der Lauf rechnet aus dem Anker';
+END $$;
 
 -- „nach dem Zweckende aus der Alltagssicht, und trotzdem da": Die Fahrt sieht
 -- nichts mehr, die Schule unverändert alles, und die Zeile steht.
@@ -871,6 +1043,9 @@ SELECT pg_temp.expect_reject(
 
 -- „Ein Bestand je Kind bleibt": Die Freigabe trägt keinen Wert, und der Wert
 -- kennt keine Instanz — sonst wären es zwei Bestände statt einer Freigabe.
+-- `health_traits.origin_scope_id` ist die **eine benannte Ausnahme** und teilt
+-- nichts: Sie sagt, woher der Wert kam, nicht, wer ihn liest, steht am Merkmal
+-- und nicht am Wert, und trägt allein den Löschanker.
 DO $$
 DECLARE leftover text;
 BEGIN
@@ -879,17 +1054,18 @@ BEGIN
     WHERE (table_name = 'health_trait_releases'
            AND column_name LIKE 'value\_%')
        OR (table_name IN ('health_trait_values', 'health_traits', 'child_health_answers')
-           AND column_name = 'health_visibility_scope_id');
+           AND column_name = 'health_visibility_scope_id')
+       OR (table_name = 'health_trait_values' AND column_name = 'origin_scope_id');
     IF leftover IS NOT NULL THEN
         RAISE EXCEPTION 'Der Bestand hat sich je Instanz geteilt: %', leftover;
     END IF;
-    -- Und die zwei Termine stehen an der Freigabe, nicht an der Angabe.
+    -- Und das Zweckende steht an der Freigabe, nicht an der Angabe.
     IF EXISTS (SELECT 1 FROM information_schema.columns
                 WHERE table_name IN ('health_traits', 'health_trait_values')
-                  AND column_name IN ('purpose_ends_on', 'delete_on')) THEN
-        RAISE EXCEPTION 'Zweckende oder Löschtermin stehen an der Angabe statt an der Freigabe';
+                  AND column_name = 'purpose_ends_on') THEN
+        RAISE EXCEPTION 'Das Zweckende steht an der Angabe statt an der Freigabe';
     END IF;
-    RAISE NOTICE 'ok: ein Bestand je Kind, und die zwei Termine stehen an der Freigabe';
+    RAISE NOTICE 'ok: ein Bestand je Kind, und das Zweckende steht an der Freigabe';
 END $$;
 
 -- ---------------------------------------------------------------------------
@@ -969,12 +1145,16 @@ SELECT pg_temp.expect_accept(
 -- ---------------------------------------------------------------------------
 
 -- grenzkarte.md, Q2: „Eine verwaiste Datei in SharePoint ist genauso ein
--- DSGVO-Verstoß wie eine verwaiste Zeile" — deshalb blockiert ein Attest das
--- Löschen des Kindes, bis der Lösch-Lauf die Datei mitentfernt hat. Der Wert
--- trägt den Fremdschlüssel jetzt anstelle des Merkmals.
+-- DSGVO-Verstoß wie eine verwaiste Zeile" — deshalb hält der Gesundheitswert
+-- das Attest fest, bis der Lösch-Lauf ihn vor der Datei räumt. Der Wert trägt
+-- den Fremdschlüssel anstelle des Merkmals.
+-- **Nicht am Kind geprüft:** Dort weist schon `fk_child_health_records_child`
+-- ab — dieselbe Probe wie die 15 Zeilen weiter unten, und über das Attest
+-- belegte sie nichts.
 SELECT pg_temp.expect_reject(
-    'Q2 — Kind gelöscht, obwohl noch ein Attest in SharePoint liegt',
-    $q$DELETE FROM children WHERE child_id = '44444444-4444-4444-4444-444444444441'$q$);
+    'Q2 — Attest gelöscht, obwohl ein Gesundheitswert darauf zeigt',
+    $q$DELETE FROM documents
+        WHERE document_id = '99999999-9999-9999-9999-999999999991'$q$);
 
 -- Das Attest fort, und das Kind steht immer noch: Der Gesundheitsbestand hat
 -- seine eigene, kürzere Frist — drei Monate nach dem Austritt, während der

@@ -81,9 +81,10 @@ jemand vergessen zu fragen.
 Sichtbar für die verantwortliche und die begleitenden Lehrkräfte, das Sekretariat und — für die
 Kosten — das Rechnungswesen. Andere Eltern sehen nicht, wer mitfährt.
 
-**Vier Angaben aus dem Anmeldebogen kennt der Gesundheitsbestand heute nicht** und bekommt sie mit
-diesem Block: Tetanus- und FSME-Impfschutz je mit Datum, Schwimmfähigkeit samt Abzeichen und ob eine
-private Haftpflicht besteht. Sie bleiben am Kind und werden bei der nächsten Fahrt nur bestätigt.
+**Vier Angaben aus dem Anmeldebogen kennt der Gesundheitsbestand heute nicht** und bekommt mit
+diesem Block ihre Felder: Tetanus- und FSME-Impfschutz je mit Datum, Schwimmfähigkeit samt Abzeichen
+und ob eine private Haftpflicht besteht. **Sie hängen am Anlass und gehen mit ihm** (siehe
+„Löschen"); eine weitere Fahrt fragt sie neu, statt sie bestätigen zu lassen.
 Die Versicherung dagegen, das Kind sei frei von ansteckenden Krankheiten und Ungeziefer, gilt nur
 für diese eine Fahrt und wird nicht als Bestand geführt.
 
