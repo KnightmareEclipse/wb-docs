@@ -114,6 +114,8 @@ Diese Datei wird automatisch geladen; verlinkt werden muss nichts. Je nach Arbei
 - **Infrastruktur:** `host.md`, `container.md`, `deploy.md`, `runbook.md`, `backup.md`.
 - **Eine Fachdomäne verstehen:** `fachdomaenen.md`, `prozesse.md` und die vier
   Anmeldetag-Checklisten in `~/Downloads/CHECKLISTEN/`.
+- **Delegieren:** Die Regel und die zwei Agenten stehen in `~/.claude/CLAUDE.md`, ihre
+  Weltenbaum-Lesart samt der einen Ausnahme in `prompts/gemeinsam.md`.
 
 ## Schemaarbeit
 

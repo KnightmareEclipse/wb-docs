@@ -77,3 +77,9 @@ Suchen darf er — eine Fundstelle in einer Datei, ein Spaltenname über alle Da
 entscheiden, nicht bauen, und nicht nachprüfen, was du selbst geurteilt hast.** Der Grund ist immer
 derselbe: Ein zusammengefasster Bericht hat den Satz nicht mehr, gegen den das Zitat gehalten wird,
 und das Zitat ist hinterher nicht zu rekonstruieren.
+
+**Die eine Ausnahme ist der Lauf, der ohne ihn beweist, dass es stimmt.** Ein Subagent darf bauen,
+wo die Abnahme ein Rückgabewert ist und kein Urteil — die benannten Typfehler schließen, eine
+Testdatei grün machen. Dann wirft die Zusammenfassung nichts weg, weil der Beleg im Baum liegt und
+nicht in seinem Kontext. Drei Dinge bleiben trotzdem bei dir: die Begründung im Kommentar, die
+`[A]`-Marke, und jeder Prüflauf — dort ist das Urteil die Arbeit.
