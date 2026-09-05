@@ -166,6 +166,9 @@ Keine Route, kein Endpunkt von außen ([`gemeinsam.md`](gemeinsam.md#was-keine-r
 | **Die Wochenmail**, je Stelle eine, mit ihren eigenen offenen Aufgaben — nicht mit allen, „sonst stünden dort die Belegfreigaben des ganzen Kollegiums". Die Rechnungsfreigabe läuft ausdrücklich **nicht** darin mit (12); 01 und 10 setzen ihre eigene Mail **neben** sie | [`hebel.md`](../soll-prozesse/hebel.md#nachzieh-aufgabe-und-wochenmail) | wöchentlich, ein festes Datum; sie geht nicht raus, wo eine Stelle nichts Offenes hat | `system:weekly` |
 | Die **unzustellbaren Mails einsammeln** und `outbound_emails.undeliverable_at` setzen | [`hebel.md`](../soll-prozesse/hebel.md#unzustellbare-mail), `zugang.md` | täglich; aus dem Absenderpostfach wird bewusst nichts weitergeleitet, der Rückläufer liegt also dort | `system:bounces` |
 
+**Nur die Wochenmail steht in `app/runs.py`.** Der Rückläufer aus dem Postfach wird noch nicht
+gelesen (`container.md`) — `undeliverable_at` trägt bislang nur, was der Versand selbst bemerkt.
+
 ## Was an den Rand stößt
 
 Je eine Zeile, benannt und nicht mitgeplant:
