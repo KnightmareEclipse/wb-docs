@@ -2,8 +2,10 @@
 --
 -- Sollstand: 10 Tabellen — payees, cost_projects, ledger_accounts,
 -- payment_routes, claim_templates, claim_template_shares, expense_claims,
--- expense_claim_items, travel_details und expense_claim_attachments, dazu zwei
--- Lese-Indizes für Dublettenhinweis und Warteschlange.
+-- expense_claim_items, travel_details und expense_claim_attachments, dazu drei
+-- Lese-Indizes: die beiden Hälften des Dublettenhinweises (Empfänger/Betrag am
+-- Beleg, Datum/Strecke an der Fahrt) und die Warteschlange, deren Alter über
+-- `greatest(created_at, corrected_at)` im Index steht und nicht als Spalte.
 --
 -- Setzt stammdaten-schema.sql und querschnitt-schema.sql voraus:
 --   psql -v ON_ERROR_STOP=1 -f rechnungsfreigabe-schema-check.sql
@@ -40,7 +42,8 @@ BEGIN
         'ck_expense_claims_submitter', 'ck_expense_claim_items_approver',
         'ck_expense_claims_type', 'fk_expense_claims_route',
         'uq_payment_routes_traits',
-        'ck_expense_claims_third_party', 'ck_expense_claims_payee',
+        'ck_expense_claims_third_party', 'ck_expense_claims_third_party_iban',
+        'ck_expense_claims_payee',
         'ck_expense_claims_end', 'ck_expense_claims_voided',
         'ck_expense_claims_calendar_year',
         'ck_expense_claim_items_decision', 'ck_expense_claim_items_rejected',
@@ -57,7 +60,8 @@ BEGIN
     END IF;
 
     SELECT string_agg(i, ', ') INTO missing
-    FROM unnest(ARRAY['ix_expense_claims_duplicate', 'ix_expense_claim_items_waiting']) AS i
+    FROM unnest(ARRAY['ix_expense_claims_duplicate', 'ix_travel_details_duplicate',
+                      'ix_expense_claim_items_waiting']) AS i
     WHERE to_regclass('public.' || i) IS NULL;
     IF missing IS NOT NULL THEN
         RAISE EXCEPTION 'Fehlende Indizes: %', missing;
@@ -227,6 +231,45 @@ SELECT pg_temp.expect_accept(
        VALUES ('55555555-5555-5555-5555-555555555551', 'invoice', EXTRACT(year FROM now() AT TIME ZONE 'Europe/Berlin')::smallint, 1, 1000,
                'Material', 'to_third_party', true, false, 'Nachbarin', 'DE02120300000000202051',
                'system:check')$q$);
+
+-- „verlangt zusätzlich Kontoinhaber und IBAN" — beide oder keines. Eine halbe
+-- Bankverbindung ist die Zeile, an der die Zahlung liegen bleibt.
+SELECT pg_temp.expect_reject(
+    '12 — „an Dritte" mit Kontoinhaber, aber ohne IBAN',
+    $q$INSERT INTO expense_claims (submitter_employee_id, claim_type, calendar_year,
+                                   payee_id, amount_cents, purpose, payment_route, requires_bank_details,
+                                   is_reimbursement,
+                                   third_party_account_holder, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555551', 'invoice', EXTRACT(year FROM now() AT TIME ZONE 'Europe/Berlin')::smallint, 1, 1000,
+               'Material', 'to_third_party', true, false, 'Nachbarin', 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    '12 — „an Dritte" mit IBAN, aber ohne Kontoinhaber',
+    $q$INSERT INTO expense_claims (submitter_employee_id, claim_type, calendar_year,
+                                   payee_id, amount_cents, purpose, payment_route, requires_bank_details,
+                                   is_reimbursement,
+                                   third_party_iban, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555551', 'invoice', EXTRACT(year FROM now() AT TIME ZONE 'Europe/Berlin')::smallint, 1, 1000,
+               'Material', 'to_third_party', true, false, 'DE02120300000000202051', 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    '12 — „an Dritte" mit leerem Kontoinhaber',
+    $q$INSERT INTO expense_claims (submitter_employee_id, claim_type, calendar_year,
+                                   payee_id, amount_cents, purpose, payment_route, requires_bank_details,
+                                   is_reimbursement,
+                                   third_party_account_holder, third_party_iban, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555551', 'invoice', EXTRACT(year FROM now() AT TIME ZONE 'Europe/Berlin')::smallint, 1, 1000,
+               'Material', 'to_third_party', true, false, '', 'DE02120300000000202051', 'system:check')$q$);
+
+-- Dieselbe Form wie am SEPA-Mandat: dort kommt Geld herein, hier geht es hinaus.
+SELECT pg_temp.expect_reject(
+    '12 — „an Dritte" mit einer IBAN, die keine ist',
+    $q$INSERT INTO expense_claims (submitter_employee_id, claim_type, calendar_year,
+                                   payee_id, amount_cents, purpose, payment_route, requires_bank_details,
+                                   is_reimbursement,
+                                   third_party_account_holder, third_party_iban, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555551', 'invoice', EXTRACT(year FROM now() AT TIME ZONE 'Europe/Berlin')::smallint, 1, 1000,
+               'Material', 'to_third_party', true, false, 'Nachbarin', 'keine IBAN', 'system:check')$q$);
 
 -- „Bei der Rechnung: Zahlungsempfänger … (alles Pflicht)".
 SELECT pg_temp.expect_reject(
@@ -405,14 +448,25 @@ SELECT pg_temp.expect_accept(
                '55555555-5555-5555-5555-555555555551', 'invoice', false,
                '55555555-5555-5555-5555-555555555551', 4000, 'system:check')$q$);
 
+-- Und sie trifft die Rechnung, die „an mich" geht, genauso. Der Beleg dafür ist
+-- ein eigener: An 662 liefe die Probe ins Leere, weil er `to_company` trägt und
+-- der Teil damit schon am zusammengesetzten Fremdschlüssel scheiterte — sie
+-- wäre auch ohne die Sperre rot und belegte nichts.
+INSERT INTO expense_claims (expense_claim_id, submitter_employee_id, claim_type,
+                            calendar_year, payee_id, amount_cents, purpose,
+                            payment_route, requires_bank_details,
+                            is_reimbursement, created_by)
+    VALUES ('66666666-6666-6666-6666-666666666664',
+            '55555555-5555-5555-5555-555555555551', 'invoice', EXTRACT(year FROM now() AT TIME ZONE 'Europe/Berlin')::smallint, 1, 1200,
+            'Kaffee für die Küche', 'to_me', false, true, 'system:check');
 SELECT pg_temp.expect_reject(
     '12 — Einreicher gibt seine eigene Erstattung frei',
     $q$INSERT INTO expense_claim_items (expense_claim_id, submitter_employee_id,
                                         claim_type, is_reimbursement,
                                         approver_employee_id, amount_cents, created_by)
-       VALUES ('66666666-6666-6666-6666-666666666662',
+       VALUES ('66666666-6666-6666-6666-666666666664',
                '55555555-5555-5555-5555-555555555551', 'invoice', true,
-               '55555555-5555-5555-5555-555555555551', 0, 'system:check')$q$);
+               '55555555-5555-5555-5555-555555555551', 1200, 'system:check')$q$);
 
 -- 12: „die Teilbeträge müssen den Betrag genau treffen" — auch das eine Summe
 -- über mehrere Zeilen und deshalb Sache der Anwendung. Der Beleg über 4000
@@ -487,8 +541,18 @@ SELECT pg_temp.expect_accept(
     '12 — Freigabe mit Projekt, Konto und Budgetfeststellung',
     $q$UPDATE expense_claim_items
           SET approved_at = now(), cost_project_id = 1, ledger_account_id = 1,
-              within_budget = true, last_action_at = now()
+              within_budget = true
         WHERE expense_claim_item_id = '77777777-7777-7777-7777-777777777771'$q$);
+
+-- 12, Schritt 1: „Zurückziehen kann er ihn, solange keine Führungskraft ihn oder
+-- einen seiner Teile freigegeben hat." Der Teil darüber ist gerade freigegeben
+-- worden — der Rückzug läuft hier trotzdem durch, weil die Bedingung eine zweite
+-- Tabelle liest und deshalb in der Route steht. Die Gegenprobe hält die
+-- Auslassung fest, damit der nächste Lauf sie nicht für eine Lücke hält.
+SELECT pg_temp.expect_accept(
+    '12 — Rückzug nach der Freigabe (den Rückzug sperrt die Anwendung)',
+    $q$UPDATE expense_claims SET withdrawn_at = now()
+        WHERE expense_claim_id = '66666666-6666-6666-6666-666666666661'$q$);
 
 -- 12: „Aufteilen … auf mindestens zwei Projekte" — mehrere Teile an einem Beleg,
 -- jeder mit eigener Führungskraft.
@@ -578,16 +642,25 @@ SELECT pg_temp.expect_accept(
     $q$UPDATE expense_claims SET claim_number = 7
         WHERE expense_claim_id = '66666666-6666-6666-6666-666666666662'$q$);
 
--- 12: „Anhänge lassen sich nach dem Absenden nicht austauschen" — dieselbe Datei
--- hängt an höchstens einem Beleg.
+-- Eine Datei gehört einem Beleg — an demselben zweimal und an einem zweiten
+-- gar nicht. Die zweite Probe ist die eigentliche Reichweite des Schlüssels:
+-- „Ein abgelehnter, stornierter oder zurückgezogener Beleg lässt sich als Kopie
+-- neu einreichen, Anhänge inbegriffen" (12) heißt deshalb, dass die Kopie in
+-- SharePoint eine eigene Datei bekommt und die Route sie mitkopiert.
 INSERT INTO expense_claim_attachments (expense_claim_id, sharepoint_library_id,
                                        graph_item_id, created_by)
     VALUES ('66666666-6666-6666-6666-666666666661', 1, '01BELEG', 'system:check');
 SELECT pg_temp.expect_reject(
-    '12 — dieselbe Datei ein zweites Mal angehängt',
+    '12 — dieselbe Datei ein zweites Mal an demselben Beleg',
     $q$INSERT INTO expense_claim_attachments (expense_claim_id, sharepoint_library_id,
                                               graph_item_id, created_by)
        VALUES ('66666666-6666-6666-6666-666666666661', 1, '01BELEG', 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    '12 — dieselbe Datei an einem zweiten Beleg (die Kopie bekommt eine eigene)',
+    $q$INSERT INTO expense_claim_attachments (expense_claim_id, sharepoint_library_id,
+                                              graph_item_id, created_by)
+       VALUES ('66666666-6666-6666-6666-666666666662', 1, '01BELEG', 'system:check')$q$);
 
 -- 12: „Der Beleg überlebt seinen Einreicher: Scheidet er aus, bleibt sein Name
 -- daran." Ohne den Namen scheitert das Nullsetzen am CHECK — der Beleg kann
@@ -664,7 +737,10 @@ END $$;
 DO $$
 BEGIN
     IF EXISTS (SELECT 1 FROM pg_constraint
-                WHERE contype = 'f' AND confdeltype = 'a'
+                -- 'a' ist NO ACTION, 'r' ist RESTRICT: beide halten den Lauf
+                -- auf, und nach nur einem von beiden zu suchen ließe genau den
+                -- Fall durch, vor dem diese Probe warnt.
+                WHERE contype = 'f' AND confdeltype IN ('a', 'r')
                   AND confrelid::regclass::text IN ('children', 'families', 'persons')
                   AND conrelid::regclass::text IN ('expense_claims', 'expense_claim_items',
                                                    'travel_details', 'expense_claim_attachments')) THEN

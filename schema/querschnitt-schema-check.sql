@@ -26,7 +26,10 @@
 -- Anlegens, wo `column_name` leer ist und der erste CHECK nicht greift. `child_file_folders`
 -- führt eine Zeile je Kind, Bibliothek und Kategorie; `documents` zeigt auf den
 -- Ordner statt auf die Bibliothek, trägt eine Pflicht-Bezeichnung und eine
--- freiwillige Art. `mail_categories` trennt die drei Sorten Mail — Vorgangsmail
+-- freiwillige Art. `retention_subjects` trägt neben Code und Name das
+-- `announce_only` des einen Bestands, den der Lauf ankündigt und nicht räumt
+-- (die Belege der Rechnungsfreigabe, 12/17).
+-- `mail_categories` trennt die drei Sorten Mail — Vorgangsmail
 -- ohne Abmeldelink, Schulinformation mit Untergrenze je Familie, Newsletter frei
 -- abwählbar —, und `consent_purposes` führt das Häkchen der Kategorie mit, damit
 -- `outbound_emails` es über einen zusammengesetzten Fremdschlüssel sieht.
@@ -1885,6 +1888,15 @@ INSERT INTO children (child_id, person_id, family_id, birth_date, created_by) VA
 INSERT INTO retention_subjects (code, name, created_by) VALUES
     ('child_health_record', 'Gesundheitsbestand am Kind', 'system:check'),
     ('application',         'Bewerbung ohne Aufnahme',    'system:check');
+-- 12: „Die zehn Jahre stehen als Wert im System, und der Lösch-Lauf kündigt sie
+-- an — geräumt wird trotzdem von Hand." Ohne diesen Bestand gäbe es keine
+-- Empfängerliste und damit keine Ankündigung — also genau das, was 12 als den
+-- eigentlichen Ertrag benennt: „daran zu denken".
+INSERT INTO retention_subjects (code, name, announce_only, created_by) VALUES
+    ('expense_claim', 'Belege der Rechnungsfreigabe', true, 'system:check');
+INSERT INTO roles (code, name, created_by) VALUES
+    ('accounting',           'Buchhaltung',      'system:check'),
+    ('executive_management', 'Geschäftsführung', 'system:check');
 INSERT INTO retention_hold_reasons (code, name, created_by) VALUES
     ('legal_dispute', 'Drohender Rechtsstreit', 'system:check');
 
@@ -1939,6 +1951,34 @@ SELECT pg_temp.expect_reject(
     $q$INSERT INTO retention_notice_recipients (retention_subject_id, from_the_case, created_by)
        VALUES ((SELECT retention_subject_id FROM retention_subjects WHERE code='application'),
                true, 'system:check')$q$);
+
+-- 12: „Zwei Wochen und eine Woche vor dem Termin melden sie Buchhaltung und
+-- Geschäftsführung, dass ein Jahrgang fällig ist." Beide als Rollengruppe: die
+-- Zuständigkeit hängt an der Stelle und nicht an dem, der sie heute besetzt.
+SELECT pg_temp.expect_accept(
+    '12 — Buchhaltung und Geschäftsführung als Empfänger der Belegankündigung',
+    $q$INSERT INTO retention_notice_recipients (retention_subject_id, role_id, created_by)
+       VALUES ((SELECT retention_subject_id FROM retention_subjects WHERE code='expense_claim'),
+               (SELECT role_id FROM roles WHERE code='accounting'), 'system:check'),
+              ((SELECT retention_subject_id FROM retention_subjects WHERE code='expense_claim'),
+               (SELECT role_id FROM roles WHERE code='executive_management'), 'system:check')$q$);
+
+-- 17: „Die Rechnungsfreigabe kündigt er an, räumt sie aber nicht — der einzige
+-- Bestand, bei dem die beiden Schritte auseinanderfallen." Der Lauf liest die zu
+-- räumenden Bestände mit derselben Bedingung wie diese Abfrage; stünde die
+-- Unterscheidung nur im Anwendungscode, räumte er den einen Bestand mit, bei dem
+-- „zu frühes Löschen selbst der Fehler wäre" (§ 379 AO, § 257 HGB).
+DO $$
+DECLARE geraeumt text;
+BEGIN
+    SELECT string_agg(code, ', ' ORDER BY code) INTO geraeumt
+      FROM retention_subjects WHERE is_active AND NOT announce_only;
+    IF geraeumt IS DISTINCT FROM 'application, child_health_record' THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — der Lauf räumt: %',
+            coalesce(geraeumt, '(nichts)');
+    END IF;
+    RAISE NOTICE 'ok: 17 — der Lauf räumt die Belege nicht mit, er kündigt sie nur an';
+END $$;
 
 -- „Empfänger sind immer mindestens zwei … Ein Empfänger, der im Urlaub ist, ist
 -- kein Empfänger." Die Zahl zählt über die Zeilen einer Gruppe und trägt deshalb

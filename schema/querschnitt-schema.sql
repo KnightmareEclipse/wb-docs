@@ -1983,10 +1983,20 @@ CREATE TABLE retention_subjects (
     -- „child_health_record" und „health_occasion" (17), „holiday_booking" (10),
     -- „holiday_care_note" (10), „academy_registration" (21), „excursion" (19),
     -- „contract" und „sepa_mandate" (08), „child_file" (08), „care_file" (09),
-    -- „employee" (13). Der Code ist die Verankerung im
+    -- „employee" (13), „expense_claim" (12). Der Code ist die Verankerung im
     -- Anwendungscode; wächst die Liste, ist das eine Zeile und keine Migration.
     code                 text NOT NULL,
     name                 text NOT NULL,
+    -- Der Bestand, bei dem der Lauf ankündigt und nicht räumt: „Die
+    -- Rechnungsfreigabe kündigt er an, räumt sie aber nicht — der einzige
+    -- Bestand, bei dem die beiden Schritte auseinanderfallen" (17), weil dort
+    -- „zu frühes Löschen anders als überall sonst selbst der Fehler wäre"
+    -- (§ 379 AO, § 257 HGB, 12). Er steht als Spalte und nicht im
+    -- Anwendungscode, weil „wer die Bauform von hier anderswo hinträgt, eine
+    -- Ankündigung ohne Folgen baut" (12) — der Lauf liest die Bedingung, und
+    -- eine Gegenprobe kann sie sehen. Kein Kategoriewert, sondern eine
+    -- strukturelle Tatsache (rules.md Abschnitt 3).
+    announce_only        boolean NOT NULL DEFAULT false,
     -- Deaktiviert statt gelöscht: „is_active = false" nimmt den Wert aus jedem
     -- Auswahlfeld, lässt aber jede Zeile stehen, die schon auf ihn zeigt
     -- (rules.md Abschnitt 3).

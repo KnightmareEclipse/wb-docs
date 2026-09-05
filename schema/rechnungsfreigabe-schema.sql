@@ -234,11 +234,20 @@ CREATE TABLE expense_claims (
     requires_bank_details boolean NOT NULL,
     is_reimbursement  boolean NOT NULL,
     -- Nur wo der Zahlweg es verlangt, und auch dort nur, wenn die Buchhaltung
-    -- sie nicht schon hat; für „an mich" wird bewusst keine erhoben.
+    -- sie nicht schon hat; für „an mich" wird bewusst keine erhoben. Die beiden
+    -- stehen zusammen oder gar nicht — siehe den CHECK unten.
     third_party_account_holder text,
     third_party_iban  text,
     claim_template_id integer,
-    -- „solange keine Führungskraft ihn oder einen seiner Teile freigegeben hat"
+    -- „Zurückziehen kann er ihn, solange keine Führungskraft ihn oder einen
+    -- seiner Teile freigegeben hat" (12, Schritt 1). Die Bedingung liest
+    -- `expense_claim_items` und steht deshalb in der Anwendung: ein CHECK sieht
+    -- keine zweite Tabelle, und ein Trigger kommt in diesem Schema nicht vor.
+    -- Die fünfte Regel dieser Art neben der lückenlosen Nummer, der Summe der
+    -- Teilbeträge, den mindestens zwei Projekten und dem Pflicht-Anhang; die
+    -- Route weist den Rückzug nach der Freigabe ab
+    -- (`api/rechnungsfreigabe-api.md`). `ck_expense_claims_end` unten hält
+    -- allein Rückzug, Buchung und Storno auseinander.
     withdrawn_at      timestamptz,
     -- Der Abschluss durch die Buchhaltung: „abgehakt heißt gebucht".
     booked_at         timestamptz,
@@ -299,10 +308,23 @@ CREATE TABLE expense_claims (
     CONSTRAINT uq_expense_claims_amount UNIQUE (expense_claim_id, amount_cents),
     CONSTRAINT ck_expense_claims_type CHECK (claim_type IN ('invoice', 'travel')),
     CONSTRAINT ck_expense_claims_purpose CHECK (purpose <> ''),
-    -- Kontoinhaber und IBAN gibt es nur, wo der Zahlweg sie verlangt.
+    -- Kontoinhaber und IBAN gibt es nur, wo der Zahlweg sie verlangt — und dort
+    -- nur zusammen: „nur ‚an Dritte' verlangt zusätzlich Kontoinhaber und IBAN,
+    -- und auch die entfällt, wenn die Buchhaltung sie schon hat" (12). Entweder
+    -- beide oder keines; eine halbe Bankverbindung zahlt niemand aus, und ein
+    -- leerer Kontoinhaber ist keiner.
     CONSTRAINT ck_expense_claims_third_party
-        CHECK (requires_bank_details
-               OR (third_party_account_holder IS NULL AND third_party_iban IS NULL)),
+        CHECK ((requires_bank_details
+                OR (third_party_account_holder IS NULL AND third_party_iban IS NULL))
+               AND (third_party_account_holder IS NULL) = (third_party_iban IS NULL)
+               AND (third_party_account_holder IS NULL
+                    OR third_party_account_holder <> '')),
+    -- Dieselbe Form wie `ck_sepa_mandates_iban` (stammdaten-schema.sql): dort
+    -- kommt Geld herein, hier geht es hinaus, und „keine IBAN" ist an beiden
+    -- Stellen keine.
+    CONSTRAINT ck_expense_claims_third_party_iban
+        CHECK (third_party_iban IS NULL
+               OR third_party_iban ~ '^[A-Z]{2}[0-9A-Z]{13,32}$'),
     -- „Bei der Rechnung: Zahlungsempfänger … (alles Pflicht)"; eine Fahrt nach
     -- Strecke trägt keinen.
     CONSTRAINT ck_expense_claims_payee
@@ -319,8 +341,10 @@ CREATE TABLE expense_claims (
     CONSTRAINT ck_expense_claims_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
--- Trägt den Dublettenhinweis: „wenn Empfänger und Betrag eines anderen Belegs
--- innerhalb von 30 Tagen übereinstimmen".
+-- Trägt die eine Hälfte des Dublettenhinweises: „wenn Empfänger und Betrag
+-- eines anderen Belegs innerhalb von 30 Tagen übereinstimmen". Die andere
+-- liegt an `travel_details` (`ix_travel_details_duplicate`), weil eine Fahrt
+-- nach Strecke keinen Empfänger trägt.
 CREATE INDEX ix_expense_claims_duplicate ON expense_claims (payee_id, amount_cents, created_at);
 
 -- Herkunft: 12 (Rechnungsfreigabe) — „Aufteilen statt entscheiden: auf
@@ -378,9 +402,6 @@ CREATE TABLE expense_claim_items (
     -- Zeile trägt sie, diese bleibt als Spur stehen.
     forwarded_at          timestamptz,
     forwarded_reason      text,
-    -- Der Zeitpunkt der letzten Handlung, nicht des Einreichens: „Ein gestern
-    -- freigegebener Beleg liegt seit einem Tag bei der Buchhaltung."
-    last_action_at        timestamptz NOT NULL DEFAULT now(),
     created_at            timestamptz NOT NULL DEFAULT now(),
     created_by            text NOT NULL,
 
@@ -440,9 +461,17 @@ CREATE TABLE expense_claim_items (
     CONSTRAINT ck_expense_claim_items_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
--- Trägt die Warteschlange je Führungskraft und ihr Alter.
+-- Trägt die Warteschlange je Führungskraft und ihr Alter: „wie lange er schon
+-- wartet, gerechnet ab der letzten Handlung" (12). Das Alter steht bewusst
+-- NICHT als Spalte daneben — an einem offenen Teil ist die letzte Handlung sein
+-- Anlegen oder seine Korrektur, und mehr sieht diese Bedingung nicht; ein
+-- zweiter Ort für einen ableitbaren Wert wäre genau der, den beim nächsten
+-- Schreiben jemand vergisst (rules.md Abschnitt 1). Freigabe, Ablehnung und
+-- Weiterleitung fallen aus der Warteschlange heraus und tragen ihren Zeitpunkt
+-- ohnehin selbst; eine Weiterleitung erzeugt eine neue Zeile mit frischem
+-- `created_at`.
 CREATE INDEX ix_expense_claim_items_waiting
-    ON expense_claim_items (approver_employee_id, last_action_at)
+    ON expense_claim_items (approver_employee_id, greatest(created_at, corrected_at))
     WHERE approved_at IS NULL AND rejected_at IS NULL AND forwarded_at IS NULL;
 
 -- Herkunft: 12 (Rechnungsfreigabe) — „Bei Fahrtkosten: Datum der Fahrt,
@@ -500,6 +529,11 @@ CREATE TABLE travel_details (
     CONSTRAINT ck_travel_details_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
+-- Die zweite Hälfte des Dublettenhinweises: „bei einer Fahrt nach Strecke, die
+-- keinen Empfänger trägt, treten Datum und Strecke an seine Stelle, denn
+-- zweimal abgerechnet wird gerade dort am leichtesten" (12).
+CREATE INDEX ix_travel_details_duplicate ON travel_details (travelled_on, distance_km);
+
 -- Herkunft: 12 (Rechnungsfreigabe) — „Der angehängte Beleg selbst ist das
 -- Dokument … Anhänge lassen sich nach dem Absenden nicht austauschen." Löschanker:
 -- keiner — die Anhänge bleiben in SharePoint, „was danach mit einem Jahrgang
@@ -528,6 +562,15 @@ CREATE TABLE expense_claim_attachments (
         FOREIGN KEY (expense_claim_id) REFERENCES expense_claims (expense_claim_id) ON DELETE CASCADE,
     CONSTRAINT fk_expense_claim_attachments_library
         FOREIGN KEY (sharepoint_library_id) REFERENCES sharepoint_libraries (sharepoint_library_id),
+    -- Eine Datei gehört einem Beleg: dieselbe Graph-Kennung hängt an keinem
+    -- zweiten. Der Schlüssel trägt damit nicht „Anhänge lassen sich nicht
+    -- austauschen" — das verbietet den Tausch an einem Beleg —, sondern die
+    -- Kopie: Ein neu eingereichter Beleg bekommt in SharePoint eine eigene
+    -- Datei, „ein neuer Beleg bleibt es trotzdem" (12), und die Route kopiert
+    -- sie mit (`api/rechnungsfreigabe-api.md`). Preis: eine zweite Datei je
+    -- Wiedereinreichung, die niemand automatisch räumt — in einem Bestand, in
+    -- dem ohnehin nichts von selbst verschwindet, dieselbe Handarbeit wie beim
+    -- Rest.
     CONSTRAINT uq_expense_claim_attachments UNIQUE (sharepoint_library_id, graph_item_id),
     CONSTRAINT ck_expense_claim_attachments_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
