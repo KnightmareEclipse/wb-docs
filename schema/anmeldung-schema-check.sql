@@ -9,7 +9,7 @@
 -- application_offers, contracts, contract_responses, contract_amendments,
 -- care_module_agreements,
 -- care_module_bookings, emergency_care_bookings, care_bridge_days und
--- care_bridge_day_responses. Dazu drei partielle Unique-Indizes, die beiden
+-- care_bridge_day_responses. Dazu vier partielle Unique-Indizes, die beiden
 -- Querschnitts-Fremdschlüssel auf `contracts` und `applications` und der eine
 -- Trigger, der die Notfallbetreuung auf Kinder beschränkt, die das Haus kennt.
 -- `emergency_care_types` trägt mit `booking_cutoff_time` den Buchungsschluss je
@@ -141,6 +141,8 @@ BEGIN
         'fk_emergency_care_bookings_type', 'uq_emergency_care_bookings',
         'ck_emergency_care_bookings_amount', 'ck_emergency_care_bookings_state',
         'ck_emergency_care_bookings_attended', 'ck_emergency_care_bookings_attended_by',
+        'ck_applications_ended_by', 'ck_care_module_agreements_period',
+        'ck_admission_days_places', 'ck_admission_days_slot_minutes',
         'uq_care_bridge_days', 'ck_care_bridge_days_created_by',
         'fk_care_bridge_day_responses_day', 'fk_care_bridge_day_responses_child',
         'uq_care_bridge_day_responses'
@@ -152,6 +154,7 @@ BEGIN
 
     SELECT string_agg(i, ', ') INTO missing
     FROM unnest(ARRAY['ix_applications_running', 'ix_contracts_running',
+                      'ix_contracts_care_open',
                       'ix_care_module_agreements_running']) AS i
     WHERE to_regclass('public.' || i) IS NULL;
     IF missing IS NOT NULL THEN
@@ -174,9 +177,18 @@ EXCEPTION
         RAISE NOTICE 'ok (abgewiesen): %', rule;
 END $$ LANGUAGE plpgsql;
 
+-- Eine erlaubte Probe, die null Zeilen trifft, belegt nichts: Sie meldete
+-- „ok (erlaubt)", während ihr `UPDATE` ins Leere lief, weil eine frühere Probe
+-- die Zeile längst geräumt hatte. Der Rückgabewert des letzten Statements ist
+-- deshalb Teil der Probe.
 CREATE FUNCTION pg_temp.expect_accept(rule text, stmt text) RETURNS void AS $$
+DECLARE getroffen integer;
 BEGIN
     EXECUTE stmt;
+    GET DIAGNOSTICS getroffen = ROW_COUNT;
+    IF getroffen = 0 THEN
+        RAISE EXCEPTION 'PROBE OHNE WIRKUNG — null Zeilen getroffen: %', rule;
+    END IF;
     RAISE NOTICE 'ok (erlaubt): %', rule;
 END $$ LANGUAGE plpgsql;
 
@@ -362,6 +374,14 @@ SELECT pg_temp.expect_reject(
 SELECT pg_temp.expect_reject(
     '07 — beendet ohne Endzeitpunkt',
     $q$UPDATE applications SET ended_by = 'school'
+        WHERE application_id = '77777777-7777-7777-7777-777777777772'$q$);
+
+-- 07: „je beendeter Bewerbung, wer sie beendet hat — Eltern oder Schule." Zwei
+-- Seiten, keine dritte: Der Lauf beendet keine Bewerbung, bei der Einschreibung
+-- bleibt das Feld leer.
+SELECT pg_temp.expect_reject(
+    '07 — eine dritte Seite, die eine Bewerbung beendet',
+    $q$UPDATE applications SET ended_at = now(), ended_by = 'system'
         WHERE application_id = '77777777-7777-7777-7777-777777777772'$q$);
 
 -- 05: „bis zur bestätigten Zahlung gibt es keine Bewerbung", „es wird nichts
@@ -716,6 +736,28 @@ SELECT pg_temp.expect_accept(
                                       target_school_year, opens_at, created_by)
        VALUES (2, 5, 5, 10, 2027, TIMESTAMPTZ '2026-10-25 00:00+02', 'system:check')$q$);
 
+-- 06: „Fensterlänge in Minuten und Plätze je Zeitfenster (Pflicht)", und die
+-- Plätze sind „eine harte Grenze". Eine Grenze von null oder weniger wäre keine
+-- — geprüft wird bisher allein die Übersteuerung am einzelnen Zeitfenster
+-- (`ck_admission_day_slots_places`), nicht die Zahl des Tages, aus der sie
+-- entsteht.
+SELECT pg_temp.expect_reject(
+    '06 — Anmeldetag mit einer Fensterlänge von null Minuten',
+    $q$INSERT INTO admission_days (school_branch_id, target_grade_level, first_grade_level,
+                                   final_grade_level, target_school_year, day,
+                                   starts_at_time, ends_at_time, slot_minutes,
+                                   places_per_slot, created_by)
+       VALUES (1, 1, 1, 4, 2027, DATE '2026-11-14', TIME '09:00', TIME '12:00',
+               0, 3, 'entra:sekretariat')$q$);
+SELECT pg_temp.expect_reject(
+    '06 — Anmeldetag ohne einen einzigen Platz je Zeitfenster',
+    $q$INSERT INTO admission_days (school_branch_id, target_grade_level, first_grade_level,
+                                   final_grade_level, target_school_year, day,
+                                   starts_at_time, ends_at_time, slot_minutes,
+                                   places_per_slot, created_by)
+       VALUES (1, 1, 1, 4, 2027, DATE '2026-11-14', TIME '09:00', TIME '12:00',
+               20, 0, 'entra:sekretariat')$q$);
+
 -- 05: „Die Freischaltung … läuft nach 14 Tagen ab" — eine feste Zahl ist keine
 -- Spalte. Der Ablauf folgt aus `created_at` (rules.md Abschnitt 1).
 DO $$
@@ -754,6 +796,16 @@ INSERT INTO contracts (contract_id, child_id, contract_type, school_branch_id, a
     VALUES ('88888888-8888-8888-8888-888888888881',
             '44444444-4444-4444-4444-444444444444', 'school', 1,
             '77777777-7777-7777-7777-777777777772', 1, 'school_contract_gs', 'system:check');
+
+-- 08/09: „derselbe Vertragsvorgang" trägt genau zwei Sorten — Schulvertrag oder
+-- Hortvertrag; eine dritte entschiede strukturell nichts, weil keine Spalte und
+-- kein Gegenzeichner zu ihr gehörte.
+SELECT pg_temp.expect_reject(
+    '08/09 — Vertrag einer dritten Sorte',
+    $q$INSERT INTO contracts (child_id, contract_type, contract_text_id, contract_text_code,
+                              created_by)
+       VALUES ('44444444-4444-4444-4444-444444444445', 'kita', 1, 'school_contract_gs',
+               'system:check')$q$);
 
 -- 08: „Zwillinge sind zwei Verträge" — zwei Bewerbungen mit demselben Ziel,
 -- derselben Familie und demselben Vertragstext. Ohne den zusammengesetzten
@@ -814,13 +866,26 @@ SELECT pg_temp.expect_reject(
     $q$UPDATE contracts SET may_walk_home_alone = true
         WHERE contract_id = '88888888-8888-8888-8888-888888888881'$q$);
 
--- 09: „Je Kind ein laufender Hortvertrag, nie zwei nebeneinander" — laufend
--- heißt freigegeben und ohne bekanntes Ende.
-SELECT pg_temp.expect_accept(
-    '08 — die zurückgetretene Bewerbung hält den zweiten Anlauf nicht auf',
+-- 09, Schritt 1: „Ein für dieses Kind schon laufender Antrag steht im Portal,
+-- und wer es erneut versucht, landet in ihm." Vertrag …882 ist zu diesem
+-- Zeitpunkt der offene Antrag dieses Kindes — ein zweiter daneben wären zwei
+-- Aufgaben bei der Hortleitung, die dieselbe Familie meinen.
+-- `ex_contracts_care_period` sieht ihn nicht: Es greift erst ab der Freigabe.
+SELECT pg_temp.expect_reject(
+    '09 — zweiter offener Hortantrag desselben Kindes',
     $q$INSERT INTO contracts (child_id, contract_type, contract_text_id, contract_text_code,
                               may_walk_home_alone, created_by)
        VALUES ('44444444-4444-4444-4444-444444444445', 'care', 2, 'care_contract', false, 'system:check')$q$);
+
+-- Die Gegenrichtung: ein anderes Kind hat seinen eigenen offenen Antrag, und der
+-- Index sperrt ihn nicht mit.
+SELECT pg_temp.expect_accept(
+    '09 — offener Hortantrag eines anderen Kindes daneben',
+    $q$INSERT INTO contracts (contract_id, child_id, contract_type, contract_text_id, contract_text_code,
+                              may_walk_home_alone, created_by)
+       VALUES ('88888888-8888-8888-8888-888888888890',
+               '44444444-4444-4444-4444-444444444446', 'care', 2, 'care_contract', false, 'system:check');
+       DELETE FROM contracts WHERE contract_id = '88888888-8888-8888-8888-888888888890'$q$);
 
 UPDATE contracts SET released_at = now(), released_by = 'entra:hortleitung'
     WHERE contract_id = '88888888-8888-8888-8888-888888888882';
@@ -914,9 +979,13 @@ DELETE FROM contracts WHERE contract_id IN ('88888888-8888-8888-8888-88888888888
 -- — Schul- und Hortvertrag laufen nebeneinander.
 SELECT pg_temp.expect_accept(
     '09 — Schul- und Hortvertrag desselben Kindes nebeneinander',
-    $q$INSERT INTO contracts (child_id, contract_type, contract_text_id, contract_text_code,
+    $q$INSERT INTO contracts (contract_id, child_id, contract_type, contract_text_id, contract_text_code,
                               may_walk_home_alone, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444444', 'care', 2, 'care_contract', false, 'system:check')$q$);
+       VALUES ('88888888-8888-8888-8888-888888888891',
+               '44444444-4444-4444-4444-444444444444', 'care', 2, 'care_contract', false, 'system:check')$q$);
+-- Wieder weg: Als offener Hortantrag dieses Kindes stünde er sonst jedem
+-- weiteren im Weg (`ix_contracts_care_open`).
+DELETE FROM contracts WHERE contract_id = '88888888-8888-8888-8888-888888888891';
 
 -- 09: „Je Kind, ob es den Heimweg allein antreten darf (Pflicht, Ja oder Nein)"
 -- — am Hortvertrag ist die Angabe Pflicht, und die Zeile entsteht erst mit dem
@@ -955,6 +1024,16 @@ SELECT pg_temp.expect_reject(
 SELECT pg_temp.expect_reject(
     '08 — Freigabe ohne Namen dahinter',
     $q$UPDATE contracts SET released_at = now()
+        WHERE contract_id = '88888888-8888-8888-8888-888888888881'$q$);
+
+-- 08: „die abschließende Vollständigkeitsprüfung, auf der die hier offen
+-- gebliebenen Unterlagen auflaufen" (Vormerkung aus 06). Sie steht am Vertrag
+-- und nicht an der Bewerbung: geprüft wird, wenn ein Kind wirklich kommt — und
+-- vor der Freigabe, deshalb hier und nicht hinter dem Lösch-Lauf, der Vertrag
+-- …881 samt seiner Bewerbung räumt.
+SELECT pg_temp.expect_accept(
+    '08 — Vollständigkeitsprüfung am Vertrag',
+    $q$UPDATE contracts SET completeness_checked_at = now()
         WHERE contract_id = '88888888-8888-8888-8888-888888888881'$q$);
 
 -- „Vom fertigen Dokument wird eine Prüfsumme am Vertrag festgehalten, damit sich
@@ -1083,13 +1162,23 @@ SELECT pg_temp.expect_reject(
                DATE '2026-10-01', now(), 'entra:hortleitung',
                DATE '2026-09-01', 'Zahlendreher', 'system:check')$q$);
 
-SELECT pg_temp.expect_reject(
-    '08 — Schulvertrag, der über sein eigenes runs_until hinaus endet',
-    $q$INSERT INTO contracts (child_id, contract_type, school_branch_id, application_id, contract_text_id,
-                              contract_text_code, runs_until, end_date, end_reason, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444444', 'school', 1,
-               '77777777-7777-7777-7777-777777777771', 1, 'school_contract_gs',
-               DATE '2031-07-31', DATE '2033-07-31', 'Zahlendreher', 'system:check')$q$);
+-- Die Gegenrichtung, und sie ist der Regelfall: 09 macht den Hortvertrag nach
+-- dem ersten Jahr „mit einem Monat zum 1. des Folgemonats" kündbar, während
+-- `runs_until` noch den 31. Juli dieses ersten Jahres trägt — niemand zieht ihn
+-- beim stillschweigenden Verlängern nach. „Gerechnet und gesperrt wird nichts:
+-- die Hortleitung wendet die Frist an und trägt das Ergebnis ein" (09). Ein
+-- `end_date <= runs_until` wiese genau diese Kündigung ab.
+SELECT pg_temp.expect_accept(
+    '09 — Kündigung zum 30. September über den 31. Juli des ersten Jahres hinaus',
+    $q$INSERT INTO contracts (contract_id, child_id, contract_type, contract_text_id,
+                              contract_text_code, may_walk_home_alone, admission_date,
+                              released_at, released_by, runs_until,
+                              end_date, end_reason, created_by)
+       VALUES ('88888888-8888-8888-8888-888888888892',
+               '44444444-4444-4444-4444-444444444446', 'care', 2, 'care_contract', false,
+               DATE '2026-08-01', now(), 'entra:hortleitung', DATE '2027-07-31',
+               DATE '2027-09-30', 'ordentlich gekündigt zum 30.09.', 'system:check');
+       DELETE FROM contracts WHERE contract_id = '88888888-8888-8888-8888-888888888892'$q$);
 
 -- 08: „Der Vertragstext hängt an der Schulart — Grundschule und Realschule
 -- haben je einen eigenen", 09 gibt dem Hortvertrag „seinen eigenen
@@ -1365,6 +1454,28 @@ SELECT pg_temp.expect_reject(
     $q$UPDATE contract_amendments SET completed_at = now()
         WHERE contract_amendment_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1'$q$);
 
+-- „Alle Dokumente, unter denen unterschrieben wird, müssen eine Prüfsumme
+-- haben" (Geschäftsführung, 04.09.2026) — am Nachtrag dieselben drei Proben wie
+-- an `contracts.document_checksum`: Paarung in beide Richtungen und Format.
+SELECT pg_temp.expect_reject(
+    '08 — Nachtrag in der Akte ohne Prüfsumme',
+    $q$UPDATE contract_amendments
+          SET completed_at = now(),
+              document_id = '99999999-9999-9999-9999-999999999992'
+        WHERE contract_amendment_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1'$q$);
+SELECT pg_temp.expect_reject(
+    '08 — Prüfsumme des Nachtrags im falschen Format',
+    $q$UPDATE contract_amendments
+          SET completed_at = now(),
+              document_id = '99999999-9999-9999-9999-999999999992',
+              document_checksum = 'sha256:abc'
+        WHERE contract_amendment_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1'$q$);
+SELECT pg_temp.expect_reject(
+    '08 — Prüfsumme am Nachtrag ohne die Urkunde dazu',
+    $q$UPDATE contract_amendments
+          SET document_checksum = 'sha256:693bb591b0f48064c0114803859fab8f32108a9d88520dc665460df5221e48fc'
+        WHERE contract_amendment_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1'$q$);
+
 SELECT pg_temp.expect_accept(
     '08 — Zustimmung abgeschlossen, Nachtrag liegt in der Akte',
     $q$UPDATE contract_amendments
@@ -1431,6 +1542,16 @@ INSERT INTO care_module_agreements (care_module_agreement_id, contract_id, creat
 SELECT pg_temp.expect_reject(
     '09 — Anlage mit Geltungsbeginn, aber ohne Freigabe',
     $q$UPDATE care_module_agreements SET valid_from = DATE '2026-09-01'
+        WHERE care_module_agreement_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1'$q$);
+
+-- Dieselbe Ordnungsprüfung wie am Vertrag darüber: „Ab wann ein neuer Umfang
+-- gilt, trägt die Hortleitung mit der Freigabe ein" (09) — er endet nicht,
+-- bevor er gilt.
+SELECT pg_temp.expect_reject(
+    '09 — Anlage, die vor ihrem Geltungsbeginn endet',
+    $q$UPDATE care_module_agreements
+          SET released_at = now(), released_by = 'entra:hortleitung',
+              valid_from = DATE '2026-09-01', valid_until = DATE '2026-08-01'
         WHERE care_module_agreement_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1'$q$);
 
 -- 09: „dieselbe Mail nach jeder freigegebenen Anpassung mit der neuen
@@ -1715,14 +1836,6 @@ BEGIN
     END IF;
     RAISE NOTICE 'ok: hebel.md — die Verbindung endet mit dem Endstatus, außer bei der Einschreibung';
 END $$;
-
--- 08: „die abschließende Vollständigkeitsprüfung, auf der die hier offen
--- gebliebenen Unterlagen auflaufen" (Vormerkung aus 06). Sie steht am Vertrag
--- und nicht an der Bewerbung: geprüft wird, wenn ein Kind wirklich kommt.
-SELECT pg_temp.expect_accept(
-    '08 — Vollständigkeitsprüfung am Vertrag',
-    $q$UPDATE contracts SET completeness_checked_at = now()
-        WHERE contract_id = '88888888-8888-8888-8888-888888888881'$q$);
 
 -- 09: „Die Gebühr erlässt die Hortleitung, wenn eine Stundenplanänderung der
 -- Anlass ist." Ein Erlass ist ein Häkchen an der Anlage und kein eigener
@@ -2013,6 +2126,49 @@ BEGIN
     END IF;
     RAISE NOTICE 'ok (erlaubt): 03/09 — % beendete(r) Hortvertrag ohne exit_date am Kind, der Anker braucht contracts.end_date', ohne_austritt;
 END $$;
+
+-- 08: „Kommt es nicht zur Freigabe, entsteht nie ein PDF, und die Bilder
+-- verschwinden mit der Bewerbung", und „ein Austrittsdatum entsteht nicht, weil
+-- es kein Eintrittsdatum gibt". Der dritte Zweig des Vertragsankers hängt daran:
+-- Ein nie freigegebener Vertrag trägt weder `end_date` noch ein `exit_date` am
+-- Kind und liefe unter den ersten beiden Zweigen nie ab — er nimmt stattdessen
+-- die sechs Monate seiner Bewerbung (05). Diese Gegenprobe legt den Fall an,
+-- damit die Lücke nicht wieder unbemerkt zugeht.
+INSERT INTO applications (application_id, child_id, school_branch_id, target_grade_level,
+                          first_grade_level, final_grade_level, target_school_year,
+                          source, submitted_at, filling_person_id,
+                          application_status_id, is_final, decided_at,
+                          ended_at, ended_by, created_by)
+    VALUES ('77777777-7777-7777-7777-77777777777c',
+            '44444444-4444-4444-4444-444444444447', 1, 1, 1, 4, 2027,
+            'pre_registration', now(), '22222222-2222-2222-2222-222222222222',
+            4, true, now(), now(), 'parents', 'system:check');
+INSERT INTO contracts (contract_id, child_id, contract_type, school_branch_id, application_id,
+                       contract_text_id, contract_text_code, created_by)
+    VALUES ('88888888-8888-8888-8888-888888888893',
+            '44444444-4444-4444-4444-444444444447', 'school', 1,
+            '77777777-7777-7777-7777-77777777777c', 1, 'school_contract_gs', 'system:check');
+DO $$
+DECLARE ohne_frist integer;
+BEGIN
+    SELECT count(*) INTO ohne_frist
+      FROM contracts c JOIN children k ON k.child_id = c.child_id
+     WHERE c.released_at IS NULL AND c.end_date IS NULL AND k.exit_date IS NULL;
+    IF ohne_frist = 0 THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — kein nie freigegebener Vertrag ohne end_date und ohne exit_date: der dritte Zweig des Ankers ist unbelegt';
+    END IF;
+    RAISE NOTICE 'ok (erlaubt): 05/08 — % Vertrag/Verträge ohne Freigabe, deren Frist allein die Bewerbung trägt', ohne_frist;
+END $$;
+
+-- Und er geht mit ihr, in derselben Reihenfolge wie sonst: erst der Vertrag,
+-- dann die Bewerbung — `fk_contracts_application` hält sie fest, bis er fällt.
+SELECT pg_temp.expect_reject(
+    '05 — Bewerbung nach sechs Monaten gelöscht, während ihr nicht freigegebener Vertrag sie festhält',
+    $q$DELETE FROM applications WHERE application_id = '77777777-7777-7777-7777-77777777777c'$q$);
+SELECT pg_temp.expect_accept(
+    '05/08 — der nie freigegebene Vertrag geht mit seiner Bewerbung',
+    $q$DELETE FROM contracts    WHERE contract_id = '88888888-8888-8888-8888-888888888893';
+       DELETE FROM applications WHERE application_id = '77777777-7777-7777-7777-77777777777c'$q$);
 
 -- Die übrigen Stufen dieser Domäne im Lauf aus 17; die Reihenfolge über alle
 -- Domänen steht im Kopf von querschnitt-schema.sql.

@@ -616,9 +616,11 @@ CREATE TABLE admission_day_slots (
 -- Zielschuljahr (Pflicht) …, dazu Eingang und Zahlung." Löschanker: der
 -- Endstatus — „die Frist beginnt mit dem hier gesetzten Ende" (07) — und
 -- **sechs Monate danach** (Datenschutzbeauftragter, 02.09.2026).
--- **Die sechs Monate treffen nur die Bewerbung ohne Vertrag.** Wo einer
--- entstanden ist, hält `fk_contracts_application` sie fest, bis der Vertrag
--- selbst fällt — fünf Jahre nach dem Austritt des Kindes; der Lösch-Lauf räumt
+-- **Die sechs Monate treffen die Bewerbung ohne freigegebenen Vertrag.** Wo
+-- einer freigegeben wurde, hält `fk_contracts_application` sie fest, bis der
+-- Vertrag selbst fällt — fünf Jahre nach dem Austritt des Kindes; ein nie
+-- freigegebener trägt dagegen die sechs Monate der Bewerbung mit (Kopf von
+-- `contracts`). Der Lösch-Lauf räumt
 -- deshalb erst den Vertrag und dann die Bewerbung, und das Prüfskript weist die
 -- umgekehrte Reihenfolge ab. Das ist kein Nebeneffekt, sondern die Bedingung
 -- dafür, dass `target_grade_level` erreichbar bleibt: Der Vertragstext nennt
@@ -941,6 +943,17 @@ CREATE TABLE application_offers (
 -- Hälfte erreichte der Lauf ausgerechnet die Verträge nie, für die diese
 -- Tabelle den Typ `care` überhaupt trägt: Ein externes Kind bekommt nie ein
 -- `exit_date`, und eine Frist, die auf ein leeres Feld zeigt, läuft nicht ab.
+-- **Der dritte Zweig ist der Vertrag, der nie freigegeben wurde**: Er trägt
+-- keine der beiden Zahlen — „ein Austrittsdatum entsteht nicht, weil es kein
+-- Eintrittsdatum gibt" (08), und ein `end_date` setzt ihm niemand — und hat
+-- deshalb keine eigene Frist. Er geht mit seiner Bewerbung, sechs Monate ab
+-- deren Endstatus (05): „Kommt es nicht zur Freigabe, entsteht nie ein PDF, und
+-- die Bilder verschwinden mit der Bewerbung" (08) — die Bilder hängen als
+-- `signatures` an ihm, sie verschwinden also nur, wenn er selbst geht. Ohne
+-- diesen Zweig hielte `fk_contracts_application` die Bewerbung des Rücktritts
+-- vor der Freigabe für immer fest, und die sechs Monate aus 05 liefen nie ab.
+-- Der Lauf räumt ihn deshalb im selben Zug wie seine Bewerbung, in derselben
+-- Reihenfolge wie sonst: erst der Vertrag, dann die Bewerbung.
 -- Welches der beiden Felder gilt, entscheidet der Lauf am Kind und nicht ein
 -- Constraint — `now()` ist in keinem CHECK zulässig (querschnitt-schema.sql). Ein
 -- ersetzter Vertrag rechnet deshalb nicht ab der Freigabe seines Nachfolgers:
@@ -978,8 +991,10 @@ CREATE TABLE contracts (
     -- Vertragstext hängt an der Schulart — Grundschule und Realschule haben je
     -- einen eigenen" (08). Leer beim Hortvertrag, der keine Schulart kennt.
     school_branch_id   integer,
-    -- Vom Sekretariat vor dem Vorlegen geprüft; „Die Vollständigkeit sichert
-    -- damit der Vorgang, nicht die Alltagsansicht" (grenzkarte.md, Q1).
+    -- „Im laufenden Vorgang bekommt ohnehin jeder Erziehungsberechtigte seinen
+    -- eigenen Link, dessen Vollständigkeit das Sekretariat vor der Freigabe
+    -- prüft" (grenzkarte.md, Q1) — die Vollständigkeit sichert damit der
+    -- Vorgang und nicht die Alltagsansicht.
     completeness_checked_at timestamptz,
     -- Die Freigabe: erst damit ist das Kind eingeschrieben bzw. die Betreuung
     -- aufgenommen, und erst damit entsteht das Dokument.
@@ -1130,18 +1145,28 @@ CREATE TABLE contracts (
     CONSTRAINT ck_contracts_end
         CHECK ((end_date IS NULL) = (end_reason IS NULL)),
     -- Dieselbe Ordnungsprüfung wie an der Modulanlage
-    -- (`ck_care_module_agreements_period`): Ein Vertrag endet nicht vor seiner
-    -- Aufnahme und läuft nicht über sein eigenes `runs_until` hinaus — „bis
-    -- wann er nach jetzigem Stand läuft" (09) ist die Obergrenze, eine
-    -- Kündigung darunter der Normalfall. Ohne ihn scheitert der Zahlendreher am
-    -- Hortvertrag erst im GiST-Ausdruck von `ex_contracts_care_period`, mit
-    -- einem rohen „range lower bound must be less than or equal to range upper
-    -- bound" statt eines benannten Constraints — und am Schulvertrag, der kein
-    -- `admission_date` trägt, gar nicht.
+    -- (`ck_care_module_agreements_period`): Nichts endet vor seiner Aufnahme.
+    -- Ohne ihn scheitert der Zahlendreher am Hortvertrag erst im GiST-Ausdruck
+    -- von `ex_contracts_care_period`, mit einem rohen „range lower bound must be
+    -- less than or equal to range upper bound" statt eines benannten
+    -- Constraints — und am Schulvertrag, der kein `admission_date` trägt, gar
+    -- nicht.
+    -- **Bewusst KEIN `end_date <= runs_until`**: `runs_until` trägt „bis wann er
+    -- nach jetzigem Stand läuft" (09) und ist damit ein fortgeschriebener Stand
+    -- und keine Obergrenze. Der Hortvertrag „verlängert sich stillschweigend auf
+    -- unbestimmte Zeit" und ist danach „mit einem Monat zum 1. des Folgemonats"
+    -- kündbar (09) — wer den 31. Juli des ersten Jahres stehen hat und zum 30.
+    -- September kündigt, endet über ihm, und niemand zieht `runs_until` beim
+    -- Verlängern nach: Der Jahreslauf setzt ein Enddatum, keinen neuen Stand
+    -- (04), und `PUT /contracts/{contract_id}/end` trägt Enddatum und Grund
+    -- (api/anmeldung-api.md). Eine Sperre stünde zudem gegen den Blocksatz
+    -- selbst: „Gerechnet und gesperrt wird nichts: die Hortleitung wendet die
+    -- Frist an und trägt das Ergebnis ein" (09). `ex_contracts_care_period` und
+    -- der Trigger der Notfallbetreuung lesen ohnehin `coalesce(end_date,
+    -- runs_until)` und damit zuerst das Ende, nie den überholten Stand.
     CONSTRAINT ck_contracts_period
         CHECK ((end_date IS NULL OR admission_date IS NULL OR end_date >= admission_date)
-               AND (runs_until IS NULL OR admission_date IS NULL OR runs_until >= admission_date)
-               AND (end_date IS NULL OR runs_until IS NULL OR end_date <= runs_until)),
+               AND (runs_until IS NULL OR admission_date IS NULL OR runs_until >= admission_date)),
     CONSTRAINT ck_contracts_end_reason CHECK (end_reason <> ''),
     CONSTRAINT ck_contracts_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
@@ -1178,6 +1203,22 @@ CREATE TABLE contracts (
 CREATE UNIQUE INDEX ix_contracts_running
     ON contracts (child_id, runs_until) NULLS NOT DISTINCT
     WHERE released_at IS NOT NULL AND end_date IS NULL AND contract_type = 'school';
+
+-- Und dieselbe Regel eine Station früher, für den Antrag, über den noch niemand
+-- entschieden hat: „Ein für dieses Kind schon laufender Antrag steht im Portal,
+-- und wer es erneut versucht, landet in ihm" (09, Schritt 1) — derselbe Satz,
+-- den 05 für die Bewerbung sagt und den `ix_applications_running` oben trägt,
+-- in derselben Bauform. Ohne ihn stünden zwei offene Anträge desselben Kindes
+-- nebeneinander und zwei Aufgaben bei der Hortleitung, die dieselbe Familie
+-- meinen. `ex_contracts_care_period` sieht davon nichts: Es greift erst ab der
+-- Freigabe, und `ix_contracts_running` gilt allein dem Schulvertrag.
+-- Offen heißt weder freigegeben noch beendet — „Ein Nein gibt es nicht als
+-- Eintrag" (09), der abgelehnte Antrag bleibt also offen stehen und blockiert
+-- den zweiten zu Recht; wer einen zurückzieht, streicht ihn, und ein
+-- freigegebener steht dem Anschlussvertrag des Klasse-5-Falls nicht im Weg.
+CREATE UNIQUE INDEX ix_contracts_care_open
+    ON contracts (child_id)
+    WHERE contract_type = 'care' AND released_at IS NULL AND end_date IS NULL;
 
 -- Herkunft: 08 (Schulvertrag) — „Nehmen den Platz an oder lehnen ab. Wo alle
 -- zustimmen müssen, zählt ein Widerspruch als Nein." Löschanker: geht mit dem
@@ -1599,7 +1640,13 @@ CREATE TABLE care_bridge_days (
 );
 
 -- Herkunft: 09 (Hortvertrag), dieselbe Stelle — „eine Antwort je Kind".
--- Löschanker: geht mit der Abfrage, und die gehört zum Lösch-Lauf (17).
+-- Löschanker: **das letzte bestätigte Ende dieses Kindes** — 09 zählt sie
+-- ausdrücklich zur Notfallbetreuung daneben: „Ebenso die Antworten auf eine
+-- Brückentagsabfrage." Sie hält das Kind fest, statt mit ihm zu gehen, damit
+-- der Lauf sie sieht, und geht ihm voraus — dieselbe Bauform wie
+-- `emergency_care_bookings` oben. Der Anker der Abfrage wäre keiner: Sie trägt
+-- keine Personendaten und wird nie fällig (17 nennt sie mit keinem Wort); der
+-- Cascade auf sie räumt nur nach, wo eine Abfrage doch einmal fällt.
 -- Eine fehlende Zeile ist keine Antwort und heißt „kommt nicht": „Wer nicht
 -- antwortet, bringt sein Kind nicht: Die stille Antwort ist die sichere" (09).
 -- Deshalb steht hier kein Vorgabewert und keine Zeile auf Vorrat je
