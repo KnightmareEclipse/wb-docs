@@ -4,6 +4,7 @@ title: Den handlungsrelevanten Hinweis je Sichtkreis in wb-backend nachziehen
 status: To Do
 assignee: []
 created_date: '2026-09-04 20:39'
+updated_date: '2026-09-05 19:10'
 labels:
   - schema
   - gesundheit
@@ -30,9 +31,26 @@ Zu tun in wb-backend: die Ursprungsrevision umschreiben (keine Migrationskette, 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 child_health_action_notes traegt eine Zeile je Bestand und Sichtkreis; ein zweiter Hinweis desselben Kreises wird abgewiesen
+- [x] #1 child_health_action_notes traegt eine Zeile je Bestand und Sichtkreis; ein zweiter Hinweis desselben Kreises wird abgewiesen
 - [ ] #2 Die Hortleitung schreibt den Hinweis fuer care, die Klassenlehrkraft den fuer school — und keine die des anderen
-- [ ] #3 Die Eltern schreiben ihn nicht und lesen ihn nicht
-- [ ] #4 Er geht per Cascade mit dem Bestand und damit mit dem Kind — als Gegenprobe
+- [x] #3 Die Eltern schreiben ihn nicht und lesen ihn nicht
+- [x] #4 Er geht per Cascade mit dem Bestand und damit mit dem Kind — als Gegenprobe
 - [ ] #5 backend_health_note schreibt auf die neue Tabelle, kein DELETE
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Gemessen am Baum von wb-backend (9be3efa, Branch wertelisten-und-log-filter); die Gegenproben laufen als ./schema-check.sh gegen dessen Datenbank, rc=0 bei allen vierzehn.
+
+Kriterium 1 steht. `child_health_action_notes` traegt `pk_child_health_action_notes (child_health_record_id, health_visibility_scope_id)` — eine Zeile je Bestand und Sichtkreis. Die Gegenprobe „09 — zweiter Hinweis desselben Kreises" in gesundheit-schema-check.sql weist den zweiten ab, „09 — je Instanz ein eigener Hinweis, beide nebeneinander" nimmt die zwei Kreise an.
+
+Kriterium 3 steht in beide Richtungen. Lesen: `action_notes=({} if user.is_guardian else await _action_notes(...))` in app/routers/gesundheit.py, gehalten von `test_neither_the_guardian_nor_the_day_care_sees_the_action_note`. Schreiben: die Route verlangt `is_class_teacher`, und `ck_child_health_action_notes_created_by` weist `guardian:` ab — Gegenprobe „die Eltern schreiben den Hinweis".
+
+Kriterium 4 steht. `fk_child_health_action_notes_record` traegt ON DELETE CASCADE; die Gegenprobe „03 — erst der Bestand, dann das Kind" prueft hinterher, dass keine Zeile ihr Kind ueberlebt.
+
+Offen bleiben zwei:
+
+- **Kriterium 2 haengt an TASK-197 #4.** Den Sichtkreis `school` gibt es als Zeile nicht — der Seed fuehrt weiter sechs Kreise samt `class_lead` und `sports`. Die Route schreibt darum fuer `class_lead`, und app/routers/gesundheit.py traegt die Kruecke ausdruecklich: `_TEACHING_SIGHTS = frozenset({"class_lead", "sports"})` mit dem Kommentar „The two fall together into one sight with TASK-197". Die andere Haelfte fehlt ganz: Es gibt keine Route, ueber die die Hortleitung den Hinweis fuer `care` schreibt — `ChildHealthActionNote(...)` entsteht an genau einer Stelle, und die verlangt die Klassenleitung.
+- **Kriterium 5 ist ein Widerspruch in wb-docs, nicht in wb-backend.** api/gesundheit-api.md sagt „**`backend_health_note`** — `SELECT`, `INSERT`, `UPDATE` auf `child_health_action_notes`, **kein `DELETE`**" und verlangt in derselben Datei „`PUT /children/{child_id}/health-note` — den handlungsrelevanten Hinweis setzen oder **leeren**". Beides zusammen geht nicht: `ck_child_health_action_notes_note` weist den leeren Text ab, Leeren heisst also, dass die Zeile geht. Die Gesundheits-Revision vergibt folgerichtig `GRANT INSERT, DELETE ON child_health_action_notes TO backend_health_note` samt `GRANT UPDATE (note)`, und die Route loescht (`await session.delete(standing)`, mit dem CHECK als Begruendung im Kommentar). Falsch ist der Rollensatz der .md, nicht die Route: er ist nachzuziehen, dann traegt das Kriterium.
+<!-- SECTION:NOTES:END -->
