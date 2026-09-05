@@ -138,7 +138,7 @@ BEGIN
         'fk_emergency_care_types_module', 'ck_emergency_care_types_created_by',
         'uq_emergency_care_prices', 'ck_emergency_care_prices_amount',
         'fk_emergency_care_prices_type', 'fk_emergency_care_bookings_child',
-        'fk_emergency_care_bookings_type', 'uq_emergency_care_bookings',
+        'fk_emergency_care_bookings_type',
         'ck_emergency_care_bookings_amount', 'ck_emergency_care_bookings_state',
         'ck_emergency_care_bookings_attended', 'ck_emergency_care_bookings_attended_by',
         'ck_applications_ended_by', 'ck_care_module_agreements_period',
@@ -2025,19 +2025,39 @@ SELECT pg_temp.expect_reject(
                now(), 'guardian:22222222-2222-2222-2222-222222222222',
                'guardian:22222222-2222-2222-2222-222222222222')$q$);
 
-SELECT pg_temp.expect_reject(
-    '09 — derselbe Fall zweimal am selben Tag für dasselbe Kind',
-    $q$INSERT INTO emergency_care_bookings (child_id, care_date, emergency_care_type_id,
-                                            amount_cents, booked_at, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444444', DATE '2026-09-10', 1, 800,
-               now(), 'entra:hort')$q$);
-
 SELECT pg_temp.expect_accept(
     '09 — zweiter Fall anderer Art am selben Tag: erst Modul, dann die halbe Stunde danach',
     $q$INSERT INTO emergency_care_bookings (child_id, care_date, emergency_care_type_id,
                                             amount_cents, booked_at, created_by)
        VALUES ('44444444-4444-4444-4444-444444444444', DATE '2026-09-10', 3, 2000,
                now(), 'entra:hort')$q$);
+
+-- 09: „dazu 20 € für eine halbe Stunde außerhalb der Öffnungszeiten", und der
+-- Betrag ist additiv (Betreiber, 05.09.2026) — wer eine Stunde bleibt, steht mit
+-- zwei Zeilen und zweimal 20 € auf der Sammelaufstellung, die „jeden Fall
+-- einzeln ausweist". Ein UNIQUE über Kind, Tag und Art rechnete die zweite
+-- halbe Stunde weg; die Gegenprobe dazu ist, dass sie durchgeht.
+SELECT pg_temp.expect_accept(
+    '09 — zweite halbe Stunde außerhalb der Öffnungszeiten am selben Tag',
+    $q$INSERT INTO emergency_care_bookings (child_id, care_date, emergency_care_type_id,
+                                            amount_cents, booked_at, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444444', DATE '2026-09-10', 3, 2000,
+               now(), 'entra:hort')$q$);
+
+DO $$
+DECLARE summe integer;
+BEGIN
+    SELECT sum(amount_cents) INTO summe
+      FROM emergency_care_bookings
+     WHERE child_id = '44444444-4444-4444-4444-444444444444'
+       AND care_date = DATE '2026-09-10'
+       AND emergency_care_type_id = 3;
+    IF summe <> 4000 THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — zwei halbe Stunden ergeben % statt 4000 Cent', summe;
+    END IF;
+    RAISE NOTICE 'ok (erlaubt): 09 — zwei halbe Stunden stehen mit 40 € auf der Sammelaufstellung';
+END $$;
+
 
 -- 09: „Das Modul trägt deshalb ein Häkchen daneben, und die Liste ist der
 -- Filter darüber." Und: „Die Gruppeneinteilung bleibt draußen."

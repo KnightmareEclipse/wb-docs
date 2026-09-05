@@ -1547,12 +1547,21 @@ CREATE TABLE emergency_care_bookings (
     CONSTRAINT fk_emergency_care_bookings_type
         FOREIGN KEY (emergency_care_type_id)
         REFERENCES emergency_care_types (emergency_care_type_id),
-    -- Ein Fall je Kind, Tag und Art; zwei halbe Stunden außerhalb der
-    -- Öffnungszeiten sind damit eine Zeile und ein Betrag. Eine Stückzahl an
-    -- der Zeile wäre eine Spalte, die außer bei genau diesem einen Fall niemand
-    -- über 1 setzt.
-    CONSTRAINT uq_emergency_care_bookings
-        UNIQUE (child_id, care_date, emergency_care_type_id),
+    -- **Bewusst KEIN UNIQUE über Kind, Tag und Art.** Der Betrag ist additiv
+    -- (Betreiber, 05.09.2026): „dazu 20 € für eine halbe Stunde außerhalb der
+    -- Öffnungszeiten" (09) — wer eine Stunde bleibt, zahlt zweimal 20 €, und
+    -- eine Deckelung auf eine Zeile je Tag rechnete die zweite halbe Stunde
+    -- weg. Die Einheit ist der Fall und nicht der Tag: „Sie weist jeden Fall
+    -- einzeln aus — Kind, Tag, Fall-Art und Betrag" (09), deshalb zwei Zeilen
+    -- und keine Stückzahl an einer. Eine Stückzahl machte `amount_cents` zum
+    -- Einzelpreis, den die Sammelaufstellung erst multiplizieren müsste, und
+    -- nähme jeder Einheit ihren eigenen Vollzug und ihren eigenen Storno.
+    -- Nur für die eine modullose Art auszusetzen ginge nicht ohne
+    -- `emergency_care_types.care_module_id` an dieser Zeile — eine
+    -- mitgeführte Spalte samt zusammengesetztem Fremdschlüssel für einen
+    -- Doppeleintrag, den der Vollzug ohnehin abfängt: Abgerechnet wird, was
+    -- der Hort abgehakt hat, und „die Familie sieht den Eintrag im Portal,
+    -- sobald er steht" (09).
     CONSTRAINT ck_emergency_care_bookings_amount CHECK (amount_cents >= 0),
     -- Eines von beidem muss dastehen, sonst wäre die Zeile weder angekündigt
     -- noch geschehen.
