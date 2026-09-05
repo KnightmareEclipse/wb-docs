@@ -10,6 +10,12 @@ räumt ihn wieder ab — deshalb ist es gleich, ob du sie nacheinander startest 
 nebeneinander. Mehr als drei bringt nichts: Je Session läuft eine Postgres, und die Suite ist
 datenbankgebunden.
 
+**Drei nebeneinander prüfen denselben Commit oder nichts Vergleichbares.** Der Arbeitsbaum friert
+den HEAD ein, an dem *deine* Session startet; wird im Hauptbaum dazwischen committet oder der Branch
+gewechselt, misst jede Session einen anderen Baum, und die zwei Zahlen des Gesamtlaufs zählen dann
+Ungleiches zusammen. Deshalb steht der Commit im Kopf jedes Berichts, und im Hauptbaum wird nicht
+gearbeitet, solange Läufe offen sind.
+
 Der Lauf ist nur etwas wert, wenn er unabhängig ist: eine frische Session, die den Bau nicht
 mitgemacht hat und die Testnamen für Behauptungen hält, nicht für Belege. **Eine Session, eine
 Domäne** — nicht zwei nacheinander im selben Fenster, sonst schickt sie beim Messen der zweiten die
@@ -53,10 +59,12 @@ cp -r secrets .env ../wbp-DOMÄNE/
 chcon -Rt container_file_t ../wbp-DOMÄNE/secrets
 cd ../wbp-DOMÄNE
 podman-compose -p wbp-DOMÄNE up -d db
+podman-compose -p wbp-DOMÄNE --profile tools build migrate
 podman-compose -p wbp-DOMÄNE --profile tools run --rm migrate
+git rev-parse --short HEAD          # dein Prüfstand, er kommt in den Kopf des Berichts
 ```
 
-Vier Dinge daran sind gemessen und nicht geraten:
+Fünf Dinge daran sind gemessen und nicht geraten:
 
 - **Nur `db` wird hochgefahren.** Caddy ist der einzige Dienst mit veröffentlichten Ports; mit ihm
   kollidiert jede zweite Session sofort.
@@ -66,7 +74,13 @@ Vier Dinge daran sind gemessen und nicht geraten:
   "migration_db_password"` — und das sieht aus wie ein Fund.
 - **Kein `seed`.** Die Suite baut sich ihre Welt selbst und will eine leere Datenbank.
 - **`-p wbp-DOMÄNE`** gibt eigene Container und ein eigenes Volume, sonst teilst du dir die
-  Datenbank mit dem Nachbarn — und `tests/conftest.py` räumt sie zwischen zwei Tests aus.
+  Datenbank mit dem Nachbarn — und `tests/conftest.py` räumt sie zwischen zwei Tests aus. Es gibt
+  auch eigene Images: `localhost/wbp-DOMÄNE_test`, `localhost/wbp-DOMÄNE_migrate`.
+- **`build migrate` ist dieselbe Falle wie beim `test`-Dienst**, nur eine Zeile früher. `run` baut
+  nur ein *fehlendes* Image, und `wbp-DOMÄNE_migrate` überlebt ein `down -v` aus einem früheren Lauf
+  derselben Domäne. Ohne die Zeile zieht der Migrationslauf das Schema von vorgestern hoch: im Lauf
+  `anmeldung` waren das 116 Fehler an einer Spalte, die die Migration im Baum längst anlegt, dazu
+  ein roter Nullpunkt, den es nicht gibt.
 
 **Dein Nullpunkt** ist danach ein grüner Lauf deiner Testdatei:
 `podman-compose -p wbp-DOMÄNE --profile tools run --rm --no-deps test pytest tests/test_DOMÄNE.py -q`.
@@ -100,9 +114,15 @@ UNIQUE statt an deiner Mutation — auch das sieht aus wie ein Fund. Also hinter
 
 ```
 podman exec -i wbp-DOMÄNE_db_1 psql -U postgres -d weltenbaum -q \
-  -c "TRUNCATE change_log, persons, families, cleaning_cycles, configured_values
-      RESTART IDENTITY CASCADE"
+  -c "TRUNCATE change_log, persons, families, cleaning_cycles, configured_values,
+      contract_texts, sharepoint_libraries RESTART IDENTITY CASCADE"
 ```
+
+`sharepoint_libraries` steht nicht in `WIPED`, `contract_texts` erst, seit der Lauf wiederholbar
+ist — hier stehen trotzdem beide: Keine Migration füllt sie (`tests/test_seed.py` schreibt aus, dass
+ein Mensch das tut), also legen die Fixtures sie selbst an, und geräumt wird nur bei sauberem
+Teardown, den eine rote Messung gerade nicht hat. Nach einer roten Messung scheitert der nächste Lauf sonst
+an `uq_sharepoint_libraries_code` statt an deiner Mutation.
 
 Das ist teuer, also nicht für alles: **gemessen wird bei Fehlerklasse 1 und 2 immer**, dazu bei
 jeder Regel, die laut Plan „kein Constraint trägt". Für den Rest genügt Lesen. Kommst du über
@@ -165,8 +185,10 @@ Nach diesen suchst du, in dieser Reihenfolge.
 ## Was du meldest
 
 Ein Bericht, keine Änderung: `wb-docs/pruefberichte/routen-DOMÄNE.md`, die einzige Datei, die dieser
-Lauf anlegt. **Funde schreibst du sofort hinein**, nicht am Ende — der Lauf überlebt seinen eigenen
-Kontext nicht, und nach einer Zusammenfassung ist die Datei, was du hast. Je Fund vier Zeilen:
+Lauf anlegt. **Seine erste Zeile ist `Stand: <Commit>, Nullpunkt: <n> Tests grün`** — daran sieht
+der Gesamtlauf, ob die parallelen Sessions dasselbe geprüft haben. **Funde schreibst du sofort
+hinein**, nicht am Ende — der Lauf überlebt seinen eigenen Kontext nicht, und nach einer
+Zusammenfassung ist die Datei, was du hast. Je Fund vier Zeilen:
 
 ```
 [DOMÄNE-R1] Klasse 1 · PUT /contracts/{id}/responses/{person_id}/data-review
@@ -196,14 +218,16 @@ gehört in keine der beiden Listen.
 ```
 git checkout -- .
 git status                                   # muss sauber sein
-podman-compose -p wbp-DOMÄNE down -v
+podman-compose -p wbp-DOMÄNE down -v --rmi local
 cd - && git worktree remove --force ../wbp-DOMÄNE
 ```
 
-Ein Lauf, der eine herausgenommene Sicherung, eine laufende Datenbank oder einen Arbeitsbaum liegen
-lässt, ist schlimmer als keiner. Deine Schlussnachricht ist der Bericht in der Datei plus höchstens
-zehn Zeilen: Zahl der Funde, wie viele Sicherungen du herausgenommen hast und wie viele davon rot
-wurden, und die vier Gegenproben oben.
+`--rmi local` ist der Teil, den man vergisst: Ohne ihn bleiben `wbp-DOMÄNE_test` und
+`wbp-DOMÄNE_migrate` liegen und stellen dem nächsten Lauf derselben Domäne die Falle von oben wieder
+auf. Ein Lauf, der eine herausgenommene Sicherung, eine laufende Datenbank, einen Arbeitsbaum oder
+seine Images liegen lässt, ist schlimmer als keiner. Deine Schlussnachricht ist der Bericht in der
+Datei plus höchstens zehn Zeilen: Zahl der Funde, wie viele Sicherungen du herausgenommen hast und
+wie viele davon rot wurden, und die vier Gegenproben oben.
 
 ## Was du nicht tust
 
@@ -238,7 +262,7 @@ Es gelten `gemeinsam.md` und `CLAUDE.md` beider Repos.
    Zahl der Tests muss die sein, mit der die Domänenläufe angefangen haben — weicht sie ab, hat eine
    Session etwas liegen lassen.
 4. **Die Gegenprobe aufs Aufräumen**: `git status` sauber, `git worktree list` nur der Hauptbaum,
-   `podman ps -a` und `podman volume ls` ohne `wbp-`.
+   `podman ps -a`, `podman volume ls` und `podman images` ohne `wbp-`.
 5. **Die Zusammenfassung aus den Berichten je Domäne**, nicht aus dem Gedächtnis: die schwersten Funde mit
    ihrer Nummer, die zwei Zahlen, die Rückgabewerte, und eine Zeile, welche Domänen ohne Fund
    durchgekommen sind. Sie kommt nach `wb-docs/pruefberichte/routen.md`.

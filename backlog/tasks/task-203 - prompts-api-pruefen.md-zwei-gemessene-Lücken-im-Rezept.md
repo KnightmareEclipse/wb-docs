@@ -1,9 +1,10 @@
 ---
 id: TASK-203
 title: 'prompts/api-pruefen.md: zwei gemessene Lücken im Rezept'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-02 23:45'
+updated_date: '2026-09-05 15:33'
 labels:
   - wb-docs
   - pruefzyklus
@@ -21,6 +22,6 @@ Der Prüflauf anmeldung ist an beiden hängengeblieben, beide sind gemessen und 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Das Rezept baut migrate vor dem Migrationslauf, mit demselben Grund wie beim test-Dienst
-- [ ] #2 Die TRUNCATE-Zeile nimmt contract_texts und sharepoint_libraries mit
+- [x] #1 Das Rezept baut migrate vor dem Migrationslauf, mit demselben Grund wie beim test-Dienst
+- [x] #2 Die TRUNCATE-Zeile nimmt contract_texts und sharepoint_libraries mit
 <!-- AC:END -->
