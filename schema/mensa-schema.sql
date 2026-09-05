@@ -53,7 +53,9 @@ CREATE TABLE meal_variants (
     is_active        boolean NOT NULL DEFAULT true,
 
     CONSTRAINT pk_meal_variants      PRIMARY KEY (meal_variant_id),
-    CONSTRAINT uq_meal_variants_code UNIQUE (code)
+    CONSTRAINT uq_meal_variants_code UNIQUE (code),
+    CONSTRAINT ck_meal_variants_code CHECK (code <> ''),
+    CONSTRAINT ck_meal_variants_name CHECK (name <> '')
 );
 
 -- Herkunft: 11 (Mensa-Anmeldung) — „Der Beitrag hängt an der Zahl der Esstage

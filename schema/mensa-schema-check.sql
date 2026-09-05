@@ -431,6 +431,17 @@ BEGIN
     RAISE NOTICE 'ok (erlaubt): 03 — keine Essensvariante überlebt ihr Kind, die Werteliste bleibt';
 END $$;
 
+-- Referenzform (stammdaten-schema.sql): Jede Werteliste weist den leeren Code
+-- und den leeren Namen ab — der Code ist Fremdschlüsselziel und Verankerung im
+-- Anwendungscode, der Name die einzige Anzeige des Werts.
+SELECT pg_temp.expect_reject(
+    'rules.md Abschnitt 3 — Werteliste mit leerem Code (`meal_variants`)',
+    $q$INSERT INTO meal_variants (code, name) VALUES ('', 'Probe')$q$);
+
+SELECT pg_temp.expect_reject(
+    'rules.md Abschnitt 3 — Werteliste mit leerem Namen (`meal_variants`)',
+    $q$INSERT INTO meal_variants (code, name) VALUES ('empty_name_probe', '')$q$);
+
 DO $$ BEGIN RAISE NOTICE 'mensa-schema-check: alle Gegenproben bestanden'; END $$;
 
 ROLLBACK;

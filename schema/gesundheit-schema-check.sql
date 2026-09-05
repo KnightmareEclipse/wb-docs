@@ -1205,6 +1205,17 @@ BEGIN
     RAISE NOTICE 'ok: Kategorien, Felder und Sichtkreise überleben das Kind';
 END $$;
 
+-- Referenzform (stammdaten-schema.sql): Jede Werteliste weist den leeren Code
+-- und den leeren Namen ab — der Code ist Fremdschlüsselziel und Verankerung im
+-- Anwendungscode, der Name die einzige Anzeige des Werts.
+SELECT pg_temp.expect_reject(
+    'rules.md Abschnitt 3 — Werteliste mit leerem Code (`health_visibility_scopes`)',
+    $q$INSERT INTO health_visibility_scopes (code, name, created_by) VALUES ('', 'Probe', 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    'rules.md Abschnitt 3 — Werteliste mit leerem Namen (`health_visibility_scopes`)',
+    $q$INSERT INTO health_visibility_scopes (code, name, created_by) VALUES ('empty_name_probe', '', 'system:check')$q$);
+
 DO $$ BEGIN RAISE NOTICE 'gesundheit-schema-check: alle Gegenproben bestanden'; END $$;
 
 ROLLBACK;

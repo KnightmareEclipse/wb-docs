@@ -818,6 +818,17 @@ BEGIN
     RAISE NOTICE 'ok (erlaubt): 12 — nichts überlebt seinen Beleg, die Listen bleiben';
 END $$;
 
+-- Referenzform (stammdaten-schema.sql): Jede Werteliste weist den leeren Code
+-- und den leeren Namen ab — der Code ist Fremdschlüsselziel und Verankerung im
+-- Anwendungscode, der Name die einzige Anzeige des Werts.
+SELECT pg_temp.expect_reject(
+    'rules.md Abschnitt 3 — Werteliste mit leerem Code (`ledger_accounts`)',
+    $q$INSERT INTO ledger_accounts (code, name, created_by) VALUES ('', 'Probe', 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    'rules.md Abschnitt 3 — Werteliste mit leerem Namen (`ledger_accounts`)',
+    $q$INSERT INTO ledger_accounts (code, name, created_by) VALUES ('empty_name_probe', '', 'system:check')$q$);
+
 DO $$ BEGIN RAISE NOTICE 'rechnungsfreigabe-schema-check: alle Gegenproben bestanden'; END $$;
 
 ROLLBACK;

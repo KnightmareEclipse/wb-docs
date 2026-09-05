@@ -81,6 +81,8 @@ CREATE TABLE health_trait_types (
     -- deshalb zusätzlich zum Primärschlüssel nötig.
     CONSTRAINT uq_health_trait_types_multiple
         UNIQUE (health_trait_type_id, allows_multiple),
+    CONSTRAINT ck_health_trait_types_code CHECK (code <> ''),
+    CONSTRAINT ck_health_trait_types_name CHECK (name <> ''),
     CONSTRAINT ck_health_trait_types_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
@@ -99,7 +101,10 @@ CREATE TABLE health_value_kinds (
     CONSTRAINT pk_health_value_kinds PRIMARY KEY (code),
     -- Genau die fünf, die `ck_health_trait_values_kind` auswertet.
     CONSTRAINT ck_health_value_kinds_code
-        CHECK (code IN ('bool', 'text', 'date', 'period', 'document'))
+        CHECK (code IN ('bool', 'text', 'date', 'period', 'document')),
+    -- Kein eigener Leer-CHECK auf `code`: Die Werteliste darüber weist den
+    -- Leerstring schon ab, ein zweiter wäre dieselbe Regel zweimal.
+    CONSTRAINT ck_health_value_kinds_name CHECK (name <> '')
 );
 
 -- Herkunft: die Erhebungsbögen selbst — Schulvertrag (08), Hortvertrag (09)
@@ -124,6 +129,8 @@ CREATE TABLE health_fields (
     CONSTRAINT fk_health_fields_kind
         FOREIGN KEY (value_kind_code) REFERENCES health_value_kinds (code),
     CONSTRAINT uq_health_fields_kind UNIQUE (health_field_id, value_kind_code),
+    CONSTRAINT ck_health_fields_code CHECK (code <> ''),
+    CONSTRAINT ck_health_fields_name CHECK (name <> ''),
     CONSTRAINT ck_health_fields_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
@@ -238,6 +245,8 @@ CREATE TABLE health_visibility_scopes (
     -- zweiter Löschanker neben dem Austritt.
     CONSTRAINT ck_health_visibility_scopes_ends
         CHECK (is_temporary = (ends_on IS NOT NULL)),
+    CONSTRAINT ck_health_visibility_scopes_code CHECK (code <> ''),
+    CONSTRAINT ck_health_visibility_scopes_name CHECK (name <> ''),
     CONSTRAINT ck_health_visibility_scopes_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
@@ -304,7 +313,9 @@ CREATE TABLE measles_presentation_types (
     is_active                     boolean NOT NULL DEFAULT true,
 
     CONSTRAINT pk_measles_presentation_types      PRIMARY KEY (measles_presentation_type_id),
-    CONSTRAINT uq_measles_presentation_types_code UNIQUE (code)
+    CONSTRAINT uq_measles_presentation_types_code UNIQUE (code),
+    CONSTRAINT ck_measles_presentation_types_code CHECK (code <> ''),
+    CONSTRAINT ck_measles_presentation_types_name CHECK (name <> '')
 );
 
 

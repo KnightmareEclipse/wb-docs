@@ -58,6 +58,8 @@ CREATE TABLE cost_projects (
 
     CONSTRAINT pk_cost_projects      PRIMARY KEY (cost_project_id),
     CONSTRAINT uq_cost_projects_code UNIQUE (code),
+    CONSTRAINT ck_cost_projects_code CHECK (code <> ''),
+    CONSTRAINT ck_cost_projects_name CHECK (name <> ''),
     CONSTRAINT ck_cost_projects_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
@@ -74,6 +76,8 @@ CREATE TABLE ledger_accounts (
 
     CONSTRAINT pk_ledger_accounts      PRIMARY KEY (ledger_account_id),
     CONSTRAINT uq_ledger_accounts_code UNIQUE (code),
+    CONSTRAINT ck_ledger_accounts_code CHECK (code <> ''),
+    CONSTRAINT ck_ledger_accounts_name CHECK (name <> ''),
     CONSTRAINT ck_ledger_accounts_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
@@ -116,6 +120,7 @@ CREATE TABLE payment_routes (
     CONSTRAINT uq_payment_routes_traits
         UNIQUE (code, requires_bank_details, is_reimbursement),
     CONSTRAINT ck_payment_routes_code CHECK (code <> ''),
+    CONSTRAINT ck_payment_routes_name CHECK (name <> ''),
     CONSTRAINT ck_payment_routes_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 

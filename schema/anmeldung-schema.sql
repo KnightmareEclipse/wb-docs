@@ -90,6 +90,8 @@ CREATE TABLE application_statuses (
     -- Trägt den zusammengesetzten Fremdschlüssel von `applications` (rules.md
     -- Abschnitt 1) und ist deshalb zusätzlich zum Primärschlüssel nötig.
     CONSTRAINT uq_application_statuses_is_final UNIQUE (application_status_id, is_final),
+    CONSTRAINT ck_application_statuses_code CHECK (code <> ''),
+    CONSTRAINT ck_application_statuses_name CHECK (name <> ''),
     CONSTRAINT ck_application_statuses_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
@@ -122,7 +124,9 @@ CREATE TABLE school_levels (
     is_active        boolean NOT NULL DEFAULT true,
 
     CONSTRAINT pk_school_levels      PRIMARY KEY (school_level_id),
-    CONSTRAINT uq_school_levels_code UNIQUE (code)
+    CONSTRAINT uq_school_levels_code UNIQUE (code),
+    CONSTRAINT ck_school_levels_code CHECK (code <> ''),
+    CONSTRAINT ck_school_levels_name CHECK (name <> '')
 );
 
 -- Herkunft: 06 (Anmeldetag) — „bei Grundschule Klasse 1 die Einstufung —
@@ -137,7 +141,9 @@ CREATE TABLE enrolment_assessments (
     is_active                boolean NOT NULL DEFAULT true,
 
     CONSTRAINT pk_enrolment_assessments      PRIMARY KEY (enrolment_assessment_id),
-    CONSTRAINT uq_enrolment_assessments_code UNIQUE (code)
+    CONSTRAINT uq_enrolment_assessments_code UNIQUE (code),
+    CONSTRAINT ck_enrolment_assessments_code CHECK (code <> ''),
+    CONSTRAINT ck_enrolment_assessments_name CHECK (name <> '')
 );
 
 -- Herkunft: 06 (Anmeldetag) — „die Empfehlung des Kindergartens, Einschulung
@@ -152,7 +158,9 @@ CREATE TABLE kindergarten_recommendations (
     is_active                       boolean NOT NULL DEFAULT true,
 
     CONSTRAINT pk_kindergarten_recommendations      PRIMARY KEY (kindergarten_recommendation_id),
-    CONSTRAINT uq_kindergarten_recommendations_code UNIQUE (code)
+    CONSTRAINT uq_kindergarten_recommendations_code UNIQUE (code),
+    CONSTRAINT ck_kindergarten_recommendations_code CHECK (code <> ''),
+    CONSTRAINT ck_kindergarten_recommendations_name CHECK (name <> '')
 );
 
 -- Herkunft: 06 (Anmeldetag) — „Ebenso ergänzt werden die wahrgenommenen
@@ -167,7 +175,9 @@ CREATE TABLE attended_offers (
     is_active          boolean NOT NULL DEFAULT true,
 
     CONSTRAINT pk_attended_offers      PRIMARY KEY (attended_offer_id),
-    CONSTRAINT uq_attended_offers_code UNIQUE (code)
+    CONSTRAINT uq_attended_offers_code UNIQUE (code),
+    CONSTRAINT ck_attended_offers_code CHECK (code <> ''),
+    CONSTRAINT ck_attended_offers_name CHECK (name <> '')
 );
 
 -- Herkunft: 06 (Anmeldetag) — „Der Betreuungsbedarf — Kernzeit, Nachmittag,
@@ -186,7 +196,9 @@ CREATE TABLE care_need_levels (
     is_active           boolean NOT NULL DEFAULT true,
 
     CONSTRAINT pk_care_need_levels      PRIMARY KEY (care_need_level_id),
-    CONSTRAINT uq_care_need_levels_code UNIQUE (code)
+    CONSTRAINT uq_care_need_levels_code UNIQUE (code),
+    CONSTRAINT ck_care_need_levels_code CHECK (code <> ''),
+    CONSTRAINT ck_care_need_levels_name CHECK (name <> '')
 );
 
 -- Herkunft: 09 (Hortvertrag) — „Die Module — Frühbetreuung, vier
@@ -252,6 +264,8 @@ CREATE TABLE care_modules (
         CHECK (restricted_to_grade_level IS NULL OR school_branch_id IS NOT NULL),
     CONSTRAINT ck_care_modules_times
         CHECK (ends_at_time IS NULL OR starts_at_time IS NULL OR ends_at_time > starts_at_time),
+    CONSTRAINT ck_care_modules_code CHECK (code <> ''),
+    CONSTRAINT ck_care_modules_name CHECK (name <> ''),
     CONSTRAINT ck_care_modules_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 

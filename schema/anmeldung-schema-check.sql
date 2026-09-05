@@ -2304,6 +2304,17 @@ BEGIN
     RAISE NOTICE 'ok (erlaubt): 17 — die Domäne ist leer bis auf das, was keinen Anker hat';
 END $$;
 
+-- Referenzform (stammdaten-schema.sql): Jede Werteliste weist den leeren Code
+-- und den leeren Namen ab — der Code ist Fremdschlüsselziel und Verankerung im
+-- Anwendungscode, der Name die einzige Anzeige des Werts.
+SELECT pg_temp.expect_reject(
+    'rules.md Abschnitt 3 — Werteliste mit leerem Code (`application_statuses`)',
+    $q$INSERT INTO application_statuses (code, name, created_by) VALUES ('', 'Probe', 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    'rules.md Abschnitt 3 — Werteliste mit leerem Namen (`application_statuses`)',
+    $q$INSERT INTO application_statuses (code, name, created_by) VALUES ('empty_name_probe', '', 'system:check')$q$);
+
 DO $$ BEGIN RAISE NOTICE 'anmeldung-schema-check: alle Gegenproben bestanden'; END $$;
 
 ROLLBACK;

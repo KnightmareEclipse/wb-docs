@@ -2631,6 +2631,17 @@ BEGIN
     RAISE NOTICE 'ok (gemeldet): 17 — Spureintrag mit Personenbezug, dem der Anker fehlt';
 END $$;
 
+-- Referenzform (stammdaten-schema.sql): Jede Werteliste weist den leeren Code
+-- und den leeren Namen ab — der Code ist Fremdschlüsselziel und Verankerung im
+-- Anwendungscode, der Name die einzige Anzeige des Werts.
+SELECT pg_temp.expect_reject(
+    'rules.md Abschnitt 3 — Werteliste mit leerem Code (`document_types`)',
+    $q$INSERT INTO document_types (code, name, created_by) VALUES ('', 'Probe', 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    'rules.md Abschnitt 3 — Werteliste mit leerem Namen (`document_types`)',
+    $q$INSERT INTO document_types (code, name, created_by) VALUES ('empty_name_probe', '', 'system:check')$q$);
+
 DO $$ BEGIN RAISE NOTICE 'querschnitt-schema-check: alle Gegenproben bestanden'; END $$;
 
 ROLLBACK;

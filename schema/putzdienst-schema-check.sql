@@ -737,6 +737,17 @@ SELECT pg_temp.expect_accept(
     '03 — nach dem Jahreslauf geht auch die Familie',
     $q$DELETE FROM families WHERE family_id = '33333333-3333-3333-3333-333333333331'$q$);
 
+-- Referenzform (stammdaten-schema.sql): Jede Werteliste weist den leeren Code
+-- und den leeren Namen ab — der Code ist Fremdschlüsselziel und Verankerung im
+-- Anwendungscode, der Name die einzige Anzeige des Werts.
+SELECT pg_temp.expect_reject(
+    'rules.md Abschnitt 3 — Werteliste mit leerem Code (`cleaning_slot_types`)',
+    $q$INSERT INTO cleaning_slot_types (code, name, created_by) VALUES ('', 'Probe', 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    'rules.md Abschnitt 3 — Werteliste mit leerem Namen (`cleaning_slot_types`)',
+    $q$INSERT INTO cleaning_slot_types (code, name, created_by) VALUES ('empty_name_probe', '', 'system:check')$q$);
+
 DO $$ BEGIN RAISE NOTICE 'putzdienst-schema-check: alle Gegenproben bestanden'; END $$;
 
 ROLLBACK;

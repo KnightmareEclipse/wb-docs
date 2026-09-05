@@ -88,6 +88,8 @@ CREATE TABLE cleaning_slot_types (
 
     CONSTRAINT pk_cleaning_slot_types      PRIMARY KEY (cleaning_slot_type_id),
     CONSTRAINT uq_cleaning_slot_types_code UNIQUE (code),
+    CONSTRAINT ck_cleaning_slot_types_code CHECK (code <> ''),
+    CONSTRAINT ck_cleaning_slot_types_name CHECK (name <> ''),
     CONSTRAINT ck_cleaning_slot_types_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 

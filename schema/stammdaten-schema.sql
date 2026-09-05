@@ -29,6 +29,17 @@
 -- Bewusst KEINE Audit-Spalten hier — der Inhalt ist eine Bezeichnung, keine
 -- Regel; die vier Listen mit Regelwirkung tragen sie unten selbst
 -- (`school_branches`, `houses`, `roles`, `alumni_kinds`).
+--
+-- **Jede Werteliste im ganzen Schema weist den leeren `code` und den leeren
+-- `name` ab** — die Regel steht hier, weil diese Datei die Referenzform ist,
+-- und gilt für alle sechsundvierzig Tabellen mit einer `code`-Spalte. Der Code
+-- ist die Verankerung im Anwendungscode und ein Fremdschlüsselziel: leer ist er
+-- ein Wert, auf den jeder leere Vergleich zeigt und den keine Zeile mehr von
+-- „nicht gesetzt" unterscheidet. Der Name ist die einzige Anzeige des Werts;
+-- leer steht in jedem Auswahlfeld eine leere Zeile. — Alternative: die Prüfung
+-- der Anwendung überlassen, wie es einunddreißig dieser Listen taten; Preis:
+-- die Regel gilt je nach Route, und ein Seed oder ein Import schreibt sie
+-- vorbei. Die Gegenprobe liegt je Domäne in ihrem `-schema-check.sql`.
 CREATE TABLE salutations (
     salutation_id integer GENERATED ALWAYS AS IDENTITY,
     code          text NOT NULL,
@@ -39,7 +50,9 @@ CREATE TABLE salutations (
     is_active      boolean NOT NULL DEFAULT true,
 
     CONSTRAINT pk_salutations      PRIMARY KEY (salutation_id),
-    CONSTRAINT uq_salutations_code UNIQUE (code)
+    CONSTRAINT uq_salutations_code UNIQUE (code),
+    CONSTRAINT ck_salutations_code CHECK (code <> ''),
+    CONSTRAINT ck_salutations_name CHECK (name <> '')
 );
 
 CREATE TABLE genders (
@@ -52,7 +65,9 @@ CREATE TABLE genders (
     is_active  boolean NOT NULL DEFAULT true,
 
     CONSTRAINT pk_genders      PRIMARY KEY (gender_id),
-    CONSTRAINT uq_genders_code UNIQUE (code)
+    CONSTRAINT uq_genders_code UNIQUE (code),
+    CONSTRAINT ck_genders_code CHECK (code <> ''),
+    CONSTRAINT ck_genders_name CHECK (name <> '')
 );
 
 -- Herkunft: 05 (Bewerbung) — „Konfession und Anschrift (Pflicht), zweite
@@ -67,7 +82,9 @@ CREATE TABLE denominations (
     is_active        boolean NOT NULL DEFAULT true,
 
     CONSTRAINT pk_denominations      PRIMARY KEY (denomination_id),
-    CONSTRAINT uq_denominations_code UNIQUE (code)
+    CONSTRAINT uq_denominations_code UNIQUE (code),
+    CONSTRAINT ck_denominations_code CHECK (code <> ''),
+    CONSTRAINT ck_denominations_name CHECK (name <> '')
 );
 
 -- Herkunft: 05 (Bewerbung) — „Geburtsort und -land, Muttersprache".
@@ -81,7 +98,9 @@ CREATE TABLE languages (
     is_active    boolean NOT NULL DEFAULT true,
 
     CONSTRAINT pk_languages      PRIMARY KEY (language_id),
-    CONSTRAINT uq_languages_code UNIQUE (code)
+    CONSTRAINT uq_languages_code UNIQUE (code),
+    CONSTRAINT ck_languages_code CHECK (code <> ''),
+    CONSTRAINT ck_languages_name CHECK (name <> '')
 );
 
 -- Herkunft: 05 (Bewerbung) — „Geburtsort und -land … Staatsangehörigkeit".
@@ -103,7 +122,9 @@ CREATE TABLE countries (
     nationality_name text NOT NULL,
 
     CONSTRAINT pk_countries      PRIMARY KEY (country_id),
-    CONSTRAINT uq_countries_code UNIQUE (code)
+    CONSTRAINT uq_countries_code UNIQUE (code),
+    CONSTRAINT ck_countries_code CHECK (code <> ''),
+    CONSTRAINT ck_countries_name CHECK (name <> '')
 );
 
 -- Herkunft: 05 (Bewerbung) — „Je Sorgeberechtigtem Name, Geschlecht,
@@ -118,7 +139,9 @@ CREATE TABLE guardian_relations (
     is_active             boolean NOT NULL DEFAULT true,
 
     CONSTRAINT pk_guardian_relations      PRIMARY KEY (guardian_relation_id),
-    CONSTRAINT uq_guardian_relations_code UNIQUE (code)
+    CONSTRAINT uq_guardian_relations_code UNIQUE (code),
+    CONSTRAINT ck_guardian_relations_code CHECK (code <> ''),
+    CONSTRAINT ck_guardian_relations_name CHECK (name <> '')
 );
 
 -- Herkunft: hebel.md, „Einsichtsstufe" — „Wer davon ausgenommen werden muss,
@@ -145,7 +168,9 @@ CREATE TABLE access_levels (
     is_active        boolean NOT NULL DEFAULT true,
 
     CONSTRAINT pk_access_levels      PRIMARY KEY (access_level_id),
-    CONSTRAINT uq_access_levels_code UNIQUE (code)
+    CONSTRAINT uq_access_levels_code UNIQUE (code),
+    CONSTRAINT ck_access_levels_code CHECK (code <> ''),
+    CONSTRAINT ck_access_levels_name CHECK (name <> '')
 );
 
 -- Herkunft: grenzkarte.md, „Zwei Schulen, nicht eine" — „`previous_schools` …
@@ -193,6 +218,8 @@ CREATE TABLE school_branches (
     -- Abschnitt 1) und ist deshalb zusätzlich zum Primärschlüssel nötig.
     CONSTRAINT uq_school_branches_grades UNIQUE (school_branch_id, first_grade_level, final_grade_level),
     CONSTRAINT ck_school_branches_grades CHECK (final_grade_level >= first_grade_level),
+    CONSTRAINT ck_school_branches_code CHECK (code <> ''),
+    CONSTRAINT ck_school_branches_name CHECK (name <> ''),
     CONSTRAINT ck_school_branches_created_by
         CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
@@ -214,6 +241,8 @@ CREATE TABLE houses (
 
     CONSTRAINT pk_houses      PRIMARY KEY (house_id),
     CONSTRAINT uq_houses_code UNIQUE (code),
+    CONSTRAINT ck_houses_code CHECK (code <> ''),
+    CONSTRAINT ck_houses_name CHECK (name <> ''),
     CONSTRAINT ck_houses_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
@@ -242,6 +271,8 @@ CREATE TABLE roles (
     -- Trägt den zusammengesetzten Fremdschlüssel von `employee_roles` (rules.md
     -- Abschnitt 1) und ist deshalb zusätzlich zum Primärschlüssel nötig.
     CONSTRAINT uq_roles_branch_bound UNIQUE (role_id, is_branch_bound),
+    CONSTRAINT ck_roles_code CHECK (code <> ''),
+    CONSTRAINT ck_roles_name CHECK (name <> ''),
     CONSTRAINT ck_roles_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
@@ -260,7 +291,9 @@ CREATE TABLE phone_types (
     is_active      boolean NOT NULL DEFAULT true,
 
     CONSTRAINT pk_phone_types      PRIMARY KEY (phone_type_id),
-    CONSTRAINT uq_phone_types_code UNIQUE (code)
+    CONSTRAINT uq_phone_types_code UNIQUE (code),
+    CONSTRAINT ck_phone_types_code CHECK (code <> ''),
+    CONSTRAINT ck_phone_types_name CHECK (name <> '')
 );
 
 

@@ -1244,6 +1244,17 @@ BEGIN
     RAISE NOTICE 'ok (erlaubt): 02/13 — nichts Personenbezogenes überlebt seinen Anker, die Klasse bleibt';
 END $$;
 
+-- Referenzform (stammdaten-schema.sql): Jede Werteliste weist den leeren Code
+-- und den leeren Namen ab — der Code ist Fremdschlüsselziel und Verankerung im
+-- Anwendungscode, der Name die einzige Anzeige des Werts.
+SELECT pg_temp.expect_reject(
+    'rules.md Abschnitt 3 — Werteliste mit leerem Code (`salutations`)',
+    $q$INSERT INTO salutations (code, name) VALUES ('', 'Probe')$q$);
+
+SELECT pg_temp.expect_reject(
+    'rules.md Abschnitt 3 — Werteliste mit leerem Namen (`salutations`)',
+    $q$INSERT INTO salutations (code, name) VALUES ('empty_name_probe', '')$q$);
+
 DO $$ BEGIN RAISE NOTICE 'stammdaten-schema-check: alle Gegenproben bestanden'; END $$;
 
 ROLLBACK;

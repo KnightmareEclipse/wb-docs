@@ -327,6 +327,8 @@ CREATE TABLE consent_purposes (
     CONSTRAINT uq_consent_purposes_requires_child UNIQUE (consent_purpose_id, requires_child),
     -- Ohne `guardian:`, wie an den Wertelisten des Lösch-Laufs: Eine Werteliste
     -- legt kein Elternteil an, sie entsteht im Haus.
+    CONSTRAINT ck_consent_purposes_code CHECK (code <> ''),
+    CONSTRAINT ck_consent_purposes_name CHECK (name <> ''),
     CONSTRAINT ck_consent_purposes_created_by CHECK (created_by ~ '^(entra:|system:)')
 );
 
@@ -364,6 +366,8 @@ CREATE TABLE sharepoint_libraries (
     CONSTRAINT pk_sharepoint_libraries      PRIMARY KEY (sharepoint_library_id),
     CONSTRAINT uq_sharepoint_libraries_code UNIQUE (code),
     -- Ohne `guardian:`: eine Bibliothek richtet ein Admin ein, kein Elternteil.
+    CONSTRAINT ck_sharepoint_libraries_code CHECK (code <> ''),
+    CONSTRAINT ck_sharepoint_libraries_name CHECK (name <> ''),
     CONSTRAINT ck_sharepoint_libraries_created_by CHECK (created_by ~ '^(entra:|system:)')
 );
 
@@ -448,6 +452,8 @@ CREATE TABLE document_types (
     CONSTRAINT pk_document_types      PRIMARY KEY (document_type_id),
     CONSTRAINT uq_document_types_code UNIQUE (code),
     -- Ohne `guardian:`: eine Dokumentart legt an, wer den Prozess pflegt.
+    CONSTRAINT ck_document_types_code CHECK (code <> ''),
+    CONSTRAINT ck_document_types_name CHECK (name <> ''),
     CONSTRAINT ck_document_types_created_by CHECK (created_by ~ '^(entra:|system:)')
 );
 
@@ -507,6 +513,8 @@ CREATE TABLE sync_targets (
     -- Abschnitt 1) und ist deshalb zusätzlich zum Primärschlüssel nötig.
     CONSTRAINT uq_sync_targets_branch_bound UNIQUE (sync_target_id, is_branch_bound),
     -- Ohne `guardian:`: eine Aufgabenart legt ein Admin an, kein Elternteil.
+    CONSTRAINT ck_sync_targets_code CHECK (code <> ''),
+    CONSTRAINT ck_sync_targets_name CHECK (name <> ''),
     CONSTRAINT ck_sync_targets_created_by CHECK (created_by ~ '^(entra:|system:)')
 );
 
