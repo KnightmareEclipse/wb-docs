@@ -371,7 +371,8 @@ CREATE TABLE persons (
 -- Notfallnummer ist Pflicht — vormittags für die Schule, nachmittags für die
 -- Betreuung …, eine Regel statt zweier Nummern". Löschanker: geht mit der Person.
 -- Die Pflicht selbst steht bewusst NICHT als Constraint hier: sie greift erst
--- mit dem ersten Vertrag am Kind und würde jede Voranmeldung blockieren.
+-- mit dem ersten Vertrag am Kind „und ebenso mit seiner ersten Buchung" (10)
+-- und würde jede Voranmeldung blockieren.
 -- Bewusst KEINE Hauptnummer und keine Reihenfolge unter den Nummern: kein
 -- Block nennt eine, und grenzkarte.md hält ausdrücklich fest, dass „die
 -- Notfallnummer bekommt kein eigenes Feld". Wonach im Notfall gesucht wird,

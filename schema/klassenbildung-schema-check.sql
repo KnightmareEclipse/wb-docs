@@ -2,7 +2,7 @@
 --
 -- Sollstand: keine eigenen Tabellen. Geprüft wird, dass die vier Angaben der
 -- heutigen Klassenbildungsliste, die das Schema trägt, an ihren Stellen stehen,
--- dass der Zusammensetzungswunsch keine Spalte hat (15 schlägt grenzkarte.md)
+-- dass der Zusammensetzungswunsch keine Spalte hat (Block 15)
 -- und dass die beiden Bedingungen aus Block 15 als Constraints greifen.
 --
 -- Setzt stammdaten-schema.sql und anmeldung-schema.sql voraus:
@@ -55,8 +55,8 @@ BEGIN
     END IF;
 
     -- 15, Schritt 2: „Die Gründe — Freundschaften, Förderbedarf,
-    -- Ausgewogenheit — bleiben außerhalb wie das Ranking in 07." Der Wunsch
-    -- stand allein auf grenzkarte.md und wird vom jüngeren Block überstimmt.
+    -- Ausgewogenheit — bleiben außerhalb wie das Ranking in 07." Erhoben wird
+    -- er nirgends; die Ansicht zeigt ihn nicht.
     IF EXISTS (SELECT 1 FROM information_schema.columns
                 WHERE table_name = 'applications'
                   AND column_name = 'class_placement_wish') THEN

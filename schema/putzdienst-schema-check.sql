@@ -318,8 +318,8 @@ BEGIN
     RAISE NOTICE 'ok (erlaubt): Q3 — die Aussetzung hat keinen Anlass an payments';
 END $$;
 
--- 01: „neben Stripe bleibt die manuelle Bestätigung durch die Buchhaltung als
--- benannter Ausweg für Überweisung und Bargeld bestehen."
+-- grenzkarte.md, Q3: „neben Stripe bleibt die manuelle Bestätigung durch die
+-- Buchhaltung als benannter Ausweg für Überweisung und Bargeld bestehen."
 SELECT pg_temp.expect_accept(
     'Q3 — von Hand bestätigte Zahlung ohne Stripe-Referenz',
     $q$INSERT INTO payments (cleaning_buyout_id, amount_cents, status, confirmed_at, created_by)

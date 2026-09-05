@@ -110,7 +110,7 @@ CREATE TABLE academy_offerings (
     -- Die Lauf-Marke dazu: ohne sie schickte der Lauf die Warnung bei jedem
     -- Durchgang erneut, solange die Restplätze unter der Schwelle liegen.
     low_places_notice_sent_at timestamptz,
-    -- Der Betrag, den die anbietende Stelle setzt — die dritte benannte
+    -- Der Betrag, den die anbietende Stelle setzt — die erste benannte
     -- Ausnahme vom Geld-Hebel (hebel.md). Bewusst OHNE Gültigkeitstag: er
     -- gehört diesem einen Angebot und lebt nicht länger als es; was beim
     -- Absenden galt, hält die Anmeldung fest.
@@ -418,7 +418,7 @@ CREATE TABLE academy_cost_coverage_codes (
 -- **Diese Zeile ist der einzige Anker ihres Teilnehmers**, wo er sonst keinen
 -- hat: Ein Kind, das allein über ein Angebot in den Bestand kam, hat kein
 -- Austrittsdatum, und die erwachsene Teilnehmerin hat überhaupt keine
--- Rollenzeile — `persons` trägt „keinen eigenen [Anker]" und wartet auf seine
+-- Rollenzeile — `persons` hat „Löschanker: keiner eigener" und wartet auf seine
 -- Rollenanker (stammdaten-schema.sql). Beide gehen deshalb mit ihrer letzten
 -- Anmeldung, wie das schulfremde Kind mit seiner letzten Ferienbuchung
 -- (ferien-schema.sql); der Lösch-Lauf räumt sie in Stufe 1 und kommt damit in
@@ -465,7 +465,7 @@ CREATE TABLE academy_registrations (
     is_invoiced             boolean NOT NULL,
     is_direct_debit         boolean NOT NULL,
     academy_cost_coverage_code_id uuid,
-    -- Die Fassung der Abmeldebedingungen, die beim Absenden galt — „sichtbar,
+    -- Die Fassung der Abmeldebedingungen, die beim Absenden galt — „sichtbar
     -- bevor angemeldet wird"; eine Unterschrift entsteht daraus nicht.
     cancellation_terms_contract_text_id integer NOT NULL,
     -- Die Abmeldung in zwei Schritten: die Eltern erklären, die anbietende
@@ -628,7 +628,7 @@ BEGIN
 
     -- Ab hier nur die Selbstanmeldung der Eltern: „wer es verpasst, ist nicht
     -- dabei, und der offizielle Umweg trägt den Einzelfall" (21). Das
-    -- Sekretariat trägt stellvertretend ein und „kann jedes Datum setzen, auch
+    -- Sekretariat trägt stellvertretend ein und kann „jedes Datum setzen, auch
     -- eines in der Vergangenheit" (hebel.md) — für es sperrt hier nichts.
     IF NEW.created_by NOT LIKE 'guardian:%' THEN
         RETURN NEW;

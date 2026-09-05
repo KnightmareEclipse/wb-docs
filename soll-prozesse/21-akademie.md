@@ -158,9 +158,9 @@ Vorgang anhält. Sie ist ein Ja oder ein Zurück mit einem Satz, keine Bewertung
 zurückgibt, sagt warum, und die anbietende Person legt geändert wieder vor. Ein abgelehntes Angebot
 bleibt ein Entwurf und wird nirgends gezählt.
 
-**Den Betrag setzt die anbietende Stelle selbst** und nicht die Geschäftsführung — die dritte
-benannte Ausnahme vom [Geld-Hebel](hebel.md#geld-und-fristen-im-system-alles-andere-fest), aus demselben Grund
-wie die erste: Wer den Kurs führt, kennt seinen Einkauf. Was die Lebensmittel einer Kochwerkstatt
+**Den Betrag setzt die anbietende Stelle selbst** und nicht die Geschäftsführung — die erste
+benannte Ausnahme vom [Geld-Hebel](hebel.md#geld-und-fristen-im-system-alles-andere-fest): Wer den
+Kurs führt, kennt seinen Einkauf. Was die Lebensmittel einer Kochwerkstatt
 kosten, weiß niemand ein Jahr im Voraus, und deshalb steht der Betrag am einzelnen Angebot statt in
 einer Preisliste. **Die Freigabe ist die Gegenprobe dazu:** Anlegen darf jede und jeder
 Mitarbeitende, aber kein Betrag steht draußen, den nicht eine zweite Stelle gesehen hat.
