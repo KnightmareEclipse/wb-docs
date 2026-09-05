@@ -206,9 +206,10 @@
 
 -- Herkunft: 00 — die Schulinformation ist abwählbar, „ja, aber **einer je
 -- Familie muss sie bekommen**", und „bei der **Schulinformation** greift die
--- Untergrenze". Damit gibt es drei Sorten Mail und nicht mehr zwei: die **Vorgangsmail**, die niemand abbestellen kann, die
--- **Schulinformation**, die jeder abwählt, solange einer je Familie sie noch
--- bekommt, und den **Newsletter**, den jeder frei abwählt.
+-- Untergrenze". Damit gibt es drei Sorten Mail und nicht mehr zwei: die
+-- **Vorgangsmail**, die niemand abbestellen kann, die **Schulinformation**,
+-- die jeder abwählt, solange einer je Familie sie noch bekommt, und den
+-- **Newsletter**, den jeder frei abwählt.
 -- Als Werteliste statt zweier Häkchen an `consent_purposes`: Eine feinere
 -- Aufteilung — Ferienprogramm getrennt von der Akademie — ist dann eine Zeile
 -- hier und kein Bau, und die vier Kombinationen zweier Booleans, von denen zwei
@@ -1736,51 +1737,10 @@ CREATE UNIQUE INDEX ix_sync_tasks_open_payment ON sync_tasks (sync_target_id, pa
 -- oder Schulart verschieden ist — Hortbeitrag, Ferienaufschlag, Schulgeld,
 -- Vertragstext —, trägt seine eigene Tabelle in der zuständigen Domäne, dort
 -- aber mit demselben `valid_from` und derselben Auswahlregel.
--- **Seit dem 04.09.2026 stehen auch die Löschfristen hier** (Geschäftsführung):
--- „Generell soll es möglich sein die Löschfristen dynamisch anzupassen und sie
--- sollen nicht fix im Code stehen." Das kehrt um, was hebel.md vorher trug —
--- eine Frist war eine feste Zahl, weil „je weniger jemand einstellen muss,
--- desto weniger geht schief". Für die Aufbewahrung gilt
--- das nicht mehr: Eine Frist, die eine Aufsichtsbehörde beanstandet, kostet
--- sonst einen Bau statt einer Eingabe.
--- Drei Dinge folgen daraus für diese Tabelle:
---   * `valid_from` trägt die Umkehrung schon: Eine Änderung wirkt ab einem
---     Datum und nie rückwirkend.
---   * **Bewusst KEINE Untergrenze** (04.09.2026): „Wir akzeptieren das Risiko
---     mit zu geringen Werten in der Datenbank." Auch die zehn Jahre der Belege
---     aus § 147 AO und § 257 HGB (12) sind hier ein Wert wie jeder andere. Der
---     Grund ist Zuständigkeit und nicht Sorglosigkeit: Wer eine
---     Aufbewahrungspflicht kennt, ist die Stelle, die den Bestand führt — sonst
---     müsste dieses Repo die Rechtslage nachhalten und bei jeder Änderung
---     nachfragen, wie lange etwas liegen darf.
---   * **Und deshalb kein Anfangsbestand.** Eine Frist, die niemand eingetragen
---     hat, steht hier gar nicht — „ein Anker ohne Ziel löscht nichts" (17). Das
---     ist der sichere Ausfall: Wer nichts einträgt, verliert nichts. Eine Null
---     wäre das Gegenteil, und genau deshalb ist die fehlende Zeile die richtige
---     Form und nicht `value = 0`.
--- **Eine Frist kündigt der Lösch-Lauf nur an: die der Rechnungsfreigabe.** Ihre
--- zehn Jahre stehen hier wie jede andere, und der Lauf schickt darauf seine
--- beiden Ankündigungen an Buchhaltung und Geschäftsführung — **geräumt wird
--- aber nicht** (12, 17). Der Grund ist umgekehrt zu allen anderen Beständen:
--- Dort ist zu langes Aufbewahren der Fehler, hier das zu frühe Löschen
--- (§ 379 AO, § 257 HGB). Geändert wird der Wert von der **Buchhaltung** — sie
--- führt den Bestand und weiß als Einzige, wenn etwas länger liegen muss, etwa
--- während einer Betriebsprüfung.
--- **Und sie rechnet anders:** ab dem Schluss des Kalenderjahres, in dem der
--- letzte Eintrag fiel (§ 147 Abs. 4 AO), nicht ab einem Ereignistag. Ein Beleg
--- vom März 2026 ist Ende 2036 fällig und nicht im März — die einzige Frist im
--- System mit dieser Rechenart. `expense_claims` führt das Kalenderjahr bereits
--- als Spalte (rechnungsfreigabe-schema.sql).
--- Beides bleibt ein Sonderfall: Überall sonst räumt der Lauf, was er ankündigt,
--- und eine Ankündigung ohne Folgen wäre anderswo ein Fehler.
--- **`created_at` ist hier kein Beiwerk, sondern trägt eine Regel des
--- Lösch-Laufs:** Ein Löschtermin ist nie früher als vierzehn Tage nach dem
--- Eintragen des Wertes, aus dem er folgt (17). Das fängt eine gesenkte Frist ab,
--- ohne dass irgendwo gemerkt werden müsste, wann angekündigt wurde — und
--- gerechnet wird ab `created_at` und nicht ab `valid_from`, weil sich eine
--- Gültigkeit rückdatieren lässt und der Zeitpunkt der Eingabe nicht.
--- `value` ist bewusst `integer` geblieben: Eine Frist ist eine Zahl von Tagen
--- oder Monaten, kein eigener Typ — welche Einheit gilt, sagt der `code`.
+-- **Die Löschfristen sind der jüngste Fall genau dieser Regel** und stehen
+-- deshalb NICHT hier (Geschäftsführung, 04.09.2026): Sie sind je Bestand
+-- verschieden und tragen ihre eigene Tabelle, `retention_periods` weiter unten.
+-- Dort steht auch, warum das kein Umweg ist, sondern der kürzere Weg.
 
 CREATE TABLE configured_values (
     configured_value_id integer GENERATED ALWAYS AS IDENTITY,
@@ -2129,6 +2089,100 @@ CREATE TABLE retention_subjects (
 ALTER TABLE child_file_categories
     ADD CONSTRAINT fk_child_file_categories_retention
         FOREIGN KEY (retention_subject_id) REFERENCES retention_subjects (retention_subject_id);
+
+-- Herkunft: hebel.md, „Geld und Fristen im System, alles andere fest" — „Und
+-- seit dem 04.09.2026 gilt dasselbe für die Löschfristen: Sie stehen als Wert
+-- im System und nicht im Code, geändert werden sie von der Geschäftsführung."
+-- Das kehrt um, was vorher galt — eine Frist war eine feste Zahl, weil „je
+-- weniger jemand einstellen muss, desto weniger geht schief" (anleitung.md);
+-- für die Aufbewahrung gilt das nicht mehr, weil eine Frist, die eine
+-- Aufsichtsbehörde beanstandet, sonst einen Bau kostet statt einer Eingabe.
+-- Löschanker: keiner, keine Personendaten. Bewusst KEIN Gültigkeits-Ende: „Es
+-- gilt immer der Wert, dessen Datum zuletzt erreicht wurde", das Ende folgt aus
+-- dem nächsten Eintrag.
+--
+-- **Eigene Tabelle statt einer Zeile in `configured_values`**, und das ist die
+-- Regel dieser Datei und keine Ausnahme von ihr: Dort stehen die Werte, die für
+-- das ganze Haus gelten, „was je Modul, Termin oder Schulart verschieden ist,
+-- trägt seine eigene Tabelle … mit demselben `valid_from` und derselben
+-- Auswahlregel". Eine Löschfrist ist je **Bestand** verschieden. Dieselbe
+-- Bauform wie `holiday_module_prices` (ferien-schema.sql), `tuition_fees` und
+-- `care_module_prices` (anmeldung-schema.sql) und `meal_prices`
+-- (mensa-schema.sql). Der Preis der Zeile in `configured_values` wäre ein Code
+-- je Bestand gewesen, den nur der Anwendungscode mit `retention_subjects.code`
+-- verbindet: Ein Tippfehler dort sähe aus wie „noch nicht eingetragen", und
+-- genau dieser Ausfall gilt als der sichere (17) — er wäre es dann nicht mehr.
+-- Der Fremdschlüssel macht ihn unmöglich, statt ihn unwahrscheinlich zu machen.
+--
+-- **Und deshalb kein Anfangsbestand** (04.09.2026): Eine Frist, die niemand
+-- eingetragen hat, hat hier keine Zeile — „ein Anker ohne Ziel löscht nichts"
+-- (17). Das ist der sichere Ausfall: Wer nichts einträgt, verliert nichts. Eine
+-- Null wäre das Gegenteil, und genau deshalb ist die fehlende Zeile die
+-- richtige Form.
+-- **Bewusst KEINE Untergrenze** (04.09.2026): „Wir akzeptieren das Risiko mit
+-- zu geringen Werten in der Datenbank." Auch die zehn Jahre der Belege aus
+-- § 147 AO und § 257 HGB (12) sind ein Wert wie jeder andere. Der Grund ist
+-- Zuständigkeit und nicht Sorglosigkeit: Wer eine Aufbewahrungspflicht kennt,
+-- ist die Stelle, die den Bestand führt — sonst müsste dieses Repo die
+-- Rechtslage nachhalten und bei jeder Änderung nachfragen.
+-- **Ändern darf, wem der Bestand gehört:** die Geschäftsführung im Regelfall,
+-- die Buchhaltung bei der Frist der Rechnungsfreigabe (hebel.md). Das ist eine
+-- Zugriffsregel und keine Spalte — sie steht in zugang.md, nicht hier.
+-- **Die Belegfrist rechnet als einzige anders:** ab dem Schluss des
+-- Kalenderjahres, in dem der letzte Eintrag fiel (§ 147 Abs. 4 AO), nicht ab
+-- einem Ereignistag — ein Beleg vom März 2026 ist Ende 2036 fällig und nicht im
+-- März. Der Anker ist dort das Kalenderjahr und nicht der Tag; `expense_claims`
+-- führt es bereits als Spalte (rechnungsfreigabe-schema.sql). Die Frist selbst
+-- ist deshalb keine andere Sorte Zeile, sondern dieselbe mit einem anderen
+-- Anker.
+CREATE TABLE retention_periods (
+    retention_period_id  integer GENERATED ALWAYS AS IDENTITY,
+    retention_subject_id integer NOT NULL,
+    valid_from           date NOT NULL,
+    -- **`interval` und nicht Zahl plus Einheit.** 17 nennt Wochen, Monate und
+    -- Jahre nebeneinander — „drei Monate nach dem Austritt", „vier Wochen nach
+    -- der Veranstaltung", zehn Jahre bei den Belegen —, und der Unterschied ist
+    -- nicht bloß ein Faktor: Drei Monate sind ein Kalendersprung und nicht
+    -- neunzig Tage. Ein `integer` trüge die Einheit deshalb nicht, sie hinge
+    -- wie bei `configured_values.value` am Code; eine Einheiten-Werteliste
+    -- daneben wäre eine zweite Spalte und eine Tabelle für etwas, das Postgres
+    -- als Typ mitbringt. Wochen fallen dabei von selbst weg — Postgres
+    -- normalisiert sie zu Tagen, und das ist exakt und kein Verlust, weil eine
+    -- Woche immer sieben Tage hat. Gerechnet wird `anker + period`.
+    period               interval NOT NULL,
+    created_at           timestamptz NOT NULL DEFAULT now(),
+    created_by           text NOT NULL,
+
+    CONSTRAINT pk_retention_periods PRIMARY KEY (retention_period_id),
+    -- Der Bezug, um dessentwillen die Tabelle hier steht: Welche Frist zu
+    -- welchem Bestand gehört, ist ein Schlüssel und keine Verabredung.
+    CONSTRAINT fk_retention_periods_subject
+        FOREIGN KEY (retention_subject_id) REFERENCES retention_subjects (retention_subject_id),
+    -- Je Bestand und Gültigkeitstag genau ein Eintrag, wie an jeder anderen
+    -- Wertetabelle; ein noch nicht gültiger lässt sich bis dahin ändern, „ein
+    -- bereits gültiger nicht mehr" — das prüft die Anwendung (hebel.md).
+    CONSTRAINT uq_retention_periods UNIQUE (retention_subject_id, valid_from),
+    -- Nur die Richtung, nicht die Höhe: Eine negative Frist wäre ein
+    -- Löschtermin vor seinem Anker und keine kurze Frist. Null bleibt erlaubt,
+    -- weil „keine Untergrenze" entschieden ist — und selbst dann räumt der Lauf
+    -- nicht sofort, denn der Termin ist nie früher als vierzehn Tage nach
+    -- `created_at`.
+    CONSTRAINT ck_retention_periods_period CHECK (period >= INTERVAL '0'),
+    -- Ganze Tage: Der Lauf läuft täglich, eine Frist mit Uhrzeit verschöbe den
+    -- Löschtermin innerhalb eines Tages und niemand könnte sagen, wohin.
+    CONSTRAINT ck_retention_periods_whole_days
+        CHECK (period = date_trunc('day', period)),
+    -- Ohne `guardian:`: eine Frist setzt die Geschäftsführung oder die
+    -- Buchhaltung, kein Elternteil.
+    CONSTRAINT ck_retention_periods_created_by
+        CHECK (created_by ~ '^(entra:|system:)')
+);
+-- **`created_at` ist hier kein Beiwerk, sondern trägt eine Regel des
+-- Lösch-Laufs:** „Löschtermin = später von beidem — Anker plus Frist, oder
+-- Eintragung des Wertes plus 14 Tage" (17). Das fängt eine gesenkte Frist ab,
+-- ohne dass irgendwo gemerkt werden müsste, wann angekündigt wurde — und
+-- gerechnet wird ab `created_at` und nicht ab `valid_from`, weil sich eine
+-- Gültigkeit rückdatieren lässt und der Zeitpunkt der Eingabe nicht.
 
 -- Herkunft: hebel.md, „Löschankündigung und Anhalten" — „Empfänger sind immer
 -- mindestens zwei … Sie stehen als Wert im System und nicht im Code."

@@ -6,6 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2026-09-04 18:56'
+updated_date: '2026-09-05 14:31'
 labels:
   - dsgvo
   - querschnitt
@@ -22,7 +23,9 @@ Geschaeftsfuehrung, 04.09.2026: 'Generell soll es moeglich sein die Loeschfriste
 
 Das kehrt um, was soll-prozesse/anleitung.md bisher trug — eine Frist war eine feste Zahl. Fuer Vorlaufzeiten und Stichtage gilt der Satz weiter; fuer die Aufbewahrung nicht mehr.
 
-**Der Mechanismus steht schon:** configured_values traegt code, valid_from und value. Zu bauen sind die Codes je Bestand und die eine Rechnung unten.
+**Die Frist steht je Bestand und nicht als Code:** `retention_periods` (schema/querschnitt-schema.sql) traegt retention_subject_id, valid_from und period — dieselbe Bauform wie jede andere Wertetabelle, aber mit einem Fremdschluessel statt einer Zeichenkette. Nicht in configured_values: Dort stehen die Werte, die fuer das ganze Haus gelten, und eine Loeschfrist ist je Bestand verschieden. Ein Code je Bestand haette die Zuordnung dem Anwendungscode ueberlassen, und ein Tippfehler dort saehe aus wie 'noch nicht eingetragen' — also wie der sichere Ausfall, obwohl er das Gegenteil waere.
+
+**Die Einheit traegt der Typ:** `period` ist ein `interval`, weil Block 17 Wochen, Monate und Jahre nebeneinander nennt und drei Monate ein Kalendersprung sind und nicht neunzig Tage. Zu bauen ist damit nur noch die Rechnung unten.
 
 **Keine Untergrenze, und kein Anfangswert** (04.09.2026, zweite Runde): 'Wir akzeptieren das Risiko mit zu geringen Werten in der DB.' Auch die zehn Jahre der Belege sind ein Wert wie jeder andere, aenderbar durch die **Buchhaltung** — sie fuehrt den Bestand und kennt die Pflicht, nicht dieses System. Weltenbaum setzt den finalen Wert gar nicht: Eine Frist, die niemand eingetragen hat, steht leer, und **ein Anker ohne Ziel loescht nichts** (Block 17, bereits geltende Regel). Das ist der sichere Ausfall — wer nichts eintraegt, verliert nichts. Eine Null waere das Gegenteil, deshalb ist die fehlende Zeile die richtige Form und nicht value = 0.
 
@@ -49,7 +52,7 @@ Geaendert wird der Wert von der **Buchhaltung**: Sie fuehrt den Bestand und weis
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Je Bestand ein Code in configured_values — **ohne** Anfangsbestand: Was niemand eintraegt, bleibt leer
+- [ ] #1 Je Bestand hoechstens eine geltende Zeile in retention_periods, ueber einen Fremdschluessel und nicht ueber einen Code — **ohne** Anfangsbestand: Was niemand eintraegt, bleibt leer
 - [ ] #2 Eine fehlende Frist loescht nichts — die Gegenprobe: der Lauf laesst einen Bestand ohne Wert stehen, statt ihn sofort zu raeumen
 - [ ] #3 Der Loeschtermin ist nie frueher als created_at des Wertes plus 14 Tage; die Gegenprobe: nach einer Senkung wird am naechsten Morgen nichts geraeumt
 - [ ] #4 Eine Aenderung wirkt ab valid_from und nie rueckwirkend

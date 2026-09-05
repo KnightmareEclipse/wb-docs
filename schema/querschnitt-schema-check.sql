@@ -1,6 +1,6 @@
 -- Prüfskript zu querschnitt-schema.sql.
 --
--- Sollstand: 24 Tabellen — zehn Wertelisten (mail_categories, consent_purposes,
+-- Sollstand: 25 Tabellen — zehn Wertelisten (mail_categories, consent_purposes,
 -- sharepoint_libraries, child_file_categories, document_types, sync_targets,
 -- contract_text_kinds, payment_modes, retention_subjects,
 -- retention_hold_reasons),
@@ -10,8 +10,8 @@
 -- Q5 (sync_tasks), die Zuordnung der mitgeltenden Anlagen
 -- (contract_kind_attachments) samt ihrem partiellen Unique-Index über die
 -- geltenden, die drei übrigen Hebel (configured_values, change_log,
--- outbound_emails) und die zwei des Lösch-Laufs
--- (retention_notice_recipients, retention_holds).
+-- outbound_emails) und die drei des Lösch-Laufs (retention_periods,
+-- retention_notice_recipients, retention_holds).
 -- Die vertragsgebundenen Gegenproben zu `signatures` stehen in
 -- anmeldung-schema-check.sql, weil ihr Fremdschlüssel dort entsteht; die
 -- Unterschrift unter dem SEPA-Mandat steht hier, sie kennt keinen Vertrag.
@@ -28,7 +28,10 @@
 -- Ordner statt auf die Bibliothek, trägt eine Pflicht-Bezeichnung und eine
 -- freiwillige Art. `retention_subjects` trägt neben Code und Name das
 -- `announce_only` des einen Bestands, den der Lauf ankündigt und nicht räumt
--- (die Belege der Rechnungsfreigabe, 12/17).
+-- (die Belege der Rechnungsfreigabe, 12/17); die Frist selbst steht je Bestand
+-- und Gültigkeitstag in `retention_periods` — als `interval`, weil 17 Wochen,
+-- Monate und Jahre nebeneinander nennt und drei Monate ein Kalendersprung sind
+-- und nicht neunzig Tage.
 -- `mail_categories` trennt die drei Sorten Mail — Vorgangsmail
 -- ohne Abmeldelink, Schulinformation mit Untergrenze je Familie, Newsletter frei
 -- abwählbar —, und `consent_purposes` führt das Häkchen der Kategorie mit, damit
@@ -75,7 +78,7 @@ BEGIN
         'payment_modes', 'payments', 'sync_tasks', 'configured_values', 'change_log',
         'contract_text_kinds', 'contract_kind_attachments',
         'contract_texts', 'outbound_emails',
-        'retention_subjects', 'retention_hold_reasons',
+        'retention_subjects', 'retention_hold_reasons', 'retention_periods',
         'retention_notice_recipients', 'retention_holds'
     ]) AS t
     WHERE to_regclass('public.' || t) IS NULL;
@@ -83,7 +86,7 @@ BEGIN
     IF missing IS NOT NULL THEN
         RAISE EXCEPTION 'Fehlende Tabellen: %', missing;
     END IF;
-    RAISE NOTICE 'ok: alle 24 Tabellen vorhanden';
+    RAISE NOTICE 'ok: alle 25 Tabellen vorhanden';
 END $$;
 
 -- ---------------------------------------------------------------------------
@@ -153,6 +156,9 @@ BEGIN
         'ck_change_log_template',
         'fk_contract_texts_kind', 'uq_contract_texts_id_code',
         'uq_sync_targets_branch_bound', 'ck_sync_tasks_branch_bound',
+        'pk_retention_periods', 'fk_retention_periods_subject',
+        'uq_retention_periods', 'ck_retention_periods_period',
+        'ck_retention_periods_whole_days',
         'pk_retention_subjects', 'uq_retention_subjects_code',
         'pk_retention_hold_reasons', 'uq_retention_hold_reasons_code',
         'pk_retention_notice_recipients', 'uq_retention_notice_recipients',
@@ -2175,6 +2181,105 @@ INSERT INTO retention_subjects (code, name, announce_only, created_by) VALUES
 INSERT INTO roles (code, name, created_by) VALUES
     ('accounting',           'Buchhaltung',      'system:check'),
     ('executive_management', 'Geschäftsführung', 'system:check');
+
+-- ---------------------------------------------------------------------------
+-- Die Frist steht je Bestand und trägt ihre Einheit selbst
+-- ---------------------------------------------------------------------------
+-- 17: „Der Gesundheitsbestand am Kind: drei Monate nach dem Austritt", „vier
+-- Wochen nach der Veranstaltung", zehn Jahre bei den Belegen. Drei Einheiten,
+-- eine Spalte — und der Kalendersprung bleibt einer.
+SELECT pg_temp.expect_accept(
+    '17 — drei Monate als Frist des Gesundheitsbestands',
+    $q$INSERT INTO retention_periods (retention_subject_id, valid_from, period, created_by)
+       VALUES ((SELECT retention_subject_id FROM retention_subjects WHERE code='child_health_record'),
+               DATE '2026-08-01', INTERVAL '3 months', 'entra:gf')$q$);
+
+-- Dass `interval` den Unterschied trägt und nicht bloß eine Zahl: Ein Austritt
+-- am 31. August plus drei Monate ist der 30. November — neunzig Tage wären der
+-- 29. Der Monat springt kalendarisch und kürzt sich am Monatsende selbst; eine
+-- Tageszahl kann das nicht. Die Abfrage rechnet, was der Lauf rechnet.
+DO $$
+DECLARE termin date;
+BEGIN
+    SELECT (DATE '2026-08-31' + period)::date INTO termin
+      FROM retention_periods
+      JOIN retention_subjects USING (retention_subject_id)
+     WHERE code = 'child_health_record' AND valid_from = DATE '2026-08-01';
+    IF termin <> DATE '2026-11-30' THEN
+        RAISE EXCEPTION 'Anker plus Frist rechnet nicht kalendarisch: %', termin;
+    END IF;
+    RAISE NOTICE 'ok (erlaubt): 17 — Anker plus Frist rechnet in Monaten, nicht in Tagen';
+END $$;
+
+-- „Je Bestand und Gültigkeitstag genau ein Eintrag" — dieselbe Regel wie an
+-- jeder anderen Wertetabelle.
+SELECT pg_temp.expect_reject(
+    '17 — dieselbe Frist zweimal zum selben Gültigkeitstag',
+    $q$INSERT INTO retention_periods (retention_subject_id, valid_from, period, created_by)
+       VALUES ((SELECT retention_subject_id FROM retention_subjects WHERE code='child_health_record'),
+               DATE '2026-08-01', INTERVAL '6 months', 'entra:gf')$q$);
+
+-- Und die Änderung ab einem späteren Tag geht: „Eine Änderung wirkt ab einem
+-- Datum und nie rückwirkend."
+SELECT pg_temp.expect_accept(
+    '17 — dieselbe Frist mit einem späteren Gültigkeitstag',
+    $q$INSERT INTO retention_periods (retention_subject_id, valid_from, period, created_by)
+       VALUES ((SELECT retention_subject_id FROM retention_subjects WHERE code='child_health_record'),
+               DATE '2027-08-01', INTERVAL '6 months', 'entra:gf')$q$);
+
+-- Der Grund, aus dem diese Tabelle überhaupt steht: Welche Frist zu welchem
+-- Bestand gehört, ist ein Fremdschlüssel und keine Verabredung zwischen zwei
+-- Zeichenketten. Ein Bestand, den es nicht gibt, kommt nicht herein.
+SELECT pg_temp.expect_reject(
+    '17 — Frist zu einem Bestand, den es nicht gibt',
+    $q$INSERT INTO retention_periods (retention_subject_id, valid_from, period, created_by)
+       VALUES (999999, DATE '2026-08-01', INTERVAL '3 months', 'entra:gf')$q$);
+
+-- „Nur die Richtung, nicht die Höhe": Eine negative Frist wäre ein Löschtermin
+-- vor seinem Anker.
+SELECT pg_temp.expect_reject(
+    '17 — Frist mit negativer Länge',
+    $q$INSERT INTO retention_periods (retention_subject_id, valid_from, period, created_by)
+       VALUES ((SELECT retention_subject_id FROM retention_subjects WHERE code='application'),
+               DATE '2026-08-01', INTERVAL '-5 days', 'entra:gf')$q$);
+
+-- Null bleibt dagegen erlaubt: „Wir akzeptieren das Risiko mit zu geringen
+-- Werten in der Datenbank" (04.09.2026) — eine Untergrenze ist ausdrücklich
+-- nicht gewollt, und der Lauf hält den Termin ohnehin vierzehn Tage hin.
+SELECT pg_temp.expect_accept(
+    '17 — Frist der Länge null, weil keine Untergrenze entschieden ist',
+    $q$INSERT INTO retention_periods (retention_subject_id, valid_from, period, created_by)
+       VALUES ((SELECT retention_subject_id FROM retention_subjects WHERE code='application'),
+               DATE '2026-08-01', INTERVAL '0', 'entra:gf')$q$);
+
+-- Ganze Tage: Der Lauf läuft täglich, eine Uhrzeit in der Frist verschöbe den
+-- Löschtermin innerhalb eines Tages.
+SELECT pg_temp.expect_reject(
+    '17 — Frist mit einer Uhrzeit darin',
+    $q$INSERT INTO retention_periods (retention_subject_id, valid_from, period, created_by)
+       VALUES ((SELECT retention_subject_id FROM retention_subjects WHERE code='application'),
+               DATE '2027-08-01', INTERVAL '3 months 4 hours', 'entra:gf')$q$);
+
+-- Kein Elternteil setzt eine Frist.
+SELECT pg_temp.expect_reject(
+    '17 — Frist von einem Elternteil eingetragen',
+    $q$INSERT INTO retention_periods (retention_subject_id, valid_from, period, created_by)
+       VALUES ((SELECT retention_subject_id FROM retention_subjects WHERE code='application'),
+               DATE '2028-08-01', INTERVAL '3 months', 'guardian:x')$q$);
+
+-- Und der Bestand ohne Frist bleibt ein Bestand: „Eine Frist ohne Wert löscht
+-- nichts" (17) ist die fehlende Zeile und kein Wert null. `expense_claim` steht
+-- hier ohne eine einzige `retention_periods`-Zeile — genau so, wie ein noch
+-- nicht eingetragener Bestand aussieht.
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM retention_periods rp
+                 JOIN retention_subjects rs USING (retention_subject_id)
+                WHERE rs.code = 'expense_claim') THEN
+        RAISE EXCEPTION 'Der Bestand ohne eingetragene Frist trägt eine Zeile';
+    END IF;
+    RAISE NOTICE 'ok (erlaubt): 17 — ein Bestand ohne eingetragene Frist steht ohne Zeile da';
+END $$;
 INSERT INTO retention_hold_reasons (code, name, created_by) VALUES
     ('legal_dispute', 'Drohender Rechtsstreit', 'system:check');
 
