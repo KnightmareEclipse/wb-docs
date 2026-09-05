@@ -15,10 +15,11 @@
 -- Block 11 gibt dem Abo drei eigene Mechaniken, die das Betreuungsmodul nicht
 -- kennt — den frühesten Beginn am 1. Oktober und sonst „zum nächsten
 -- Monatsersten", die Kündigung „nur zum 31. Januar und nur, wenn die Erklärung
--- bis zum 3. Januar eingeht", und einen eigenen Monatsbeitrag „je Esstag und
--- Monat"; dazu entstehen „kein Vertragsdokument und keine Unterschrift", woran
--- die Modulanlage hängt. Der Block schlägt die Grenzkarte, und der Preis steht
--- an `uq_meal_subscription_days`: gegen ein Hortmodul mit Essen prüft die Anwendung.
+-- bis zum 3. Januar eingeht", und einen eigenen Monatsbeitrag, der „an der Zahl
+-- der Esstage in der Woche" hängt; dazu entstehen „kein Vertragsdokument und
+-- keine Unterschrift", woran die Modulanlage hängt. Der Block schlägt die
+-- Grenzkarte, und der Preis steht an `ex_meal_subscription_days_period`: gegen
+-- ein Hortmodul mit Essen prüft die Anwendung.
 -- Zwei Regeln dieses Blocks sind Überschneidungsregeln und stehen deshalb als
 -- EXCLUDE statt als UNIQUE. `btree_gist` kommt mit Postgres und macht die
 -- Gleichheits-Spalten daneben möglich (rules.md Abschnitt 1, Punkt 3).
@@ -32,8 +33,9 @@
 -- „Berechnet wird es trotzdem, und zwar nach derselben Staffel". Der Betrag
 -- steht für beide Wege in `meal_prices`. Bewusst KEIN Küchen-Freitextfeld
 -- neben der Variante: „Eine Unverträglichkeit ist genau
--- das, wofür es den Bestand gibt" (Domäne 9). Bewusst KEINE Platzzahl: „es gibt
--- keine Obergrenze der Mensa".
+-- das, wofür es den Bestand gibt" (Domäne 9). Bewusst KEINE Platzzahl: sie wird
+-- „nirgends gepflegt und nirgends geprüft, weil es keine Obergrenze der Mensa
+-- gibt".
 
 
 CREATE EXTENSION IF NOT EXISTS btree_gist;
@@ -99,8 +101,10 @@ CREATE TABLE meal_prices (
 -- Herkunft: 11 (Mensa-Anmeldung) — „Die Variante steht am Kind, nicht am Abo,
 -- und die Eltern eines Hortkindes tragen sie im Portal genauso ein, obwohl sie
 -- sich nie anmelden." Löschanker: das letzte bestätigte Ende dieses Kindes, wie
--- die Gesundheitsangaben (03); ein Kind mit nur einem Werkstatttermin folgt
--- dem Anker aus 10. Eine fehlende Zeile heißt „isst alles": „‚Noch nicht
+-- die Gesundheitsangaben (03); ein Kind, das sie „nur wegen eines
+-- Akademie-Angebots mit Essen trägt", folgt dem Anker aus 21, „dem Ende seines
+-- letzten Angebots" — die Ferienmodule tragen keines. Eine fehlende Zeile heißt
+-- „isst alles": „‚Noch nicht
 -- eingetragen' und ‚isst alles' sind dasselbe und werden nicht unterschieden."
 CREATE TABLE child_meal_profiles (
     child_meal_profile_id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -124,6 +128,11 @@ CREATE TABLE child_meal_profiles (
 -- offene Aufbewahrungsfrist für Vertragsdaten (03). Bewusst KEIN Dokument und
 -- keine Unterschrift: „bindend ist die Anmeldung gleichwohl, dafür sorgen die
 -- Bedingungen, denen die Eltern zustimmen".
+-- Bewusst KEINE Mindestzahl an Esstagen, obwohl der Block sie „(Pflicht)"
+-- nennt: Abo und Tage entstehen nacheinander in derselben Transaktion, und eine
+-- Zahl über mehrere Zeilen trägt kein CHECK. Das prüft die Anwendung
+-- (`api/mensa-api.md`), wie die Aufteilung ihre Teilbeträge
+-- (rechnungsfreigabe-schema.sql).
 CREATE TABLE meal_subscriptions (
     meal_subscription_id   uuid NOT NULL DEFAULT gen_random_uuid(),
     child_id               uuid NOT NULL,
@@ -140,6 +149,13 @@ CREATE TABLE meal_subscriptions (
     -- das Sekretariat einträgt (03). Es wird ausgewählt, nicht gerechnet.
     ends_on                date NOT NULL,
     terms_contract_text_id integer NOT NULL,
+    -- Die Sorte des Textes, hier mitgeführt, damit `ck_meal_subscriptions_terms`
+    -- unten sie festhalten kann; `fk_meal_subscriptions_terms` hält sie mit dem
+    -- Text zusammen — dieselbe Bauform wie `contracts.contract_text_code`
+    -- (anmeldung-schema.sql). Einspaltig hinge am Abo die Fassung des
+    -- Hortvertrags, und „die Bedingungen, denen die Eltern zustimmen" wären
+    -- nicht die, an denen die Anmeldung hängt.
+    terms_contract_text_code text NOT NULL,
     created_at             timestamptz NOT NULL DEFAULT now(),
     created_by             text NOT NULL,
 
@@ -147,7 +163,14 @@ CREATE TABLE meal_subscriptions (
     CONSTRAINT fk_meal_subscriptions_child
         FOREIGN KEY (child_id) REFERENCES children (child_id),
     CONSTRAINT fk_meal_subscriptions_terms
-        FOREIGN KEY (terms_contract_text_id) REFERENCES contract_texts (contract_text_id),
+        FOREIGN KEY (terms_contract_text_id, terms_contract_text_code)
+        REFERENCES contract_texts (contract_text_id, code),
+    -- 11: „der Fassung der Essensbedingungen, der zugestimmt wurde" — diese
+    -- Sorte und keine andere. Der Code ist „die Verankerung im Anwendungscode
+    -- und wird nie umbenannt" (querschnitt-schema.sql) und steht deshalb im
+    -- CHECK, wie bei `ck_contracts_text_kind` (anmeldung-schema.sql).
+    CONSTRAINT ck_meal_subscriptions_terms
+        CHECK (terms_contract_text_code = 'meal_terms'),
     -- 11: „Je Kind ein laufendes Essensabo, nie zwei nebeneinander." Als
     -- Überschneidungsregel über den tatsächlichen Zeitraum, weil ein Abo nicht
     -- immer am 31. Juli endet.
@@ -208,12 +231,62 @@ CREATE TABLE meal_subscription_days (
     CONSTRAINT ck_meal_subscription_days_weekday CHECK (weekday BETWEEN 1 AND 5),
     CONSTRAINT ck_meal_subscription_days_period
         CHECK (valid_until IS NULL OR valid_until >= valid_from),
+    -- 11: „Mehr Tage jederzeit, sie gelten ab dem nächsten Monatsersten"; der
+    -- erste Tag beginnt mit seinem Abo, und das beginnt selbst immer an einem
+    -- Monatsersten (`ck_meal_subscriptions_start`). Daran hängt der
+    -- Monatsbeitrag: ein Tag, der mitten im Monat begänne, machte ihn für
+    -- diesen Monat falsch.
+    CONSTRAINT ck_meal_subscription_days_start
+        CHECK (EXTRACT(day FROM valid_from) = 1),
+    -- 11: „Weniger Tage … nur zum 31. Januar" — der einzige Tag, auf den
+    -- `valid_until` gesetzt wird. Das Ende des Abos steht dagegen am Abo: Ein
+    -- Esstag, der bis dorthin läuft, trägt gar kein Ende, auch beim Abgang (03).
+    CONSTRAINT ck_meal_subscription_days_end
+        CHECK (valid_until IS NULL
+               OR (EXTRACT(month FROM valid_until) = 1
+                   AND EXTRACT(day FROM valid_until) = 31)),
     CONSTRAINT ck_meal_subscription_days_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
 -- Trägt die Tagesliste der Küche: welche Abo-Tage an einem Datum gelten.
 CREATE INDEX ix_meal_subscription_days_weekday
     ON meal_subscription_days (weekday, valid_from);
+
+
+-- DER EINZIGE TRIGGER DIESES SCHEMAS. 11: „Gebucht wird der Wochentag im
+-- Schuljahres-Abo" — der Gültigkeitszeitraum des Tages liegt deshalb im
+-- Zeitraum seines Abos. Kein CHECK und kein Fremdschlüssel trägt das: Die
+-- beiden Grenzen stehen in einer anderen Zeile, und der Fremdschlüssel bindet
+-- die Zugehörigkeit, nicht den Zeitraum. Ohne ihn stünde das Kind vor dem
+-- Beginn und nach dem Ende seines Abos auf der Tagesliste der Küche, und der
+-- Monatsbeitrag zählte den Tag mit. Bauform wie
+-- `enforce_holiday_booking()` (ferien-schema.sql).
+-- Nur am Esstag und nicht zusätzlich am Abo: Ein Tag, der noch nicht begonnen
+-- hat, wird zurückgenommen und nicht gehalten („die Rücknahme einer Buchung,
+-- die nie lief", 11), und ein gekürztes Abo hat deshalb keinen späteren Tag,
+-- den es mitschleppte.
+CREATE FUNCTION enforce_meal_subscription_day_period() RETURNS trigger AS $$
+DECLARE
+    sub record;
+BEGIN
+    SELECT starts_on, ends_on INTO sub
+      FROM meal_subscriptions
+     WHERE meal_subscription_id = NEW.meal_subscription_id;
+
+    IF NEW.valid_from < sub.starts_on
+       OR NEW.valid_from > sub.ends_on
+       OR coalesce(NEW.valid_until, sub.ends_on) > sub.ends_on THEN
+        RAISE EXCEPTION 'Esstag % liegt außerhalb des Zeitraums seines Abos %',
+                        NEW.weekday, NEW.meal_subscription_id
+              USING ERRCODE = 'check_violation';
+    END IF;
+
+    RETURN NEW;
+END $$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_meal_subscription_days_period
+    BEFORE INSERT OR UPDATE ON meal_subscription_days
+    FOR EACH ROW EXECUTE FUNCTION enforce_meal_subscription_day_period();
 
 
 -- ---------------------------------------------------------------------------

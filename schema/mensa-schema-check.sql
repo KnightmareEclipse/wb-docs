@@ -2,7 +2,8 @@
 --
 -- Sollstand: 5 Tabellen — meal_variants, meal_prices, child_meal_profiles,
 -- meal_subscriptions und meal_subscription_days, dazu ein Lese-Index für die
--- Tagesliste der Küche.
+-- Tagesliste der Küche und ein Trigger, der den Esstag im Zeitraum seines Abos
+-- hält.
 --
 -- Setzt stammdaten-schema.sql und querschnitt-schema.sql voraus:
 --   psql -v ON_ERROR_STOP=1 -f mensa-schema-check.sql
@@ -32,8 +33,11 @@ BEGIN
         'uq_child_meal_profiles', 'ex_meal_subscriptions_period', 'ex_meal_subscription_days_period',
         'ck_meal_subscription_days_weekday',
         'ck_meal_subscription_days_period', 'ck_meal_subscriptions_period',
-        'ck_meal_subscriptions_start',
-        'uq_meal_prices', 'ck_meal_prices_days', 'ck_meal_prices_amount'
+        'ck_meal_subscriptions_start', 'ck_meal_subscriptions_terms',
+        'ck_meal_subscription_days_start', 'ck_meal_subscription_days_end',
+        'uq_meal_prices', 'ck_meal_prices_days', 'ck_meal_prices_amount',
+        'ck_meal_prices_created_by', 'ck_child_meal_profiles_created_by',
+        'ck_meal_subscriptions_created_by', 'ck_meal_subscription_days_created_by'
     ]) AS c
     WHERE NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = c);
     IF missing IS NOT NULL THEN
@@ -42,7 +46,11 @@ BEGIN
     IF to_regclass('public.ix_meal_subscription_days_weekday') IS NULL THEN
         RAISE EXCEPTION 'Fehlender Index: ix_meal_subscription_days_weekday';
     END IF;
-    RAISE NOTICE 'ok: alle geprüften Constraints und Indizes vorhanden';
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger
+                    WHERE tgname = 'trg_meal_subscription_days_period') THEN
+        RAISE EXCEPTION 'Fehlender Trigger: trg_meal_subscription_days_period';
+    END IF;
+    RAISE NOTICE 'ok: alle geprüften Constraints, Indizes und Trigger vorhanden';
 END $$;
 
 CREATE FUNCTION pg_temp.expect_reject(rule text, stmt text) RETURNS void AS $$
@@ -76,11 +84,13 @@ INSERT INTO children (child_id, person_id, family_id, birth_date, created_by) VA
      '33333333-3333-3333-3333-333333333333', DATE '2018-05-01', 'system:check');
 -- Die Textsorte steht als Wert im System; eine Fassung ohne sie gibt es nicht.
 INSERT INTO contract_text_kinds (code, name, kind_class, created_by) VALUES
-    ('meal_terms', 'Essensbedingungen', 'agreed', 'system:check');
+    ('meal_terms', 'Essensbedingungen', 'agreed', 'system:check'),
+    ('care_contract', 'Hortvertrag', 'signed', 'system:check');
 
 INSERT INTO contract_texts (contract_text_id, code, valid_from, body, created_by)
     OVERRIDING SYSTEM VALUE
-    VALUES (1, 'meal_terms', DATE '2026-08-01', 'Essensbedingungen', 'system:check');
+    VALUES (1, 'meal_terms', DATE '2026-08-01', 'Essensbedingungen', 'system:check'),
+           (2, 'care_contract', DATE '2026-08-01', 'Hortvertrag', 'system:check');
 INSERT INTO meal_variants (meal_variant_id, code, name) OVERRIDING SYSTEM VALUE
     VALUES (1, 'all', 'isst alles'), (2, 'vegetarian', 'vegetarisch');
 
@@ -103,8 +113,9 @@ SELECT pg_temp.expect_accept(
     $q$INSERT INTO child_meal_profiles (child_id, meal_variant_id, created_by)
        VALUES ('44444444-4444-4444-4444-444444444442', 2, 'system:check')$q$);
 
--- 11: „ein Betrag je Esstag und Monat … ein Wert im System" — ab September 2026
--- eine Staffel je Zahl der Esstage, die sich nicht rechnen lässt.
+-- 11: „Der Beitrag hängt an der Zahl der Esstage in der Woche … je Monat und je
+-- ein Wert im System" — ab September 2026 eine Staffel je Zahl der Esstage, die
+-- sich nicht rechnen lässt.
 SELECT pg_temp.expect_accept(
     '11 — Essensbeitrag je Zahl der Esstage',
     $q$INSERT INTO meal_prices (weekday_count, valid_from, monthly_amount_cents, created_by)
@@ -144,16 +155,18 @@ END $$;
 
 -- 11: „Je Kind ein laufendes Essensabo, nie zwei nebeneinander."
 INSERT INTO meal_subscriptions (meal_subscription_id, child_id, starts_on,
-                                ends_on, terms_contract_text_id, created_by)
+                                ends_on, terms_contract_text_id,
+                                terms_contract_text_code, created_by)
     VALUES ('55555555-5555-5555-5555-555555555551',
             '44444444-4444-4444-4444-444444444441',
-            DATE '2026-10-01', DATE '2027-07-31', 1, 'system:check');
+            DATE '2026-10-01', DATE '2027-07-31', 1, 'meal_terms', 'system:check');
 SELECT pg_temp.expect_reject(
     '11 — zweites Abo desselben Kindes im selben Schuljahr',
     $q$INSERT INTO meal_subscriptions (child_id, starts_on, ends_on,
-                                       terms_contract_text_id, created_by)
+                                       terms_contract_text_id,
+                                       terms_contract_text_code, created_by)
        VALUES ('44444444-4444-4444-4444-444444444441',
-               DATE '2026-11-01', DATE '2027-07-31', 1, 'system:check')$q$);
+               DATE '2026-11-01', DATE '2027-07-31', 1, 'meal_terms', 'system:check')$q$);
 
 -- M4 — 11: „Je Kind ein laufendes Essensabo, nie zwei nebeneinander." Das
 -- greift auch dort, wo das gerechnete Schuljahr verschieden ist: ein Abo, das
@@ -161,9 +174,96 @@ SELECT pg_temp.expect_reject(
 SELECT pg_temp.expect_reject(
     '11 — Abo, das in ein laufendes desselben Kindes hineinreicht',
     $q$INSERT INTO meal_subscriptions (child_id, starts_on, ends_on,
-                                       terms_contract_text_id, created_by)
+                                       terms_contract_text_id,
+                                       terms_contract_text_code, created_by)
        VALUES ('44444444-4444-4444-4444-444444444441',
-               DATE '2027-02-01', DATE '2028-07-31', 1, 'system:check')$q$);
+               DATE '2027-02-01', DATE '2028-07-31', 1, 'meal_terms', 'system:check')$q$);
+
+-- „endet immer am 31. Juli … über das Schuljahr hinaus läuft nichts weiter" —
+-- ein Abo des Folgejahres ist ein neues.
+SELECT pg_temp.expect_accept(
+    '11 — Abo desselben Kindes im nächsten Schuljahr',
+    $q$INSERT INTO meal_subscriptions (child_id, starts_on, ends_on,
+                                       terms_contract_text_id,
+                                       terms_contract_text_code, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444441',
+               DATE '2027-10-01', DATE '2028-07-31', 1, 'meal_terms', 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    '11 — Abo, das endet, bevor es beginnt',
+    $q$INSERT INTO meal_subscriptions (child_id, starts_on, ends_on,
+                                       terms_contract_text_id,
+                                       terms_contract_text_code, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444442',
+               DATE '2027-07-01', DATE '2026-10-01', 1, 'meal_terms', 'system:check')$q$);
+
+-- 11: „Das Abo beginnt frühestens am 1. Oktober … Wer später anmeldet, beginnt
+-- zum nächsten Monatsersten."
+SELECT pg_temp.expect_reject(
+    '11 — Abo, das mitten im Monat beginnt',
+    $q$INSERT INTO meal_subscriptions (child_id, starts_on, ends_on,
+                                       terms_contract_text_id,
+                                       terms_contract_text_code, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444442',
+               DATE '2026-11-15', DATE '2027-07-31', 1, 'meal_terms', 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    '11 — Abo, das schon im September beginnt',
+    $q$INSERT INTO meal_subscriptions (child_id, starts_on, ends_on,
+                                       terms_contract_text_id,
+                                       terms_contract_text_code, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444442',
+               DATE '2026-09-01', DATE '2027-07-31', 1, 'meal_terms', 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    '11 — Abo, das schon im August beginnt',
+    $q$INSERT INTO meal_subscriptions (child_id, starts_on, ends_on,
+                                       terms_contract_text_id,
+                                       terms_contract_text_code, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444442',
+               DATE '2026-08-01', DATE '2027-07-31', 1, 'meal_terms', 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    '11 — Abo ohne Fassung der Essensbedingungen',
+    $q$INSERT INTO meal_subscriptions (child_id, starts_on, ends_on, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444442',
+               DATE '2026-10-01', DATE '2027-07-31', 'system:check')$q$);
+
+-- MENSA-F2 — 11: „der Fassung der Essensbedingungen, der zugestimmt wurde":
+-- Die Sorte ist gebunden, der Hortvertrag steht nicht am Essensabo.
+SELECT pg_temp.expect_reject(
+    '11 — Abo mit der Fassung des Hortvertrags',
+    $q$INSERT INTO meal_subscriptions (child_id, starts_on, ends_on,
+                                       terms_contract_text_id,
+                                       terms_contract_text_code, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444442',
+               DATE '2026-10-01', DATE '2027-07-31', 2, 'care_contract',
+               'system:check')$q$);
+
+-- Und die mitgeführte Sorte gehört zu ihrer Fassung: Text 2 ist der
+-- Hortvertrag, `meal_terms` daneben ist eine Behauptung ohne Deckung.
+SELECT pg_temp.expect_reject(
+    '11 — Abo, dessen mitgeführte Sorte nicht zu seiner Fassung gehört',
+    $q$INSERT INTO meal_subscriptions (child_id, starts_on, ends_on,
+                                       terms_contract_text_id,
+                                       terms_contract_text_code, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444442',
+               DATE '2026-10-01', DATE '2027-07-31', 2, 'meal_terms',
+               'system:check')$q$);
+
+-- MENSA-F5 — 11: „ein laufendes Essensabo … mit den gebuchten Wochentagen
+-- (Pflicht)". Ein Abo ohne Esstag geht durch, und das ist die ausgeschriebene
+-- Auslassung an `meal_subscriptions`: Abo und Tage entstehen nacheinander,
+-- geprüft wird die Mindestzahl in der Anwendung.
+SELECT pg_temp.expect_accept(
+    '11 — Abo ohne Esstag; die Mindestzahl prüft die Anwendung',
+    $q$INSERT INTO meal_subscriptions (meal_subscription_id, child_id, starts_on,
+                                       ends_on, terms_contract_text_id,
+                                       terms_contract_text_code, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555552',
+               '44444444-4444-4444-4444-444444444442',
+               DATE '2026-10-01', DATE '2027-07-31', 1, 'meal_terms',
+               'system:check')$q$);
 
 -- 11: „Kein Stichtag, angemeldet wird jederzeit" — wer zum 31. Januar kündigt,
 -- meldet sich im selben Schuljahr neu an, und das zweite Abo steht hinter dem
@@ -171,56 +271,13 @@ SELECT pg_temp.expect_reject(
 SELECT pg_temp.expect_accept(
     '11 — neues Abo im selben Schuljahr nach der Kündigung zum 31. Januar',
     $q$UPDATE meal_subscriptions SET ends_on = DATE '2027-01-31'
-         WHERE meal_subscription_id = '55555555-5555-5555-5555-555555555551';
+         WHERE meal_subscription_id = '55555555-5555-5555-5555-555555555552';
        INSERT INTO meal_subscriptions (child_id, starts_on, ends_on,
-                                       terms_contract_text_id, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444441',
-               DATE '2027-03-01', DATE '2027-07-31', 1, 'system:check')$q$);
-
--- „endet immer am 31. Juli … über das Schuljahr hinaus läuft nichts weiter" —
--- ein Abo des Folgejahres ist ein neues.
-SELECT pg_temp.expect_accept(
-    '11 — Abo desselben Kindes im nächsten Schuljahr',
-    $q$INSERT INTO meal_subscriptions (child_id, starts_on, ends_on,
-                                       terms_contract_text_id, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444441',
-               DATE '2027-10-01', DATE '2028-07-31', 1, 'system:check')$q$);
-
-SELECT pg_temp.expect_reject(
-    '11 — Abo, das endet, bevor es beginnt',
-    $q$INSERT INTO meal_subscriptions (child_id, starts_on, ends_on,
-                                       terms_contract_text_id, created_by)
+                                       terms_contract_text_id,
+                                       terms_contract_text_code, created_by)
        VALUES ('44444444-4444-4444-4444-444444444442',
-               DATE '2027-07-01', DATE '2026-10-01', 1, 'system:check')$q$);
-
--- 11: „Das Abo beginnt frühestens am 1. Oktober … Wer später anmeldet, beginnt
--- zum nächsten Monatsersten."
-SELECT pg_temp.expect_reject(
-    '11 — Abo, das mitten im Monat beginnt',
-    $q$INSERT INTO meal_subscriptions (child_id, starts_on, ends_on,
-                                       terms_contract_text_id, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444442',
-               DATE '2026-11-15', DATE '2027-07-31', 1, 'system:check')$q$);
-
-SELECT pg_temp.expect_reject(
-    '11 — Abo, das schon im September beginnt',
-    $q$INSERT INTO meal_subscriptions (child_id, starts_on, ends_on,
-                                       terms_contract_text_id, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444442',
-               DATE '2026-09-01', DATE '2027-07-31', 1, 'system:check')$q$);
-
-SELECT pg_temp.expect_reject(
-    '11 — Abo, das schon im August beginnt',
-    $q$INSERT INTO meal_subscriptions (child_id, starts_on, ends_on,
-                                       terms_contract_text_id, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444442',
-               DATE '2026-08-01', DATE '2027-07-31', 1, 'system:check')$q$);
-
-SELECT pg_temp.expect_reject(
-    '11 — Abo ohne Fassung der Essensbedingungen',
-    $q$INSERT INTO meal_subscriptions (child_id, starts_on, ends_on, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444442',
-               DATE '2026-10-01', DATE '2027-07-31', 'system:check')$q$);
+               DATE '2027-03-01', DATE '2027-07-31', 1, 'meal_terms',
+               'system:check')$q$);
 
 -- 11: „Gebucht wird der Wochentag im Schuljahres-Abo."
 INSERT INTO meal_subscription_days (meal_subscription_id, weekday, valid_from, created_by)
@@ -269,9 +326,53 @@ SELECT pg_temp.expect_accept(
 
 SELECT pg_temp.expect_reject(
     '11 — Wochentag, dessen Ende vor seinem Beginn liegt',
-    $q$UPDATE meal_subscription_days SET valid_until = DATE '2026-11-01'
+    $q$UPDATE meal_subscription_days SET valid_until = DATE '2026-01-31'
         WHERE meal_subscription_id = '55555555-5555-5555-5555-555555555551'
           AND weekday = 3$q$);
+
+-- MENSA-F3 — 11: „Mehr Tage jederzeit, sie gelten ab dem nächsten
+-- Monatsersten"; am Monatsersten hängt der Monatsbeitrag.
+SELECT pg_temp.expect_reject(
+    '11 — Esstag, der mitten im Monat beginnt',
+    $q$INSERT INTO meal_subscription_days (meal_subscription_id, weekday, valid_from, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555551', 4, DATE '2026-11-15', 'system:check')$q$);
+
+-- 11: „Weniger Tage … nur zum 31. Januar" — ein anderes Ende gibt es nicht.
+SELECT pg_temp.expect_reject(
+    '11 — Esstag, der zu einem anderen Tag als dem 31. Januar endet',
+    $q$INSERT INTO meal_subscription_days (meal_subscription_id, weekday,
+                                            valid_from, valid_until, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555551', 4, DATE '2026-11-01',
+               DATE '2027-06-30', 'system:check')$q$);
+
+-- MENSA-F4 — 11: „Gebucht wird der Wochentag im Schuljahres-Abo": vor dem
+-- Beginn des Abos gibt es ihn nicht, nach seinem Ende auch nicht. Sonst stünde
+-- das Kind auf der Tagesliste, bevor sein Abo läuft.
+SELECT pg_temp.expect_reject(
+    '11 — Esstag, der vor dem Beginn seines Abos gilt',
+    $q$INSERT INTO meal_subscription_days (meal_subscription_id, weekday, valid_from, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555551', 4, DATE '2026-09-01', 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    '11 — Esstag, der über das Ende seines Abos hinausläuft',
+    $q$INSERT INTO meal_subscription_days (meal_subscription_id, weekday,
+                                            valid_from, valid_until, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555551', 4, DATE '2026-11-01',
+               DATE '2028-01-31', 'system:check')$q$);
+
+-- Und dasselbe am gekündigten Abo: ab dem 1. Februar ist es zu Ende, ein
+-- Esstag im Mai gehört zu keinem laufenden Abo mehr.
+SELECT pg_temp.expect_reject(
+    '11 — Esstag nach dem Ende eines zum 31. Januar gekündigten Abos',
+    $q$INSERT INTO meal_subscription_days (meal_subscription_id, weekday, valid_from, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555552', 1, DATE '2027-05-01', 'system:check')$q$);
+
+-- MENSA-F11 — Änderungsspur: der Urheber trägt eines der drei Präfixe, in
+-- allen vier Tabellen mit einem `created_by`.
+SELECT pg_temp.expect_reject(
+    'hebel.md — Esstag von „wer auch immer"',
+    $q$INSERT INTO meal_subscription_days (meal_subscription_id, weekday, valid_from, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555551', 5, DATE '2026-11-01', 'wer auch immer')$q$);
 
 -- „solange ein solcher Tag noch nicht begonnen hat, nehmen sie ihn wieder
 -- zurück … eine Buchung, die nie lief" — und danach ist derselbe Tag ab einem
