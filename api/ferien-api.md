@@ -252,10 +252,12 @@ bestimmt — für den einzigen Fall im System, in dem sie wechselt.
 holen und Geld zurückzahlen sind zwei Arbeiten, und der Block sagt ausdrücklich, dass die Erstattung
 kein Fremdsystem ist.
 
-## Kein Lauf
+## Kein eigener Lauf
 
-**Diese Domäne hat keinen** ([`gemeinsam.md`](gemeinsam.md#was-keine-route-ist)), und das ist eine
-Aussage und keine Lücke:
+**Diese Domäne hat keinen eigenen.** Die Warnung bei den letzten Plätzen teilt sie mit der Akademie
+([`hebel.md`](../soll-prozesse/hebel.md#warnung-bei-den-letzten-plätzen)) — ein Lauf über beide
+Tabellen, kein zweiter (`TASK-207`). Drei weitere Dinge sind trotzdem keiner
+([`gemeinsam.md`](gemeinsam.md#was-keine-route-ist)):
 
 - **Die Anmeldung schließt sich nicht selbst.** `registration_closes_at` ist ein Datum, gegen das
   jede Buchung prüft; `closed_at` ist der Griff von Hand. Ein Lauf, der das eine ins andere schriebe,
