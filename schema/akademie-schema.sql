@@ -362,9 +362,10 @@ CREATE TABLE academy_offering_audiences (
 -- je Angebot oder Kategorie: „eine zentrale Person prüft", nicht die jeweilige
 -- Leitung.
 -- [A!] Die Freigabeberechtigung steht als Personenliste und nicht als Rolle. —
--- Alternative: eine neue Rolle, wie hebel.md es sonst verlangt („Rechte je
--- Person gibt es nicht"); Preis: sie träfe jeden, der sie trägt, und die
--- Entscheidung vom 03.09.2026 will genau das nicht.
+-- Alternative: eine neue Rolle, wie hebel.md sie für alles Übrige verlangt
+-- („Rechte je Person gibt es nicht"); Preis: sie träfe jeden, der sie trägt,
+-- und die Entscheidung vom 03.09.2026 will genau das nicht. hebel.md führt
+-- diesen Fall deshalb neben dem Beleg aus 12 als benannten Fall.
 CREATE TABLE academy_approvers (
     academy_approver_id integer GENERATED ALWAYS AS IDENTITY,
     employee_id         uuid NOT NULL,

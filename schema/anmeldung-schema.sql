@@ -108,7 +108,8 @@ CREATE TABLE kindergartens (
     is_active        boolean NOT NULL DEFAULT true,
 
     CONSTRAINT pk_kindergartens      PRIMARY KEY (kindergarten_id),
-    CONSTRAINT uq_kindergartens_name UNIQUE (name)
+    CONSTRAINT uq_kindergartens_name UNIQUE (name),
+    CONSTRAINT ck_kindergartens_name CHECK (name <> '')
 );
 
 -- Herkunft: 06 (Anmeldetag) — „ihre Empfehlung, Hauptschule, Realschule oder

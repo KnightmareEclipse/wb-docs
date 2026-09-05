@@ -32,7 +32,12 @@
 --
 -- **Jede Werteliste im ganzen Schema weist den leeren `code` und den leeren
 -- `name` ab** — die Regel steht hier, weil diese Datei die Referenzform ist,
--- und gilt für alle sechsundvierzig Tabellen mit einer `code`-Spalte. Der Code
+-- und gilt für alle siebenundvierzig Tabellen mit einer `code`-Spalte und alle
+-- fünfzig mit einer `name`-Spalte, also auch für die fünf Listen, die nur einen
+-- Namen führen (`kindergartens`, `previous_schools`, `claim_templates`,
+-- `payees`, `holiday_programmes`): Eine Liste ohne Code zeigt nichts anderes
+-- an. Einzige Ausnahme ist `health_value_kinds` (gesundheit-schema.sql), wo die
+-- Werteliste am `code` den Leerstring schon abweist. Der Code
 -- ist die Verankerung im Anwendungscode und ein Fremdschlüsselziel: leer ist er
 -- ein Wert, auf den jeder leere Vergleich zeigt und den keine Zeile mehr von
 -- „nicht gesetzt" unterscheidet. Der Name ist die einzige Anzeige des Werts;
@@ -186,7 +191,8 @@ CREATE TABLE previous_schools (
     is_active           boolean NOT NULL DEFAULT true,
 
     CONSTRAINT pk_previous_schools      PRIMARY KEY (previous_school_id),
-    CONSTRAINT uq_previous_schools_name UNIQUE (name)
+    CONSTRAINT uq_previous_schools_name UNIQUE (name),
+    CONSTRAINT ck_previous_schools_name CHECK (name <> '')
 );
 
 -- Herkunft: 15 (Klassenbildung) — „eine `GS` beginnt in Stufe 1, eine `RS` in

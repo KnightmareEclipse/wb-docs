@@ -145,6 +145,7 @@ CREATE TABLE claim_templates (
 
     CONSTRAINT pk_claim_templates      PRIMARY KEY (claim_template_id),
     CONSTRAINT uq_claim_templates_name UNIQUE (name),
+    CONSTRAINT ck_claim_templates_name CHECK (name <> ''),
     CONSTRAINT ck_claim_templates_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 

@@ -829,6 +829,12 @@ SELECT pg_temp.expect_reject(
     'rules.md Abschnitt 3 — Werteliste mit leerem Namen (`ledger_accounts`)',
     $q$INSERT INTO ledger_accounts (code, name, created_by) VALUES ('empty_name_probe', '', 'system:check')$q$);
 
+-- Dieselbe Regel an einer Liste, die gar keinen Code führt: Der Name ist dort
+-- die einzige Anzeige, ein leerer eine leere Zeile im Auswahlfeld.
+SELECT pg_temp.expect_reject(
+    'rules.md Abschnitt 3 — Werteliste ohne Code mit leerem Namen (`claim_templates`)',
+    $q$INSERT INTO claim_templates (name, created_by) VALUES ('', 'system:check')$q$);
+
 DO $$ BEGIN RAISE NOTICE 'rechnungsfreigabe-schema-check: alle Gegenproben bestanden'; END $$;
 
 ROLLBACK;
