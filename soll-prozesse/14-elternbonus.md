@@ -162,7 +162,13 @@ ihre Aufgabe abarbeitet.
 - **Elternvertreter** haben mit dem Amt die vollen Stunden, ohne einen einzigen Eintrag; das Amt
   entsteht in [16](16-elternvertretung.md) und wird hier nur gelesen. Sie
   gelten damit für jeden Zweck als voll — also auch für die Mail am 1. Juni, die sie deshalb nicht
-  bekommen.
+  bekommen. Gehört ein Amtsträger zu **zwei [Familien](hebel.md#familie-und-kind)** — ein Elternteil
+  mit Kindern aus zwei Beziehungen —, sind **beide** voll: Der Erlass trifft jede Familie, in der er
+  sorgeberechtigt ist. Es ist dieselbe Mechanik wie bei zwei Ämtern in einer Familie
+  ([16](16-elternvertretung.md), Sonderfälle) — der Erlass folgt der Sorgeberechtigung und nicht dem
+  Amt —, nur in die andere Richtung. Die Familie des Kindes auszuwählen, das in der Klasse des Amtes
+  sitzt, wäre der andere Weg; er kostet eine zweite Regel für das Amt, das ohne Kind in dieser
+  Klasse weiterläuft (16).
 - **Mitarbeiterfamilien sind ausgenommen** — kein Aufschlag, keine Stunden, keine Mails —, und zwar
   wie beim Putzdienst großzügig in beide Richtungen: Wer irgendwann im Schuljahr eine
   Mitarbeiterrolle **der Schule** trägt, ist für dieses ganze Schuljahr draußen — maßgeblich ist das
