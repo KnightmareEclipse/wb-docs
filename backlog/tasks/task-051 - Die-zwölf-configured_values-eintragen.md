@@ -4,7 +4,7 @@ title: Die zwölf configured_values eintragen
 status: To Do
 assignee: []
 created_date: '2026-08-27 11:37'
-updated_date: '2026-09-04 23:07'
+updated_date: '2026-09-05 14:47'
 labels:
   - wartet
   - geschaeftsfuehrung
@@ -23,7 +23,7 @@ ordinal: 54000
 <!-- SECTION:DESCRIPTION:BEGIN -->
 Freikauf und Strafe im Putzdienst, Bearbeitungs- und Anmeldegebühr, Änderungsgebühr der Betreuungsmodule, Geschwisterermäßigung, Kilometersatz und Meldegrenze der Rechnungsfreigabe, die drei des Elternbonus, das einzelne Mittagessen ohne Abo. Der Anfangsbestand setzt sie bewusst nicht: jeder Wert trägt einen Gültigkeitstag, und den setzt, wer den Betrag verantwortet.
 
-**Sechs sind am 01.09.2026 bestätigt, alle mit valid_from 2026-09-01** — cleaning_buyout_cents 35 €, cleaning_penalty_cents 45 €, application_fee_cents 25 €, contract_fee_cents 90 €, parent_work_hours_primary 15 (Grundschule), parent_work_hours_default 10 (Realschule).
+**Sechs sind am 01.09.2026 bestätigt, alle mit valid_from 2026-09-01** — cleaning_buyout_cents 35 €, cleaning_penalty_cents 45 €, application_fee_cents 25 €, contract_fee_cents 100 € (AC#5), parent_work_hours_primary 15 (Grundschule), parent_work_hours_default 10 (Realschule).
 
 **Fünf fehlen weiterhin**, Zahl wie Gültigkeitstag: care_change_fee_cents (20 €), care_sibling_discount_basis_points (10 %), mileage_rate_cents (0,30 €), expense_report_threshold_cents (250 €), parent_work_monthly_cents (10 €). Sie stehen in pruefberichte/fragen-geschaeftsfuehrung.md.
 

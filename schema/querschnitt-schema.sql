@@ -1782,13 +1782,12 @@ CREATE TABLE configured_values (
     -- „contract_fee_cents", die ebenso wenig über `payments` läuft. Der
     -- kostenfreie September (09) ist kein Wert, sondern eine Regel der
     -- Anwendung: er nennt keinen Betrag, sondern einen Monat.
-    -- „contract_fee_cents" ist die Anmeldegebühr des Schulvertrags. Sie gilt
-    -- schon länger unverändert und bekommt deshalb den Importtag als
-    -- `valid_from` — einen früheren braucht niemand, weil kein Vertrag von
-    -- davor im System steht. Derzeit 90 €: sie entsteht, sobald der Vertrag
-    -- rechtsgültig geschlossen ist, und ist nicht die Bearbeitungsgebühr der
-    -- Voranmeldung (derzeit 25 €,
-    -- „application_fee_cents"), die 05 im Portal bezahlt. Sie läuft nicht über
+    -- „contract_fee_cents" ist die Anmeldegebühr des Schulvertrags: derzeit
+    -- **100 € ab dem 01.09.2026 für jeden neuen Vertrag** (hebel.md, 08) —
+    -- einen früheren `valid_from` braucht niemand, weil kein Vertrag von davor
+    -- im System steht. Sie entsteht, sobald der Vertrag rechtsgültig
+    -- geschlossen ist, und ist nicht die Bearbeitungsgebühr der Voranmeldung
+    -- (derzeit 25 €, „application_fee_cents"), die 05 im Portal bezahlt. Sie läuft nicht über
     -- `payments`, sondern wird wie das Schulgeld eingezogen — hebel.md zählt
     -- drei Zahlungen über Weltenbaum auf, und diese ist keine davon.
     -- Die drei des Elternbonus: „Drei Werte im System gehören der
