@@ -299,10 +299,24 @@ SELECT pg_temp.expect_reject(
                'system:check')$q$);
 
 -- grenzkarte.md, Q3: „Die Aussetzung ist deshalb keine Zahlung mit Betrag 0."
-SELECT pg_temp.expect_reject(
-    'Q3 — Zahlung über 0 €',
-    $q$INSERT INTO payments (cleaning_buyout_id, amount_cents, created_by)
-       VALUES ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1', 0, 'system:check')$q$);
+-- Sie hängt nicht am Betrag, sondern am fehlenden Anlass: `payments` kennt
+-- keine Spalte für Strafe oder Aussetzung, die stehen an der Zuteilung
+-- (`penalty_waived_at`). Der Betrag selbst darf null sein, seit ein
+-- Akademie-Angebot kostenlos sein kann (`ck_payments_amount`,
+-- querschnitt-schema.sql) — eine Probe über den Betrag belegte diesen Satz
+-- also nicht mehr, sondern einen anderen. Die Gegenprobe ist die Spaltenliste.
+DO $$
+DECLARE gefunden text;
+BEGIN
+    SELECT string_agg(column_name, ', ') INTO gefunden
+      FROM information_schema.columns
+     WHERE table_schema = 'public' AND table_name = 'payments'
+       AND (column_name LIKE '%penalty%' OR column_name LIKE '%waiv%');
+    IF gefunden IS NOT NULL THEN
+        RAISE EXCEPTION 'Die Putzdienst-Strafe hat einen Anlass an payments: %', gefunden;
+    END IF;
+    RAISE NOTICE 'ok (erlaubt): Q3 — die Aussetzung hat keinen Anlass an payments';
+END $$;
 
 -- 01: „neben Stripe bleibt die manuelle Bestätigung durch die Buchhaltung als
 -- benannter Ausweg für Überweisung und Bargeld bestehen."

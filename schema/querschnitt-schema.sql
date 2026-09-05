@@ -204,9 +204,9 @@
 -- Wertelisten
 -- ---------------------------------------------------------------------------
 
--- Herkunft: 00 — „Schulinformationen darf man abwählen, aber einer in der
--- Familie muss sie mindestens bekommen." Damit gibt es drei Sorten Mail und
--- nicht mehr zwei: die **Vorgangsmail**, die niemand abbestellen kann, die
+-- Herkunft: 00 — die Schulinformation ist abwählbar, „ja, aber **einer je
+-- Familie muss sie bekommen**", und „bei der **Schulinformation** greift die
+-- Untergrenze". Damit gibt es drei Sorten Mail und nicht mehr zwei: die **Vorgangsmail**, die niemand abbestellen kann, die
 -- **Schulinformation**, die jeder abwählt, solange einer je Familie sie noch
 -- bekommt, und den **Newsletter**, den jeder frei abwählt.
 -- Als Werteliste statt zweier Häkchen an `consent_purposes`: Eine feinere
@@ -397,8 +397,8 @@ CREATE TABLE child_file_categories (
     is_active              boolean NOT NULL DEFAULT true,
     -- Ob eine Lehrkraft die Dateien dieser Kategorie **lesen** darf.
     -- **Voreinstellung: nein**, und heute steht sie bei keiner Kategorie auf ja
-    -- (Geschäftsführung, 04.09.2026): „Vorerst soll kein Lehrer Zugriff auf die
-    -- direkte Schülerakte haben." Gemeint sind die **Dateien** — was in der
+    -- (Geschäftsführung, 04.09.2026): Vorerst soll keine Lehrkraft Zugriff auf
+    -- die Schülerakte selbst haben. Gemeint sind die **Dateien** — was in der
     -- Datenbank steht, regelt die Einsichtsstufe und ist davon unberührt (08,
     -- hebel.md).
     -- Der benannte Anlass, aus dem es die Spalte überhaupt gibt: **das Attest.**
@@ -472,7 +472,16 @@ CREATE TABLE sync_targets (
     -- Rolle: die Änderungsgebühr — „Die Änderungsgebühr läuft darin nicht mit
     -- … Sie wird deshalb eine eigene Aufgabe" (09) — und die berechneten
     -- Ferienbuchungen, die „alle seine berechneten Termine" tragen (10) und
-    -- keine Beitragslage sind. Der Index unten rechnet je Art, nicht je System.
+    -- keine Beitragslage sind. **Die beiden größten Fälle sind aber die
+    -- Abgangsliste und der Jahreslauf:** 03 Z2 legt „je laufender Verbindung
+    -- und je Fremdsystem ein[en] offene[n] Punkt bei der zuständigen Stelle"
+    -- an — Schulvertrag, Mensa und Bescheinigungen liegen alle drei beim
+    -- Sekretariat und alle drei am selben Kind —, und 04 führt zum selben
+    -- Bezug Schuljahr vier: Preise prüfen (Z1) sowie „Putzdienstjahr
+    -- einrichten …, die Voranmeldung … öffnen … und Lösch-Lauf anstoßen"
+    -- (Z4). Der Index unten rechnet je Art, nicht je System; die Zahl der
+    -- Arten folgt damit aus den Blöcken und nicht aus der Zahl der
+    -- Fremdsysteme.
     code           text NOT NULL,
     name           text NOT NULL,
     -- Deaktiviert statt gelöscht: „is_active = false" nimmt den Wert aus
@@ -505,9 +514,10 @@ CREATE TABLE sync_targets (
 -- Q2 — Dokument und Signatur
 -- ---------------------------------------------------------------------------
 
--- Herkunft: hebel.md, „Geld im System, alles andere fest" — „Dasselbe gilt für
--- die Texte, an denen ein Vertrag hängt … Es gilt die Fassung, deren
--- Gültigkeitstag zuletzt erreicht wurde, geändert von der Geschäftsführung."
+-- Herkunft: hebel.md, „Geld und Fristen im System, alles andere fest" —
+-- „Dasselbe gilt für die Texte, an denen ein Vertrag hängt … Es gilt die
+-- Fassung, deren Gültigkeitstag zuletzt erreicht wurde, geändert von der
+-- Geschäftsführung."
 -- Welche Textsorten es gibt, ist damit eine Werteliste und kein Freitext
 -- (Betreiber, 03.09.2026): Die Geschäftsführung pflegt die Fassungen, und wer
 -- einen Text an ein Angebot oder eine Terminart bindet, wählt aus dieser Liste
@@ -572,18 +582,18 @@ CREATE TABLE contract_text_kinds (
     school_branch_id      integer,
     -- Wie viele Tage vor dem Gültigkeitstag einer neuen Fassung die Mitteilung
     -- hinausgeht — 0 heißt „am Gültigkeitstag selbst". Allein an der Klasse
-    -- 'applies': Dort „genügt die Mitteilung, es entsteht nichts am Kind" (08),
-    -- und sie geht seit dem 04.09.2026 automatisch an alle, die ein laufender
-    -- Vertrag dieser Anlage unterwirft. Die beiden anderen Klassen brauchen
-    -- keinen: 'signed' läuft über den Nachtrag mit Kenntnisnahme oder
+    -- 'applies': Dort „entsteht nichts am Kind, und **die Mitteilung geht von
+    -- selbst hinaus**" (08) — seit dem 04.09.2026 automatisch an alle, die ein
+    -- laufender Vertrag dieser Anlage unterwirft. Die beiden anderen Klassen
+    -- brauchen keinen: 'signed' läuft über den Nachtrag mit Kenntnisnahme oder
     -- Zustimmung, und bei 'agreed' merkt sich jeder Vorgang die Fassung, unter
     -- der er zustande kam — eine neue betrifft künftige Buchungen, nicht
     -- bestehende.
-    -- **Je Sorte und nicht je Fassung** (Geschäftsführung, 04.09.2026, „kann man
-    -- das als Variable einstellen lassen"): Einmal eingestellt, gilt der Vorlauf
-    -- für jede Änderung dieser Anlage. An der einzelnen Fassung müsste ihn
-    -- jemand bei jeder Änderung erneut setzen, und die vergessene Zahl wäre
-    -- eine Mitteilung, die zu spät kommt.
+    -- **Je Sorte und nicht je Fassung** (Geschäftsführung, 04.09.2026: der
+    -- Vorlauf ist einstellbar): Einmal eingestellt, gilt er für jede Änderung
+    -- dieser Anlage. An der einzelnen Fassung müsste ihn jemand bei jeder
+    -- Änderung erneut setzen, und die vergessene Zahl wäre eine Mitteilung,
+    -- die zu spät kommt.
     announcement_lead_days smallint,
     -- Wo die Arbeitsfassung liegt, an der die Geschäftsführung schreibt:
     -- Bibliothek und Element als Graph-Kennung, „nie ein Pfad" (grenzkarte.md,
@@ -676,7 +686,7 @@ CREATE TABLE contract_kind_attachments (
     -- Die Anlage selbst: Betreuungsordnung, Infektionsschutz, Kleiderordnung,
     -- die Regeln zu Putzdienst und Elternmitarbeit.
     attachment_text_kind_id     integer NOT NULL,
-    -- Ebenso mitgeführt: Beigelegt wird allein, was „in seiner jeweils gültigen
+    -- Ebenso mitgeführt: Beigelegt wird allein, was „in ihrer jeweils gültigen
     -- Fassung" gilt. Eine unterschriebene Sorte als Anlage wäre ein zweiter
     -- Vertrag ohne Unterschrift, eine 'agreed'-Sorte eine Bedingung ohne
     -- Vorgang, der sie sich merkt.
@@ -715,9 +725,10 @@ CREATE UNIQUE INDEX ix_contract_kind_attachments_active
     WHERE removed_at IS NULL;
 
 
--- Herkunft: hebel.md, „Geld im System, alles andere fest" — „Dasselbe gilt für
--- die Texte, an denen ein Vertrag hängt … Es gilt die Fassung, deren
--- Gültigkeitstag zuletzt erreicht wurde, geändert von der Geschäftsführung."
+-- Herkunft: hebel.md, „Geld und Fristen im System, alles andere fest" —
+-- „Dasselbe gilt für die Texte, an denen ein Vertrag hängt … Es gilt die
+-- Fassung, deren Gültigkeitstag zuletzt erreicht wurde, geändert von der
+-- Geschäftsführung."
 -- Löschanker: keiner, keine Personendaten — eine Fassung überlebt jeden
 -- Vertrag, der sie trägt. Bewusst KEIN Gültigkeits-Ende und kein
 -- Freigabevermerk: das Ende folgt aus der nächsten Fassung, und „wie ein
@@ -961,9 +972,14 @@ CREATE UNIQUE INDEX ix_signatures_mandate ON signatures (sepa_mandate_id)
 -- verschieden lang sind, und die Hortakte ist die zweite Bibliothek am Kind.
 -- **Die Zeile entsteht auf Anforderung und nicht je Kind:** Sie existiert nur,
 -- wo ein Ordner ist — „nicht jedes Kind hat eine" Hortakte (grenzkarte.md), und
--- ein Unterordner der Schülerakte entsteht, wenn das erste Blatt seiner
--- Kategorie hereinkommt. Ein von Hand angelegter Ordner hätte keinen Anker und
--- überlebte jede Frist; „Ordner legt allein die App an".
+-- ein Unterordner der Schülerakte entsteht **mit der ersten `documents`-Zeile
+-- seiner Kategorie**. Das ist nicht erst das erste Blatt: Die bloße
+-- Anforderung — am Anmeldetag fünf bis sechs je Kind, „vorgelegt, fehlt oder
+-- nicht nötig" (06) — ist schon eine solche Zeile, und `documents` kennt seine
+-- Kategorie nur über den Ordner. Ein Ordner, in den nie etwas kommt, ist der
+-- Preis dafür; ihn nullable zu lassen nähme der offenen Anforderung Frist und
+-- Leserkreis. Ein von Hand angelegter Ordner hätte keinen Anker und überlebte
+-- jede Frist; „Ordner legt allein die App an".
 CREATE TABLE child_file_folders (
     child_file_folder_id uuid NOT NULL DEFAULT gen_random_uuid(),
     child_id             uuid NOT NULL,
@@ -1011,7 +1027,7 @@ CREATE TABLE child_file_folders (
 CREATE TABLE documents (
     document_id      uuid NOT NULL DEFAULT gen_random_uuid(),
     child_id         uuid NOT NULL,
-    -- **Freiwillig** (grenzkarte.md, Q2): „Die Art steht nur dort, wo ein
+    -- **Freiwillig** (grenzkarte.md, Q2): „[Die Art] steht nur dort, wo ein
     -- Prozess nach genau dieser Unterlage fragt" — die am Anmeldetag verlangten
     -- Stücke, bei denen „fehlt noch" von „nie verlangt" unterscheidbar sein
     -- muss (06), und was Weltenbaum selbst erzeugt. Ein Attest, ein
@@ -1351,8 +1367,8 @@ CREATE TABLE photo_consent_records (
     -- ein Foto vor sich hat, kennt kein Geburtsdatum; dafür ist die Datei
     -- selbst der letzte Aufschluss, weil die Eltern darin stehen.
     birth_date        date NOT NULL,
-    -- „wann von der Schule abgegangen und welcher Schulzweig" — die beiden
-    -- Angaben, die eine Aufnahme zeitlich und örtlich einordnen.
+    -- „Abgangsdatum, Schulzweig" (08) — die beiden Angaben, die eine Aufnahme
+    -- zeitlich und örtlich einordnen.
     exit_date         date NOT NULL,
     school_branch_id  integer NOT NULL,
     -- Ab wann die Erlaubnis galt: der **späteste** der erteilten Zeitpunkte.
@@ -1424,11 +1440,12 @@ CREATE TABLE photo_consent_records (
 --
 -- Die beiden Merkmale stehen hier und nicht im Code, weil CHECKs sie lesen und
 -- ein CHECK keine zweite Tabelle sieht: `is_invoiced` trägt die beiden
--- Kostenübernahme-Regeln („ein Code tritt an die Stelle der Zahlung und nur
--- dort", 10/21) und die Auslassung des Putzdienstes, der keinen Code kennt;
--- `is_direct_debit` trägt „der Einzug bleibt dem Kinder-Zweig" (21). Beide
--- werden an der Vorgangszeile mitgeführt und dort von einem zusammengesetzten
--- Fremdschlüssel festgehalten (rules.md Abschnitt 1, Ausnahme).
+-- Kostenübernahme-Regeln („Er tritt an die Stelle der Zahlung", 10; „An die
+-- Stelle der Zahlung tritt der Kostenübernahme-Code", 21) und die Auslassung
+-- des Putzdienstes, der keinen Code kennt; `is_direct_debit` trägt „**Im
+-- Erwachsenen-Zweig wird nie eingezogen**" (21). Beide werden an der
+-- Vorgangszeile mitgeführt und dort von einem zusammengesetzten Fremdschlüssel
+-- festgehalten (rules.md Abschnitt 1, Ausnahme).
 --
 -- Bewusst KEIN Ändern von `code` und den beiden Merkmalen: alle drei hängen in
 -- den Fremdschlüsseln der Vorgangstabellen. Ein falscher Eintrag wird
@@ -1544,7 +1561,15 @@ CREATE TABLE payments (
     -- Zahlung und nicht mit der Rückkehr aus der Bezahlung" (hebel.md).
     CONSTRAINT ck_payments_confirmed
         CHECK ((status = 'confirmed') = (confirmed_at IS NOT NULL)),
-    CONSTRAINT ck_payments_amount CHECK (amount_cents > 0),
+    -- Null ist erlaubt, nicht bloß geduldet: Ein Angebot der Akademie darf
+    -- kostenlos sein (`ck_academy_offerings_amount`, akademie-schema.sql), und
+    -- 21 verlangt nirgends einen Betrag über null. Eine Familie ohne Mandat
+    -- meldet sich auch dazu über die Sofortzahlung an — „die Anmeldung entsteht
+    -- erst mit der bestätigten Zahlung" (21) —, und ohne diese Zeile entstünde
+    -- sie nie. Negativ bleibt abgewiesen: eine Erstattung ist keine Zahlung mit
+    -- umgekehrtem Vorzeichen, sondern eine Entscheidung eines Menschen
+    -- (`ck_payments_single_cause`).
+    CONSTRAINT ck_payments_amount CHECK (amount_cents >= 0),
     CONSTRAINT ck_payments_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
@@ -1701,10 +1726,10 @@ CREATE UNIQUE INDEX ix_sync_tasks_open_payment ON sync_tasks (sync_target_id, pa
 -- Werte im System
 -- ---------------------------------------------------------------------------
 
--- Herkunft: hebel.md, „Geld im System, alles andere fest" — „Alles, woran Geld
--- oder ein Vertrag hängt — Preise, Beträge, Pflichtmengen —, ist jederzeit
--- änderbar und steht im System, nie im Code … Jeder dieser Werte trägt ein
--- Datum, ab dem er gilt." Löschanker: keiner, keine Personendaten. Bewusst KEIN
+-- Herkunft: hebel.md, „Geld und Fristen im System, alles andere fest" —
+-- „Alles, woran Geld oder ein Vertrag hängt — Preise, Beträge, Pflichtmengen
+-- —, ist jederzeit änderbar und steht im System, nie im Code … Jeder dieser
+-- Werte trägt ein Datum, ab dem er gilt." Löschanker: keiner, keine Personendaten. Bewusst KEIN
 -- Gültigkeits-Ende: „Es gilt immer der Wert, dessen Datum zuletzt erreicht
 -- wurde", das Ende folgt aus dem nächsten Eintrag.
 -- Hier stehen die Werte, die für das ganze Haus gelten. Was je Modul, Termin
@@ -1712,10 +1737,10 @@ CREATE UNIQUE INDEX ix_sync_tasks_open_payment ON sync_tasks (sync_target_id, pa
 -- Vertragstext —, trägt seine eigene Tabelle in der zuständigen Domäne, dort
 -- aber mit demselben `valid_from` und derselben Auswahlregel.
 -- **Seit dem 04.09.2026 stehen auch die Löschfristen hier** (Geschäftsführung):
--- „Generell soll es möglich sein, die Löschfristen dynamisch anzupassen durch
--- die Geschäftsführung, und sie sollen nicht fix im Code stehen." Das kehrt um,
--- was hebel.md vorher trug — eine Frist war eine feste Zahl, weil „je weniger
--- jemand einstellen muss, desto weniger geht schief". Für die Aufbewahrung gilt
+-- „Generell soll es möglich sein die Löschfristen dynamisch anzupassen und sie
+-- sollen nicht fix im Code stehen." Das kehrt um, was hebel.md vorher trug —
+-- eine Frist war eine feste Zahl, weil „je weniger jemand einstellen muss,
+-- desto weniger geht schief". Für die Aufbewahrung gilt
 -- das nicht mehr: Eine Frist, die eine Aufsichtsbehörde beanstandet, kostet
 -- sonst einen Bau statt einer Eingabe.
 -- Drei Dinge folgen daraus für diese Tabelle:

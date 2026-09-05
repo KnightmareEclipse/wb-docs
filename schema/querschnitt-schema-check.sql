@@ -44,7 +44,8 @@
 -- in anmeldung-schema.sql. Format überall `sha256:<64 Hexstellen>`.
 -- Dazu sechzehn partielle Unique-Indizes (vier für signatures, zwei für
 -- consents, neun für sync_tasks, einer über die erste Zeile je angehaltenem
--- Fall) und zwei Lese-Indizes, auf outbound_emails und auf change_log.
+-- Fall) und drei Lese-Indizes, auf outbound_emails, auf change_log und auf
+-- retention_holds (`ix_retention_holds_held_until`, seit dem Lösch-Lauf).
 -- `contract_texts` sagt mit `requires_consent`, ob eine Fassung Zustimmung
 -- verlangt oder Kenntnisnahme genügt; `signatures` trägt dafür den vierten
 -- Bezug (`contract_amendment_id`), dessen Tabelle in anmeldung-schema.sql
@@ -383,6 +384,31 @@ SELECT pg_temp.expect_accept(
                (SELECT consent_purpose_id FROM consent_purposes WHERE code='photo'), true,
                now(), 'mutter@example.org', 'system:check')$q$);
 
+-- Und die Gegenrichtung, die die erste Bauform festhält: 08 lässt die Eltern
+-- „Gesundheitsangaben und Fotoeinverständnis … danach jederzeit im Portal"
+-- ändern. Von „Ja" nach „Nein" geht das als neue Zeile (oben), von „Nein" nach
+-- „Ja" **nicht** — `ck_consents_revocation` lässt nur eine Erteilung
+-- widerrufen, und die Ablehnung steht damit ungewiderrufen im Unique-Index.
+-- Dieser Weg ist deshalb ein UPDATE derselben Zeile, und beide Proben zusammen
+-- halten fest, welcher Weg welcher ist.
+SELECT pg_temp.expect_reject(
+    'Q1 — Erteilung als neue Zeile neben der stehenden Ablehnung',
+    $q$INSERT INTO consents (person_id, child_id, consent_purpose_id, requires_child, granted_at,
+                             delivery_address, created_by)
+       VALUES ('22222222-2222-2222-2222-222222222222',
+               '44444444-4444-4444-4444-444444444444',
+               (SELECT consent_purpose_id FROM consent_purposes WHERE code='photo'), true,
+               now(), 'mutter@example.org', 'system:check')$q$);
+
+SELECT pg_temp.expect_accept(
+    'Q1 — von „Nein" nach „Ja" als UPDATE derselben Zeile',
+    $q$UPDATE consents SET granted_at = now(), declined_at = NULL
+        WHERE person_id = '22222222-2222-2222-2222-222222222222'
+          AND child_id  = '44444444-4444-4444-4444-444444444444'
+          AND consent_purpose_id = (SELECT consent_purpose_id FROM consent_purposes
+                                     WHERE code='photo')
+          AND declined_at IS NOT NULL AND revoked_at IS NULL$q$);
+
 -- Q2 — 08: das Fotoeinverständnis ist „für alle Lehrkräfte, Hortkräfte und das
 -- Sekretariat ohne Umweg sichtbar", und sichtbar wird es je Kind. Ohne `child_id`
 -- fiele die Zeile aus beiden Unique-Indizes und aus jeder solchen Ansicht.
@@ -623,17 +649,19 @@ SELECT pg_temp.expect_reject(
 -- grenzkarte.md, Q2: „Eine Datei beim falschen Kind … die Verwechslung wäre
 -- damit nicht behoben, sondern eingebaut." Der Zweck ist ein dritter, damit
 -- allein der zusammengesetzte Fremdschlüssel abweisen kann und nicht der
--- Eindeutigkeits-Index.
+-- Eindeutigkeits-Index. Die Prüfsumme steht mit im INSERT, sonst weist
+-- `ck_consents_checksum` vorher ab und der Fremdschlüssel bliebe unbelegt.
 INSERT INTO consent_purposes (code, name, requires_child, created_by)
     VALUES ('health_data', 'Gesundheitsangaben', true, 'system:check');
 SELECT pg_temp.expect_reject(
     'Q2 — Zustimmung für ein Kind mit der Datei eines anderen',
     $q$INSERT INTO consents (person_id, child_id, consent_purpose_id, requires_child, granted_at,
-                             delivery_address, document_id, created_by)
+                             delivery_address, document_id, document_checksum, created_by)
        VALUES ('22222222-2222-2222-2222-222222222222',
                '44444444-4444-4444-4444-444444444444',
                (SELECT consent_purpose_id FROM consent_purposes WHERE code='health_data'), true,
                now(), 'mutter@example.org', '99999999-9999-9999-9999-999999999997',
+               'sha256:' || repeat('a', 64),
                'system:check')$q$);
 
 -- 06: „Unterlagen, je Stück vorgelegt, fehlt oder nicht nötig" — der dritte
@@ -761,6 +789,20 @@ SELECT pg_temp.expect_reject(
        VALUES ('77777777-7777-7777-7777-777777777777',
                '88888888-8888-8888-8888-888888888888', 2500, 'system:check')$q$);
 
+-- Der kostenlose Kurs: Das Angebot darf null kosten (akademie-schema.sql), und
+-- ohne Mandat entsteht die Anmeldung erst mit der bestätigten Zahlung (21).
+-- Die Zahlungszeile über null muss deshalb eintragbar sein.
+SELECT pg_temp.expect_accept(
+    'Q3 — Zahlung über null Cent ist eintragbar',
+    $q$INSERT INTO payments (payment_id, amount_cents, created_by)
+       VALUES ('99999999-9999-9999-9999-99999999990a', 0, 'system:check')$q$);
+
+-- Gelockert heißt auch hier nicht offen.
+SELECT pg_temp.expect_reject(
+    'Q3 — Zahlung über einen negativen Betrag',
+    $q$INSERT INTO payments (payment_id, amount_cents, created_by)
+       VALUES ('99999999-9999-9999-9999-99999999990b', -100, 'system:check')$q$);
+
 -- Die übrigen Q3-Gegenproben stehen in putzdienst-schema-check.sql: sie
 -- brauchen einen Vorgang, auf den die Zahlung zeigen darf, und den bringt erst
 -- die erste Domäne mit einem Anlass mit.
@@ -799,6 +841,18 @@ SELECT pg_temp.expect_reject(
        VALUES ((SELECT sync_target_id FROM sync_targets WHERE code='asv_bw'), 2098,
                (SELECT school_branch_id FROM school_branches ORDER BY school_branch_id LIMIT 1),
                'Jahrgang nachtragen', 'system:check')$q$);
+
+-- Und dieselbe Umkehrung noch einmal, diesmal gegen den Fremdschlüssel: Mit
+-- gesetztem Flag und gesetzter Schulart geht `ck_sync_tasks_branch_bound` auf,
+-- und allein `fk_sync_tasks_target` merkt, dass die Rolle des Ziels das Flag
+-- gar nicht trägt. Ohne diese Probe belegten die beiden anderen nur den CHECK.
+SELECT pg_temp.expect_reject(
+    'Q5 — mitgeführtes Zweig-Flag, das dem Ziel nicht gehört',
+    $q$INSERT INTO sync_tasks (sync_target_id, school_year, school_branch_id, is_branch_bound,
+                              task_text, created_by)
+       VALUES ((SELECT sync_target_id FROM sync_targets WHERE code='asv_bw'), 2096,
+               (SELECT school_branch_id FROM school_branches ORDER BY school_branch_id LIMIT 1),
+               true, 'Jahrgang nachtragen', 'system:check')$q$);
 
 SELECT pg_temp.expect_reject(
     'Q5 — zweiggebundenes Ziel ohne Schulart',
@@ -1000,8 +1054,8 @@ SELECT pg_temp.expect_accept(
                '33333333-3333-3333-3333-333333333333',
                'access_level_id', '1', '2', now(), 'entra:sekretariat')$q$);
 
--- hebel.md, „Geld im System": jeder Wert trägt einen Gültigkeitstag, und je
--- Wert und Tag steht genau ein Eintrag.
+-- hebel.md, „Geld und Fristen im System": jeder Wert trägt einen
+-- Gültigkeitstag, und je Wert und Tag steht genau ein Eintrag.
 INSERT INTO configured_values (code, valid_from, value, created_by)
     VALUES ('cleaning_buyout_cents', DATE '2026-10-01', 3500, 'system:check');
 SELECT pg_temp.expect_reject(
@@ -1050,6 +1104,61 @@ SELECT pg_temp.expect_reject(
     $q$INSERT INTO sync_tasks (sync_target_id, reference_period, task_text, created_by)
        VALUES ((SELECT sync_target_id FROM sync_targets WHERE code='optigem'),
                DATE '2026-11-01', 'noch einmal', 'system:check')$q$);
+
+-- Dieselbe Regel für die übrigen vier Bezüge, die dieser Datei gehören: Ohne
+-- je eigene Probe belegte „je Aufgabenart und Bezug" nur die beiden, an denen
+-- sie zufällig geschrieben wurde — die anderen vier Indizes fielen bei einem
+-- Tippfehler in der Spaltenliste lautlos aus.
+
+-- 02: die geänderte Anschrift einer Person ist eine Aufgabe je System.
+SELECT pg_temp.expect_accept(
+    'Q5 — Aufgabe mit Person als Bezug',
+    $q$INSERT INTO sync_tasks (sync_target_id, person_id, task_text, created_by)
+       VALUES ((SELECT sync_target_id FROM sync_targets WHERE code='asv_bw'),
+               '22222222-2222-2222-2222-222222222222', 'Anschrift nachziehen',
+               'system:check')$q$);
+SELECT pg_temp.expect_reject(
+    '02 — zweite offene Aufgabe zu derselben Person',
+    $q$INSERT INTO sync_tasks (sync_target_id, person_id, task_text, created_by)
+       VALUES ((SELECT sync_target_id FROM sync_targets WHERE code='asv_bw'),
+               '22222222-2222-2222-2222-222222222222', 'Name nachziehen',
+               'system:check')$q$);
+
+-- 01: der Putzdienst hängt an der Familie und nicht am Kind.
+SELECT pg_temp.expect_accept(
+    'Q5 — Aufgabe mit Familie als Bezug',
+    $q$INSERT INTO sync_tasks (sync_target_id, family_id, task_text, created_by)
+       VALUES ((SELECT sync_target_id FROM sync_targets WHERE code='asv_bw'),
+               '33333333-3333-3333-3333-333333333333', 'Putzdienst zuteilen',
+               'system:check')$q$);
+SELECT pg_temp.expect_reject(
+    '01 — zweite offene Aufgabe zu derselben Familie',
+    $q$INSERT INTO sync_tasks (sync_target_id, family_id, task_text, created_by)
+       VALUES ((SELECT sync_target_id FROM sync_targets WHERE code='asv_bw'),
+               '33333333-3333-3333-3333-333333333333', 'noch einmal zuteilen',
+               'system:check')$q$);
+
+-- 04 Z4: die Erinnerungen des Jahreslaufs tragen alle das Schuljahr als Bezug
+-- und stehen deshalb nur mit je eigener Aufgabenart nebeneinander.
+SELECT pg_temp.expect_accept(
+    'Q5 — Aufgabe mit Schuljahr als Bezug',
+    $q$INSERT INTO sync_tasks (sync_target_id, school_year, task_text, created_by)
+       VALUES ((SELECT sync_target_id FROM sync_targets WHERE code='asv_bw'), 2095,
+               'Putzdienstjahr einrichten', 'system:check')$q$);
+SELECT pg_temp.expect_reject(
+    '04 — zweite offene Aufgabe zu demselben Schuljahr und derselben Art',
+    $q$INSERT INTO sync_tasks (sync_target_id, school_year, task_text, created_by)
+       VALUES ((SELECT sync_target_id FROM sync_targets WHERE code='asv_bw'), 2095,
+               'Voranmeldung öffnen', 'system:check')$q$);
+
+-- api/gemeinsam.md: die vorgangslose Zahlung wartet auf **eine** Entscheidung;
+-- die Aufgabe dazu steht oben schon offen.
+SELECT pg_temp.expect_reject(
+    'Q5 — zweite offene Aufgabe zu derselben Zahlung',
+    $q$INSERT INTO sync_tasks (sync_target_id, payment_id, task_text, created_by)
+       VALUES ((SELECT sync_target_id FROM sync_targets WHERE code='asv_bw'),
+               '99999999-9999-9999-9999-999999999999',
+               'noch einmal prüfen', 'system:check')$q$);
 
 SELECT pg_temp.expect_reject(
     'hebel.md — derselbe Vertragstext zweimal zum selben Gültigkeitstag',
@@ -1506,7 +1615,7 @@ END $$;
 -- ---------------------------------------------------------------------------
 -- Die Schuelerakte: kein Lehrerzugriff, solange niemand ihn setzt
 -- ---------------------------------------------------------------------------
--- 'Vorerst soll kein Lehrer Zugriff auf die direkte Schuelerakte haben'
+-- Vorerst soll keine Lehrkraft Zugriff auf die Schuelerakte selbst haben
 -- (Geschaeftsfuehrung, 04.09.2026). Die Voreinstellung traegt das, ohne dass es
 -- jemand je Kategorie eintragen muesste — und der Anlass fuers spaetere
 -- Umlegen ist das Attest.
@@ -1646,6 +1755,37 @@ SELECT pg_temp.expect_reject(
        VALUES ('Ohne', 'Kopie', DATE '2010-03-14', DATE '2026-07-31',
                (SELECT school_branch_id FROM school_branches WHERE code='GS'),
                now(), 'sha256:edb00a7c9d4d82fb3fe46fafb4a63a9f500172e4ce9eff9681f2a9eb09f5e988', 'system:retention')$q$);
+
+-- Ein Nachweis ist ein Graph-Element wie jede Datei, und „zwei Zeilen auf
+-- demselben Element ließen den Lösch-Lauf eine Datei entfernen, auf die die
+-- zweite noch zeigt" — derselbe Satz wie an `uq_documents_graph_item` und
+-- `uq_child_file_folders_graph_item`, hier als dritte Gegenprobe.
+SELECT pg_temp.expect_accept(
+    'TASK-244 — Nachweis mit Kopie und Prüfsumme',
+    $q$INSERT INTO photo_consent_records (first_name, last_name, birth_date,
+                                          exit_date, school_branch_id, granted_at,
+                                          sharepoint_library_id, graph_item_id,
+                                          document_checksum, created_by)
+       VALUES ('Mit', 'Kopie', DATE '2010-03-14', DATE '2026-07-31',
+               (SELECT school_branch_id FROM school_branches WHERE code='GS'),
+               now(),
+               (SELECT sharepoint_library_id FROM sharepoint_libraries ORDER BY 1 LIMIT 1),
+               '01NACHWEIS',
+               'sha256:edb00a7c9d4d82fb3fe46fafb4a63a9f500172e4ce9eff9681f2a9eb09f5e988',
+               'system:retention')$q$);
+SELECT pg_temp.expect_reject(
+    'TASK-244 — zweiter Nachweis auf demselben Graph-Element',
+    $q$INSERT INTO photo_consent_records (first_name, last_name, birth_date,
+                                          exit_date, school_branch_id, granted_at,
+                                          sharepoint_library_id, graph_item_id,
+                                          document_checksum, created_by)
+       VALUES ('Zweiter', 'Nachweis', DATE '2011-04-15', DATE '2026-07-31',
+               (SELECT school_branch_id FROM school_branches WHERE code='GS'),
+               now(),
+               (SELECT sharepoint_library_id FROM sharepoint_libraries ORDER BY 1 LIMIT 1),
+               '01NACHWEIS',
+               'sha256:edb00a7c9d4d82fb3fe46fafb4a63a9f500172e4ce9eff9681f2a9eb09f5e988',
+               'system:retention')$q$);
 
 -- „Eine Erteilung, die nach ihrem Widerruf datiert, belegt nichts" — dieselbe
 -- Regel wie an `consents`.
@@ -1955,6 +2095,23 @@ INSERT INTO loeschlauf (platz, tabelle, im_lauf) VALUES
     ( 3, 'care_module_agreements', false),
     (17, 'family_guardians',   false), (17, 'family_contacts', false);
 
+-- Zuerst die Namen selbst: Beide Abfragen unten vergleichen `tabelle` mit
+-- `regclass::text`, und ein Name, den es nicht mehr gibt, fällt aus beiden
+-- heraus statt zu melden. Eine Tabelle, die nichts mit NO ACTION festhält und
+-- von nichts so festgehalten wird — `addresses` ist genau der Fall —,
+-- verschwände bei einer Umbenennung spurlos aus der Prüfung, und der Lauf
+-- bliebe grün.
+DO $$
+DECLARE unbekannt text;
+BEGIN
+    SELECT string_agg(tabelle, ', ') INTO unbekannt
+      FROM loeschlauf
+     WHERE to_regclass('public.' || tabelle) IS NULL;
+    IF unbekannt IS NOT NULL THEN
+        RAISE EXCEPTION 'Lösch-Lauf nennt Tabellen, die es nicht gibt: %', unbekannt;
+    END IF;
+END $$;
+
 DO $$
 DECLARE ungenannt text;
         verdreht  text;
@@ -2133,13 +2290,24 @@ SELECT pg_temp.expect_reject(
                (SELECT retention_hold_reason_id FROM retention_hold_reasons WHERE code='legal_dispute'),
                current_date - 1, 'entra:hortleitung')$q$);
 
--- „dem Grund aus einer Werteliste" — ein Freitext stünde daneben.
+-- „dem Grund aus einer Werteliste" — ein Freitext stünde daneben. Die erste
+-- Probe belegt nur, dass ein Grund steht (NOT NULL); dass er aus der Liste
+-- kommt, hält allein `fk_retention_holds_reason` — deshalb die zweite.
 SELECT pg_temp.expect_reject(
     '17 — Anhalten ohne Grund aus der Werteliste',
     $q$INSERT INTO retention_holds (retention_subject_id, child_id,
                                     original_delete_on, held_until, created_by)
        VALUES ((SELECT retention_subject_id FROM retention_subjects WHERE code='child_health_record'),
                '44444444-4444-4444-4444-444444444445',
+               current_date - 1, current_date + 30, 'entra:hortleitung')$q$);
+
+SELECT pg_temp.expect_reject(
+    '17 — Anhalten mit einer Grund-Kennung, die es nicht gibt',
+    $q$INSERT INTO retention_holds (retention_subject_id, child_id, retention_hold_reason_id,
+                                    original_delete_on, held_until, created_by)
+       VALUES ((SELECT retention_subject_id FROM retention_subjects WHERE code='child_health_record'),
+               '44444444-4444-4444-4444-444444444445',
+               999999,
                current_date - 1, current_date + 30, 'entra:hortleitung')$q$);
 
 SELECT pg_temp.expect_reject(
