@@ -238,6 +238,10 @@ CREATE TABLE expense_claims (
     -- stehen zusammen oder gar nicht — siehe den CHECK unten.
     third_party_account_holder text,
     third_party_iban  text,
+    -- Aus welcher Vorlage der Beleg gefüllt oder aufgeteilt wurde. Daraus wird
+    -- der Vermerk erzeugt, den Beleg und Deckblatt bei einer Vorlagen-Aufteilung
+    -- tragen (12, Schritt 3) — eine eigene Spalte für „hier war eine Vorlage im
+    -- Spiel" wäre der zweite Ort für dieselbe Tatsache (rules.md Abschnitt 1).
     claim_template_id integer,
     -- „Zurückziehen kann er ihn, solange keine Führungskraft ihn oder einen
     -- seiner Teile freigegeben hat" (12, Schritt 1). Die Bedingung liest
@@ -420,6 +424,11 @@ CREATE TABLE expense_claim_items (
     CONSTRAINT fk_expense_claim_items_approver
         FOREIGN KEY (approver_employee_id) REFERENCES employees (employee_id)
         ON DELETE SET NULL,
+    -- Eine Führungskraft steht an jedem Teil, auch an dem einer
+    -- Vorlagen-Aufteilung — und dort ist es dieselbe: „Freigeber bleibt dann an
+    -- jedem Teil die eine gewählte Führungskraft" (12, Schritt 3), sie hat den
+    -- Beleg freigegeben und nicht die Vorlage. Ist ihr Mitarbeitendeneintrag
+    -- fort, trägt der Name.
     CONSTRAINT ck_expense_claim_items_approver
         CHECK (approver_employee_id IS NOT NULL
                OR (approver_employee_name IS NOT NULL AND approver_employee_name <> '')),
@@ -509,6 +518,11 @@ CREATE TABLE travel_details (
     CONSTRAINT fk_travel_details_claim
         FOREIGN KEY (expense_claim_id, amount_cents)
         REFERENCES expense_claims (expense_claim_id, amount_cents) ON DELETE CASCADE,
+    -- „Ein Beleg trägt genau eine Fahrt" (12): Wer an einem Tag zwei Ziele
+    -- anfährt, reicht zweimal ein. Erst dadurch kann `ck_travel_details_amount`
+    -- unten den Belegbetrag an die eine Strecke binden — bei einer
+    -- Sammelabrechnung wäre er eine Summe über Zeilen und damit an nichts
+    -- gebunden, genau die Lücke, die dieser CHECK geschlossen hat.
     CONSTRAINT uq_travel_details UNIQUE (expense_claim_id),
     CONSTRAINT ck_travel_details_origin      CHECK (origin <> ''),
     CONSTRAINT ck_travel_details_destination CHECK (destination <> ''),

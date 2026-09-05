@@ -399,6 +399,7 @@ SELECT pg_temp.expect_reject(
     $q$UPDATE expense_claims SET amount_cents = 9999999
         WHERE expense_claim_id = '66666666-6666-6666-6666-666666666661'$q$);
 
+-- 12: „Ein Beleg trägt genau eine Fahrt."
 SELECT pg_temp.expect_reject(
     '12 — zweite Fahrtangabe an demselben Beleg',
     $q$INSERT INTO travel_details (expense_claim_id, travelled_on, amount_cents, origin,
@@ -611,6 +612,41 @@ SELECT pg_temp.expect_accept(
                                           share_basis_points, created_by)
        VALUES (2, 1, 3000, 'system:check'),
               (2, 2, 3000, 'system:check')$q$);
+
+-- 12, Schritt 3: „Läuft er über eine Aufteilungsvorlage, entfällt dieser Umlauf
+-- … Freigeber bleibt dann an jedem Teil die eine gewählte Führungskraft." Zwei
+-- Teile auf zwei Projekte, an beiden dieselbe. Dass der Schlüssel aus einer
+-- Vorlage kommt, steht in `claim_template_id` und in keiner zweiten Spalte —
+-- der Vermerk am Beleg und auf dem Deckblatt wird daraus erzeugt.
+INSERT INTO expense_claims (expense_claim_id, submitter_employee_id, claim_type,
+                            calendar_year, payee_id, amount_cents, purpose,
+                            payment_route, requires_bank_details,
+                            is_reimbursement, claim_template_id, created_by)
+    VALUES ('66666666-6666-6666-6666-666666666665',
+            '55555555-5555-5555-5555-555555555553', 'invoice', EXTRACT(year FROM now() AT TIME ZONE 'Europe/Berlin')::smallint, 1, 10000,
+            'Miete Turnhalle', 'to_company', false, false, 1, 'system:check');
+SELECT pg_temp.expect_accept(
+    '12 — Vorlagen-Aufteilung: dieselbe Führungskraft an beiden Teilen',
+    $q$INSERT INTO expense_claim_items (expense_claim_id, submitter_employee_id,
+                                        claim_type, is_reimbursement,
+                                        approver_employee_id, cost_project_id,
+                                        amount_cents, created_by)
+       VALUES ('66666666-6666-6666-6666-666666666665',
+               '55555555-5555-5555-5555-555555555553', 'invoice', false,
+               '55555555-5555-5555-5555-555555555552', 1, 6000, 'system:check'),
+              ('66666666-6666-6666-6666-666666666665',
+               '55555555-5555-5555-5555-555555555553', 'invoice', false,
+               '55555555-5555-5555-5555-555555555552', 2, 4000, 'system:check')$q$);
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM expense_claims
+                    WHERE expense_claim_id = '66666666-6666-6666-6666-666666666665'
+                      AND claim_template_id IS NOT NULL) THEN
+        RAISE EXCEPTION 'REGEL NICHT GEBAUT — der Vermerk hat keine Quelle';
+    END IF;
+    RAISE NOTICE 'ok: 12 — woher der Schlüssel kommt, sagt `claim_template_id`';
+END $$;
 
 -- 12: „die Buchhaltung berichtigt einen Eintrag oder führt zwei zusammen".
 SELECT pg_temp.expect_accept(
