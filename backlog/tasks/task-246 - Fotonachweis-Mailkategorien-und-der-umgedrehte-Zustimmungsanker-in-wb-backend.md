@@ -4,6 +4,7 @@ title: 'Fotonachweis, Mailkategorien und der umgedrehte Zustimmungsanker in wb-b
 status: To Do
 assignee: []
 created_date: '2026-09-04 16:49'
+updated_date: '2026-09-05 23:24'
 labels:
   - schema
   - dsgvo
@@ -44,4 +45,5 @@ Was der Trigger nicht sieht, weil dabei niemand `consents` anfasst: das Ausschei
 - [ ] #6 alumni steht; die Gegenprobe: dieselbe Person als ehemaliges Kind und als ehemalige Mitarbeitende geht, zweimal dieselbe Art nicht
 - [ ] #7 Der Juni-Lauf legt Einwilligung und Zugehoerigkeit zusammen an; ohne Zustimmung entsteht keine Zeile
 - [ ] #8 Die drei Wertelisten tragen ihren Anfangsbestand
+- [ ] #9 Die beiden Routen PATCH /photo-consent-records/{photo_consent_record_id} und GET /photo-consent-records stehen (Plan Q1, TASK-246 AC#3 nennt nur die Tabelle)
 <!-- AC:END -->
