@@ -246,7 +246,7 @@ Nummerierung wie `fachdomaenen.md` Abschnitt 6.
 
 | Domäne | Eigene Entitäten | Nutzt Querschnitt | Schreibt Stammdaten |
 |---|---|---|---|
-| **Stammdaten** (gebaut) | Person, Anschrift, Telefon, Familie, Familienzugehörigkeit, Kind, Erziehungsberechtigte, Kontaktverknüpfung, SEPA-Mandat, **Mitarbeiter** samt Rollen, Klasse/Klassenstufe/Zweig, Anmeldecode, 11 Lookups | — | besitzt sie |
+| **Stammdaten** (gebaut) | Person, Anschrift, Telefon, Familie, Familienzugehörigkeit, Kind, Erziehungsberechtigte, Kontaktverknüpfung, SEPA-Mandat, **Mitarbeiter** samt Rollen, Klasse/Klassenstufe/Zweig, Anmeldecode samt Anmeldesitzung, Ehemaligen-Zugehörigkeit, 13 Lookups | — | besitzt sie |
 | **1 Putzdienst** (gebaut) | Zyklus, Terminart, Pflichtmenge und Platzzahl je Zyklus und Art, Putztermin, Zuteilung, abweichende Pflichtmenge je Familie, Komplett-Freikauf, Einzel-Freikauf, Tauschangebot samt Annahme | Q3 | nein |
 | **2 Voranmeldung** / **4 Anmeldeprozess und Anmeldegespräch** (gebaut; eine Domäne, drei Phasen: Voranmeldung → Gespräch → Schulvertrag) | Bewerbung, Anmeldefenster, Anmeldetag, Gesprächsslot, Vertragsvorgang (Schul- **oder** Hortvertrag), Antwort je Erziehungsberechtigtem, Nachtrag zum Vertrag, Betreuungsmodul samt Buchungstagen, Anmeldefreischaltung, Schulgeld- und Modulpreis, Notfallbetreuung samt Fallpreis, Brückentagsabfrage samt Antwort je Kind, 9 Wertelisten | Q1, Q2, Q3 | ja (viel) |
 | **3 Ferienanmeldung** (gebaut; Ferienprogramm) | Terminart, Modul samt Preis, Programm, Termin samt seinen Tagen, Buchung, Kostenübernahme-Code, Betreuungs-Anmerkung je Kind und Programm | Q1, Q3, Q5 | ja (legt schulfremde Kinder samt Familie, Erziehungsberechtigten und Notfallkontakt an) |

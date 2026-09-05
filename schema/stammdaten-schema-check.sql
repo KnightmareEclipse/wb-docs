@@ -12,7 +12,8 @@
 -- an `classes`.
 -- `alumni` steht neben `persons` wie `employees`: eine Zugehoerigkeit, die eine
 -- Person zusaetzlich zu ihren anderen traegt — je Person und Art eine Zeile,
--- und ein Jahr genau dort, wo die Art es verlangt.
+-- ein Jahr genau dort, wo die Art es verlangt, und ein Schulzweig genau dort,
+-- wo die Art ihn erlaubt.
 -- `guardians` trägt die personenweiten Angaben eines Sorgeberechtigten,
 -- `family_guardians` daneben allein, was an einer einzelnen Sorgeberechtigung
 -- hängt.
@@ -82,9 +83,10 @@ BEGIN
         'ck_sepa_mandates_bic', 'ck_sepa_mandates_iban',
         'ck_sepa_mandates_checksum',
         'ck_employees_working_days', 'ck_school_branches_grades',
-        'pk_alumni_kinds', 'uq_alumni_kinds_code', 'uq_alumni_kinds_exit_year',
+        'pk_alumni_kinds', 'uq_alumni_kinds_code', 'uq_alumni_kinds_flags',
         'pk_alumni', 'fk_alumni_person', 'fk_alumni_kind', 'fk_alumni_branch',
         'uq_alumni_person_kind', 'ck_alumni_exit_year', 'ck_alumni_exit_year_range',
+        'ck_alumni_school_branch', 'ck_alumni_kinds_created_by',
         'ck_login_codes_purpose', 'ck_login_codes_attempts',
         'fk_login_codes_person', 'ck_login_codes_person',
         'uq_login_sessions_token_hash', 'fk_login_sessions_person',
@@ -232,6 +234,15 @@ SELECT pg_temp.expect_reject(
        VALUES ('22222222-2222-2222-2222-222222222224',
                '33333333-3333-3333-3333-333333333333',
                DATE '2020-01-01', DATE '2026-08-01', 'system:check')$q$);
+
+-- Eine Person ist höchstens ein Kind: Die Kindzeile ist die Rolle dieser einen
+-- Person und keine zweite Person daneben (`uq_children_person`).
+SELECT pg_temp.expect_reject(
+    '05 — dieselbe Person ein zweites Mal als Kind',
+    $q$INSERT INTO children (person_id, family_id, birth_date, created_by)
+       VALUES ('22222222-2222-2222-2222-222222222221',
+               '33333333-3333-3333-3333-333333333333',
+               DATE '2020-05-01', 'system:check')$q$);
 
 -- 03: „das Austrittsdatum (Pflicht) und der Grund in einem Satz (Pflicht)".
 SELECT pg_temp.expect_reject(
@@ -649,6 +660,16 @@ SELECT pg_temp.expect_reject(
        VALUES ('44444444-4444-4444-4444-444444444444', 'Tante Muster',
                'DE02500105170137075030', 'Musterbank', 'WB-0001', 'system:check')$q$);
 
+-- 08: „Kontoinhaber, **IBAN**, Kreditinstitut … (Pflicht)". Die einzige
+-- Formatregel auf dem Zahlweg — den Zahlendreher fängt sie nicht, das
+-- vertippte Feld schon.
+SELECT pg_temp.expect_reject(
+    '08 — Mandat mit einer IBAN, die keine ist',
+    $q$INSERT INTO sepa_mandates (child_id, account_holder_name, iban,
+                                  credit_institution, mandate_reference, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444444', 'Tante Muster',
+               'DE12 3456 7890 1234 56', 'Musterbank', 'WB-0006', 'system:check')$q$);
+
 -- hebel.md, Anmeldecode: „Er gilt 15 Minuten … Alle Zahlen sind fest und
 -- nirgends einstellbar" — eine feste Zahl ist keine Spalte. Der Ablauf folgt
 -- aus `created_at`; stünde er zusätzlich als Zeitpunkt da, wäre er der zweite
@@ -924,6 +945,16 @@ SELECT pg_temp.expect_reject(
        UPDATE employees SET entra_object_id = '00000000-0000-0000-0000-0000000000aa'
          WHERE employee_id = '55555555-5555-5555-5555-555555555552'$q$);
 
+-- 13: „Eine Schuladresse wird nie ein zweites Mal vergeben." Sie bleibt am
+-- ausgeschiedenen Eintrag stehen und sagt dort, welches Konto er hatte — für
+-- zwei Menschen zugleich sagte sie das nicht mehr.
+SELECT pg_temp.expect_reject(
+    '13 — dieselbe Dienstadresse an zwei Mitarbeitenden',
+    $q$UPDATE employees SET work_email = 'v.name@schule.example'
+         WHERE employee_id = '55555555-5555-5555-5555-555555555551';
+       UPDATE employees SET work_email = 'v.name@schule.example'
+         WHERE employee_id = '55555555-5555-5555-5555-555555555552'$q$);
+
 -- rules.md Abschnitt 3, Kategoriewerte als Lookup: `is_active = false` nimmt
 -- den Wert aus jedem Auswahlfeld, lässt aber jede Zeile stehen, die schon auf
 -- ihn zeigt — so steht es an jeder Werteliste dieser Datei.
@@ -968,8 +999,9 @@ END $$;
 -- Reihenfolge über alle Domänen steht in querschnitt-schema.sql und läuft in
 -- anmeldung-schema-check.sql.
 
--- 08: „Löschanker: geht mit dem Kind, aber erst nach der Aufbewahrungsfrist für
--- Zahlungsdaten" — das Mandat hält das Kind fest, bis es selbst fällig ist.
+-- 08: „der Vertrag **fünf Jahre nach dem Austritt**, das SEPA-Mandat **zwei**"
+-- (03 nennt dieselben zwei Jahre) — das Mandat hält das Kind fest, bis es
+-- selbst fällig ist.
 SELECT pg_temp.expect_reject(
     '08 — Kind gelöscht, während sein Mandat noch seine Frist läuft',
     $q$DELETE FROM children WHERE child_id = '44444444-4444-4444-4444-444444444444'$q$);
@@ -1051,10 +1083,18 @@ SELECT pg_temp.expect_reject(
 -- ---------------------------------------------------------------------------
 -- Die Ehemaligen: eine Zugehörigkeit neben der Person, nicht ihr Rest
 -- ---------------------------------------------------------------------------
-INSERT INTO alumni_kinds (code, name, requires_exit_year, created_by) VALUES
-    ('former_pupil',    'Ehemaliges Kind',         true,  'system:check'),
-    ('former_guardian', 'Ehemaliges Elternteil',   false, 'system:check'),
-    ('former_employee', 'Ehemalige:r Mitarbeitende:r', true, 'system:check');
+INSERT INTO alumni_kinds (code, name, requires_exit_year, allows_school_branch,
+                          created_by) VALUES
+    ('former_pupil',    'Ehemaliges Kind',         true,  true,  'system:check'),
+    ('former_guardian', 'Ehemaliges Elternteil',   false, false, 'system:check'),
+    ('former_employee', 'Ehemalige:r Mitarbeitende:r', true, false, 'system:check');
+
+-- „Ohne `guardian:`: eine Werteliste legt kein Elternteil an."
+SELECT pg_temp.expect_reject(
+    'rules.md 3 — eine Art der Zugehoerigkeit, von einem Elternteil angelegt',
+    $q$INSERT INTO alumni_kinds (code, name, created_by)
+       VALUES ('former_neighbour', 'Ehemalige:r Nachbar:in',
+               'guardian:22222222-2222-2222-2222-222222222222')$q$);
 INSERT INTO persons (person_id, first_name, last_name, created_by) VALUES
     ('88888888-8888-8888-8888-888888888881', 'Rueck', 'Kehrer', 'system:check'),
     ('88888888-8888-8888-8888-888888888882', 'Ehe', 'Maligeltern', 'system:check');
@@ -1063,10 +1103,11 @@ INSERT INTO persons (person_id, first_name, last_name, created_by) VALUES
 SELECT pg_temp.expect_accept(
     '00 — das ehemalige Kind mit Jahrgang und Zweig',
     $q$INSERT INTO alumni (person_id, alumni_kind_id, requires_exit_year,
-                           exit_year, school_branch_id, created_by)
+                           allows_school_branch, exit_year, school_branch_id,
+                           created_by)
        VALUES ('88888888-8888-8888-8888-888888888881',
                (SELECT alumni_kind_id FROM alumni_kinds WHERE code='former_pupil'),
-               true, 2010,
+               true, true, 2010,
                (SELECT school_branch_id FROM school_branches WHERE code='GS'),
                'system:check')$q$);
 
@@ -1079,21 +1120,55 @@ SELECT pg_temp.expect_accept(
                (SELECT alumni_kind_id FROM alumni_kinds WHERE code='former_guardian'),
                'system:check')$q$);
 
+-- 22: „**Eltern tragen keinen Jahrgang** … eine Zahl, die nichts benennt, ist
+-- schlechter als keine." Die andere Richtung von `ck_alumni_exit_year`: Ohne
+-- sie liefe ein Jahrgang am Elternteil durch, den die Art gerade ausschliesst.
+SELECT pg_temp.expect_reject(
+    '22 — das ehemalige Elternteil mit einem Jahrgang',
+    $q$INSERT INTO alumni (person_id, alumni_kind_id, exit_year, created_by)
+       VALUES ('88888888-8888-8888-8888-888888888881',
+               (SELECT alumni_kind_id FROM alumni_kinds WHERE code='former_guardian'),
+               2010, 'system:check')$q$);
+
+-- 22: „beim Kind mit dem Schulzweig" — und bei keinem der beiden anderen
+-- Kreise, die keinem Zweig angehoeren.
+SELECT pg_temp.expect_reject(
+    '22 — das ehemalige Elternteil mit einem Schulzweig',
+    $q$INSERT INTO alumni (person_id, alumni_kind_id, school_branch_id, created_by)
+       VALUES ('88888888-8888-8888-8888-888888888881',
+               (SELECT alumni_kind_id FROM alumni_kinds WHERE code='former_guardian'),
+               (SELECT school_branch_id FROM school_branches WHERE code='GS'),
+               'system:check')$q$);
+
+-- Und das Erlaubnis-Flag laesst sich nicht an seiner Art vorbei setzen: Sonst
+-- waere `ck_alumni_school_branch` mit einem `true` in derselben Zeile zu
+-- umgehen.
+SELECT pg_temp.expect_reject(
+    '22 — Art und mitgefuehrtes Zweig-Flag widersprechen sich',
+    $q$INSERT INTO alumni (person_id, alumni_kind_id, allows_school_branch,
+                           school_branch_id, created_by)
+       VALUES ('88888888-8888-8888-8888-888888888881',
+               (SELECT alumni_kind_id FROM alumni_kinds WHERE code='former_guardian'),
+               true,
+               (SELECT school_branch_id FROM school_branches WHERE code='GS'),
+               'system:check')$q$);
+
 -- Wo die Art ein Jahr verlangt, steht eines — sonst waere requires_exit_year
 -- eine Absichtserklaerung.
 SELECT pg_temp.expect_reject(
     '00 — ehemaliges Kind ohne Jahrgang',
-    $q$INSERT INTO alumni (person_id, alumni_kind_id, requires_exit_year, created_by)
+    $q$INSERT INTO alumni (person_id, alumni_kind_id, requires_exit_year,
+                           allows_school_branch, created_by)
        VALUES ('88888888-8888-8888-8888-888888888882',
                (SELECT alumni_kind_id FROM alumni_kinds WHERE code='former_pupil'),
-               true, 'system:check')$q$);
+               true, true, 'system:check')$q$);
 
 -- Und das mitgefuehrte Flag muss zu seiner Art passen.
 SELECT pg_temp.expect_reject(
     '00 — Art und mitgefuehrtes Jahrgangs-Flag widersprechen sich',
     $q$INSERT INTO alumni (person_id, alumni_kind_id, requires_exit_year,
                            exit_year, created_by)
-       VALUES ('88888888-8888-8888-8888-888888888882',
+       VALUES ('88888888-8888-8888-8888-888888888881',
                (SELECT alumni_kind_id FROM alumni_kinds WHERE code='former_guardian'),
                true, 2010, 'system:check')$q$);
 
@@ -1109,10 +1184,10 @@ SELECT pg_temp.expect_reject(
 SELECT pg_temp.expect_reject(
     '00 — dieselbe Person zweimal in derselben Art',
     $q$INSERT INTO alumni (person_id, alumni_kind_id, requires_exit_year,
-                           exit_year, created_by)
+                           allows_school_branch, exit_year, created_by)
        VALUES ('88888888-8888-8888-8888-888888888881',
                (SELECT alumni_kind_id FROM alumni_kinds WHERE code='former_pupil'),
-               true, 2011, 'system:check')$q$);
+               true, true, 2011, 'system:check')$q$);
 
 -- Zwei Arten dagegen sind zwei Zugehoerigkeiten: Wer als Kind ging und Jahre
 -- spaeter als Mitarbeitende ausschied, steht zweimal da — mit zwei Jahren, die

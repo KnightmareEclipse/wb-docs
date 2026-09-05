@@ -27,7 +27,8 @@
 -- Herkunft: rules.md Abschnitt 3 — „Kategoriewerte (Status/Typ/Rollen-artige
 -- Felder) als eigene Lookup-Tabelle". Kein Löschanker: keine Personendaten.
 -- Bewusst KEINE Audit-Spalten hier — der Inhalt ist eine Bezeichnung, keine
--- Regel; die drei Listen mit Regelwirkung tragen sie unten selbst.
+-- Regel; die vier Listen mit Regelwirkung tragen sie unten selbst
+-- (`school_branches`, `houses`, `roles`, `alumni_kinds`).
 CREATE TABLE salutations (
     salutation_id integer GENERATED ALWAYS AS IDENTITY,
     code          text NOT NULL,
@@ -694,7 +695,11 @@ CREATE TABLE family_guardians (
     acting_for           text,
     -- „Wer in Briefe einzubeziehen ist" (06, 09). Sie steht neben der
     -- Einsichtsstufe und ersetzt sie nicht: die Stufe nimmt jemandem den
-    -- Zugriff, dieses Häkchen nur die Post. Wer beides hat, bekommt nichts.
+    -- Zugriff, dieses Häkchen die Briefpost. Wer beides hat, bekommt nichts.
+    -- [?] Sekretariat: Nimmt das Häkchen auch die Mail oder nur die Briefpost?
+    -- 06 und 09 erheben allein „wer in Briefe einzubeziehen ist", und hebel.md
+    -- („Empfänger") nennt für die Mail allein die Einsichtsstufe als Ausschluss
+    -- — bis zur Antwort trägt das Feld die Briefpost und sonst nichts.
     include_in_correspondence boolean NOT NULL DEFAULT true,
     created_at           timestamptz NOT NULL DEFAULT now(),
     created_by           text NOT NULL,
@@ -956,6 +961,11 @@ CREATE TABLE alumni_kinds (
     -- einem bestimmten Jahr, ein früheres vielleicht vier Jahre davor; ein
     -- Jahrgang wäre dort eine Zahl, die nichts benennt (22).
     requires_exit_year boolean NOT NULL DEFAULT false,
+    -- Wahr allein beim ehemaligen Kind: 22 gibt den Zweig ihm und sonst
+    -- niemandem („beim Kind mit dem Schulzweig"). **Erlaubt statt verlangt** —
+    -- anders als `requires_exit_year`, weil einer Zeile aus dem Bestand vor
+    -- 2026 der Zweig fehlen darf (das `[A]` an `alumni.school_branch_id`).
+    allows_school_branch boolean NOT NULL DEFAULT false,
     created_at         timestamptz NOT NULL DEFAULT now(),
     created_by         text NOT NULL,
 
@@ -963,7 +973,10 @@ CREATE TABLE alumni_kinds (
     CONSTRAINT uq_alumni_kinds_code UNIQUE (code),
     -- Trägt den zusammengesetzten Fremdschlüssel von `alumni` (rules.md
     -- Abschnitt 1) — dieselbe Bauform wie `uq_consent_purposes_requires_child`.
-    CONSTRAINT uq_alumni_kinds_exit_year UNIQUE (alumni_kind_id, requires_exit_year),
+    -- Beide Flags in einem Schlüssel: ein zweiter daneben hielte dieselbe
+    -- Artzeile ein zweites Mal fest.
+    CONSTRAINT uq_alumni_kinds_flags
+        UNIQUE (alumni_kind_id, requires_exit_year, allows_school_branch),
     CONSTRAINT ck_alumni_kinds_code CHECK (code <> ''),
     CONSTRAINT ck_alumni_kinds_name CHECK (name <> ''),
     -- Ohne `guardian:`: eine Werteliste legt kein Elternteil an.
@@ -988,27 +1001,41 @@ CREATE TABLE alumni (
     -- weiter, ein Jahrgang ohne Zweig benennt deshalb keine Gruppe. Leer beim
     -- Elternteil und beim Mitarbeitenden, die keinem Zweig angehören.
     -- [A] Der Zweig bleibt ohne eigenes Pflichtflag an der Art. — Alternative:
-    -- ein zweites `requires_school_branch` wie oben; Preis: eine Zeile aus dem
-    -- Bestand vor 2026, deren Zweig niemand mehr weiß, ließe sich nicht mehr
-    -- eintragen.
+    -- ein `requires_school_branch` neben dem `allows_school_branch` unten;
+    -- Preis: eine Zeile aus dem Bestand vor 2026, deren Zweig niemand mehr
+    -- weiß, ließe sich nicht mehr eintragen. Dass er dort **leer bleibt**, wo
+    -- er nichts benennt, hält `ck_alumni_school_branch` fest — erlauben und
+    -- verlangen sind zwei Fragen, und nur die zweite steht offen.
     school_branch_id   integer,
+    -- Das Erlaubnis-Flag der Artzeile, hier mitgeführt wie `requires_exit_year`
+    -- darüber; `fk_alumni_kind` hält beide an ihrem Original.
+    allows_school_branch boolean NOT NULL DEFAULT false,
     created_at         timestamptz NOT NULL DEFAULT now(),
     created_by         text NOT NULL,
 
     CONSTRAINT pk_alumni        PRIMARY KEY (alumni_id),
     CONSTRAINT fk_alumni_person FOREIGN KEY (person_id) REFERENCES persons (person_id),
     CONSTRAINT fk_alumni_kind
-        FOREIGN KEY (alumni_kind_id, requires_exit_year)
-        REFERENCES alumni_kinds (alumni_kind_id, requires_exit_year),
+        FOREIGN KEY (alumni_kind_id, requires_exit_year, allows_school_branch)
+        REFERENCES alumni_kinds (alumni_kind_id, requires_exit_year,
+                                 allows_school_branch),
     CONSTRAINT fk_alumni_branch
         FOREIGN KEY (school_branch_id) REFERENCES school_branches (school_branch_id),
     -- Eine Zeile je Person und Art: Wer als Kind ging und später als
     -- Mitarbeitende, steht zweimal da — mit zwei Jahren, die beide stimmen.
     CONSTRAINT uq_alumni_person_kind UNIQUE (person_id, alumni_kind_id),
-    -- Wo die Art ein Jahr verlangt, steht eines. Ohne diesen CHECK wäre
-    -- `requires_exit_year` eine Absichtserklärung.
+    -- Wo die Art ein Jahr verlangt, steht eines — und wo sie keines verlangt,
+    -- steht keines: „**Eltern tragen keinen Jahrgang** … eine Zahl, die nichts
+    -- benennt, ist schlechter als keine" (22). Als **Gleichheit** und nicht als
+    -- Implikation, sonst prüfte der CHECK nur die eine Richtung und ließe am
+    -- Elternteil das Jahr durch, das die Art gerade ausschließt.
     CONSTRAINT ck_alumni_exit_year
-        CHECK (NOT requires_exit_year OR exit_year IS NOT NULL),
+        CHECK (requires_exit_year = (exit_year IS NOT NULL)),
+    -- Und der Zweig steht nur, wo die Art ihn kennt (22, „beim Kind mit dem
+    -- Schulzweig"). Ohne diesen CHECK wäre der Satz an `school_branch_id`
+    -- oben, dass er beim Elternteil leer bleibt, eine Behauptung.
+    CONSTRAINT ck_alumni_school_branch
+        CHECK (allows_school_branch OR school_branch_id IS NULL),
     -- Ein grober Rahmen gegen den Zahlendreher, keine Fachregel: 1899 und 21260
     -- sind Tippfehler, 2019 und 2031 sind beide plausibel. Bewusst **keine**
     -- Grenze am heutigen Jahr — die wäre ein Ausdruck über `now()` und in einem
