@@ -4,6 +4,7 @@ title: Die Routen an die uebertragenen Schemata nachziehen
 status: To Do
 assignee: []
 created_date: '2026-09-05 16:42'
+updated_date: '2026-09-05 16:47'
 labels:
   - wb-backend
   - pruefzyklus
@@ -25,6 +26,8 @@ Dahinter liegt der Rest, den der Übertrag offengelegt hat. Es sind keine Funde 
 - **anmeldung** — `contracts` trägt `contract_text_code` und `school_branch_id`, beide beim Anlegen zu setzen; die Sorte kommt aus `contract_text_kinds`, die der Seed jetzt füllt (`school_contract_GS`/`school_contract_RS`, `care_contract`, `meal_terms`, `holiday_terms`).
 - **putzdienst** — Zuteilung, Tauschangebot und Annahme führen den Zyklus mit; beide Freikäufe die Zahlart als Wert aus `payment_modes`.
 
+Auch `app/seed.py` gehört dazu und bricht als erstes: gemessen scheitert der Lauf an `cleaning_assignments.cleaning_cycle_id`. Solange er das tut, lässt sich der lokale Personal-Login nicht wiederherstellen — die Datenbank wurde für den Übertrag neu aufgesetzt und ist leer.
+
 Abnahmekriterium ist der Nullpunkt aus TASK-269: 805 Tests grün. Was dabei an Antwortfeldern verschwindet, ist extern sichtbar und vorher zu besprechen.
 <!-- SECTION:DESCRIPTION:END -->
 
@@ -33,4 +36,5 @@ Abnahmekriterium ist der Nullpunkt aus TASK-269: 805 Tests grün. Was dabei an A
 - [ ] #1 pytest sammelt wieder und laeuft gruen, 805 Tests als Nullpunkt
 - [ ] #2 ruff check, ruff format --check und mypy app tests sind sauber
 - [ ] #3 ./schema-check.sh bleibt bei 0 und alembic check meldet nichts
+- [ ] #4 podman-compose --profile tools run --rm seed laeuft durch, der lokale Login steht wieder
 <!-- AC:END -->
