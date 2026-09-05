@@ -119,13 +119,13 @@ beim ersten Fix auseinander. Der gewählte Weg wird **an der entstehenden Zeile 
 bekommen, die von der heutigen Mandatslage abhängt. — Alternative: der Rückruf entscheidet; Preis:
 Er läuft nur, wo eine Zahlung lief, und der eingezogene Vorgang käme dort nie an.
 
-Drei Vorgänge werden sofort bezahlt ([`hebel.md`](../soll-prozesse/hebel.md#sofortzahlung)). Der Weg
-ist für alle drei derselbe und steht deshalb hier:
+Vier Vorgänge werden sofort bezahlt ([`hebel.md`](../soll-prozesse/hebel.md#sofortzahlung)). Der Weg
+ist für alle vier derselbe und steht deshalb hier:
 
 1. **Der Elternteil ruft die Route seines Vorgangs**, nicht eine Zahlungsroute. Sie legt nichts an,
    sondern prüft und eröffnet die Zahlungssitzung; zurück kommt die Adresse, zu der die Oberfläche
    weiterschickt.
-2. **Der Zahlungsdienst ruft die Bestätigungsroute** — `POST /payments/callback`, eine für alle drei
+2. **Der Zahlungsdienst ruft die Bestätigungsroute** — `POST /payments/callback`, eine für alle vier
    Anlässe. Sie ist der einzige Ort, an dem `payments` und der bezahlte Vorgang entstehen, in
    **einer** Transaktion, Aktor `system:payments`.
 
@@ -157,7 +157,7 @@ Zahlungssitzung als Metadaten. — Alternative: eine Vormerkzeile mit Status `pe
 Zustand, den kein Block kennt, plus ein Lauf, der ihn aufräumt — und `hebel.md` zählt abschließend
 auf, was von selbst verfällt.
 
-Fünf Festlegungen dazu, die für alle drei Anlässe gelten:
+Fünf Festlegungen dazu, die für alle vier Anlässe gelten:
 
 - **Gehostete Zahlungsseite (Checkout Session), kein eigenes Kartenformular.** Kartendaten berühren
   weder Oberfläche noch API, der Prüfumfang bleibt der kleinste (SAQ A), und die Rückkehr-Adresse ist
