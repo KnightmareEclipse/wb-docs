@@ -85,6 +85,17 @@ CREATE TABLE holiday_session_types (
     -- Prüfskript sie sieht. Das System rechnet aus ihr weiterhin keinen Betrag:
     -- „Das System rechnet daraus nichts" — es sperrt, und die Hortleitung trägt
     -- ein. Für Sekretariat und Hortleitung gilt sie nicht (offizieller Umweg).
+    -- **Die Datenbank setzt sie nicht durch, und das Prüfskript kann es
+    -- deshalb auch nicht.** Der Storno ist ein UPDATE an der Buchung, und keine
+    -- dieser vierzehn Dateien führt einen Trigger auf UPDATE; abgewiesen wird er
+    -- in `POST /holiday/bookings/{id}/cancellation-declaration`
+    -- (api/ferien-api.md). Hier steht der Parameter und sonst nichts. —
+    -- Alternative: ein zweiter Trigger, der beim Setzen von
+    -- `cancellation_declared_at` gegen den ersten Tag des Programms rechnet;
+    -- Preis: der erste UPDATE-Trigger des ganzen Schemas für eine Regel, die
+    -- der Block ausdrücklich nur im Portal gelten lässt („Die Sperre der
+    -- letzten drei Tage gilt nur im Portal"), und die Stelle trägt „jeden
+    -- Storno ein, auch einen späten".
     cancellation_deadline_days smallint,
     created_at              timestamptz NOT NULL DEFAULT now(),
     created_by              text NOT NULL,
@@ -117,8 +128,13 @@ CREATE TABLE holiday_modules (
     -- jedem Auswahlfeld, lässt aber jede Zeile stehen, die schon auf ihn
     -- zeigt (rules.md Abschnitt 3).
     is_active                boolean NOT NULL DEFAULT true,
-    starts_at_time          time,
-    ends_at_time            time,
+    -- „ihre zwei Module mit Uhrzeiten und je einem festen Betrag" (10) — der
+    -- Zeitzuschnitt ist das, was ein Modul vom anderen unterscheidet: 22 € für
+    -- die Betreuung bis 14 Uhr, 28 € bis 16 Uhr. Beide deshalb NOT NULL: Ein
+    -- Modul ohne Uhrzeit trüge nichts, wonach die Eltern wählen, und keinen
+    -- Fall, den der Block kennt.
+    starts_at_time          time NOT NULL,
+    ends_at_time            time NOT NULL,
     created_at              timestamptz NOT NULL DEFAULT now(),
     created_by              text NOT NULL,
 
@@ -131,8 +147,7 @@ CREATE TABLE holiday_modules (
     CONSTRAINT uq_holiday_modules_id_type UNIQUE (holiday_module_id, holiday_session_type_id),
     CONSTRAINT ck_holiday_modules_code CHECK (code <> ''),
     CONSTRAINT ck_holiday_modules_name CHECK (name <> ''),
-    CONSTRAINT ck_holiday_modules_times
-        CHECK (ends_at_time IS NULL OR starts_at_time IS NULL OR ends_at_time > starts_at_time),
+    CONSTRAINT ck_holiday_modules_times CHECK (ends_at_time > starts_at_time),
     CONSTRAINT ck_holiday_modules_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
@@ -471,13 +486,21 @@ CREATE UNIQUE INDEX ix_holiday_bookings_active
     ON holiday_bookings (child_id, holiday_session_id)
     WHERE cancellation_recorded_at IS NULL;
 
--- 10: „Der Code gilt für diese eine Anmeldung." Ohne diesen Schlüssel zahlt das
--- Amt einmal und die Schule berechnet mehrfach. Wie am Index darüber zählen die
--- stornierten Zeilen nicht mit: Wer storniert und neu bucht, benutzt denselben
--- Code für denselben Vorgang.
-CREATE UNIQUE INDEX ix_holiday_bookings_coverage_code
-    ON holiday_bookings (holiday_cost_coverage_code_id)
-    WHERE cancellation_recorded_at IS NULL AND holiday_cost_coverage_code_id IS NOT NULL;
+-- Bewusst KEIN eindeutiger Schlüssel über `holiday_cost_coverage_code_id`: „Der
+-- Code gilt für diese eine Anmeldung" (10) — und eine Anmeldung ist mehrere
+-- Zeilen. „In den kurzen Ferien ein Termin je Tag über mehrere Tage" und
+-- „mehrere Kinder in einem Zug, drei Kinder sind kein drittes Formular" (Z3);
+-- deshalb bekommt die Buchhaltung „je Kind eine Aufgabe mit den berechneten
+-- Terminen". Ein Schlüssel über den Code ließe je Code genau eine offene
+-- Buchung zu und keinen einzigen dieser Fälle entstehen.
+-- Dass derselbe Code nicht ein zweites Mal abgesendet wird, trägt die
+-- Buchungsroute — „Ein Absenden trägt die Termine genau eines Programms"
+-- (api/ferien-api.md) —, und danach sperrt ihn seine Frist von 14 Tagen. An das
+-- Programm, für das er erzeugt wurde, bindet ihn
+-- `fk_holiday_bookings_coverage_code`. — Alternative: die Eindeutigkeit an den
+-- Absendevorgang hängen; Preis: eine Sitzungskennung an jeder Buchung, die es
+-- sonst nirgends gibt, und gerade die berechnete Buchung entsteht ohne
+-- Zahlungssitzung („die Buchung entsteht sofort", 10).
 
 CREATE INDEX ix_holiday_bookings_session ON holiday_bookings (holiday_session_id)
     WHERE cancellation_recorded_at IS NULL;

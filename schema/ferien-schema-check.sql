@@ -8,9 +8,17 @@
 -- auf die Teilnehmerliste, ein partieller Unique-Index über die nicht
 -- stornierten Buchungen und die Fremdschlüssel von Q3 und Q5 auf diese Domäne;
 -- der von Q3 zeigt einfach auf `holiday_booking_id`, weil ein Absenden über
--- mehrere Kinder eine Zahlung über die Summe ist. Dazu der eine Trigger, der
--- fremde Kinder, abgesagte Termine und das Anmeldefenster abweist. `holiday_session_types` trägt
--- mit `cancellation_deadline_days` die Stornosperre der Eltern als Zahl.
+-- mehrere Kinder eine Zahlung über die Summe ist. **Über den
+-- Kostenübernahme-Code gibt es keinen Schlüssel** — er deckt ein Absenden und
+-- damit mehrere Kinder an mehreren Terminen (Begründung in ferien-schema.sql).
+-- Dazu der eine Trigger, der
+-- fremde Kinder, abgesagte Termine und das Anmeldefenster abweist — beide
+-- Zweige des Fensters, das gesetzte Datum und das Schließen von Hand.
+-- `holiday_modules` trägt seine beiden Uhrzeiten als Pflicht.
+-- `holiday_session_types` trägt
+-- mit `cancellation_deadline_days` die Stornosperre der Eltern als Zahl; sie
+-- ist der eine Parameter dieser Domäne, den keine Gegenprobe belegen kann,
+-- weil ihn allein die Route durchsetzt (ferien-schema.sql).
 -- `holiday_sessions` trägt die Warnschwelle der letzten Plätze samt ihrer
 -- Lauf-Marke; dieselben zwei Spalten stehen an `academy_offerings`, geprüft
 -- werden sie hier und dort je für sich.
@@ -75,7 +83,6 @@ BEGIN
     END IF;
     SELECT string_agg(i, ', ') INTO missing
     FROM unnest(ARRAY['ix_holiday_bookings_session', 'ix_holiday_bookings_active',
-                      'ix_holiday_bookings_coverage_code',
                       'ix_sync_tasks_open_booking']) AS i
     WHERE to_regclass('public.' || i) IS NULL;
     IF missing IS NOT NULL THEN
@@ -153,6 +160,13 @@ INSERT INTO contract_texts (contract_text_id, code, valid_from, body, created_by
     (2, 'holiday_cancellation_day',  DATE '2026-01-01', 'bis 21 Tage vorher kostenlos', 'system:check'),
     (3, 'holiday_cancellation_week', DATE '2026-01-01', 'bis 21 Tage vorher kostenlos', 'system:check');
 
+-- Die Fassungen oben stehen mit fester Kennung; die Identity-Sequenz zieht
+-- deshalb nach, wie bei `holiday_programmes` weiter unten. Ohne das griffen die
+-- beiden Proben zur angekündigten Fassung auf eine vergebene Kennung und würden
+-- vom Primärschlüssel abgewiesen statt von `uq_contract_texts`, den sie belegen
+-- sollen.
+SELECT setval(pg_get_serial_sequence('contract_texts', 'contract_text_id'), 100, false);
+
 -- „bekannt ist dabei ein Kind, das eingeschrieben ist (08) oder einen laufenden
 -- Hortvertrag hat (09)" — hier über den Hortvertrag, der zugleich das Prädikat
 -- belegt: Der zweite Vertrag ist 2021 ausgelaufen, ohne je ein `end_date` zu
@@ -179,13 +193,26 @@ INSERT INTO holiday_session_types (holiday_session_type_id, code, name,
     (3, 'holiday_closed', 'Nur für Schulkinder', false, 'holiday_cancellation_day',
      'system:check');
 
+-- 10: „ihre zwei Module mit Uhrzeiten und je einem festen Betrag" — 22 € bis
+-- 14 Uhr, 28 € bis 16 Uhr.
 INSERT INTO holiday_modules (holiday_module_id, holiday_session_type_id, code, name,
-                             created_by)
+                             starts_at_time, ends_at_time, created_by)
     OVERRIDING SYSTEM VALUE VALUES
-    (1, 1, 'day_morning', 'Ferientag vormittags', 'system:check'),
-    (2, 1, 'day_full',    'Ferientag ganztags',   'system:check'),
-    (3, 2, 'week_full',   'Ferienwoche ganztags', 'system:check'),
-    (4, 3, 'closed_full', 'Nur für Schulkinder',  'system:check');
+    (1, 1, 'day_morning', 'Ferientag vormittags', TIME '08:00', TIME '14:00', 'system:check'),
+    (2, 1, 'day_full',    'Ferientag ganztags',   TIME '08:00', TIME '16:00', 'system:check'),
+    (3, 2, 'week_full',   'Ferienwoche ganztags', TIME '08:00', TIME '16:00', 'system:check'),
+    (4, 3, 'closed_full', 'Nur für Schulkinder',  TIME '08:00', TIME '16:00', 'system:check');
+
+SELECT pg_temp.expect_reject(
+    '10 — Ferienmodul ohne Uhrzeiten',
+    $q$INSERT INTO holiday_modules (holiday_session_type_id, code, name, created_by)
+       VALUES (1, 'day_open', 'Ohne Zeiten', 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    '10 — Ferienmodul, das vor seinem Beginn endet',
+    $q$INSERT INTO holiday_modules (holiday_session_type_id, code, name,
+                                    starts_at_time, ends_at_time, created_by)
+       VALUES (1, 'day_reverse', 'Rückwärts', TIME '16:00', TIME '08:00', 'system:check')$q$);
 
 INSERT INTO contracts (contract_id, child_id, contract_type, contract_text_id, contract_text_code,
                        may_walk_home_alone, admission_date, runs_until, released_at,
@@ -206,6 +233,23 @@ INSERT INTO holiday_programmes (holiday_programme_id, name, offering_role_id,
     OVERRIDING SYSTEM VALUE
     VALUES (2, 'Herbstferien 2027', 1, TIMESTAMPTZ '2027-08-01 08:00+02', 'system:check');
 
+-- 10 Z5: „Schließt die Anmeldung — zum gesetzten Datum oder jederzeit von Hand."
+-- Beides sperrt die Selbstbuchung der Eltern und braucht je eine Gegenprobe;
+-- die dritte Lage — das Fenster hat noch nicht geöffnet — trägt Programm 1.
+INSERT INTO holiday_programmes (holiday_programme_id, name, offering_role_id,
+                                registration_opens_at, closed_at, created_by)
+    OVERRIDING SYSTEM VALUE
+    VALUES (3, 'Pfingstferien 2020 — von Hand geschlossen', 1,
+            TIMESTAMPTZ '2020-01-01 08:00+01', TIMESTAMPTZ '2020-05-01 08:00+02',
+            'system:check');
+
+INSERT INTO holiday_programmes (holiday_programme_id, name, offering_role_id,
+                                registration_opens_at, registration_closes_at, created_by)
+    OVERRIDING SYSTEM VALUE
+    VALUES (4, 'Osterferien 2020 — Fenster abgelaufen', 1,
+            TIMESTAMPTZ '2020-01-01 08:00+01', TIMESTAMPTZ '2020-03-01 08:00+01',
+            'system:check');
+
 -- Beide Programme stehen mit fester Kennung; die Identity-Sequenz zieht deshalb
 -- nach, sonst greifen die Proben weiter unten, die ohne Kennung einfügen, auf 1
 -- und 2 und werden vom Primärschlüssel abgewiesen statt von der Regel, die sie
@@ -219,6 +263,14 @@ INSERT INTO holiday_sessions (holiday_session_id, holiday_programme_id,
            ('55555555-5555-5555-5555-555555555552', 1, 2, 'Woche 2 — Wasser', 8, 'system:check'),
            ('55555555-5555-5555-5555-555555555553', 2, 1, 'Herbst — Wald',  20, 'system:check'),
            ('55555555-5555-5555-5555-555555555554', 1, 3, 'Nur für Schulkinder', 20,
+            'system:check'),
+           ('55555555-5555-5555-5555-555555555555', 3, 1, 'Geschlossenes Programm', 20,
+            'system:check'),
+           ('55555555-5555-5555-5555-555555555556', 4, 1, 'Abgelaufenes Fenster', 20,
+            'system:check'),
+           ('55555555-5555-5555-5555-555555555557', 1, 1, 'Woche 1 — Tag 2', 20,
+            'system:check'),
+           ('55555555-5555-5555-5555-555555555558', 1, 1, 'Woche 1 — Tag 3', 20,
             'system:check');
 
 -- ---------------------------------------------------------------------------
@@ -314,17 +366,35 @@ SELECT pg_temp.expect_accept(
               holiday_cost_coverage_code_id = '77777777-7777-7777-7777-777777777771'
         WHERE holiday_booking_id = '66666666-6666-6666-6666-666666666661'$q$);
 
--- 10: „Der Code gilt für diese eine Anmeldung." Zweimal eingelöst zahlt das
--- Amt einmal und die Schule berechnet zweimal.
-SELECT pg_temp.expect_reject(
-    '10 — derselbe Kostenübernahme-Code an einer zweiten offenen Buchung',
-    $q$INSERT INTO holiday_bookings (child_id, holiday_session_id, holiday_module_id,
-                                     holiday_session_type_id, holiday_programme_id,
-                                     amount_cents, payment_mode, is_invoiced,
+-- 10: „Der Code gilt für diese eine Anmeldung" — und eine Anmeldung ist
+-- mehrere Zeilen: „ein Termin je Tag über mehrere Tage" und „mehrere Kinder in
+-- einem Zug" (Z3). Beides muss mit demselben Code durchgehen, sonst umfasst
+-- eine Kostenübernahme nie mehr als eine einzige Buchung; die Buchhaltung
+-- bekommt „je Kind eine Aufgabe mit den berechneten Terminen".
+SELECT pg_temp.expect_accept(
+    '10 — derselbe Code an einem zweiten Termin desselben Kindes',
+    $q$INSERT INTO holiday_bookings (holiday_booking_id, child_id, holiday_session_id,
+                                     holiday_module_id, holiday_session_type_id,
+                                     holiday_programme_id, amount_cents,
+                                     payment_mode, is_invoiced,
                                      holiday_cost_coverage_code_id,
                                      terms_contract_text_id, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444445',
-               '55555555-5555-5555-5555-555555555551', 1, 1, 1, 3000, 'invoiced', true,
+       VALUES ('66666666-6666-6666-6666-666666666663',
+               '44444444-4444-4444-4444-444444444444',
+               '55555555-5555-5555-5555-555555555557', 1, 1, 1, 3000, 'invoiced', true,
+               '77777777-7777-7777-7777-777777777771', 1, 'system:check')$q$);
+
+SELECT pg_temp.expect_accept(
+    '10 — derselbe Code für ein zweites Kind in demselben Zug',
+    $q$INSERT INTO holiday_bookings (holiday_booking_id, child_id, holiday_session_id,
+                                     holiday_module_id, holiday_session_type_id,
+                                     holiday_programme_id, amount_cents,
+                                     payment_mode, is_invoiced,
+                                     holiday_cost_coverage_code_id,
+                                     terms_contract_text_id, created_by)
+       VALUES ('66666666-6666-6666-6666-666666666664',
+               '44444444-4444-4444-4444-444444444445',
+               '55555555-5555-5555-5555-555555555558', 1, 1, 1, 3000, 'invoiced', true,
                '77777777-7777-7777-7777-777777777771', 1, 'system:check')$q$);
 
 -- 10: erzeugt wird er „für eine Mailadresse und ein Programm" — er bezahlt
@@ -465,16 +535,14 @@ END $$;
 
 SELECT pg_temp.expect_accept(
     '10 — angekündigte Stornobedingungen neben den geltenden',
-    $q$INSERT INTO contract_texts (contract_text_id, code, valid_from, body, created_by)
-       OVERRIDING SYSTEM VALUE
-       VALUES (4, 'holiday_cancellation_day', DATE '2027-08-01',
+    $q$INSERT INTO contract_texts (code, valid_from, body, created_by)
+       VALUES ('holiday_cancellation_day', DATE '2027-08-01',
                'bis 21 Tage vorher kostenlos, danach 15 EUR je Tag', 'system:check')$q$);
 
 SELECT pg_temp.expect_reject(
     '10 — dieselben Stornobedingungen zweimal zum selben Gültigkeitstag',
-    $q$INSERT INTO contract_texts (contract_text_id, code, valid_from, body, created_by)
-       OVERRIDING SYSTEM VALUE
-       VALUES (5, 'holiday_cancellation_day', DATE '2027-08-01', 'anders', 'system:check')$q$);
+    $q$INSERT INTO contract_texts (code, valid_from, body, created_by)
+       VALUES ('holiday_cancellation_day', DATE '2027-08-01', 'anders', 'system:check')$q$);
 
 -- 10: „Dazu je Kind eine Anmerkung für die Betreuung" — der Block zählt sie
 -- neben dem auf, was je Buchung steht. An der Buchung stünde sie je Kind und
@@ -723,6 +791,38 @@ SELECT pg_temp.expect_reject(
                '55555555-5555-5555-5555-555555555551', 1, 1, 1, 3000, 'paid', false, 1,
                'guardian:x')$q$);
 
+-- 10 Z5: „Schließt die Anmeldung — zum gesetzten Datum oder jederzeit von
+-- Hand, auch wenn rechnerisch noch Platz wäre."
+SELECT pg_temp.expect_reject(
+    '10 — Buchung an einem von Hand geschlossenen Programm',
+    $q$INSERT INTO holiday_bookings (child_id, holiday_session_id, holiday_module_id,
+                                     holiday_session_type_id, holiday_programme_id,
+                                     amount_cents, payment_mode, is_invoiced,
+                                     terms_contract_text_id, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444446',
+               '55555555-5555-5555-5555-555555555555', 1, 1, 3, 3000, 'paid', false, 1,
+               'guardian:x')$q$);
+
+SELECT pg_temp.expect_reject(
+    '10 — Buchung, nachdem das Anmeldefenster geschlossen hat',
+    $q$INSERT INTO holiday_bookings (child_id, holiday_session_id, holiday_module_id,
+                                     holiday_session_type_id, holiday_programme_id,
+                                     amount_cents, payment_mode, is_invoiced,
+                                     terms_contract_text_id, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444446',
+               '55555555-5555-5555-5555-555555555556', 1, 1, 4, 3000, 'paid', false, 1,
+               'guardian:x')$q$);
+
+SELECT pg_temp.expect_accept(
+    '10 — beides stellvertretend durch das Sekretariat (offizieller Umweg)',
+    $q$INSERT INTO holiday_bookings (child_id, holiday_session_id, holiday_module_id,
+                                     holiday_session_type_id, holiday_programme_id,
+                                     amount_cents, payment_mode, is_invoiced,
+                                     terms_contract_text_id, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444446',
+               '55555555-5555-5555-5555-555555555555', 1, 1, 3, 3000, 'paid', false, 1,
+               'entra:sekretariat')$q$);
+
 SELECT pg_temp.expect_accept(
     '10 — dasselbe stellvertretend durch das Sekretariat (offizieller Umweg)',
     $q$INSERT INTO holiday_bookings (child_id, holiday_session_id, holiday_module_id,
@@ -801,7 +901,9 @@ SELECT pg_temp.expect_accept(
     'Q3 — die Zahlung geht mit ihrer Ferienbuchung',
     $q$DELETE FROM holiday_bookings
         WHERE holiday_booking_id IN ('66666666-6666-6666-6666-666666666661',
-                                     '66666666-6666-6666-6666-666666666662')$q$);
+                                     '66666666-6666-6666-6666-666666666662',
+                                     '66666666-6666-6666-6666-666666666663',
+                                     '66666666-6666-6666-6666-666666666664')$q$);
 
 SELECT pg_temp.expect_accept(
     '10 — nach der Buchung geht der eingelöste Code',
