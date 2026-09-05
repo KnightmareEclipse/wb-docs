@@ -2,10 +2,14 @@
 --
 -- Sollstand: keine eigenen Tabellen. Geprüft wird, dass die vier Angaben der
 -- heutigen Klassenbildungsliste, die das Schema trägt, an ihren Stellen stehen,
--- dass der Zusammensetzungswunsch keine Spalte hat (Block 15)
--- und dass die beiden Bedingungen aus Block 15 als Constraints greifen.
+-- dass weder der Zusammensetzungswunsch noch das Ende eines Zuges eine Spalte
+-- hat (Block 15), dass die beiden Bedingungen aus Block 15 als Constraints
+-- greifen und dass die Pflicht daneben keiner ist — ein Kind ohne Klasse geht
+-- durch.
 --
--- Setzt stammdaten-schema.sql und anmeldung-schema.sql voraus:
+-- Setzt stammdaten-schema.sql und anmeldung-schema.sql voraus; dass beide
+-- geladen sind, prüft das Skript nach, bevor es sich auf eine Negativprobe
+-- verlässt:
 --   psql -v ON_ERROR_STOP=1 -f klassenbildung-schema-check.sql
 
 BEGIN;
@@ -47,11 +51,22 @@ BEGIN
 
     -- „Keine Kapazität … die Zielmarke von derzeit 25 steht so wenig im System
     -- wie in 07"; „Stufe und Anzeigename werden nicht erhoben, sondern gerechnet".
+    -- Dazu das Ende eines Zuges: „ausgelaufen" wird gerechnet, ein zweiter
+    -- Endezeitpunkt an der Klasse ist ausgeschlossen (15, Sonderfälle).
     IF EXISTS (SELECT 1 FROM information_schema.columns
                 WHERE table_name = 'classes'
                   AND column_name IN ('capacity', 'max_children', 'grade_level',
-                                      'display_name')) THEN
+                                      'display_name', 'is_active',
+                                      'ended_school_year')) THEN
         RAISE EXCEPTION 'Die Klasse führt Angaben, die Block 15 ausschließt';
+    END IF;
+
+    -- Die Probe darunter ist rein negativ und liefe ins Leere, solange
+    -- `applications` fehlt — dann meldete sie „ok", ohne etwas gesehen zu
+    -- haben. Für `classes`, `children` und `persons` belegen die positiven
+    -- Proben oben die Voraussetzung, für `applications` nichts.
+    IF to_regclass('public.applications') IS NULL THEN
+        RAISE EXCEPTION 'Voraussetzung fehlt: anmeldung-schema.sql ist nicht geladen';
     END IF;
 
     -- 15, Schritt 2: „Die Gründe — Freundschaften, Förderbedarf,

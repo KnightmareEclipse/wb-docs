@@ -29,7 +29,16 @@
 -- 15 stehen dort als Constraints: die Einschreibung
 -- (`ck_children_class_needs_entry`) und die passende Schulart.
 --
--- Vier Dinge bekommen bewusst keine Spalte:
+-- Die **Pflicht** daneben — „Je Kind seine Klasse (Pflicht, sobald beide
+-- Bedingungen erfüllt sind)" — bekommt bewusst keinen Constraint. Sie ist über
+-- die Zeile hinaus formuliert: Die zweite Bedingung ist die Existenzfrage „es
+-- gibt eine Klasse, in die es passt", und die steht nicht in `children`. Im
+-- selben Block steht zudem „Ein Kind ohne Klasse ist kein Fehler" (Sonderfälle)
+-- — das externe Hortkind und der Warteplatz haben keine, der Wiederholer „steht
+-- sichtbar ohne passende Klasse, bis die Schulleitung es umsetzt; gesperrt wird
+-- nichts". Die Pflicht ist damit eine Ansicht, kein Constraint.
+--
+-- Fünf Dinge bekommen bewusst keine Spalte:
 --
 --   * Eine **Kapazität je Klasse**. „Wie viele Kinder in einer Klasse sitzen,
 --     wird gezeigt, nicht geprüft — die Zielmarke von derzeit 25 steht so wenig
@@ -43,10 +52,21 @@
 --     geschah, hält die Änderungsspur fest (querschnitt-schema.sql).
 --   * Der **Zusammensetzungswunsch**, siehe oben — die eine Angabe der heutigen
 --     Liste, die das Schema nicht trägt.
+--   * Das **Ende eines Zuges**. „Wird eine Stufe geteilt oder zusammengelegt,
+--     legt die Schulleitung einen Zug an oder lässt ihn auslaufen und setzt die
+--     betroffenen Kinder um" (15, Sonderfälle) — eine Handlung ist davon nur
+--     das Umsetzen. Ausgelaufen wird gerechnet: „eine Klasse, deren Stufe über
+--     4 bzw. 10 hinausliefe, ist ausgelaufen und taucht in keiner laufenden
+--     Ansicht mehr auf". Ein `is_active` oder ein Endejahr an `classes` wäre
+--     ein zweiter Endezeitpunkt neben dem gerechneten (rules.md Abschnitt 1).
+--     Der Preis ist benannt und getragen: Ein leergeräumter Zug bleibt bis zum
+--     Ende seiner Kohorte in der Auswahl seiner Stufe stehen — ohne ein Kind
+--     darin, und die Schulleitung, die ihn geräumt hat, weiß das.
 --
 -- Es gibt deshalb keine CREATE-Anweisung in dieser Datei. Das Prüfskript
--- daneben belegt, dass die vier verbliebenen Angaben stehen, dass der Wunsch
--- keine Spalte hat und dass die beiden Bedingungen greifen.
+-- daneben belegt, dass die vier verbliebenen Angaben stehen, dass weder der
+-- Wunsch noch das Ende eines Zuges eine Spalte hat, dass die beiden Bedingungen
+-- greifen und dass ein Kind ohne Klasse durchgeht.
 
 
 -- ---------------------------------------------------------------------------

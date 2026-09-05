@@ -492,7 +492,13 @@ CREATE TABLE families (
 -- Löschanker: keiner — „die Klassen vergangener Schuljahre bleiben als Kennung
 -- stehen und tragen für sich keine Personendaten". Bewusst KEINE Spalten für
 -- Stufe, Anzeigename und Kapazität: die ersten beiden werden gerechnet, die
--- dritte „wird gezeigt, nicht geprüft".
+-- dritte „wird gezeigt, nicht geprüft". Bewusst auch KEIN `is_active` und kein
+-- Endejahr für den Zug, den die Schulleitung „auslaufen lässt" (15,
+-- Sonderfälle): Ausgelaufen ist gerechnet — die Stufe läuft über die Schulart
+-- hinaus —, eine gesetzte Spalte daneben wäre ein zweiter Endezeitpunkt für
+-- dieselbe Sache (rules.md Abschnitt 1). Der Preis steht in
+-- klassenbildung-schema.sql: Ein leergeräumter Zug bleibt bis zum Ende seiner
+-- Kohorte wählbar.
 CREATE TABLE classes (
     class_id          integer GENERATED ALWAYS AS IDENTITY,
     school_branch_id  integer NOT NULL,
@@ -502,6 +508,12 @@ CREATE TABLE classes (
     start_school_year smallint NOT NULL,
     -- Der Zug („a", „b"). Zusammen mit Schulart und Startjahr die Kennung, an
     -- der M365-Gruppe und Mailverteiler hängen und die nie geändert wird.
+    -- Getragen wird diese Unveränderlichkeit vom **Spalten-GRANT** und nicht
+    -- von einem Trigger: `backend_runtime` bekommt `UPDATE` allein auf `room`
+    -- und `class_teacher_id`, damit kein Weg zu den drei Kennungsspalten führt
+    -- (container.md, dritte Bedingung an die Laufzeit-Rolle). Ein Prüfskript
+    -- hier sieht keine Privilegien; die Gegenprobe ist
+    -- `wb-backend/tests/test_privileges.py`.
     stream            text NOT NULL,
     -- Freie Angabe, rein informativ: „eine Raumliste, einen Belegungsplan oder
     -- eine Prüfung auf Doppelbelegung gibt es nicht".
