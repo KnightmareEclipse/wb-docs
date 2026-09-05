@@ -113,10 +113,12 @@ INSERT INTO families (family_id, created_by) VALUES
     ('33333333-3333-3333-3333-333333333331', 'system:check'),
     ('33333333-3333-3333-3333-333333333332', 'system:check');
 
+-- Die eingescannte Liste liegt in ihrem eigenen Bestand (grenzkarte.md, Q2) —
+-- sie gehört dem Termin und keinem Kind.
 INSERT INTO sharepoint_libraries (sharepoint_library_id, code, name, graph_drive_id,
                                   created_by)
     OVERRIDING SYSTEM VALUE
-    VALUES (1, 'generated', 'Erzeugt', 'b!putz', 'system:check');
+    VALUES (1, 'attendance_sheets', 'Anwesenheitslisten', 'b!putz', 'system:check');
 
 INSERT INTO cleaning_slot_types (cleaning_slot_type_id, code, name, created_by)
     OVERRIDING SYSTEM VALUE VALUES

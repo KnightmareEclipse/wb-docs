@@ -1,10 +1,10 @@
 ---
 id: TASK-053
-title: Die drei SharePoint-Bibliotheken einrichten
+title: Die SharePoint-Bibliotheken einrichten
 status: To Do
 assignee: []
 created_date: '2026-08-27 11:37'
-updated_date: '2026-09-01 20:18'
+updated_date: '2026-09-05 14:32'
 labels:
   - wartet
   - zweiter-admin
@@ -22,7 +22,7 @@ ordinal: 56000
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Eine für die **Schülerakte** — was Weltenbaum erzeugt und was Menschen dazulegen, in einem Ordner je Kind mit Unterordnern je Kategorie. **Kein Mensch bekommt Direktzugriff** (entschieden am 02.09.2026): Die App schreibt und liest, alles Weitere läuft über Weltenbaum (TASK-187). Eine für die **Hortakte** — Absprachen, Verhalten, Beobachtungsbögen; allein Hortkräfte und Hortleitung, die dort in fortgeschriebenen Dokumenten arbeiten. Eine für die **Beleganhänge** der Rechnungsfreigabe — App schreibt und liest, kein Mensch direkt, Ordner je Kalenderjahr, kein Kindbezug.
+Eine für die **Schülerakte** — was Weltenbaum erzeugt und was Menschen dazulegen, in einem Ordner je Kind mit Unterordnern je Kategorie. **Kein Mensch bekommt Direktzugriff** (entschieden am 02.09.2026): Die App schreibt und liest, alles Weitere läuft über Weltenbaum (TASK-187). Eine für die **Hortakte** — Absprachen, Verhalten, Beobachtungsbögen; allein Hortkräfte und Hortleitung, die dort in fortgeschriebenen Dokumenten arbeiten. Eine für die **Beleganhänge** der Rechnungsfreigabe — App schreibt und liest, kein Mensch direkt, Ordner je Kalenderjahr, kein Kindbezug. Eine für die **Anwesenheitslisten** der Putzdiensttermine — die eingescannte Unterschriftenliste gehört dem Termin und keinem Kind, App schreibt und liest, kein Mensch direkt, keine Ordnerstruktur.
 
 Je Bibliothek ein Sites.Selected-Grant. Form und Begründung stehen fest (grenzkarte.md, Q2), offen sind die konkreten Sites.
 
@@ -37,4 +37,5 @@ Je Bibliothek ein Sites.Selected-Grant. Form und Begründung stehen fest (grenzk
 - [ ] #4 Auf die Hortakte hat niemand außer Hortkräften, Hortleitung und der App Zugriff
 - [ ] #5 Die Hortakte steht auf „Offline und Synchronisierung = Nein"; geprüft ist, ob „In Desktop-App öffnen" erhalten bleibt
 - [ ] #6 Der Zugriff des Sekretariats auf die Schülerakte wird mit TASK-187 entzogen, nicht früher
+- [ ] #7 Auf die Anwesenheitslisten hat kein Mensch Direktzugriff; das Sekretariat liest sie über Weltenbaum
 <!-- AC:END -->

@@ -148,7 +148,9 @@ CREATE TABLE cleaning_slots (
     -- Sekretariat." Sie liegt am Termin und nicht am Kind — sie gehört keinem
     -- und hätte in der Schülerakte keinen Platz —, trägt aber dieselben beiden
     -- Angaben wie `documents` (querschnitt-schema.sql): die Bibliothek und die
-    -- Graph-Kennung, denn „ein Pfad bräche bei jedem Verschieben".
+    -- Graph-Kennung, denn „ein Pfad bräche bei jedem Verschieben". Der Bestand
+    -- ist eine eigene Bibliothek — die **Anwesenheitslisten**, App schreibt und
+    -- liest, kein Mensch direkt (grenzkarte.md, Q2).
     attendance_sheet_library_id integer,
     attendance_sheet_graph_item_id text,
     -- Je Erinnerung eine Marke (Z9). Zwei Spalten und kein Zähler: die beiden

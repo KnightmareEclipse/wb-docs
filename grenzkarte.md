@@ -133,6 +133,7 @@ Der Grund ist nicht Vorsicht, sondern Ausdruckskraft: **SharePoint kann Gruppen,
 | **Hortakte** (Absprachen, Verhaltensdokumentation, Beobachtungsbögen des Horts) | schreibt | Hortkräfte und Hortleitung, sonst niemand |
 | **Belege** (die Anhänge der Rechnungsfreigabe, `schema/rechnungsfreigabe-schema.sql`) | schreibt und liest | **keine** |
 | **Fotoerlaubnisse** (die Kopien, die der Lösch-Lauf anlegt, wenn er ein Kind räumt — `photo_consent_records` in `schema/querschnitt-schema.sql`) | schreibt und liest | **keine** |
+| **Anwesenheitslisten** (die eingescannten Unterschriftenlisten der Putzdiensttermine — `cleaning_slots` in `schema/putzdienst-schema.sql`) | schreibt und liest | **keine**, das Sekretariat liest über Weltenbaum |
 
 Die **Belege** tragen kein Kind, sondern Kassenzettel; ihr Ordner ist das Kalenderjahr des Belegs, und „Sekretariat und Schulleitung haben hier keine Sonderstellung" (12). Sie waren die **erste Bibliothek ohne menschlichen Direktzugriff** — abgelegt und ausgeliefert wird über `api/rechnungsfreigabe-api.md`, nach derselben Regel wie die Zeile daneben. Die Schülerakte folgt ihnen jetzt.
 
@@ -141,6 +142,13 @@ zu keinem Kind mehr gehört: Sie führt die Kopien der Einverständniserklärung
 überdauern müssen, weil ein veröffentlichtes Bild nicht verschwindet
 ([08](soll-prozesse/08-schulvertrag.md), [17](soll-prozesse/17-loesch-lauf.md)). Ein Ordner je Kind
 wäre genau das, was hier fortfallen soll.
+
+Die **Anwesenheitslisten** sind die zweite Bibliothek ohne Kindbezug, und aus einem anderen Grund als
+die Belege: Eine unterschriebene Liste gehört keinem Kind, sondern dem Termin — sie nennt die Eltern
+mehrerer Familien auf einem Blatt und hätte in der Akte eines einzelnen keinen Platz
+([01](soll-prozesse/01-putzdienst.md), „Dateien"). Eine Ordnerstruktur braucht sie nicht: Der
+Jahreslauf greift jede Datei über die Kennung an dem Termin, den er räumt, und „die eingescannten
+Anwesenheitslisten gehen mit" (01).
 
 **Und niemand behält eine Ausnahme:** Die Schulleitung gibt ihren heutigen Direktzugriff auf den
 Kohorten-Ordner ab und liest ebenfalls über das Portal (Geschäftsführung, 04.09.2026). Damit gilt der
@@ -247,7 +255,7 @@ Nummerierung wie `fachdomaenen.md` Abschnitt 6.
 | Domäne | Eigene Entitäten | Nutzt Querschnitt | Schreibt Stammdaten |
 |---|---|---|---|
 | **Stammdaten** (gebaut) | Person, Anschrift, Telefon, Familie, Familienzugehörigkeit, Kind, Erziehungsberechtigte, Kontaktverknüpfung, SEPA-Mandat, **Mitarbeiter** samt Rollen, Klasse/Klassenstufe/Zweig, Anmeldecode samt Anmeldesitzung, Ehemaligen-Zugehörigkeit, 13 Lookups | — | besitzt sie |
-| **1 Putzdienst** (gebaut) | Zyklus, Terminart, Pflichtmenge und Platzzahl je Zyklus und Art, Putztermin, Zuteilung samt der Werteliste ihrer Herkunft, abweichende Pflichtmenge je Familie, Komplett-Freikauf, Einzel-Freikauf, Tauschangebot samt Annahme | Q3, Q5 | nein |
+| **1 Putzdienst** (gebaut) | Zyklus, Terminart, Pflichtmenge und Platzzahl je Zyklus und Art, Putztermin, Zuteilung samt der Werteliste ihrer Herkunft, abweichende Pflichtmenge je Familie, Komplett-Freikauf, Einzel-Freikauf, Tauschangebot samt Annahme | Q2, Q3, Q5 | nein |
 | **2 Voranmeldung** / **4 Anmeldeprozess und Anmeldegespräch** (gebaut; eine Domäne, drei Phasen: Voranmeldung → Gespräch → Schulvertrag) | Bewerbung, Anmeldefenster, Anmeldetag, Gesprächsslot, Vertragsvorgang (Schul- **oder** Hortvertrag), Antwort je Erziehungsberechtigtem, Nachtrag zum Vertrag, Betreuungsmodul samt Buchungstagen, Anmeldefreischaltung, Schulgeld- und Modulpreis, Notfallbetreuung samt Fallpreis, Brückentagsabfrage samt Antwort je Kind, 9 Wertelisten | Q1, Q2, Q3 | ja (viel) |
 | **3 Ferienanmeldung** (gebaut; Ferienprogramm) | Terminart, Modul samt Preis, Programm, Termin samt seinen Tagen, Buchung, Kostenübernahme-Code, Betreuungs-Anmerkung je Kind und Programm | Q1, Q3, Q5 | ja (legt schulfremde Kinder samt Familie, Erziehungsberechtigten und Notfallkontakt an) |
 | **6 Mensa** (gebaut, `schema/mensa-schema.sql`; das Abo der Realschule steht eigenständig neben den Betreuungsmodulen aus 2/4) | Küchenprofil je Kind, Schuljahres-Abo samt seinen Wochentagen, Beitrag je Zahl der Esstage, 1 Werteliste | Q5 (Optigem-Aufgabe je Kind) | nein |

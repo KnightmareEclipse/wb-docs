@@ -335,7 +335,7 @@ CREATE TABLE consent_purposes (
 -- Herkunft: grenzkarte.md, Q2 — „Direkten Zugriff auf eine Bibliothek bekommt
 -- nur, wer *in* den Dateien arbeitet. Das ist genau eine Stelle im ganzen
 -- System: der Hort mit seinen fortgeschriebenen Dokumenten." Die Karte führt
--- die Bibliotheken als Tabelle, und es sind vier: die **Schülerakte** — was
+-- die Bibliotheken als Tabelle, und es sind fünf: die **Schülerakte** — was
 -- Weltenbaum erzeugt und was Menschen dazulegen, ein Ordner je Kind und darin
 -- ein Unterordner je Kategorie (`child_file_folders`), und „an sie kommt kein
 -- Mensch direkt"; die **Hortakte** — Absprachen, Verhalten,
@@ -345,7 +345,10 @@ CREATE TABLE consent_purposes (
 -- **Fotoerlaubnisse** — die Kopien, die der Lösch-Lauf anlegt, wenn er das Kind
 -- räumt (`photo_consent_records`). Sie ist die einzige ohne Ordnerstruktur und
 -- die einzige, deren Inhalt kein Kind mehr hat: Ein Ordner je Kind wäre genau
--- das, was hier fortfallen soll.
+-- das, was hier fortfallen soll; und die **Anwesenheitslisten** der
+-- Putzdiensttermine (`cleaning_slots`, putzdienst-schema.sql), die zweite ohne
+-- Kindbezug — eine unterschriebene Liste gehört dem Termin und nennt die Eltern
+-- mehrerer Familien auf einem Blatt.
 -- Warum die Hortakte eine eigene Bibliothek ist und kein Unterordner, steht in
 -- der Karte und nicht hier — es braucht zwei Anforderungen und einen zweiten
 -- API-Weg, um formulierbar zu sein.
