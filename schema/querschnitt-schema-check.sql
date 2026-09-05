@@ -15,7 +15,10 @@
 -- anmeldung-schema-check.sql, weil ihr Fremdschlüssel dort entsteht; die
 -- Unterschrift unter dem SEPA-Mandat steht hier, sie kennt keinen Vertrag.
 -- `contract_text_kinds` definiert die Dokumentsorte vollständig: Klasse,
--- Dokumentart und die Graph-Kennung der Arbeitsfassung. `contract_texts` trägt
+-- Dokumentart, Aktenkategorie, Schulart und die Graph-Kennung der
+-- Arbeitsfassung — die Kategorie sagt, in welchen Unterordner die erzeugte
+-- Datei kommt, die Schulart, welcher der beiden Schulverträge gilt
+-- (`contracts`, anmeldung-schema.sql). `contract_texts` trägt
 -- die eingefrorene Vorlagendatei samt Prüfsumme und Einfrierzeitpunkt, und für
 -- sie trägt die Änderungsspur die Prüfsumme statt des Werts — in beiden
 -- Richtungen geprüft: als Spaltenänderung und im Zeilen-Schnappschuss des
@@ -28,7 +31,10 @@
 -- `outbound_emails` es über einen zusammengesetzten Fremdschlüssel sieht.
 -- `photo_consent_records` ist der Nachweis der Fotoerlaubnis, nachdem das Kind
 -- gelöscht ist: der einzige Bestand ohne Löschanker, gefüllt vom Lösch-Lauf im
--- selben Zug, in dem er das Kind räumt.
+-- selben Zug, in dem er das Kind räumt — samt der Prüfsumme des Originals.
+-- Jedes Dokument, unter dem unterschrieben wird, trägt eine: Mandat
+-- (stammdaten-schema.sql) und Zustimmung hier, Vertrag, Nachtrag und Modulanlage
+-- in anmeldung-schema.sql. Format überall `sha256:<64 Hexstellen>`.
 -- Dazu sechzehn partielle Unique-Indizes (vier für signatures, zwei für
 -- consents, neun für sync_tasks, einer über die erste Zeile je angehaltenem
 -- Fall) und zwei Lese-Indizes, auf outbound_emails und auf change_log.
@@ -128,6 +134,9 @@ BEGIN
         'ck_contract_kind_attachments_attachment_class',
         'ck_contract_kind_attachments_removed',
         'fk_contract_text_kinds_document_type', 'fk_contract_text_kinds_working_library',
+        'fk_contract_text_kinds_category', 'fk_contract_text_kinds_branch',
+        'uq_contract_text_kinds_code_branch',
+        'ck_consents_checksum', 'ck_photo_consent_records_checksum',
         'ck_contract_texts_frozen', 'ck_contract_texts_checksum',
         'uq_contract_texts_id_consent',
         'ck_signatures_amendment', 'ck_signatures_agreement_amendment',
@@ -243,9 +252,11 @@ INSERT INTO consent_purposes (code, name, requires_child, self_consent_age, crea
 -- zu prüfen behauptet.
 -- Die Textsorte steht als Wert im System; eine Fassung ohne sie gibt es nicht.
 INSERT INTO contract_text_kinds (code, name, kind_class, document_type_id,
+                                 child_file_category_id, school_branch_id,
                                  working_library_id, working_item_id, created_by) VALUES
     ('school_contract_gs', 'Schulvertrag Grundschule', 'signed',
      (SELECT document_type_id FROM document_types WHERE code = 'school_contract'),
+     1, (SELECT school_branch_id FROM school_branches WHERE code = 'GS'),
      1, 'item-vorlage-gs', 'system:check');
 
 INSERT INTO contract_texts (code, valid_from, body, created_by)
@@ -490,9 +501,23 @@ INSERT INTO documents (document_id, child_id, document_type_id, label,
             (SELECT document_type_id FROM document_types WHERE code='sepa_mandate'),
             'SEPA-Mandat', '10000000-0000-0000-0000-000000000001',
             1, '01MANDAT', now(), 'system:check');
-SELECT pg_temp.expect_accept(
-    'Q2 — das Mandat zeigt auf seine eigene Datei',
+-- TASK-247: „Alle Dokumente, unter denen unterschrieben wird, müssen eine
+-- Prüfsumme haben" (Geschäftsführung, 04.09.2026). Unterschrieben werden Mandat
+-- und Fotoeinverständnis über `signatures`; ohne Prüfsumme daneben belegte die
+-- abgelegte Datei nicht mehr, dass sie die unterschriebene ist.
+SELECT pg_temp.expect_reject(
+    'TASK-247 — Mandat mit Datei, aber ohne Prüfsumme',
     $q$UPDATE sepa_mandates SET document_id = '99999999-9999-9999-9999-999999999998'
+        WHERE sepa_mandate_id = '66666666-6666-6666-6666-666666666666'$q$);
+SELECT pg_temp.expect_reject(
+    'TASK-247 — Prüfsumme des Mandats im falschen Format',
+    $q$UPDATE sepa_mandates SET document_id = '99999999-9999-9999-9999-999999999998',
+                                document_checksum = 'sha256:abc'
+        WHERE sepa_mandate_id = '66666666-6666-6666-6666-666666666666'$q$);
+SELECT pg_temp.expect_accept(
+    'Q2 — das Mandat zeigt auf seine eigene Datei, samt Prüfsumme',
+    $q$UPDATE sepa_mandates SET document_id = '99999999-9999-9999-9999-999999999998',
+                                document_checksum = 'sha256:74040ae1b31ce4e07f6d204418a7ee1a5f481252d86d82e1b95e4c97ed074fd7'
         WHERE sepa_mandate_id = '66666666-6666-6666-6666-666666666666'$q$);
 SELECT pg_temp.expect_reject(
     'Q2 — die Datei des Mandats geht nicht, solange das Mandat steht',
@@ -502,12 +527,32 @@ SELECT pg_temp.expect_reject(
 SELECT pg_temp.expect_reject(
     'Q2 — Zustimmung mit einer Datei, die es nicht gibt',
     $q$INSERT INTO consents (person_id, child_id, consent_purpose_id, requires_child, granted_at,
-                             delivery_address, document_id, created_by)
+                             delivery_address, document_id, document_checksum, created_by)
        VALUES ('22222222-2222-2222-2222-222222222221',
                '44444444-4444-4444-4444-444444444444',
                (SELECT consent_purpose_id FROM consent_purposes WHERE code='photo'), true,
                now(), 'kind@example.org', '99999999-9999-9999-9999-999999999990',
+               'sha256:edb00a7c9d4d82fb3fe46fafb4a63a9f500172e4ce9eff9681f2a9eb09f5e988', 'system:check')$q$);
+
+-- Und dieselbe Paarung wie am Mandat: Die unterschriebene Zustimmung trägt ihre
+-- Prüfsumme, oder sie trägt keine Datei.
+SELECT pg_temp.expect_reject(
+    'TASK-247 — Zustimmung mit Datei, aber ohne Prüfsumme',
+    $q$INSERT INTO consents (person_id, child_id, consent_purpose_id, requires_child, granted_at,
+                             delivery_address, document_id, created_by)
+       VALUES ('22222222-2222-2222-2222-222222222221',
+               '44444444-4444-4444-4444-444444444444',
+               (SELECT consent_purpose_id FROM consent_purposes WHERE code='photo'), true,
+               now(), 'kind@example.org', '99999999-9999-9999-9999-999999999998',
                'system:check')$q$);
+SELECT pg_temp.expect_reject(
+    'TASK-247 — Prüfsumme der Zustimmung ohne Datei',
+    $q$INSERT INTO consents (person_id, child_id, consent_purpose_id, requires_child, granted_at,
+                             delivery_address, document_checksum, created_by)
+       VALUES ('22222222-2222-2222-2222-222222222221',
+               '44444444-4444-4444-4444-444444444444',
+               (SELECT consent_purpose_id FROM consent_purposes WHERE code='photo'), true,
+               now(), 'kind@example.org', 'sha256:edb00a7c9d4d82fb3fe46fafb4a63a9f500172e4ce9eff9681f2a9eb09f5e988', 'system:check')$q$);
 
 -- Ein zweites Kind mit eigener Akte: Es trägt die beiden Verwechslungsproben
 -- darunter und sonst nichts. Seine Person hat bewusst keine Anschrift — Stufe 7
@@ -1053,6 +1098,33 @@ SELECT pg_temp.expect_reject(
     $q$INSERT INTO contract_text_kinds (code, name, kind_class, created_by)
        VALUES ('care_rules', 'Betreuungsordnung', 'mitgeltend', 'system:check')$q$);
 
+-- TASK-235: Der Unterordner der erzeugten Urkunde folgt aus der Sorte und nicht
+-- mehr aus dem Anwendungscode. Eine Kategorie, die es nicht gibt, benennt keinen
+-- Ordner.
+SELECT pg_temp.expect_reject(
+    'TASK-235 — Sorte mit einer Aktenkategorie, die es nicht gibt',
+    $q$INSERT INTO contract_text_kinds (code, name, kind_class, child_file_category_id,
+                                        created_by)
+       VALUES ('photo_consent', 'Fotoeinverständnis', 'signed', 999, 'system:check')$q$);
+
+-- Und sie trägt allein die unterschriebene Sorte: eine mitgeltende Anlage
+-- erzeugt keine Datei, ein Ordner für sie bliebe leer.
+SELECT pg_temp.expect_reject(
+    'TASK-235 — Aktenkategorie an einer mitgeltenden Anlage',
+    $q$INSERT INTO contract_text_kinds (code, name, kind_class, announcement_lead_days,
+                                        child_file_category_id, created_by)
+       VALUES ('care_rules', 'Betreuungsordnung', 'applies', 14, 1, 'system:check')$q$);
+
+-- 08: „Der Vertragstext hängt an der Schulart — Grundschule und Realschule haben
+-- je einen eigenen." Die Sorte trägt sie, `contracts` bindet ihre Bewerbung
+-- dagegen (anmeldung-schema.sql).
+SELECT pg_temp.expect_reject(
+    '08 — Sorte mit einer Schulart, die es nicht gibt',
+    $q$INSERT INTO contract_text_kinds (code, name, kind_class, school_branch_id,
+                                        created_by)
+       VALUES ('school_contract_rs', 'Schulvertrag Realschule', 'signed', 999,
+               'system:check')$q$);
+
 -- „Es gilt die jeweils gültige Fassung" (09): die mitgeltende Anlage braucht
 -- `valid_from` und sonst nichts — kein Dokument, keine Unterschrift.
 SELECT pg_temp.expect_accept(
@@ -1414,6 +1486,28 @@ SELECT pg_temp.expect_reject(
                (SELECT sharepoint_library_id FROM sharepoint_libraries ORDER BY 1 LIMIT 1),
                'system:retention')$q$);
 
+-- TASK-247: Die Kopie nimmt die Prüfsumme des Originals mit — ohne sie belegte
+-- der Nachweis nach dem Löschen des Kindes nicht mehr, welche Datei gemeint ist.
+SELECT pg_temp.expect_reject(
+    'TASK-247 — Kopie des Nachweises ohne die Prüfsumme ihres Originals',
+    $q$INSERT INTO photo_consent_records (first_name, last_name, birth_date,
+                                          exit_date, school_branch_id, granted_at,
+                                          sharepoint_library_id, graph_item_id,
+                                          created_by)
+       VALUES ('Ohne', 'Pruefsumme', DATE '2010-03-14', DATE '2026-07-31',
+               (SELECT school_branch_id FROM school_branches WHERE code='GS'),
+               now(),
+               (SELECT sharepoint_library_id FROM sharepoint_libraries ORDER BY 1 LIMIT 1),
+               '01NACHWEIS', 'system:retention')$q$);
+SELECT pg_temp.expect_reject(
+    'TASK-247 — Prüfsumme am Nachweis ohne Kopie',
+    $q$INSERT INTO photo_consent_records (first_name, last_name, birth_date,
+                                          exit_date, school_branch_id, granted_at,
+                                          document_checksum, created_by)
+       VALUES ('Ohne', 'Kopie', DATE '2010-03-14', DATE '2026-07-31',
+               (SELECT school_branch_id FROM school_branches WHERE code='GS'),
+               now(), 'sha256:edb00a7c9d4d82fb3fe46fafb4a63a9f500172e4ce9eff9681f2a9eb09f5e988', 'system:retention')$q$);
+
 -- „Eine Erteilung, die nach ihrem Widerruf datiert, belegt nichts" — dieselbe
 -- Regel wie an `consents`.
 SELECT pg_temp.expect_reject(
@@ -1711,6 +1805,9 @@ INSERT INTO loeschlauf (platz, tabelle, im_lauf) VALUES
     -- Der Nachtrag geht mit seinem Vertrag und haelt bis dahin seine Urkunde
     -- fest — er steht deshalb auf dem Platz des Vertrags und vor `documents`.
     ( 3, 'contract_amendments', false),
+    -- Und aus demselben Grund die Modulanlage: Sie geht per Cascade mit dem
+    -- Hortvertrag und hält bis dahin ihre Ausfertigung fest (09).
+    ( 3, 'care_module_agreements', false),
     (17, 'family_guardians',   false), (17, 'family_contacts', false);
 
 DO $$

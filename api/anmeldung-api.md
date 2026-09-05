@@ -344,6 +344,8 @@ Drei Durchgänge, jeder mechanisch.
 | `contracts.contract_text_id` ist `NOT NULL` | Die Fassung friert mit der Zusage ein — deshalb legt die Freigabe der Entscheidung den Vertrag an und nicht die erste Elternhandlung daran |
 | `ck_contracts_care_admission` verlangt das Aufnahmedatum erst zur Freigabe | `POST /care-contracts` kennt es noch nicht; `POST /contracts/{id}/release` trägt es ein, und ohne es rechnete `ex_contracts_care_period` als „seit jeher" |
 | `ck_contracts_application` bindet die Bewerbung an den Typ | Ein Hortvertrag hat nie eine, ein Schulvertrag immer; dieselbe Route trennt daran, was sie verlangt |
+| `contracts.school_branch_id` bindet Textsorte und Bewerbung an dieselbe Schulart | Die Route setzt sie nie aus dem Rumpf, sondern liest sie zur Bewerbung — und wählt danach die Textsorte; `fk_contracts_text_branch` weist den Realschulvertrag am Grundschulkind ab. Beim Hortvertrag bleibt sie leer |
+| `ck_contracts_checksum` erzwingt `sha256:<64 Hexstellen>` | Der Bau schreibt das Präfix mit, nicht den rohen Hexdigest; dieselbe Form tragen Nachtrag, Modulanlage, Mandat und Fotoeinverständnis |
 | `ex_contracts_care_period` schließt überlappende Hortverträge aus | Der Klasse-5-Fall bleibt zulässig — der alte schließt zum 31. Juli, der neue nimmt zum 1. August auf; die Route rechnet nichts, sie schreibt und lässt den Constraint antworten |
 | `uq_contract_responses` ist eine Zeile je Person und Vertrag | `PUT …/responses/{person_id}` ist deshalb ein `PUT` und kein `POST`: eine geänderte Antwort ist dieselbe Zeile |
 | `ck_contract_responses_review` bindet die Durchsicht an die Annahme | Wer ablehnt, füllt die Strecke nicht aus; die Route weist die Durchsicht danach mit `400` ab |

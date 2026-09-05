@@ -794,6 +794,11 @@ CREATE TABLE sepa_mandates (
     -- ersetztes Mandat bekommt seine eigene Datei, die alte bleibt stehen. Der
     -- Fremdschlüssel steht in querschnitt-schema.sql, wo `documents` entsteht.
     document_id      uuid,
+    -- „Alle Dokumente, unter denen unterschrieben wird, müssen eine Prüfsumme
+    -- haben" (Geschäftsführung, 04.09.2026) — unterschrieben wird das Mandat
+    -- über `signatures.sepa_mandate_id`. Paarung und Format wie an
+    -- `contracts.document_checksum` (anmeldung-schema.sql).
+    document_checksum text,
     created_at       timestamptz NOT NULL DEFAULT now(),
     created_by       text NOT NULL,
 
@@ -816,6 +821,10 @@ CREATE TABLE sepa_mandates (
     CONSTRAINT ck_sepa_mandates_holder_contact
         CHECK (account_holder_person_id IS NULL
                OR (account_holder_address_id IS NULL AND account_holder_email IS NULL)),
+    CONSTRAINT ck_sepa_mandates_checksum
+        CHECK ((document_id IS NULL) = (document_checksum IS NULL)
+               AND (document_checksum IS NULL
+                    OR document_checksum ~ '^sha256:[0-9a-f]{64}$')),
     CONSTRAINT ck_sepa_mandates_iban CHECK (iban ~ '^[A-Z]{2}[0-9A-Z]{13,32}$'),
     CONSTRAINT ck_sepa_mandates_bic
         CHECK (bic IS NOT NULL OR iban LIKE 'DE%'),

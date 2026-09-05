@@ -13,10 +13,16 @@
 -- Querschnitts-Fremdschlüssel auf `contracts` und `applications` und der eine
 -- Trigger, der die Notfallbetreuung auf Kinder beschränkt, die das Haus kennt.
 -- `emergency_care_types` trägt mit `booking_cutoff_time` den Buchungsschluss je
--- Fall-Art als Pflichtwert; dieselbe Uhrzeit trägt den Storno. Zwei
+-- Fall-Art als Pflichtwert; dieselbe Uhrzeit trägt den Storno. Vier
 -- Fremdschlüssel dieser Datei sind zusammengesetzt, obwohl sie einspaltig
 -- aussehen: `fk_applications_slot` bindet das Zeitfenster an seinen Tag,
--- `fk_contracts_application` den Schulvertrag an das Kind seiner Bewerbung. Hier stehen
+-- `fk_contracts_application` den Schulvertrag an das Kind seiner Bewerbung, und
+-- `fk_contracts_application_branch` samt `fk_contracts_text_branch` binden ihn an
+-- die **Schulart** dieser Bewerbung — Grund- und Realschule haben je einen
+-- eigenen Vertragstext, die Klassenstufe entscheidet dabei nichts.
+-- Vertrag, Nachtrag und Modulanlage tragen zu ihrer Urkunde eine Prüfsumme im
+-- Format `sha256:<64 Hexstellen>`; Mandat und Zustimmung tragen dieselbe in
+-- stammdaten- bzw. querschnitt-schema.sql. Hier stehen
 -- außerdem die Gegenproben zu `signatures` (Q2), deren Fremdschlüssel auf den
 -- Vertragsvorgang erst mit dieser Datei entsteht — darunter der vierte Bezug,
 -- der Nachtrag: `contract_amendments` legt eine geänderte Fassung einem
@@ -119,6 +125,10 @@ BEGIN
         'ck_applications_care_need',
         'fk_applications_slot', 'uq_admission_day_slots_id_day',
         'fk_contracts_application', 'uq_applications_id_child',
+        'fk_contracts_application_branch', 'fk_contracts_text_branch',
+        'ck_contracts_branch', 'uq_applications_id_branch', 'ck_contracts_checksum',
+        'fk_care_module_agreements_document', 'ck_care_module_agreements_document',
+        'ck_care_module_agreements_checksum',
         'uq_care_need_levels_code', 'uq_tuition_fees', 'fk_tuition_fees_branch',
         'ck_tuition_fees_amount', 'ck_tuition_fees_rank',
         'fk_signatures_contract', 'fk_signatures_agreement', 'fk_payments_application',
@@ -236,14 +246,16 @@ INSERT INTO children (child_id, person_id, family_id, birth_date, entry_date,
      1, 1, 4, 1, 'system:check');
 
 -- Die Textsorte steht als Wert im System; eine Fassung ohne sie gibt es nicht.
-INSERT INTO contract_text_kinds (code, name, kind_class, created_by) VALUES
-    ('school_contract_gs', 'Schulvertrag Grundschule', 'signed', 'system:check'),
-    ('care_contract',      'Hortvertrag',              'signed', 'system:check');
+INSERT INTO contract_text_kinds (code, name, kind_class, school_branch_id, created_by) VALUES
+    ('school_contract_gs', 'Schulvertrag Grundschule', 'signed', 1,    'system:check'),
+    ('school_contract_rs', 'Schulvertrag Realschule',  'signed', 2,    'system:check'),
+    ('care_contract',      'Hortvertrag',              'signed', NULL, 'system:check');
 
 INSERT INTO contract_texts (contract_text_id, code, valid_from, body, created_by)
     OVERRIDING SYSTEM VALUE VALUES
     (1, 'school_contract_gs', DATE '2026-08-01', 'Schulvertrag GS', 'system:check'),
-    (2, 'care_contract',      DATE '2026-08-01', 'Betreuungsvertrag', 'system:check');
+    (2, 'care_contract',      DATE '2026-08-01', 'Betreuungsvertrag', 'system:check'),
+    (5, 'school_contract_rs', DATE '2026-08-01', 'Schulvertrag RS', 'system:check');
 -- Zwei spätere Fassungen desselben Schulvertrags, für die Nachträge weiter
 -- unten: eine wesentliche Änderung und eine, bei der die Kenntnisnahme genügt.
 INSERT INTO contract_texts (contract_text_id, code, valid_from, body, requires_consent, created_by)
@@ -737,10 +749,10 @@ SELECT pg_temp.expect_reject(
 -- Gegenproben — Vertragsvorgang
 -- ---------------------------------------------------------------------------
 
-INSERT INTO contracts (contract_id, child_id, contract_type, application_id,
+INSERT INTO contracts (contract_id, child_id, contract_type, school_branch_id, application_id,
                        contract_text_id, contract_text_code, created_by)
     VALUES ('88888888-8888-8888-8888-888888888881',
-            '44444444-4444-4444-4444-444444444444', 'school',
+            '44444444-4444-4444-4444-444444444444', 'school', 1,
             '77777777-7777-7777-7777-777777777772', 1, 'school_contract_gs', 'system:check');
 
 -- 08: „Zwillinge sind zwei Verträge" — zwei Bewerbungen mit demselben Ziel,
@@ -749,9 +761,9 @@ INSERT INTO contracts (contract_id, child_id, contract_type, application_id,
 -- und der Lösch-Lauf bliebe später an genau ihm stehen.
 SELECT pg_temp.expect_reject(
     '08 — Schulvertrag am einen Kind, Bewerbung am anderen',
-    $q$INSERT INTO contracts (child_id, contract_type, application_id,
+    $q$INSERT INTO contracts (child_id, contract_type, school_branch_id, application_id,
                               contract_text_id, contract_text_code, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444444', 'school',
+       VALUES ('44444444-4444-4444-4444-444444444444', 'school', 1,
                '77777777-7777-7777-7777-77777777777a', 1, 'school_contract_gs', 'system:check')$q$);
 
 -- Die Gegenrichtung, die MATCH SIMPLE offenhalten muss: „ein Hortvertrag hängt
@@ -774,8 +786,8 @@ SELECT pg_temp.expect_reject(
 
 SELECT pg_temp.expect_reject(
     '08 — Schulvertrag ohne Bewerbung',
-    $q$INSERT INTO contracts (child_id, contract_type, contract_text_id, contract_text_code, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444445', 'school', 1, 'school_contract_gs', 'system:check')$q$);
+    $q$INSERT INTO contracts (child_id, contract_type, school_branch_id, contract_text_id, contract_text_code, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444445', 'school', 1, 1, 'school_contract_gs', 'system:check')$q$);
 
 -- 08: „Die Fassung friert mit der Zusage ein und nicht erst mit der einzelnen
 -- Unterschrift." Sie steht deshalb am Vertrag und an keiner zweiten Stelle.
@@ -936,7 +948,8 @@ INSERT INTO documents (document_id, child_id, document_type_id, label,
             '10000000-0000-0000-0000-000000000001', 1, '01ABC', now(), 'system:check');
 SELECT pg_temp.expect_reject(
     '08 — Vertragsdokument ohne Freigabe',
-    $q$UPDATE contracts SET document_id = '99999999-9999-9999-9999-999999999991'
+    $q$UPDATE contracts SET document_id = '99999999-9999-9999-9999-999999999991',
+                            document_checksum = 'sha256:8302b4cda4926623387c8d2090f3fb1ce8930ecae4accd7eaacee958492df8ad'
         WHERE contract_id = '88888888-8888-8888-8888-888888888881'$q$);
 
 SELECT pg_temp.expect_reject(
@@ -944,11 +957,32 @@ SELECT pg_temp.expect_reject(
     $q$UPDATE contracts SET released_at = now()
         WHERE contract_id = '88888888-8888-8888-8888-888888888881'$q$);
 
+-- „Vom fertigen Dokument wird eine Prüfsumme am Vertrag festgehalten, damit sich
+-- jede spätere Abweichung zeigt" (08). Ohne Format wären zwei im Umlauf — der
+-- rohe Hexdigest aus dem Bau und das `sha256:`-Präfix aus diesem Skript —, und
+-- ein Leser, der die vorgelegte Fassung nachrechnet, vergliche Äpfel mit Birnen.
+SELECT pg_temp.expect_reject(
+    '08 — Urkunde ohne Prüfsumme',
+    $q$UPDATE contracts SET released_at = now(), released_by = 'entra:schulleitung',
+                            document_id = '99999999-9999-9999-9999-999999999991'
+        WHERE contract_id = '88888888-8888-8888-8888-888888888881'$q$);
+SELECT pg_temp.expect_reject(
+    '08 — Prüfsumme im falschen Format',
+    $q$UPDATE contracts SET released_at = now(), released_by = 'entra:schulleitung',
+                            document_id = '99999999-9999-9999-9999-999999999991',
+                            document_checksum = 'sha256:abc'
+        WHERE contract_id = '88888888-8888-8888-8888-888888888881'$q$);
+SELECT pg_temp.expect_reject(
+    '08 — Prüfsumme ohne Urkunde',
+    $q$UPDATE contracts SET document_checksum = 'sha256:8302b4cda4926623387c8d2090f3fb1ce8930ecae4accd7eaacee958492df8ad'
+        WHERE contract_id = '88888888-8888-8888-8888-888888888881'$q$);
+
 SELECT pg_temp.expect_accept(
     '08 — Freigabe, dann Dokument samt Prüfsumme',
     $q$UPDATE contracts SET released_at = now(), released_by = 'entra:schulleitung',
                             document_id = '99999999-9999-9999-9999-999999999991',
-                            document_checksum = 'sha256:abc', runs_until = DATE '2031-07-31'
+                            document_checksum = 'sha256:8302b4cda4926623387c8d2090f3fb1ce8930ecae4accd7eaacee958492df8ad',
+                            runs_until = DATE '2031-07-31'
         WHERE contract_id = '88888888-8888-8888-8888-888888888881'$q$);
 
 -- 08/04: der Viertklässler in die eigene Realschule hat von der Freigabe im
@@ -965,25 +999,26 @@ SELECT pg_temp.expect_accept(
                '44444444-4444-4444-4444-444444444444', 2, 5, 5, 10, 2027,
                'pre_registration', now(), '22222222-2222-2222-2222-222222222222',
                1, 'system:check');
-       INSERT INTO contracts (contract_id, child_id, contract_type, application_id,
+       INSERT INTO contracts (contract_id, child_id, contract_type, school_branch_id, application_id,
                               contract_text_id, contract_text_code, released_at, released_by, runs_until,
                               created_by)
        VALUES ('88888888-8888-8888-8888-888888888883',
-               '44444444-4444-4444-4444-444444444444', 'school',
-               '77777777-7777-7777-7777-777777777773', 1, 'school_contract_gs',
+               '44444444-4444-4444-4444-444444444444', 'school', 2,
+               '77777777-7777-7777-7777-777777777773', 5, 'school_contract_rs',
                now(), 'entra:schulleitung', DATE '2033-07-31', 'system:check')$q$);
 
--- Alle Schulverträge dieses Skripts tragen den Grundschul-Vertragstext:
--- `ck_contracts_text_kind` bindet die Sorte an den Typ, der Hortvertragstext
--- kommt an einem Schulvertrag nicht mehr durch.
+-- Der zweite Vertrag trägt die Sorte **seiner** Schulart: Die Bewerbung zielt in
+-- die Realschule, also gilt der Realschulvertrag — mit dem GS-Text wiese ihn
+-- `fk_contracts_text_branch` ab. Der Hortvertragstext kommt an keinem
+-- Schulvertrag durch, dafür steht `ck_contracts_text_kind`.
 -- Beide tragen ihren „31. Juli des Schuljahres, in dem die Schulart endet"
 -- (08) — der alte 2031, der neue 2033. Ein dritter, der bis zum selben Tag
 -- läuft wie einer von beiden, ist derselbe Vertrag zweimal.
 SELECT pg_temp.expect_reject(
     '08 — dritter Schulvertrag mit derselben Laufzeit daneben',
-    $q$INSERT INTO contracts (child_id, contract_type, application_id, contract_text_id, contract_text_code,
+    $q$INSERT INTO contracts (child_id, contract_type, school_branch_id, application_id, contract_text_id, contract_text_code,
                               released_at, released_by, runs_until, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444444', 'school',
+       VALUES ('44444444-4444-4444-4444-444444444444', 'school', 1,
                '77777777-7777-7777-7777-777777777771', 1, 'school_contract_gs',
                now(), 'entra:schulleitung', DATE '2033-07-31', 'system:check')$q$);
 
@@ -991,17 +1026,17 @@ SELECT pg_temp.expect_reject(
 -- danebensteht, der ebenfalls keine trägt (NULLS NOT DISTINCT).
 SELECT pg_temp.expect_accept(
     '08 — erster Schulvertrag bis auf Weiteres',
-    $q$INSERT INTO contracts (contract_id, child_id, contract_type, application_id,
+    $q$INSERT INTO contracts (contract_id, child_id, contract_type, school_branch_id, application_id,
                               contract_text_id, contract_text_code, released_at, released_by, created_by)
        VALUES ('88888888-8888-8888-8888-888888888884',
-               '44444444-4444-4444-4444-444444444444', 'school',
+               '44444444-4444-4444-4444-444444444444', 'school', 1,
                '77777777-7777-7777-7777-777777777771', 1, 'school_contract_gs',
                now(), 'entra:schulleitung', 'system:check')$q$);
 SELECT pg_temp.expect_reject(
     '08 — zweiter Schulvertrag bis auf Weiteres daneben',
-    $q$INSERT INTO contracts (child_id, contract_type, application_id, contract_text_id, contract_text_code,
+    $q$INSERT INTO contracts (child_id, contract_type, school_branch_id, application_id, contract_text_id, contract_text_code,
                               released_at, released_by, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444444', 'school',
+       VALUES ('44444444-4444-4444-4444-444444444444', 'school', 1,
                '77777777-7777-7777-7777-777777777771', 1, 'school_contract_gs',
                now(), 'entra:schulleitung', 'system:check')$q$);
 DELETE FROM contracts WHERE contract_id = '88888888-8888-8888-8888-888888888884';
@@ -1050,9 +1085,9 @@ SELECT pg_temp.expect_reject(
 
 SELECT pg_temp.expect_reject(
     '08 — Schulvertrag, der über sein eigenes runs_until hinaus endet',
-    $q$INSERT INTO contracts (child_id, contract_type, application_id, contract_text_id,
+    $q$INSERT INTO contracts (child_id, contract_type, school_branch_id, application_id, contract_text_id,
                               contract_text_code, runs_until, end_date, end_reason, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444444', 'school',
+       VALUES ('44444444-4444-4444-4444-444444444444', 'school', 1,
                '77777777-7777-7777-7777-777777777771', 1, 'school_contract_gs',
                DATE '2031-07-31', DATE '2033-07-31', 'Zahlendreher', 'system:check')$q$);
 
@@ -1070,9 +1105,9 @@ SELECT pg_temp.expect_reject(
 
 SELECT pg_temp.expect_reject(
     '08 — Schulvertrag auf dem Betreuungsvertragstext',
-    $q$INSERT INTO contracts (child_id, contract_type, application_id, contract_text_id,
+    $q$INSERT INTO contracts (child_id, contract_type, school_branch_id, application_id, contract_text_id,
                               contract_text_code, created_by)
-       VALUES ('44444444-4444-4444-4444-444444444444', 'school',
+       VALUES ('44444444-4444-4444-4444-444444444444', 'school', 1,
                '77777777-7777-7777-7777-777777777771', 2, 'care_contract', 'system:check')$q$);
 
 -- Und die Sorte lässt sich nicht am Text vorbei behaupten: der zusammengesetzte
@@ -1083,6 +1118,60 @@ SELECT pg_temp.expect_reject(
                               may_walk_home_alone, created_by)
        VALUES ('44444444-4444-4444-4444-444444444445', 'care', 1, 'care_contract',
                false, 'system:check')$q$);
+
+-- 08: „Der Vertragstext hängt an der Schulart — Grundschule und Realschule haben
+-- je einen eigenen." Welcher der beiden gilt, entscheidet die Schulart der
+-- Bewerbung; `ck_contracts_text_kind` oben sieht davon nichts, er trennt nur
+-- Hort von Schule.
+SELECT pg_temp.expect_reject(
+    '08 — Grundschulkind mit der Textsorte der Realschule',
+    $q$INSERT INTO contracts (child_id, contract_type, school_branch_id, application_id,
+                              contract_text_id, contract_text_code, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444444', 'school', 1,
+               '77777777-7777-7777-7777-777777777771', 5, 'school_contract_rs',
+               'system:check')$q$);
+
+-- Und die Gegenrichtung: die Sorte passt zu ihrer Schulart, aber nicht zu der
+-- der Bewerbung. Ohne diese Bindung ließe sich die falsche Urkunde erzeugen,
+-- indem beide Felder gemeinsam falsch gesetzt werden.
+SELECT pg_temp.expect_reject(
+    '08 — Realschulvertrag an einer Bewerbung für die Grundschule',
+    $q$INSERT INTO contracts (child_id, contract_type, school_branch_id, application_id,
+                              contract_text_id, contract_text_code, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444444', 'school', 2,
+               '77777777-7777-7777-7777-777777777771', 5, 'school_contract_rs',
+               'system:check')$q$);
+
+-- Ohne Schulart wären beide Schlüssel wirkungslos: MATCH SIMPLE ließe die leere
+-- Spalte ungeprüft durch.
+SELECT pg_temp.expect_reject(
+    '08 — Schulvertrag ohne Schulart',
+    $q$INSERT INTO contracts (child_id, contract_type, application_id,
+                              contract_text_id, contract_text_code, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444444', 'school',
+               '77777777-7777-7777-7777-777777777771', 1, 'school_contract_gs',
+               'system:check')$q$);
+
+-- 09: „ein Hortvertrag hängt am Kind" und kennt keine Schulart — der Hort „nimmt
+-- Kinder auf, die weder Grund- noch Realschüler sind" (grenzkarte.md).
+SELECT pg_temp.expect_reject(
+    '09 — Hortvertrag mit einer Schulart',
+    $q$INSERT INTO contracts (child_id, contract_type, school_branch_id, contract_text_id,
+                              contract_text_code, may_walk_home_alone, created_by)
+       VALUES ('44444444-4444-4444-4444-444444444445', 'care', 1, 2, 'care_contract',
+               false, 'system:check')$q$);
+
+-- „Ein Quereinsteiger in Klasse 3 bekommt denselben GS-Vertrag wie ein
+-- Erstklässler": Die Stufe entscheidet nichts, die Schulart alles.
+SELECT pg_temp.expect_accept(
+    '08 — Quereinsteiger auf der Textsorte seiner Schulart',
+    $q$INSERT INTO contracts (contract_id, child_id, contract_type, school_branch_id,
+                              application_id, contract_text_id, contract_text_code, created_by)
+       VALUES ('88888888-8888-8888-8888-88888888888e',
+               '44444444-4444-4444-4444-444444444445', 'school', 1,
+               '77777777-7777-7777-7777-77777777777a', 1, 'school_contract_gs',
+               'system:check');
+       DELETE FROM contracts WHERE contract_id = '88888888-8888-8888-8888-88888888888e'$q$);
 
 -- 08: „Nehmen den Platz an oder lehnen ab" — genau eine der beiden Antworten.
 SELECT pg_temp.expect_reject(
@@ -1266,7 +1355,7 @@ SELECT pg_temp.expect_reject(
     '08 — Urkunde am Nachtrag, bevor er abgeschlossen ist',
     $q$UPDATE contract_amendments
           SET document_id = '99999999-9999-9999-9999-999999999992',
-              document_checksum = 'sha256:abc'
+              document_checksum = 'sha256:693bb591b0f48064c0114803859fab8f32108a9d88520dc665460df5221e48fc'
         WHERE contract_amendment_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1'$q$);
 
 -- Und der Nachtrag wird abgelegt: eine abgeschlossene Zustimmung ohne Urkunde
@@ -1281,7 +1370,7 @@ SELECT pg_temp.expect_accept(
     $q$UPDATE contract_amendments
           SET completed_at = now(),
               document_id = '99999999-9999-9999-9999-999999999992',
-              document_checksum = 'sha256:abc'
+              document_checksum = 'sha256:693bb591b0f48064c0114803859fab8f32108a9d88520dc665460df5221e48fc'
         WHERE contract_amendment_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1'$q$);
 
 -- Die bloße Kenntnisnahme braucht keine: „der Wortlaut ändert sich, die
@@ -1344,11 +1433,50 @@ SELECT pg_temp.expect_reject(
     $q$UPDATE care_module_agreements SET valid_from = DATE '2026-09-01'
         WHERE care_module_agreement_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1'$q$);
 
+-- 09: „dieselbe Mail nach jeder freigegebenen Anpassung mit der neuen
+-- Modulanlage; damit hat jeder Vertragspartner seine Ausfertigung." Sie ist
+-- damit eine Unterlage, unter der unterschrieben wird — und trägt deshalb eine
+-- Prüfsumme wie der Vertrag daneben (Geschäftsführung, 04.09.2026). Der Ordner
+-- gehört dem externen Hortkind, dessen Vertrag die Anlage hängt.
+INSERT INTO child_file_folders (child_file_folder_id, child_id, sharepoint_library_id,
+                                child_file_category_id, graph_item_id, created_by)
+    VALUES ('10000000-0000-0000-0000-000000000002',
+            '44444444-4444-4444-4444-444444444445', 1, 1, '02ORDNER', 'system:check');
+INSERT INTO documents (document_id, child_id, label, child_file_folder_id,
+                       sharepoint_library_id, graph_item_id, filed_at, created_by)
+    VALUES ('99999999-9999-9999-9999-999999999994',
+            '44444444-4444-4444-4444-444444444445', 'Modulanlage',
+            '10000000-0000-0000-0000-000000000002', 1, '02MODUL', now(), 'system:check');
+SELECT pg_temp.expect_reject(
+    '09 — Ausfertigung der Modulanlage vor ihrer Freigabe',
+    $q$UPDATE care_module_agreements
+          SET document_id = '99999999-9999-9999-9999-999999999994',
+              document_checksum = 'sha256:c1f1b547b4bed386a4971a20f8cce5163a8c2055d1781376d5b902265c4082b4'
+        WHERE care_module_agreement_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1'$q$);
+
 SELECT pg_temp.expect_accept(
     '09 — Anlage mit Freigabe und Geltungsbeginn',
     $q$UPDATE care_module_agreements
           SET valid_from = DATE '2026-09-01', released_at = now(),
               released_by = 'entra:hortleitung'
+        WHERE care_module_agreement_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1'$q$);
+
+SELECT pg_temp.expect_reject(
+    '09 — Ausfertigung der Modulanlage ohne Prüfsumme',
+    $q$UPDATE care_module_agreements
+          SET document_id = '99999999-9999-9999-9999-999999999994'
+        WHERE care_module_agreement_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1'$q$);
+SELECT pg_temp.expect_reject(
+    '09 — Prüfsumme der Modulanlage im falschen Format',
+    $q$UPDATE care_module_agreements
+          SET document_id = '99999999-9999-9999-9999-999999999994',
+              document_checksum = 'sha256:abc'
+        WHERE care_module_agreement_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1'$q$);
+SELECT pg_temp.expect_accept(
+    '09 — Ausfertigung samt Prüfsumme an der freigegebenen Anlage',
+    $q$UPDATE care_module_agreements
+          SET document_id = '99999999-9999-9999-9999-999999999994',
+              document_checksum = 'sha256:c1f1b547b4bed386a4971a20f8cce5163a8c2055d1781376d5b902265c4082b4'
         WHERE care_module_agreement_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1'$q$);
 
 -- 09, Schritt 6: „Eine Anpassung beantragen die Eltern im Portal und
@@ -1892,10 +2020,10 @@ END $$;
 -- Stufe 1: „`contracts`, dann `applications` — der Vertrag hält seine Bewerbung
 -- fest und geht ihr voraus." Der Schulvertrag der verbliebenen Bewerbung, damit
 -- die Kette etwas zu halten hat.
-INSERT INTO contracts (contract_id, child_id, contract_type, application_id,
+INSERT INTO contracts (contract_id, child_id, contract_type, school_branch_id, application_id,
                        contract_text_id, contract_text_code, created_by)
     VALUES ('88888888-8888-8888-8888-888888888889',
-            '44444444-4444-4444-4444-444444444444', 'school',
+            '44444444-4444-4444-4444-444444444444', 'school', 1,
             '77777777-7777-7777-7777-777777777771', 1, 'school_contract_gs', 'system:check');
 SELECT pg_temp.expect_reject(
     '17 — Bewerbung gelöscht, während ihr Vertrag sie noch festhält',

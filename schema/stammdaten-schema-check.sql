@@ -16,6 +16,10 @@
 -- `guardians` trägt die personenweiten Angaben eines Sorgeberechtigten,
 -- `family_guardians` daneben allein, was an einer einzelnen Sorgeberechtigung
 -- hängt.
+-- `sepa_mandates` trägt neben seiner Datei deren Prüfsumme: Es wird
+-- unterschrieben, und „alle Dokumente, unter denen unterschrieben wird, müssen
+-- eine Prüfsumme haben" (Geschäftsführung, 04.09.2026). Ihre Gegenproben stehen
+-- in querschnitt-schema-check.sql, wo `documents` entsteht.
 -- Dazu zwei partielle bzw.
 -- unterstützende Indizes (ix_sepa_mandates_current, ix_login_codes_email_created).
 -- `persons.note` trägt, was sich das Sekretariat merkt; `persons.has_note` und
@@ -76,6 +80,7 @@ BEGIN
         'ck_family_contacts_role',
         'ck_sepa_mandates_holder', 'ck_sepa_mandates_holder_contact',
         'ck_sepa_mandates_bic', 'ck_sepa_mandates_iban',
+        'ck_sepa_mandates_checksum',
         'ck_employees_working_days', 'ck_school_branches_grades',
         'pk_alumni_kinds', 'uq_alumni_kinds_code', 'uq_alumni_kinds_exit_year',
         'pk_alumni', 'fk_alumni_person', 'fk_alumni_kind', 'fk_alumni_branch',

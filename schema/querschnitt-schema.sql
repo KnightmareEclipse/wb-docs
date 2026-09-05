@@ -63,7 +63,8 @@
 --      Zeile" — und mit ihr beide Papierkorb-Stufen, sonst liegt sie noch
 --      93 Tage da (grenzkarte.md, Q2).
 --      `documents` steht am Ende dieser Stufe und nicht an ihrem Anfang: der
---      freigegebene Vertrag (`fk_contracts_document`), das Mandat
+--      freigegebene Vertrag (`fk_contracts_document`), seine Modulanlage
+--      (`fk_care_module_agreements_document`), das Mandat
 --      (`fk_sepa_mandates_document`), die unterschriebene Zustimmung
 --      (`fk_consents_document`) und das Attest
 --      (`fk_health_trait_values_document`) halten das Dokument mit NO ACTION
@@ -538,7 +539,12 @@ CREATE TABLE contract_text_kinds (
     -- `ck_contracts_type` als CHECK und nicht als Werteliste — eine vierte
     -- Klasse wäre eine Änderung an jedem Leser, nicht eine Zeile:
     --   'signed'  — Schulvertrag, Betreuungsvertrag, Fotoeinverständnis,
-    --               SEPA-Mandat: Urkunde je Kind, Prüfsumme, Unterschriftszeilen.
+    --               SEPA-Mandat, Modulanlage, Gesundheitsblatt: eine Urkunde je
+    --               Vorgang samt Prüfsumme. **Unterschriftszeilen trägt die
+    --               Vorlage und nicht die Klasse** — das Gesundheitsblatt wird
+    --               von den Unterschriften unter dem Vertrag getragen (08) und
+    --               bekommt deshalb keine eigenen — dafür eine vierte Klasse
+    --               zu öffnen, hieße jeden Leser zu ändern.
     --   'agreed'  — Teilnahmebedingungen (10), Essensbedingungen (11): keine
     --               Datei, aber der Vorgang merkt sich die Fassung.
     --   'applies' — Betreuungsordnung, Infektionsschutz: nichts am Kind, es
@@ -549,6 +555,19 @@ CREATE TABLE contract_text_kinds (
     -- statt einer Zeile plus Vorlage. Nur die Klasse 'signed' trägt eine — die
     -- beiden anderen erzeugen keine Datei.
     document_type_id      integer,
+    -- In welchen Unterordner der Akte die erzeugte Datei kommt — der Unterordner
+    -- und nicht die Uhr: Sie geht mit ihrem Vorgang, und die Frist der Kategorie
+    -- zählt allein für das, was ein Mensch in die Akte legt
+    -- (`child_file_categories`). Leer, solange die Kategorien und ihre Fristen
+    -- beim Datenschutzbeauftragten liegen; bis dahin verdrahtet der
+    -- Anwendungscode den Ordner, und die Datei landet am falschen Platz.
+    child_file_category_id integer,
+    -- Die Schulart, für die diese Sorte gilt: „Der Vertragstext hängt an der
+    -- Schulart — Grundschule und Realschule haben je einen eigenen" (08). Leer
+    -- bei jeder Sorte, die es nur einmal gibt — und weil `contracts` seine
+    -- Schulart hierher bindet, trägt eine Sorte ohne Schulart keinen
+    -- Schulvertrag.
+    school_branch_id      integer,
     -- Wie viele Tage vor dem Gültigkeitstag einer neuen Fassung die Mitteilung
     -- hinausgeht — 0 heißt „am Gültigkeitstag selbst". Allein an der Klasse
     -- 'applies': Dort „genügt die Mitteilung, es entsteht nichts am Kind" (08),
@@ -578,6 +597,15 @@ CREATE TABLE contract_text_kinds (
         FOREIGN KEY (document_type_id) REFERENCES document_types (document_type_id),
     CONSTRAINT fk_contract_text_kinds_working_library
         FOREIGN KEY (working_library_id) REFERENCES sharepoint_libraries (sharepoint_library_id),
+    CONSTRAINT fk_contract_text_kinds_category
+        FOREIGN KEY (child_file_category_id) REFERENCES child_file_categories (child_file_category_id),
+    CONSTRAINT fk_contract_text_kinds_branch
+        FOREIGN KEY (school_branch_id) REFERENCES school_branches (school_branch_id),
+    -- Trägt den zusammengesetzten Fremdschlüssel von `contracts`
+    -- (anmeldung-schema.sql): Der Vertrag führt seine Schulart mit und bindet
+    -- sie hier gegen die Sorte seines Textes. Zusätzlich zum Code-UNIQUE nötig,
+    -- weil ein Fremdschlüssel die Spalten seiner Zielseite genau so verlangt.
+    CONSTRAINT uq_contract_text_kinds_code_branch UNIQUE (code, school_branch_id),
     CONSTRAINT ck_contract_text_kinds_code CHECK (code <> ''),
     CONSTRAINT ck_contract_text_kinds_name CHECK (name <> ''),
     CONSTRAINT ck_contract_text_kinds_class
@@ -587,15 +615,18 @@ CREATE TABLE contract_text_kinds (
     CONSTRAINT ck_contract_text_kinds_working
         CHECK ((working_library_id IS NULL) = (working_item_id IS NULL)
                AND working_item_id <> ''),
-    -- Arbeitsfassung und Dokumentart trägt allein die unterschriebene Sorte.
-    -- „Eine Sorte ohne Arbeitsfassung ist reiner Text und erzeugt keine
-    -- Urkunde" — eine mitgeltende Anlage mit Vorlage behauptete ein Dokument am
-    -- Kind, das es nicht gibt. Umgekehrt ist eine 'signed'-Sorte **ohne**
-    -- Vorlage zulässig: Die drei Vertragstexte werden gerade überarbeitet und
-    -- der Mandatswortlaut steht noch aus — die Sorte gibt es vor ihrer Datei.
+    -- Arbeitsfassung, Dokumentart und Aktenkategorie trägt allein die
+    -- unterschriebene Sorte. „Eine Sorte ohne Arbeitsfassung ist reiner Text und
+    -- erzeugt keine Urkunde" — eine mitgeltende Anlage mit Vorlage behauptete
+    -- ein Dokument am Kind, das es nicht gibt, und eine Kategorie ohne Datei
+    -- benennt einen Ordner, in den nie etwas kommt. Umgekehrt ist eine
+    -- 'signed'-Sorte **ohne** Vorlage zulässig: Die drei Vertragstexte werden
+    -- gerade überarbeitet und der Mandatswortlaut steht noch aus — die Sorte
+    -- gibt es vor ihrer Datei.
     CONSTRAINT ck_contract_text_kinds_class_shape
         CHECK (kind_class = 'signed'
-               OR (working_library_id IS NULL AND document_type_id IS NULL)),
+               OR (working_library_id IS NULL AND document_type_id IS NULL
+                   AND child_file_category_id IS NULL)),
     -- Den Vorlauf trägt allein die mitgeltende Anlage. An einer der beiden
     -- anderen Klassen sähe er aus wie eine Zusage, die der Versand nicht hält:
     -- Dort geht keine solche Mitteilung hinaus.
@@ -1129,6 +1160,10 @@ CREATE TABLE consents (
     -- „eine Unterlage, eine Datei", einzeln befristet statt im Vertrag gebündelt.
     -- Leer, wo eine Antwort ohne Unterschrift steht.
     document_id        uuid,
+    -- „Alle Dokumente, unter denen unterschrieben wird, müssen eine Prüfsumme
+    -- haben" (Geschäftsführung, 04.09.2026) — Form und Paarung wie an
+    -- `contracts.document_checksum` (anmeldung-schema.sql).
+    document_checksum  text,
     created_at         timestamptz NOT NULL DEFAULT now(),
     created_by         text NOT NULL,
 
@@ -1166,6 +1201,12 @@ CREATE TABLE consents (
     -- datiert, belegt nichts.
     CONSTRAINT ck_consents_revoked_after_granted
         CHECK (revoked_at IS NULL OR revoked_at >= granted_at),
+    -- Die Urkunde und ihre Prüfsumme stehen zusammen oder gar nicht, und die
+    -- Prüfsumme trägt das eine Format, das die Änderungsspur lesen kann.
+    CONSTRAINT ck_consents_checksum
+        CHECK ((document_id IS NULL) = (document_checksum IS NULL)
+               AND (document_checksum IS NULL
+                    OR document_checksum ~ '^sha256:[0-9a-f]{64}$')),
     CONSTRAINT ck_consents_delivery_address CHECK (delivery_address <> ''),
     CONSTRAINT ck_consents_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
@@ -1204,10 +1245,10 @@ CREATE UNIQUE INDEX ix_consents_person_purpose
 -- Jahre lang zwei Zeilen über dieselbe Erlaubnis, und ein Widerruf träfe
 -- verlässlich nur die, an der die Route hängt.
 --
--- Was hier **nicht** steht: eine Prüfsumme. `documents` trägt keine — sie steht
--- an `contracts.document_checksum`, wo sie den freigegebenen Vertragstext
--- bindet —, und eine, die erst an der Kopie entstünde, belegte nichts gegen ein
--- Original, das im selben Zug gelöscht wird.
+-- Die **Prüfsumme wandert mit** und entsteht nicht hier: Sie wird von
+-- `consents.document_checksum` übernommen, das seit dem 04.09.2026 an jedem
+-- unterschriebenen Dokument steht. Eine erst an der Kopie gebildete belegte
+-- nichts gegen ein Original, das im selben Zug gelöscht wird.
 CREATE TABLE photo_consent_records (
     photo_consent_record_id uuid NOT NULL DEFAULT gen_random_uuid(),
     -- Kopiert und nicht verknüpft: Kind und Person sind fort, wenn diese Zeile
@@ -1244,6 +1285,8 @@ CREATE TABLE photo_consent_records (
     -- Zweig und die beiden Zeitpunkte —, und das ist mehr als heute bliebe.
     sharepoint_library_id integer,
     graph_item_id     text,
+    -- Die Prüfsumme des Originals, mitkopiert wie die Angaben darüber.
+    document_checksum text,
     created_at        timestamptz NOT NULL DEFAULT now(),
     created_by        text NOT NULL,
 
@@ -1262,6 +1305,11 @@ CREATE TABLE photo_consent_records (
     -- Entweder steht die Kopie mit beiden Angaben da oder mit keiner.
     CONSTRAINT ck_photo_consent_records_file
         CHECK ((sharepoint_library_id IS NULL) = (graph_item_id IS NULL)),
+    -- Und wo eine Kopie liegt, liegt die Prüfsumme ihres Originals daneben.
+    CONSTRAINT ck_photo_consent_records_checksum
+        CHECK ((graph_item_id IS NULL) = (document_checksum IS NULL)
+               AND (document_checksum IS NULL
+                    OR document_checksum ~ '^sha256:[0-9a-f]{64}$')),
     -- Widerrufen wird nie vor der Erteilung: „eine Erteilung, die nach ihrem
     -- Widerruf datiert, belegt nichts" — wie an `consents`.
     CONSTRAINT ck_photo_consent_records_revoked

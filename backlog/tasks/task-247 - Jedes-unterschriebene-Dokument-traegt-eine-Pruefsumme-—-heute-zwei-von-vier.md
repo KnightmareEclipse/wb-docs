@@ -1,9 +1,10 @@
 ---
 id: TASK-247
 title: Jedes unterschriebene Dokument traegt eine Pruefsumme — heute zwei von vier
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-04 16:58'
+updated_date: '2026-09-05 00:35'
 labels:
   - schema
   - dokumente
@@ -30,9 +31,23 @@ Geschaeftsfuehrung, 04.09.2026: **Alle Dokumente, unter denen unterschrieben wir
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Entschieden, ob die Pruefsumme an documents steht oder je Vorgangstabelle — mit dem Preis der verworfenen Form
-- [ ] #2 SEPA-Mandat und Fotoeinverstaendnis tragen sie; die Gegenprobe: eine Datei ohne Pruefsumme kommt nicht durch
-- [ ] #3 Geprueft, ob die Modulanlage ueberhaupt eine Datei erzeugt — falls ja, traegt sie sie ebenfalls, falls nein, ist dokumente.md richtigzustellen
-- [ ] #4 photo_consent_records nimmt die Pruefsumme des Originals mit in die Kopie (TASK-246)
-- [ ] #5 dokumente.md und das Schema sagen dasselbe
+- [x] #1 Entschieden, ob die Pruefsumme an documents steht oder je Vorgangstabelle — mit dem Preis der verworfenen Form
+- [x] #2 SEPA-Mandat und Fotoeinverstaendnis tragen sie; die Gegenprobe: eine Datei ohne Pruefsumme kommt nicht durch
+- [x] #3 Geprueft, ob die Modulanlage ueberhaupt eine Datei erzeugt — falls ja, traegt sie sie ebenfalls, falls nein, ist dokumente.md richtigzustellen
+- [x] #4 photo_consent_records nimmt die Pruefsumme des Originals mit in die Kopie (TASK-246)
+- [x] #5 dokumente.md und das Schema sagen dasselbe
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Entschieden: **je Vorgangstabelle, nicht an `documents`.** Der Grund ist die Gegenprobe. An `documents` liesse sich 'eine unterschriebene Datei ohne Pruefsumme kommt nicht durch' gar nicht ausdruecken — die Zeile weiss nicht, ob unter ihrer Datei jemand unterschrieben hat; entweder traegt dann jeder hochgeladene Scan eine, was kein Ablageweg heute einloest, oder die Spalte ist nullable und der CHECK ist keiner. Am Vorgang steht die Paarung dagegen als `(document_id IS NULL) = (document_checksum IS NULL)`. Der Preis, benannt: dieselbe Mechanik steht in fuenf Tabellen, und ein sechster unterschriebener Vorgang kostet eine sechste Spalte statt keiner. Praezedenz gab den Ausschlag — `contracts` und `contract_amendments` bauen es schon so.
+
+Neu: `sepa_mandates.document_checksum`, `consents.document_checksum`, `care_module_agreements.document_id` samt `document_checksum` (TASK-241), `photo_consent_records.document_checksum`. Alle mit derselben Paarung und demselben Format `sha256:<64 Hexstellen>`.
+
+Kriterium 3 geprueft: Die Modulanlage erzeugt eine Datei — '09: dieselbe Mail nach jeder freigegebenen Anpassung mit der neuen Modulanlage; damit hat jeder Vertragspartner seine Ausfertigung'. Sie traegt beides.
+
+Kriterium 4: Der Kommentar an `photo_consent_records`, der die fehlende Pruefsumme noch begruendete, ist ersetzt — sie wandert jetzt mit der Kopie, weil das Original eine traegt. Der Lauf, der kopiert, steht in wb-backend (TASK-246).
+
+Acht Gegenproben in querschnitt- und anmeldung-schema-check.sql, jede gegen den benannten Constraint verifiziert. dokumente.md und grenzkarte.md sagen jetzt dasselbe wie das Schema: jedes Dokument, unter dem unterschrieben wird, traegt eine Pruefsumme. wb-backend zieht nach: TASK-267.
+<!-- SECTION:NOTES:END -->

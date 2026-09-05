@@ -824,6 +824,9 @@ CREATE TABLE applications (
     -- Trägt den zusammengesetzten Fremdschlüssel des Schulvertrags und ist
     -- deshalb zusätzlich zum Primärschlüssel nötig (rules.md Abschnitt 1).
     CONSTRAINT uq_applications_id_child UNIQUE (application_id, child_id),
+    -- Und derselbe Griff für die Schulart: `contracts` bindet die Textsorte
+    -- seines Vertrags an das Ziel dieser Bewerbung.
+    CONSTRAINT uq_applications_id_branch UNIQUE (application_id, school_branch_id),
     CONSTRAINT ck_applications_source CHECK (source IN ('pre_registration', 'lateral_entry')),
     -- „dieselbe Angabe … hier um den Umfang ergänzt" (06): ein Umfang ohne
     -- Bedarf wäre der zweite Ort für dieselbe Tatsache (rules.md Abschnitt 1).
@@ -970,6 +973,11 @@ CREATE TABLE contracts (
     -- — dieselbe Bauform wie `cleaning_assignments.cleaning_slot_type_id`
     -- (putzdienst-schema.sql).
     contract_text_code text NOT NULL,
+    -- Die Schulart des Vertrags, mitgeführt aus der Bewerbung, damit die beiden
+    -- Fremdschlüssel unten sie gegen die Textsorte halten können: „Der
+    -- Vertragstext hängt an der Schulart — Grundschule und Realschule haben je
+    -- einen eigenen" (08). Leer beim Hortvertrag, der keine Schulart kennt.
+    school_branch_id   integer,
     -- Vom Sekretariat vor dem Vorlegen geprüft; „Die Vollständigkeit sichert
     -- damit der Vorgang, nicht die Alltagsansicht" (grenzkarte.md, Q1).
     completeness_checked_at timestamptz,
@@ -1031,11 +1039,30 @@ CREATE TABLE contracts (
     -- der Grundschule: die falsche Urkunde und die falsche
     -- Unterschriftenlage. Der Code ist „die Verankerung im Anwendungscode und
     -- wird nie umbenannt" (querschnitt-schema.sql) und steht deshalb im CHECK.
-    -- Welcher der beiden Schulverträge gilt, prüft er NICHT: die Schulart steht
-    -- an der Bewerbung und nicht am Vertrag, und ein Constraint dafür bräuchte
-    -- eine dritte Spalte, die nichts weiter trägt.
+    -- **Welcher der beiden Schulverträge gilt, prüfen die beiden Schlüssel
+    -- darunter** — dieser CHECK sieht nur Hort gegen Schule.
     CONSTRAINT ck_contracts_text_kind
         CHECK ((contract_type = 'care') = (contract_text_code = 'care_contract')),
+    -- Die Schulart ist die der Bewerbung — ein Grundschulkind bekommt keinen
+    -- Realschulvertrag, und die Klassenstufe entscheidet dabei nichts: Ein
+    -- Quereinsteiger in Klasse 3 trägt denselben GS-Vertrag wie ein
+    -- Erstklässler. MATCH SIMPLE lässt den Hortvertrag durch, der weder
+    -- Bewerbung noch Schulart hat.
+    CONSTRAINT fk_contracts_application_branch
+        FOREIGN KEY (application_id, school_branch_id)
+        REFERENCES applications (application_id, school_branch_id),
+    -- Und dieselbe Schulart trägt die Sorte seines Textes
+    -- (querschnitt-schema.sql). Eine Sorte ohne Schulart — Hortvertrag, Mandat,
+    -- Fotoeinverständnis — findet hier keine Zeile und kann deshalb kein
+    -- Schulvertrag sein.
+    CONSTRAINT fk_contracts_text_branch
+        FOREIGN KEY (contract_text_code, school_branch_id)
+        REFERENCES contract_text_kinds (code, school_branch_id),
+    -- Ohne diesen CHECK wären beide Schlüssel darüber wirkungslos: Eine leere
+    -- Spalte lässt MATCH SIMPLE ungeprüft durch, und der Realschulvertrag am
+    -- Grundschulkind ginge wieder durch.
+    CONSTRAINT ck_contracts_branch
+        CHECK ((contract_type = 'school') = (school_branch_id IS NOT NULL)),
     CONSTRAINT fk_contracts_document
         FOREIGN KEY (document_id) REFERENCES documents (document_id),
     CONSTRAINT ck_contracts_type CHECK (contract_type IN ('school', 'care')),
@@ -1071,6 +1098,15 @@ CREATE TABLE contracts (
     -- „Vor der Freigabe entsteht kein Dokument" (08).
     CONSTRAINT ck_contracts_document
         CHECK (document_id IS NULL OR released_at IS NOT NULL),
+    -- Die Urkunde und ihre Prüfsumme stehen zusammen oder gar nicht, und die
+    -- Prüfsumme trägt das Format, das die Änderungsspur liest
+    -- (`ck_contract_texts_checksum`, querschnitt-schema.sql). Ohne es liefen
+    -- zwei im Umlauf — der Bau schrieb den rohen Hexdigest, das Prüfskript
+    -- setzte `sha256:abc` —, und keine Gegenprobe fiele darüber.
+    CONSTRAINT ck_contracts_checksum
+        CHECK ((document_id IS NULL) = (document_checksum IS NULL)
+               AND (document_checksum IS NULL
+                    OR document_checksum ~ '^sha256:[0-9a-f]{64}$')),
     -- 09: „Je Kind ein laufender Hortvertrag, nie zwei nebeneinander." Über den
     -- Zeitraum und nicht über `runs_until`: Zwei freigegebene Hortverträge
     -- desselben Kindes — einer ab dem 1. August bis zum 31. Juli, einer ab dem
@@ -1295,13 +1331,20 @@ CREATE TABLE contract_amendments (
     CONSTRAINT ck_contract_amendments_deed
         CHECK (NOT requires_consent OR completed_at IS NULL OR document_id IS NOT NULL),
     -- Die Prüfsumme gehört zur Urkunde, „damit sich jede spätere Abweichung
-    -- zeigt" (08) — wie an `contracts.document_checksum`.
+    -- zeigt" (08) — Paarung und Format wie an `contracts.document_checksum`.
     CONSTRAINT ck_contract_amendments_checksum
-        CHECK ((document_id IS NULL) = (document_checksum IS NULL)),
+        CHECK ((document_id IS NULL) = (document_checksum IS NULL)
+               AND (document_checksum IS NULL
+                    OR document_checksum ~ '^sha256:[0-9a-f]{64}$')),
     CONSTRAINT ck_contract_amendments_created_by
         CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
+-- Herkunft: 09 (Hortvertrag) — „dieselbe Mail nach jeder freigegebenen
+-- Anpassung mit der neuen Modulanlage; damit hat jeder Vertragspartner seine
+-- Ausfertigung, wie der Vertrag es verlangt". Löschanker: geht mit dem Vertrag
+-- und damit mit dem Kind; „Vertrag, Modulanlagen und Mandat tragen dieselben
+-- Fristen" (09).
 CREATE TABLE care_module_agreements (
     care_module_agreement_id uuid NOT NULL DEFAULT gen_random_uuid(),
     contract_id              uuid NOT NULL,
@@ -1314,12 +1357,22 @@ CREATE TABLE care_module_agreements (
     -- Die Änderungsgebühr erlässt die Hortleitung, „wenn eine
     -- Stundenplanänderung der Anlass ist" — der im Vertrag benannte Fall.
     change_fee_waived        boolean NOT NULL DEFAULT false,
+    -- Die Ausfertigung der Anlage: „eine Unterlage, eine Datei" (08) — sie steht
+    -- als eigene Datei in der Akte und nicht im PDF des Vertrags, den sie nicht
+    -- neu erzeugt. Sie entsteht mit der Freigabe, wie die Urkunde am Vertrag.
+    document_id              uuid,
+    -- „Alle Dokumente, unter denen unterschrieben wird, müssen eine Prüfsumme
+    -- haben" (Geschäftsführung, 04.09.2026); unterschrieben wird diese hier über
+    -- `signatures.care_module_agreement_id` (querschnitt-schema.sql).
+    document_checksum        text,
     created_at               timestamptz NOT NULL DEFAULT now(),
     created_by               text NOT NULL,
 
     CONSTRAINT pk_care_module_agreements PRIMARY KEY (care_module_agreement_id),
     CONSTRAINT fk_care_module_agreements_contract
         FOREIGN KEY (contract_id) REFERENCES contracts (contract_id) ON DELETE CASCADE,
+    CONSTRAINT fk_care_module_agreements_document
+        FOREIGN KEY (document_id) REFERENCES documents (document_id),
     CONSTRAINT ck_care_module_agreements_released
         CHECK ((released_at IS NULL) = (released_by IS NULL)
                AND (released_at IS NULL) = (valid_from IS NULL)),
@@ -1327,6 +1380,15 @@ CREATE TABLE care_module_agreements (
         CHECK (released_by ~ '^(entra:|guardian:|system:)'),
     CONSTRAINT ck_care_module_agreements_period
         CHECK (valid_until IS NULL OR valid_from IS NULL OR valid_until >= valid_from),
+    -- Die Ausfertigung geht erst mit der Freigabe hinaus (09, Schritt 6) — vor
+    -- ihr gibt es nichts abzulegen; dieselbe Regel wie `ck_contracts_document`.
+    CONSTRAINT ck_care_module_agreements_document
+        CHECK (document_id IS NULL OR released_at IS NOT NULL),
+    -- Paarung und Format wie an `contracts.document_checksum`.
+    CONSTRAINT ck_care_module_agreements_checksum
+        CHECK ((document_id IS NULL) = (document_checksum IS NULL)
+               AND (document_checksum IS NULL
+                    OR document_checksum ~ '^sha256:[0-9a-f]{64}$')),
     CONSTRAINT ck_care_module_agreements_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 

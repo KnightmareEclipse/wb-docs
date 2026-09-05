@@ -40,7 +40,10 @@ Vier Stationen, und die Grenze zwischen Zwischenstand und Gültigkeit ist die ga
 5. **Urkunde** — das abgelegte PDF, seine Prüfsumme am Vorgang.
 
 Jede Prüfsumme steht in der Form `sha256:<64 Hexstellen>` — festgelegt und nicht bloß Konvention,
-weil die Änderungsspur sie liest. **Und eine Prüfsumme ohne Leser ist keine Gegenprobe:** Solange
+weil die Änderungsspur sie liest, und von einem `CHECK` je Vorgang erzwungen. **Alle Dokumente,
+unter denen unterschrieben wird, tragen eine** (Geschäftsführung, 04.09.2026): Vertrag, Nachtrag,
+Modulanlage, SEPA-Mandat, Fotoeinverständnis — und der Nachweis der Fotoerlaubnis nimmt sie mit,
+wenn er das Kind überlebt. **Und eine Prüfsumme ohne Leser ist keine Gegenprobe:** Solange
 kein Endpunkt sie ausliefert und kein Lauf sie gegen die Datei hält, ist die Zusage „jede spätere
 Abweichung zeigt sich" (08) nicht gebaut.
 
@@ -70,9 +73,10 @@ hinterlässt ein sichtbares Loch statt einer unsichtbar kaputten Feldeigenschaft
   muss ausdrücklich sein, damit die Paarung reproduzierbar bleibt.
 - **Jeder eingesetzte Wert wird escaped.** Ein `&` oder `<` aus einem Freitextfeld geht sonst roh
   ins Word-XML und macht die Datei ungültig — mitten in einer Freigabe, die daran zurückfällt.
-- **Eine Unterlage, eine Datei** (08). Mitgeltende Anlagen werden nicht angeheftet: Sie gelten „in
-  ihrer jeweils gültigen Fassung", angeheftet wären sie je Vertrag eingefroren. Welche einem
-  Vertrag beiliegen, steht als Zuordnung im System (`schema/querschnitt-schema.sql`,
+- **Eine Unterlage, eine Datei** (08). Mitgeltende Anlagen werden **nicht angeheftet, sondern im
+  Portal bereitgestellt** (Geschäftsführung, 05.09.2026): Sie gelten „in ihrer jeweils gültigen
+  Fassung", angeheftet wären sie je Vertrag eingefroren und eine geänderte erreichte niemanden mehr.
+  Welche einem Vertrag beiliegen, steht als Zuordnung im System (`schema/querschnitt-schema.sql`,
   `contract_kind_attachments`) — der Vertragstext verweist darauf, statt sie mitzuführen, und eine
   neue Fassung erzeugt von dort aus die Mitteilung an die betroffenen Familien.
 
@@ -118,30 +122,34 @@ Anwendung beim Anzeigen wissen muss, ob sie eine Zustimmung festhält:
 
 | Klasse | Beispiele | Was entsteht |
 |---|---|---|
-| `signed` | Schulvertrag, Betreuungsvertrag, SEPA-Mandat, Fotoeinverständnis | Urkunde je Vorgang, Prüfsumme, Unterschriftszeilen |
+| `signed` | Schulvertrag, Betreuungsvertrag, Modulanlage, SEPA-Mandat, Fotoeinverständnis, Gesundheitsblatt | Urkunde je Vorgang, Prüfsumme. Ob sie Unterschriftszeilen trägt, sagt die Vorlage und nicht die Klasse |
 | `agreed` | Teilnahmebedingungen (10), Essensbedingungen (11), Stornobedingungen | keine Datei; der Vorgang merkt sich die Fassung. Ihr Wortlaut wird eingegeben, nicht aus einer Vorlage ausgelesen |
-| `applies` | Betreuungsordnung, Infektionsschutz, Kleiderordnung, die Regeln zu Putzdienst und Elternmitarbeit — die Liste ist offen | nichts am Kind, keine Frist, keine Unterschrift — es gilt „die jeweils gültige Fassung" (09). Eine geänderte Fassung erreicht die Familie trotzdem: als **Mitteilung** (08) |
+| `applies` | die neun Anlagen des Schulvertrags (`prozesse.md` 7.6), dazu die Betreuungsordnung des Hortvertrags (09) | nichts am Kind, keine Frist, keine Unterschrift — es gilt „die jeweils gültige Fassung" (09). Eine geänderte Fassung erreicht die Familie trotzdem: als **Mitteilung** (08) |
 
-Arbeitsfassung und Dokumentart trägt allein `signed`.
+Arbeitsfassung, Dokumentart und Aktenkategorie trägt allein `signed`.
 
 **Zwei Sorten Paket, und sie unterscheiden sich an der Frist** (Geschäftsführung, 04.09.2026): Die
 einen entstehen **je Kind** aus seinen Daten und gehen mit ihnen — Vertrag, SEPA-Mandat,
 Fotoeinverständnis, Gesundheitsblatt. Die anderen sind die **allgemeinen Regeln**, die für alle
-gleich gelten — Betreuungsordnung, Infektionsschutz, Kleiderordnung, die Regeln zu Putzdienst und
-Elternmitarbeit **und weitere; die Liste ist offen und steht im Vertrag, nicht hier** (`backlog/`).
+gleich gelten; **welche es sind, steht im Vertrag und nicht hier** — die neun des Schulvertrags in
+`prozesse.md` 7.6.
 Sie tragen keine Personendaten, entstehen nicht je Kind und haben deshalb auch keine Frist am Kind;
-sie werden **mitgegeben, aber nicht angeheftet** — angeheftet wären sie je Vertrag eingefroren, und
-eine geänderte Fassung erreichte niemanden mehr.
+angeheftet werden sie nicht (oben, „Die Vorlage").
 
-**Zwei Sorten passen heute in keine der drei, und das ist keine Feinheit:** Das **Gesundheitsblatt**
-(`grenzkarte.md`; TASK-226) ist eine erzeugte Datei ohne eigene Unterschrift — es wird von den
-Unterschriften unter dem Vertrag getragen (08). Die **Modulanlage** des Hortvertrags ist
-unterschrieben, wird nach jeder Anpassung neu ausgefertigt und bleibt in der Akte (`09`), hat aber
-weder `document_id` noch Prüfsumme an `care_module_agreements`. Dazu die **Erklärung zur
-Klassenfahrt** (`19`): unterschrieben von allen Sorgeberechtigten und dem Kind, abgelegt in der
-Akte — aber ihre Rahmenbedingungen schreibt die Lehrkraft je Fahrt in eigenen Worten, und damit käme
-ein Satz aus den Daten statt aus der Vorlage. Solange das offen ist, entsteht für diese Sorten keine
-Datei oder eine ohne Anker.
+**Drei Sorten fielen aus diesen drei Klassen heraus, zwei davon nicht mehr:**
+
+- Die **Modulanlage** des Hortvertrags ist `signed` wie der Vertrag: unterschrieben, nach jeder
+  Anpassung neu ausgefertigt, in der Akte (`09`). `care_module_agreements` trägt dafür Datei und
+  Prüfsumme, und die Ausfertigung entsteht mit der Freigabe (`schema/anmeldung-schema.sql`).
+- Das **Gesundheitsblatt** (`grenzkarte.md`; TASK-226) ist ebenfalls `signed`. Die Klasse sagt, dass
+  eine Urkunde je Vorgang samt Prüfsumme entsteht — **nicht**, dass sie Unterschriftszeilen trägt:
+  Die kommen aus der Vorlage, und seine hat keine, weil es von den Unterschriften unter dem Vertrag
+  getragen wird (08). Eine vierte Klasse dafür hieße, jeden Leser zu ändern.
+- Offen bleibt allein die **Erklärung zur Klassenfahrt** (`19`): unterschrieben von allen
+  Sorgeberechtigten und dem Kind, abgelegt in der Akte — aber ihre Rahmenbedingungen schreibt die
+  Lehrkraft je Fahrt in eigenen Worten, und damit käme ein Satz aus den Daten statt aus der Vorlage.
+  Dazu eine eigene Frist ab Fahrtende. Sie hängt an der Domäne der Veranstaltungen, die noch nicht
+  gebaut ist (`backlog/`).
 
 ## Rendern: eine Funktion, mehrere Aufrufer
 
@@ -228,10 +236,11 @@ Drei Ebenen, und nur die erste ist wirklich frei von Bau:
 - **Eine neue Dokumentsorte** ist ein **Griff in der internen Oberfläche**, keine Migration: Sorte,
   Dokumentart und Aktenkategorie entstehen zusammen, dazu die Vorlage. Das folgt `rules.md` §2 —
   organisatorische Werte werden über die Verwaltungsoberfläche gepflegt und erzwingen keinen
-  Codetouch. Was heute noch fehlt, steht als Ticket in `backlog/`: die Aktenkategorie an der Sorte
-  und der Griff selbst; bis dahin ist auch diese Ebene ein Bau, und die Datei landet im falschen
-  Unterordner — nicht mit falscher Frist, die trägt ihr Vorgang, sondern am falschen Platz in der
-  Akte.
+  Codetouch. Die Aktenkategorie steht dafür an der Sorte
+  (`contract_text_kinds.child_file_category_id`); was noch fehlt, steht als Ticket in `backlog/`:
+  der Griff selbst und der Leser der Spalte. Bis dahin verdrahtet der Anwendungscode den
+  Unterordner, und die Datei landet am falschen Platz in der Akte — nicht mit falscher Frist, die
+  trägt ihr Vorgang.
 
   **Ein Griff und nicht drei Pflegeseiten.** Drei getrennte Wertelisten-Masken ließen eine halbe
   Sorte zu — eine Sorte ohne Dokumentart, eine Kategorie ohne Bestand. Dieselbe Bauform wie
