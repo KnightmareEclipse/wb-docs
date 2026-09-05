@@ -163,8 +163,10 @@ CREATE TABLE academy_offerings (
     -- (grenzkarte.md, „Drei Zustände"): freigegeben, mit einem Satz
     -- zurückgegeben, oder noch nicht entschieden. Wer zurückgegeben bekommt,
     -- legt geändert wieder vor — dann wird `returned_at` geleert. Ist die
-    -- Freigabe abgeschaltet (`configured_values`, ein Wert im System und kein
-    -- fest verdrahteter Schritt), setzt sie der Lauf selbst mit `system:`.
+    -- Freigabe abgeschaltet — `academy_approval_required` in
+    -- `configured_values` (querschnitt-schema.sql), „ein Wert im System, kein
+    -- fest verdrahteter Schritt" (Betreiber, 03.09.2026) —, setzt sie der Lauf
+    -- selbst mit `system:`.
     -- „Sie erfährt davon als Aufgabe" (21 Z2) — die Aufgabe ist keine Zeile in
     -- `sync_tasks`, sondern folgt aus diesen beiden Spalten: offen ist, was
     -- weder freigegeben noch zurückgegeben ist. Dieselbe Form wie die beiden

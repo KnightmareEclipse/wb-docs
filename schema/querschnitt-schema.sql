@@ -1758,7 +1758,7 @@ CREATE TABLE configured_values (
     -- „care_sibling_discount_basis_points", „care_change_fee_cents",
     -- „parent_work_monthly_cents", „parent_work_hours_primary",
     -- „parent_work_hours_default",
-    -- „meal_single_amount_cents"). Jeder von ihnen ist von der
+    -- „meal_single_amount_cents", „academy_approval_required"). Jeder von ihnen ist von der
     -- Geschäftsführung änderbar und trägt seinen Gültigkeitstag; im Code steht
     -- nur der Code, nie die Zahl.
     -- „expense_report_threshold_cents" ist die Meldegrenze der
@@ -1775,6 +1775,13 @@ CREATE TABLE configured_values (
     -- Betreuungskosten (derzeit 1000, also 10 %); gerechnet wird sie nicht hier,
     -- siehe `care_module_prices` in anmeldung-schema.sql. Von der
     -- Notfallbetreuung nimmt der Betreuungsvertrag sie ausdrücklich aus.
+    -- „academy_approval_required" ist der einzige Schalter darunter: 1 heißt
+    -- „jedes Angebot braucht seine Freigabe", 0 heißt „dann gilt jedes Angebot
+    -- als angenommen" (21; Betreiber, 03.09.2026: „ein Wert im System, kein fest
+    -- verdrahteter Schritt"). Er steht hier und nicht als Spalte, weil er
+    -- dieselbe Mechanik braucht wie jeder Betrag — Gültigkeitstag und
+    -- Änderungsspur. **Keine Zeile heißt „Freigabe nötig"**: Der sichere Ausfall
+    -- ist der Schritt, den 21 vorsieht, und nicht sein Wegfall.
     -- „meal_single_amount_cents" ist das einzelne Mittagessen ohne Abo, derzeit
     -- 5,90 € je Fall. Es fällt an, wo ein Fall der Notfallbetreuung über Mittag
     -- reicht (anmeldung-schema.sql), und steht hier statt in `meal_prices`
@@ -1813,8 +1820,9 @@ CREATE TABLE configured_values (
     -- ein Datum wie jedes andere und kein eigener Constraint.
     code                text NOT NULL,
     valid_from          date NOT NULL,
-    -- Trägt Beträge in Cent ebenso wie Stückzahlen; welche Einheit gilt, sagt
-    -- der Code. Ein zweiter Typ daneben wäre eine Spalte, die immer leer ist.
+    -- Trägt Beträge in Cent ebenso wie Stückzahlen und beim einen Schalter ein
+    -- Ja oder Nein; welche Einheit gilt, sagt der Code. Ein zweiter Typ daneben
+    -- wäre eine Spalte, die immer leer ist.
     value               integer NOT NULL,
     created_at          timestamptz NOT NULL DEFAULT now(),
     created_by          text NOT NULL,

@@ -599,6 +599,15 @@ SELECT pg_temp.expect_reject(
     $q$UPDATE academy_offerings SET approved_at = now(), approved_by = 'die Chefin'
         WHERE academy_offering_id = '55555555-5555-5555-5555-555555555502'$q$);
 
+-- 21: „Die Freigabe lässt sich außerdem abschalten — dann gilt jedes Angebot
+-- als angenommen." Sie ist ein Wert im System wie jeder Betrag und trägt ihren
+-- Gültigkeitstag; keine Zeile heißt „Freigabe nötig".
+SELECT pg_temp.expect_accept(
+    '21 — der Abschalter der Freigabe als Wert im System',
+    $q$INSERT INTO configured_values (code, valid_from, value, created_by)
+       VALUES ('academy_approval_required', DATE '2026-09-01', 0,
+               'entra:geschaeftsfuehrung')$q$);
+
 -- „ein abgesagtes Angebot bleibt sichtbar stehen … samt Grund in einem Satz".
 SELECT pg_temp.expect_reject(
     '21 — abgesagtes Angebot ohne Grund',
