@@ -38,7 +38,8 @@ BEGIN
         'fk_travel_details_claim', 'fk_expense_claim_attachments_claim',
         'uq_expense_claims_number', 'uq_travel_details', 'uq_expense_claims_amount',
         'ck_travel_details_amount',
-        'uq_expense_claim_attachments', 'uq_claim_template_shares', 'uq_payees_name',
+        'uq_expense_claim_attachments', 'ck_expense_claim_attachments_item',
+        'uq_claim_template_shares', 'uq_payees_name',
         'ck_expense_claims_submitter', 'ck_expense_claim_items_approver',
         'ck_expense_claims_type', 'fk_expense_claims_route',
         'uq_payment_routes_traits',
@@ -686,6 +687,14 @@ SELECT pg_temp.expect_accept(
 INSERT INTO expense_claim_attachments (expense_claim_id, sharepoint_library_id,
                                        graph_item_id, created_by)
     VALUES ('66666666-6666-6666-6666-666666666661', 1, '01BELEG', 'system:check');
+-- Die Graph-Kennung ist die einzige Spur zur Datei; ein Leerstring zeigt auf
+-- nichts. Wie an `documents`, `child_file_folders` und `photo_consent_records`.
+SELECT pg_temp.expect_reject(
+    '12 — Anhang ohne Datei dahinter',
+    $q$INSERT INTO expense_claim_attachments (expense_claim_id, sharepoint_library_id,
+                                              graph_item_id, created_by)
+       VALUES ('66666666-6666-6666-6666-666666666661', 1, '', 'system:check')$q$);
+
 SELECT pg_temp.expect_reject(
     '12 — dieselbe Datei ein zweites Mal an demselben Beleg',
     $q$INSERT INTO expense_claim_attachments (expense_claim_id, sharepoint_library_id,

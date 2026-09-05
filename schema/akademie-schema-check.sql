@@ -71,7 +71,8 @@ BEGIN
         'pk_academy_offering_lunch_days', 'fk_academy_offering_lunch_days_offering',
         'ck_academy_offering_lunch_days_period',
         'ck_academy_offering_lunch_days_created_by',
-        'uq_academy_cost_coverage_codes_id_offering', 'fk_academy_offerings_terms',
+        'uq_academy_cost_coverage_codes_id_offering',
+        'ck_academy_cost_coverage_codes_hash', 'fk_academy_offerings_terms',
         'fk_payments_academy_registration', 'fk_sync_tasks_academy_registration'
     ]) AS c
     WHERE NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = c);
@@ -813,6 +814,16 @@ INSERT INTO academy_cost_coverage_codes (academy_cost_coverage_code_id,
     VALUES ('77777777-7777-7777-7777-777777777701',
             '55555555-5555-5555-5555-555555555501', 'familie@example.org', 'x',
             'Jugendamt Musterkreis', 'entra:sekretariat');
+
+-- Der Hash ist die einzige Spur zum Code; leer trifft ihn jeder leere
+-- Vergleich. Dieselbe Probe wie an `holiday_cost_coverage_codes`
+-- (ferien-schema-check.sql).
+SELECT pg_temp.expect_reject(
+    '21 — Kostenübernahme-Code ohne Hash',
+    $q$INSERT INTO academy_cost_coverage_codes (academy_offering_id, email, code_hash,
+                                               invoice_note, created_by)
+       VALUES ('55555555-5555-5555-5555-555555555501', 'familie@example.org', '',
+               'Jugendamt Musterkreis', 'entra:sekretariat')$q$);
 
 SELECT pg_temp.expect_reject(
     '21 — online bezahlte Anmeldung mit Kostenübernahme-Code',

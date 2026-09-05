@@ -87,7 +87,7 @@ BEGIN
         'pk_alumni', 'fk_alumni_person', 'fk_alumni_kind', 'fk_alumni_branch',
         'uq_alumni_person_kind', 'ck_alumni_exit_year', 'ck_alumni_exit_year_range',
         'ck_alumni_school_branch', 'ck_alumni_kinds_created_by',
-        'ck_login_codes_purpose', 'ck_login_codes_attempts',
+        'ck_login_codes_purpose', 'ck_login_codes_attempts', 'ck_login_codes_hash',
         'fk_login_codes_person', 'ck_login_codes_person',
         'uq_login_sessions_token_hash', 'fk_login_sessions_person',
         'ck_login_sessions_email',
@@ -687,6 +687,11 @@ SELECT pg_temp.expect_accept(
     'hebel.md — Anmeldecode, dessen Ablauf allein aus created_at folgt',
     $q$INSERT INTO login_codes (email, code_hash, purpose)
        VALUES ('a@example.org', 'x', 'login')$q$);
+
+SELECT pg_temp.expect_reject(
+    'hebel.md — Anmeldecode ohne Hash',
+    $q$INSERT INTO login_codes (email, code_hash, purpose)
+       VALUES ('a@example.org', '', 'login')$q$);
 
 SELECT pg_temp.expect_reject(
     'hebel.md — Anmeldecode mit unbekanntem Anlass',

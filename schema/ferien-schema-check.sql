@@ -292,6 +292,15 @@ INSERT INTO holiday_cost_coverage_codes (holiday_cost_coverage_code_id, holiday_
     VALUES ('77777777-7777-7777-7777-777777777771', 1, 'familie@example.org', 'x',
             'Jugendamt Musterkreis', 'entra:sekretariat');
 
+-- 10: „Sekretariat oder Hortleitung erzeugt einen Kostenübernahme-Code" — kein
+-- Block gibt ihn den Eltern in die Hand.
+SELECT pg_temp.expect_reject(
+    '10 — Kostenübernahme-Code, von Eltern ausgestellt',
+    $q$INSERT INTO holiday_cost_coverage_codes (holiday_programme_id, email, code_hash,
+                                               invoice_note, created_by)
+       VALUES (1, 'familie@example.org', 'y', 'Jugendamt Musterkreis',
+               'guardian:familie@example.org')$q$);
+
 SELECT pg_temp.expect_reject(
     '10 — online bezahlte Buchung mit Kostenübernahme-Code',
     $q$UPDATE holiday_bookings

@@ -586,6 +586,11 @@ CREATE TABLE expense_claim_attachments (
     -- dem ohnehin nichts von selbst verschwindet, dieselbe Handarbeit wie beim
     -- Rest.
     CONSTRAINT uq_expense_claim_attachments UNIQUE (sharepoint_library_id, graph_item_id),
+    -- Wie an `documents`, `child_file_folders` und `photo_consent_records`: Die
+    -- Spalte ist die einzige Spur zur Datei, und ein Leerstring zeigt auf
+    -- nichts. Ohne den CHECK ginge der erste Anhang ohne Datei durch, und erst
+    -- der zweite fiele an `uq_expense_claim_attachments`.
+    CONSTRAINT ck_expense_claim_attachments_item CHECK (graph_item_id <> ''),
     CONSTRAINT ck_expense_claim_attachments_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 

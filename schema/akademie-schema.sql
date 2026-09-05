@@ -401,6 +401,7 @@ CREATE TABLE academy_cost_coverage_codes (
     CONSTRAINT uq_academy_cost_coverage_codes_id_offering
         UNIQUE (academy_cost_coverage_code_id, academy_offering_id),
     CONSTRAINT ck_academy_cost_coverage_codes_email CHECK (email <> ''),
+    CONSTRAINT ck_academy_cost_coverage_codes_hash  CHECK (code_hash <> ''),
     CONSTRAINT ck_academy_cost_coverage_codes_note  CHECK (invoice_note <> ''),
     CONSTRAINT ck_academy_cost_coverage_codes_created_by
         CHECK (created_by ~ '^(entra:|system:)')

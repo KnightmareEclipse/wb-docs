@@ -49,8 +49,8 @@ BEGIN
         'uq_cleaning_cycles_year', 'uq_cleaning_assignments',
         'uq_cleaning_cycle_quotas', 'uq_cleaning_family_quotas',
         'uq_cleaning_slot_buyouts',
-        'uq_cleaning_swap_acceptances', 'uq_cleaning_slots_id_type',
-        'uq_cleaning_assignments_id_type', 'uq_cleaning_swap_offers_id_type',
+        'uq_cleaning_swap_acceptances', 'uq_cleaning_slots_id_cycle_type',
+        'uq_cleaning_assignments_id_cycle_type', 'uq_cleaning_swap_offers_id_cycle_type',
         'fk_cleaning_assignments_slot', 'fk_cleaning_swap_offers_assignment',
         'fk_cleaning_swap_acceptances_offer', 'fk_cleaning_swap_acceptances_slot',
         'ck_cleaning_cycles_window', 'ck_cleaning_cycles_allocated',
@@ -138,12 +138,12 @@ INSERT INTO cleaning_slots (cleaning_slot_id, cleaning_cycle_id, cleaning_slot_t
     ('88888888-8888-8888-8888-888888888883', 1, 2, TIMESTAMPTZ '2027-07-24 09:00+02', 'system:check');
 
 INSERT INTO cleaning_assignments (cleaning_assignment_id, cleaning_slot_id,
-                                  cleaning_slot_type_id, family_id, source, created_by)
+                                  cleaning_cycle_id, cleaning_slot_type_id, family_id, source, created_by)
     VALUES ('99999999-9999-9999-9999-999999999991',
-            '88888888-8888-8888-8888-888888888881', 1,
+            '88888888-8888-8888-8888-888888888881', 1, 1,
             '33333333-3333-3333-3333-333333333331', 'reserved', 'system:check'),
            ('99999999-9999-9999-9999-999999999992',
-            '88888888-8888-8888-8888-888888888882', 1,
+            '88888888-8888-8888-8888-888888888882', 1, 1,
             '33333333-3333-3333-3333-333333333332', 'allocated', 'system:check');
 
 -- ---------------------------------------------------------------------------
@@ -153,16 +153,16 @@ INSERT INTO cleaning_assignments (cleaning_assignment_id, cleaning_slot_id,
 -- 01: „keine Familie zweimal am selben Termin".
 SELECT pg_temp.expect_reject(
     '01 — dieselbe Familie zweimal am selben Termin',
-    $q$INSERT INTO cleaning_assignments (cleaning_slot_id, cleaning_slot_type_id,
+    $q$INSERT INTO cleaning_assignments (cleaning_slot_id, cleaning_cycle_id, cleaning_slot_type_id,
                                         family_id, source, created_by)
-       VALUES ('88888888-8888-8888-8888-888888888881', 1,
+       VALUES ('88888888-8888-8888-8888-888888888881', 1, 1,
                '33333333-3333-3333-3333-333333333331', 'allocated', 'system:check')$q$);
 
 SELECT pg_temp.expect_reject(
     '01 — unbekannte Herkunft einer Zuteilung',
-    $q$INSERT INTO cleaning_assignments (cleaning_slot_id, cleaning_slot_type_id,
+    $q$INSERT INTO cleaning_assignments (cleaning_slot_id, cleaning_cycle_id, cleaning_slot_type_id,
                                         family_id, source, created_by)
-       VALUES ('88888888-8888-8888-8888-888888888883', 2,
+       VALUES ('88888888-8888-8888-8888-888888888883', 1, 2,
                '33333333-3333-3333-3333-333333333331', 'imported', 'system:check')$q$);
 
 -- grenzkarte.md, „Drei Zustände": eine Strafe wird nur erlassen, wo sie besteht.
@@ -225,9 +225,9 @@ SELECT pg_temp.expect_reject(
 SELECT pg_temp.expect_accept(
     '01 — ein Termin ohne Freikauf lässt sich streichen',
     $q$INSERT INTO cleaning_assignments (cleaning_assignment_id, cleaning_slot_id,
-                                        cleaning_slot_type_id, family_id, source, created_by)
+                                        cleaning_cycle_id, cleaning_slot_type_id, family_id, source, created_by)
        VALUES ('99999999-9999-9999-9999-999999999993',
-               '88888888-8888-8888-8888-888888888883', 2,
+               '88888888-8888-8888-8888-888888888883', 1, 2,
                '33333333-3333-3333-3333-333333333331', 'manual', 'system:check');
        DELETE FROM cleaning_assignments
         WHERE cleaning_assignment_id = '99999999-9999-9999-9999-999999999993'$q$);
@@ -346,14 +346,14 @@ SELECT pg_temp.expect_accept(
 
 -- 01: „je Termin aber nur ein Angebot".
 INSERT INTO cleaning_swap_offers (cleaning_swap_offer_id, cleaning_assignment_id,
-                                  cleaning_slot_type_id, created_by)
+                                  cleaning_cycle_id, cleaning_slot_type_id, created_by)
     VALUES ('cccccccc-cccc-cccc-cccc-ccccccccccc1',
-            '99999999-9999-9999-9999-999999999991', 1, 'system:check');
+            '99999999-9999-9999-9999-999999999991', 1, 1, 'system:check');
 SELECT pg_temp.expect_reject(
     '01 — zweites Tauschangebot zu demselben Termin',
-    $q$INSERT INTO cleaning_swap_offers (cleaning_assignment_id, cleaning_slot_type_id,
+    $q$INSERT INTO cleaning_swap_offers (cleaning_assignment_id, cleaning_cycle_id, cleaning_slot_type_id,
                                         created_by)
-       VALUES ('99999999-9999-9999-9999-999999999991', 1, 'system:check')$q$);
+       VALUES ('99999999-9999-9999-9999-999999999991', 1, 1, 'system:check')$q$);
 
 -- 01: „je Termin aber nur ein Angebot" ist eine Aussage über die offenen. Ein
 -- vollzogenes bleibt stehen („danach ist das Angebot verbraucht") und darf den
@@ -364,14 +364,14 @@ UPDATE cleaning_swap_offers SET matched_at = now()
 SELECT pg_temp.expect_accept(
     '01 — zweites Angebot zu demselben Termin, nachdem das erste vollzogen ist',
     $q$INSERT INTO cleaning_swap_offers (cleaning_swap_offer_id, cleaning_assignment_id,
-                                        cleaning_slot_type_id, created_by)
+                                        cleaning_cycle_id, cleaning_slot_type_id, created_by)
        VALUES ('cccccccc-cccc-cccc-cccc-ccccccccccc2',
-               '99999999-9999-9999-9999-999999999991', 1, 'system:check')$q$);
+               '99999999-9999-9999-9999-999999999991', 1, 1, 'system:check')$q$);
 SELECT pg_temp.expect_reject(
     '01 — drittes Angebot, solange das zweite offen steht',
-    $q$INSERT INTO cleaning_swap_offers (cleaning_assignment_id, cleaning_slot_type_id,
+    $q$INSERT INTO cleaning_swap_offers (cleaning_assignment_id, cleaning_cycle_id, cleaning_slot_type_id,
                                         created_by)
-       VALUES ('99999999-9999-9999-9999-999999999991', 1, 'system:check')$q$);
+       VALUES ('99999999-9999-9999-9999-999999999991', 1, 1, 'system:check')$q$);
 DELETE FROM cleaning_swap_offers
  WHERE cleaning_swap_offer_id = 'cccccccc-cccc-cccc-cccc-ccccccccccc2';
 UPDATE cleaning_swap_offers SET matched_at = NULL
@@ -381,20 +381,20 @@ UPDATE cleaning_swap_offers SET matched_at = NULL
 -- (rules.md Abschnitt 1).
 SELECT pg_temp.expect_reject(
     '01 — Angebot, das seinen regulären Termin als Großputz ausgibt',
-    $q$INSERT INTO cleaning_swap_offers (cleaning_assignment_id, cleaning_slot_type_id,
+    $q$INSERT INTO cleaning_swap_offers (cleaning_assignment_id, cleaning_cycle_id, cleaning_slot_type_id,
                                         created_by)
-       VALUES ('99999999-9999-9999-9999-999999999992', 2, 'system:check')$q$);
+       VALUES ('99999999-9999-9999-9999-999999999992', 1, 2, 'system:check')$q$);
 
 INSERT INTO cleaning_swap_acceptances (cleaning_swap_offer_id, cleaning_slot_id,
-                                       cleaning_slot_type_id, created_by)
+                                       cleaning_cycle_id, cleaning_slot_type_id, created_by)
     VALUES ('cccccccc-cccc-cccc-cccc-ccccccccccc1',
-            '88888888-8888-8888-8888-888888888882', 1, 'system:check');
+            '88888888-8888-8888-8888-888888888882', 1, 1, 'system:check');
 SELECT pg_temp.expect_reject(
     '01 — derselbe fremde Termin zweimal angekreuzt',
     $q$INSERT INTO cleaning_swap_acceptances (cleaning_swap_offer_id, cleaning_slot_id,
-                                             cleaning_slot_type_id, created_by)
+                                             cleaning_cycle_id, cleaning_slot_type_id, created_by)
        VALUES ('cccccccc-cccc-cccc-cccc-ccccccccccc1',
-               '88888888-8888-8888-8888-888888888882', 1, 'system:check')$q$);
+               '88888888-8888-8888-8888-888888888882', 1, 1, 'system:check')$q$);
 
 -- P1 — 01: „Getauscht wird eins zu eins, nur gegen einen bestehenden Termin
 -- derselben Art." Das Angebot steht über einem regulären Termin; der Großputz
@@ -403,16 +403,59 @@ SELECT pg_temp.expect_reject(
 SELECT pg_temp.expect_reject(
     '01 — Großputz an einem Angebot über einen regulären Termin',
     $q$INSERT INTO cleaning_swap_acceptances (cleaning_swap_offer_id, cleaning_slot_id,
-                                             cleaning_slot_type_id, created_by)
+                                             cleaning_cycle_id, cleaning_slot_type_id, created_by)
        VALUES ('cccccccc-cccc-cccc-cccc-ccccccccccc1',
-               '88888888-8888-8888-8888-888888888883', 2, 'system:check')$q$);
+               '88888888-8888-8888-8888-888888888883', 1, 2, 'system:check')$q$);
 
 SELECT pg_temp.expect_reject(
     '01 — Großputz, als reguläre Art ausgegeben',
     $q$INSERT INTO cleaning_swap_acceptances (cleaning_swap_offer_id, cleaning_slot_id,
-                                             cleaning_slot_type_id, created_by)
+                                             cleaning_cycle_id, cleaning_slot_type_id, created_by)
        VALUES ('cccccccc-cccc-cccc-cccc-ccccccccccc1',
-               '88888888-8888-8888-8888-888888888883', 1, 'system:check')$q$);
+               '88888888-8888-8888-8888-888888888883', 1, 1, 'system:check')$q$);
+
+-- 01, Z4: „jede Familie hat exakt so viele Termine je Art, wie sie in diesem
+-- Putzdienstjahr leisten muss." Im Monat Puffer laufen das alte und das neue
+-- Putzdienstjahr nebeneinander; ohne den mitgeführten Zyklus ließe sich ein
+-- Termin des einen gegen einen des anderen tauschen, und eine Pflicht
+-- wechselte das Jahr. Dieselbe Bauform wie bei der Art, dieselben drei Proben.
+INSERT INTO cleaning_cycles (cleaning_cycle_id, start_year, registration_opens_at,
+                             registration_closes_at, created_by)
+    OVERRIDING SYSTEM VALUE
+    VALUES (2, 2027, TIMESTAMPTZ '2027-09-01 08:00+02',
+            TIMESTAMPTZ '2027-09-20 23:59+02', 'system:check');
+INSERT INTO cleaning_slots (cleaning_slot_id, cleaning_cycle_id, cleaning_slot_type_id,
+                            starts_at, created_by)
+    VALUES ('88888888-8888-8888-8888-888888888887', 2, 1,
+            TIMESTAMPTZ '2027-10-09 09:00+02', 'system:check');
+
+SELECT pg_temp.expect_reject(
+    '01 — Kreuz auf einen Termin des nächsten Putzdienstjahres',
+    $q$INSERT INTO cleaning_swap_acceptances (cleaning_swap_offer_id, cleaning_slot_id,
+                                             cleaning_cycle_id, cleaning_slot_type_id, created_by)
+       VALUES ('cccccccc-cccc-cccc-cccc-ccccccccccc1',
+               '88888888-8888-8888-8888-888888888887', 2, 1, 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    '01 — derselbe Termin, als eigenes Putzdienstjahr ausgegeben',
+    $q$INSERT INTO cleaning_swap_acceptances (cleaning_swap_offer_id, cleaning_slot_id,
+                                             cleaning_cycle_id, cleaning_slot_type_id, created_by)
+       VALUES ('cccccccc-cccc-cccc-cccc-ccccccccccc1',
+               '88888888-8888-8888-8888-888888888887', 1, 1, 'system:check')$q$);
+
+-- Das mitgeführte Jahr gehört dem eigenen Termin: ein geliehenes gibt es nicht
+-- (rules.md Abschnitt 1). Eine andere Familie, damit allein
+-- `fk_cleaning_assignments_slot` abweisen kann.
+SELECT pg_temp.expect_reject(
+    '01 — Zuteilung, die ihren Termin dem nächsten Putzdienstjahr zuschreibt',
+    $q$INSERT INTO cleaning_assignments (cleaning_slot_id, cleaning_cycle_id,
+                                        cleaning_slot_type_id, family_id, source, created_by)
+       VALUES ('88888888-8888-8888-8888-888888888881', 2, 1,
+               '33333333-3333-3333-3333-333333333332', 'allocated', 'system:check')$q$);
+
+-- Wieder weg: der Jahreslauf unten räumt Zyklus 1, und die Probe auf das
+-- verkehrte Anmeldefenster braucht das Jahr 2027 für sich.
+DELETE FROM cleaning_cycles WHERE cleaning_cycle_id = 2;
 
 -- „hakt in der Liste der angebotenen Termine derselben Art alle an, die sie
 -- dafür nehmen würde" — mehrere Zieltermine bleiben erlaubt, solange die Art
@@ -424,9 +467,9 @@ INSERT INTO cleaning_slots (cleaning_slot_id, cleaning_cycle_id, cleaning_slot_t
 SELECT pg_temp.expect_accept(
     '01 — mehrere angekreuzte Zieltermine derselben Art an einem Angebot',
     $q$INSERT INTO cleaning_swap_acceptances (cleaning_swap_offer_id, cleaning_slot_id,
-                                             cleaning_slot_type_id, created_by)
+                                             cleaning_cycle_id, cleaning_slot_type_id, created_by)
        VALUES ('cccccccc-cccc-cccc-cccc-ccccccccccc1',
-               '88888888-8888-8888-8888-888888888884', 1, 'system:check')$q$);
+               '88888888-8888-8888-8888-888888888884', 1, 1, 'system:check')$q$);
 
 -- 01, Schritt 8: „eine Familie kann keinen Termin annehmen, an dem sie schon
 -- steht". Die Regel steht bewusst nicht als Constraint an der Annahme — sie ist
@@ -438,16 +481,16 @@ INSERT INTO cleaning_slots (cleaning_slot_id, cleaning_cycle_id, cleaning_slot_t
                             starts_at, created_by)
     VALUES ('88888888-8888-8888-8888-888888888885', 1, 1,
             TIMESTAMPTZ '2027-02-20 09:00+01', 'system:check');
-INSERT INTO cleaning_assignments (cleaning_slot_id, cleaning_slot_type_id,
+INSERT INTO cleaning_assignments (cleaning_slot_id, cleaning_cycle_id, cleaning_slot_type_id,
                                   family_id, source, created_by)
-    VALUES ('88888888-8888-8888-8888-888888888885', 1,
+    VALUES ('88888888-8888-8888-8888-888888888885', 1, 1,
             '33333333-3333-3333-3333-333333333331', 'allocated', 'system:check');
 SELECT pg_temp.expect_accept(
     '01 — Kreuz an einem Termin, an dem die Familie schon steht (Anwendung)',
     $q$INSERT INTO cleaning_swap_acceptances (cleaning_swap_offer_id, cleaning_slot_id,
-                                             cleaning_slot_type_id, created_by)
+                                             cleaning_cycle_id, cleaning_slot_type_id, created_by)
        VALUES ('cccccccc-cccc-cccc-cccc-ccccccccccc1',
-               '88888888-8888-8888-8888-888888888885', 1, 'system:check')$q$);
+               '88888888-8888-8888-8888-888888888885', 1, 1, 'system:check')$q$);
 SELECT pg_temp.expect_reject(
     '01 — der vollzogene Tausch stellte die Familie zweimal an denselben Termin',
     $q$UPDATE cleaning_assignments
@@ -641,11 +684,11 @@ SELECT pg_temp.expect_accept(
     '01 — mehr Familien an einem Termin, als seine Platzzahl vorsieht',
     $q$UPDATE cleaning_slots SET capacity_override = 1
          WHERE cleaning_slot_id = '88888888-8888-8888-8888-888888888883';
-       INSERT INTO cleaning_assignments (cleaning_slot_id, cleaning_slot_type_id,
+       INSERT INTO cleaning_assignments (cleaning_slot_id, cleaning_cycle_id, cleaning_slot_type_id,
                                          family_id, source, created_by)
-       VALUES ('88888888-8888-8888-8888-888888888883', 2,
+       VALUES ('88888888-8888-8888-8888-888888888883', 1, 2,
                '33333333-3333-3333-3333-333333333331', 'allocated', 'system:check'),
-              ('88888888-8888-8888-8888-888888888883', 2,
+              ('88888888-8888-8888-8888-888888888883', 1, 2,
                '33333333-3333-3333-3333-333333333332', 'allocated', 'system:check')$q$);
 
 -- ---------------------------------------------------------------------------

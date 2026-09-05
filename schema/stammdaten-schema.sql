@@ -1173,6 +1173,9 @@ CREATE TABLE login_codes (
     CONSTRAINT fk_login_codes_person
         FOREIGN KEY (person_id) REFERENCES persons (person_id) ON DELETE CASCADE,
     CONSTRAINT ck_login_codes_email   CHECK (email <> ''),
+    -- Wie an `holiday_cost_coverage_codes` (ferien-schema.sql): Eine Zeile mit
+    -- leerem Hash ist ein Code, gegen den jeder leere Vergleich trifft.
+    CONSTRAINT ck_login_codes_hash    CHECK (code_hash <> ''),
     CONSTRAINT ck_login_codes_purpose CHECK (purpose IN ('login', 'email_confirmation')),
     -- Die Bestätigung hat immer eine Person, die Anmeldung nie.
     CONSTRAINT ck_login_codes_person

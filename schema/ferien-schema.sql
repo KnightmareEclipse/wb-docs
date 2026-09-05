@@ -337,7 +337,11 @@ CREATE TABLE holiday_cost_coverage_codes (
     CONSTRAINT ck_holiday_cost_coverage_codes_email  CHECK (email <> ''),
     CONSTRAINT ck_holiday_cost_coverage_codes_hash   CHECK (code_hash <> ''),
     CONSTRAINT ck_holiday_cost_coverage_codes_note   CHECK (invoice_note <> ''),
-    CONSTRAINT ck_holiday_cost_coverage_codes_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
+    -- Ausstellen darf ihn nur die Schule: „Sekretariat oder Hortleitung erzeugt
+    -- einen Kostenübernahme-Code" (10) — ein `guardian:` steht in keinem der
+    -- beiden Blöcke, die den Code kennen, und `academy_cost_coverage_codes`
+    -- (akademie-schema.sql) zieht dieselbe Grenze.
+    CONSTRAINT ck_holiday_cost_coverage_codes_created_by CHECK (created_by ~ '^(entra:|system:)')
 );
 
 -- Ein nicht eingelöster Code wird nach seiner Frist gelöscht, ein eingelöster

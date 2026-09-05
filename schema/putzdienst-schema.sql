@@ -173,8 +173,11 @@ CREATE TABLE cleaning_slots (
     CONSTRAINT fk_cleaning_slots_sheet_library
         FOREIGN KEY (attendance_sheet_library_id)
         REFERENCES sharepoint_libraries (sharepoint_library_id),
-    -- Trägt den zusammengesetzten Fremdschlüssel des Tauschs weiter unten.
-    CONSTRAINT uq_cleaning_slots_id_type UNIQUE (cleaning_slot_id, cleaning_slot_type_id),
+    -- Trägt die zusammengesetzten Fremdschlüssel von Zuteilung und Tausch
+    -- weiter unten: Über ihn erben beide Zyklus und Art des Termins, an dem sie
+    -- hängen (rules.md Abschnitt 1).
+    CONSTRAINT uq_cleaning_slots_id_cycle_type
+        UNIQUE (cleaning_slot_id, cleaning_cycle_id, cleaning_slot_type_id),
     CONSTRAINT ck_cleaning_slots_capacity CHECK (capacity_override > 0),
     CONSTRAINT ck_cleaning_slots_note     CHECK (note <> ''),
 
@@ -284,8 +287,16 @@ CREATE TABLE cleaning_buyouts (
 CREATE TABLE cleaning_assignments (
     cleaning_assignment_id uuid NOT NULL DEFAULT gen_random_uuid(),
     cleaning_slot_id       uuid NOT NULL,
+    -- Das Putzdienstjahr des Termins, hier mitgeführt, damit der Tausch weiter
+    -- unten nicht über die Jahresgrenze geht: „jede Familie hat exakt so viele
+    -- Termine je Art, wie sie in diesem Putzdienstjahr leisten muss" (01) —
+    -- ohne den Zyklus ließe sich ein Septembertermin des alten Jahres gegen
+    -- einen Oktobertermin des neuen tauschen, und eine Pflicht des einen Jahres
+    -- landete im anderen. Die beiden laufen im Monat Puffer nebeneinander, der
+    -- Fall ist also der Normalbetrieb und kein konstruierter Rand.
+    cleaning_cycle_id      integer NOT NULL,
     -- Die Art des Termins, hier mitgeführt, damit der Tausch weiter unten sie
-    -- ohne Umweg sieht; `fk_cleaning_assignments_slot` hält sie mit dem Termin
+    -- ohne Umweg sieht; `fk_cleaning_assignments_slot` hält beide mit dem Termin
     -- zusammen (rules.md Abschnitt 1).
     cleaning_slot_type_id  integer NOT NULL,
     family_id              uuid NOT NULL,
@@ -308,11 +319,12 @@ CREATE TABLE cleaning_assignments (
 
     CONSTRAINT pk_cleaning_assignments PRIMARY KEY (cleaning_assignment_id),
     CONSTRAINT fk_cleaning_assignments_slot
-        FOREIGN KEY (cleaning_slot_id, cleaning_slot_type_id)
-        REFERENCES cleaning_slots (cleaning_slot_id, cleaning_slot_type_id) ON DELETE CASCADE,
+        FOREIGN KEY (cleaning_slot_id, cleaning_cycle_id, cleaning_slot_type_id)
+        REFERENCES cleaning_slots (cleaning_slot_id, cleaning_cycle_id, cleaning_slot_type_id)
+        ON DELETE CASCADE,
     -- Trägt den zusammengesetzten Fremdschlüssel des Angebots weiter unten.
-    CONSTRAINT uq_cleaning_assignments_id_type
-        UNIQUE (cleaning_assignment_id, cleaning_slot_type_id),
+    CONSTRAINT uq_cleaning_assignments_id_cycle_type
+        UNIQUE (cleaning_assignment_id, cleaning_cycle_id, cleaning_slot_type_id),
     CONSTRAINT fk_cleaning_assignments_family
         FOREIGN KEY (family_id) REFERENCES families (family_id),
     -- „keine Familie zweimal am selben Termin" (01, Zuteilungsregeln).
@@ -382,6 +394,9 @@ CREATE TABLE cleaning_slot_buyouts (
 CREATE TABLE cleaning_swap_offers (
     cleaning_swap_offer_id uuid NOT NULL DEFAULT gen_random_uuid(),
     cleaning_assignment_id uuid NOT NULL,
+    -- Das Putzdienstjahr des angebotenen Termins, aus der Zuteilung
+    -- mitgeführt — die Annahme unten vergleicht gegen es, wie gegen die Art.
+    cleaning_cycle_id      integer NOT NULL,
     -- Die Art des angebotenen Termins, aus der Zuteilung mitgeführt: „Getauscht
     -- wird eins zu eins, nur gegen einen bestehenden Termin derselben Art" (01)
     -- — die Annahme unten vergleicht gegen sie.
@@ -394,15 +409,16 @@ CREATE TABLE cleaning_swap_offers (
 
     CONSTRAINT pk_cleaning_swap_offers PRIMARY KEY (cleaning_swap_offer_id),
     CONSTRAINT fk_cleaning_swap_offers_assignment
-        FOREIGN KEY (cleaning_assignment_id, cleaning_slot_type_id)
-        REFERENCES cleaning_assignments (cleaning_assignment_id, cleaning_slot_type_id)
+        FOREIGN KEY (cleaning_assignment_id, cleaning_cycle_id, cleaning_slot_type_id)
+        REFERENCES cleaning_assignments
+                   (cleaning_assignment_id, cleaning_cycle_id, cleaning_slot_type_id)
         ON DELETE CASCADE,
     -- Je Termin nur ein OFFENES Angebot: der partielle Index unter der Tabelle,
     -- nicht hier. Ein unbedingtes UNIQUE ließe jeden Termin nur ein einziges
     -- Mal im Putzdienstjahr tauschen, weil das vollzogene Angebot stehen bleibt.
     -- Trägt den zusammengesetzten Fremdschlüssel der Annahme unten.
-    CONSTRAINT uq_cleaning_swap_offers_id_type
-        UNIQUE (cleaning_swap_offer_id, cleaning_slot_type_id),
+    CONSTRAINT uq_cleaning_swap_offers_id_cycle_type
+        UNIQUE (cleaning_swap_offer_id, cleaning_cycle_id, cleaning_slot_type_id),
     CONSTRAINT ck_cleaning_swap_offers_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
@@ -438,6 +454,12 @@ CREATE TABLE cleaning_swap_acceptances (
     -- nicht auf das fremde Angebot, damit ein zurückgezogenes und neu
     -- gestelltes Angebot dieselbe Bereitschaft nicht verliert.
     cleaning_slot_id            uuid NOT NULL,
+    -- Dieselbe Bauform wie die Art darunter, für das Putzdienstjahr: Die eine
+    -- Spalte hängt zugleich am Angebot und am angekreuzten Termin und hält
+    -- damit beide im selben Zyklus. „Jede Familie hat exakt so viele Termine je
+    -- Art, wie sie in diesem Putzdienstjahr leisten muss" (01) — ein Kreuz über
+    -- die Jahresgrenze verschöbe eine Pflicht ins andere Jahr.
+    cleaning_cycle_id           integer NOT NULL,
     -- Eine Spalte, zwei Fremdschlüssel: sie hängt zugleich am Angebot und am
     -- angekreuzten Termin und ist damit die Regel „nur gegen einen bestehenden
     -- Termin derselben Art" (01) — ein Großputz lässt sich nicht gegen einen
@@ -448,12 +470,14 @@ CREATE TABLE cleaning_swap_acceptances (
 
     CONSTRAINT pk_cleaning_swap_acceptances PRIMARY KEY (cleaning_swap_acceptance_id),
     CONSTRAINT fk_cleaning_swap_acceptances_offer
-        FOREIGN KEY (cleaning_swap_offer_id, cleaning_slot_type_id)
-        REFERENCES cleaning_swap_offers (cleaning_swap_offer_id, cleaning_slot_type_id)
+        FOREIGN KEY (cleaning_swap_offer_id, cleaning_cycle_id, cleaning_slot_type_id)
+        REFERENCES cleaning_swap_offers
+                   (cleaning_swap_offer_id, cleaning_cycle_id, cleaning_slot_type_id)
         ON DELETE CASCADE,
     CONSTRAINT fk_cleaning_swap_acceptances_slot
-        FOREIGN KEY (cleaning_slot_id, cleaning_slot_type_id)
-        REFERENCES cleaning_slots (cleaning_slot_id, cleaning_slot_type_id) ON DELETE CASCADE,
+        FOREIGN KEY (cleaning_slot_id, cleaning_cycle_id, cleaning_slot_type_id)
+        REFERENCES cleaning_slots (cleaning_slot_id, cleaning_cycle_id, cleaning_slot_type_id)
+        ON DELETE CASCADE,
     CONSTRAINT uq_cleaning_swap_acceptances
         UNIQUE (cleaning_swap_offer_id, cleaning_slot_id),
     CONSTRAINT ck_cleaning_swap_acceptances_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
