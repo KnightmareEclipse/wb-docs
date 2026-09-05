@@ -281,6 +281,39 @@ CREATE TABLE cleaning_buyouts (
     CONSTRAINT ck_cleaning_buyouts_created_by CHECK (created_by ~ '^(entra:|guardian:|system:)')
 );
 
+-- Herkunft: 01 (Putzdienst) — die vier Wege, auf denen eine Zuteilung
+-- entsteht: „einen Termin reservieren" (Z3), die automatische Verteilung (Z4),
+-- der Tausch (Z8) und die Zuteilung von Hand („Sonderfälle"). Werteliste und
+-- kein aufgezählter CHECK: Keine der vier Ausprägungen entscheidet, welche
+-- andere Spalte derselben Zeile Pflicht ist, und damit greift die Ausnahme aus
+-- rules.md Abschnitt 3 nicht — anders als bei `applications.source`
+-- (anmeldung-schema.sql), wo sie über den Anmeldetag entscheidet.
+-- Löschanker: keiner, keine Personendaten.
+-- Bewusst KEIN Ändern von `code`: er hängt im Fremdschlüssel der Zuteilung und
+-- trägt die Regel „nur die automatische Zuteilung selbst rührt Reservierungen
+-- nicht an" — der Lauf erkennt sie an ihm. Ein falscher Eintrag wird
+-- stillgelegt.
+CREATE TABLE cleaning_assignment_sources (
+    cleaning_assignment_source_id integer GENERATED ALWAYS AS IDENTITY,
+    code                          text NOT NULL,
+    name                          text NOT NULL,
+    -- Deaktiviert statt gelöscht: „is_active = false" nimmt den Wert aus jedem
+    -- Auswahlfeld, lässt aber jede Zeile stehen, die schon auf ihn zeigt
+    -- (rules.md Abschnitt 3).
+    is_active                     boolean NOT NULL DEFAULT true,
+    created_at                    timestamptz NOT NULL DEFAULT now(),
+    created_by                    text NOT NULL,
+
+    CONSTRAINT pk_cleaning_assignment_sources
+        PRIMARY KEY (cleaning_assignment_source_id),
+    CONSTRAINT uq_cleaning_assignment_sources_code UNIQUE (code),
+    CONSTRAINT ck_cleaning_assignment_sources_code CHECK (code <> ''),
+    CONSTRAINT ck_cleaning_assignment_sources_name CHECK (name <> ''),
+    -- Ohne `guardian:`: die Liste pflegt das Haus, kein Elternteil.
+    CONSTRAINT ck_cleaning_assignment_sources_created_by
+        CHECK (created_by ~ '^(entra:|system:)')
+);
+
 -- Herkunft: 01 (Putzdienst) — „welche Familie an welchem Termin eingeteilt ist".
 -- Löschanker: geht mit dem Zyklus, nicht mit dem Austritt des Kindes (03,
 -- „die Putzdienstdaten folgen weiter der Jahrgangsfrist aus 01"). Bewusst KEINE
@@ -303,11 +336,21 @@ CREATE TABLE cleaning_assignments (
     cleaning_slot_type_id  integer NOT NULL,
     family_id              uuid NOT NULL,
     -- Woher der Termin kommt. Trägt eine Regel: „nur die automatische Zuteilung
-    -- selbst rührt Reservierungen nicht an" — sie erkennt sie hieran.
+    -- selbst rührt Reservierungen nicht an" — sie erkennt sie hieran. Der Code
+    -- der Werteliste steht hier und keine Kennung, weil die Routen ihn lesen
+    -- (`api/putzdienst-api.md`) — dieselbe Bauform wie der Zahlweg nebenan.
     source                 text NOT NULL,
     -- Der zweite Zustand der Anwesenheit; der dritte steht am Termin
     -- (`attendance_recorded_at`), sonst wäre „false" nicht von „noch nicht
     -- erfasst" zu unterscheiden.
+    -- Bewusst KEIN Riegel gegen das Nichterscheinen an einem freigekauften
+    -- Termin: „Eltern erscheinen an dem Tag nicht zum Putzdienst und zahlen
+    -- dafür auch keine Strafe" (01, Z7) spannt zwei Tabellen — die Zeile steht
+    -- in `cleaning_slot_buyouts` —, und das trägt kein CHECK. Die Auswertung
+    -- lässt die freigekauften Zuteilungen aus, wie schon die gedruckte Liste
+    -- („ohne die freigekauften Familien", api/putzdienst-api.md). Dieselbe
+    -- Sorte Auslassung wie „Bewusst KEINE Familie an der Annahme" weiter unten,
+    -- und die Gegenprobe hält wie dort fest, wo sie heute greift.
     no_show                boolean NOT NULL DEFAULT false,
     -- Schulleitung und Geschäftsführung ziehen eine verhängte Strafe zurück und
     -- tragen den Rückzug selbst ein; die Forderung selbst zieht Optigem.
@@ -331,8 +374,8 @@ CREATE TABLE cleaning_assignments (
         FOREIGN KEY (family_id) REFERENCES families (family_id),
     -- „keine Familie zweimal am selben Termin" (01, Zuteilungsregeln).
     CONSTRAINT uq_cleaning_assignments UNIQUE (cleaning_slot_id, family_id),
-    CONSTRAINT ck_cleaning_assignments_source
-        CHECK (source IN ('reserved', 'allocated', 'swapped', 'manual')),
+    CONSTRAINT fk_cleaning_assignments_source
+        FOREIGN KEY (source) REFERENCES cleaning_assignment_sources (code),
     -- Erlassen wird nur eine Strafe, die es gibt.
     CONSTRAINT ck_cleaning_assignments_waiver
         CHECK ((penalty_waived_at IS NULL) = (penalty_waived_by IS NULL)

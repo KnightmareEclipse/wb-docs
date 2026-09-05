@@ -1,9 +1,10 @@
 -- Prüfskript zu putzdienst-schema.sql.
 --
--- Sollstand: 10 Tabellen — cleaning_cycles, cleaning_slot_types,
+-- Sollstand: 11 Tabellen — cleaning_cycles, cleaning_slot_types,
 -- cleaning_cycle_quotas, cleaning_slots, cleaning_family_quotas,
--- cleaning_buyouts, cleaning_assignments, cleaning_slot_buyouts,
--- cleaning_swap_offers und cleaning_swap_acceptances, davon eine Werteliste.
+-- cleaning_buyouts, cleaning_assignment_sources, cleaning_assignments,
+-- cleaning_slot_buyouts, cleaning_swap_offers und cleaning_swap_acceptances,
+-- davon zwei Wertelisten.
 -- Dazu die beiden Q3-Fremdschlüssel auf `payments` und der Q5-Fremdschlüssel
 -- `fk_sync_tasks_cleaning_slot`.
 -- Beide Freikäufe zeigen mit ihrem `payment_mode` auf die Werteliste
@@ -27,14 +28,15 @@ BEGIN
     FROM unnest(ARRAY[
         'cleaning_cycles', 'cleaning_slot_types', 'cleaning_cycle_quotas',
         'cleaning_slots', 'cleaning_family_quotas', 'cleaning_buyouts',
-        'cleaning_assignments', 'cleaning_slot_buyouts', 'cleaning_swap_offers',
+        'cleaning_assignment_sources', 'cleaning_assignments',
+        'cleaning_slot_buyouts', 'cleaning_swap_offers',
         'cleaning_swap_acceptances'
     ]) AS t
     WHERE to_regclass('public.' || t) IS NULL;
     IF missing IS NOT NULL THEN
         RAISE EXCEPTION 'Fehlende Tabellen: %', missing;
     END IF;
-    RAISE NOTICE 'ok: alle 10 Tabellen vorhanden';
+    RAISE NOTICE 'ok: alle 11 Tabellen vorhanden';
 END $$;
 
 -- ---------------------------------------------------------------------------
@@ -57,7 +59,7 @@ BEGIN
         'ck_cleaning_cycles_release',
         'ck_cleaning_slots_cancelled', 'ck_cleaning_slots_sheet',
         'ck_cleaning_slots_sheet_recorded', 'fk_cleaning_slots_sheet_library',
-        'ck_cleaning_assignments_source',
+        'fk_cleaning_assignments_source',
         'ck_cleaning_assignments_waiver', 'ck_cleaning_assignments_handover',
         'ck_cleaning_cycle_quotas_required', 'ck_cleaning_buyouts_count',
         'fk_cleaning_buyouts_payment_mode', 'ck_cleaning_buyouts_no_invoice', 'fk_cleaning_slot_buyouts_payment_mode', 'ck_cleaning_slot_buyouts_no_invoice',
@@ -120,6 +122,14 @@ INSERT INTO cleaning_slot_types (cleaning_slot_type_id, code, name, created_by)
     OVERRIDING SYSTEM VALUE VALUES
     (1, 'regular', 'Regulärer Putzdienst', 'system:check'),
     (2, 'deep',    'Großputz',             'system:check');
+
+-- Die Herkunft ist eine Werteliste und kein aufgezählter CHECK
+-- (rules.md Abschnitt 3); ihr Code hängt im Fremdschlüssel der Zuteilung.
+INSERT INTO cleaning_assignment_sources (code, name, created_by) VALUES
+    ('reserved',  'Selbst reserviert',   'system:check'),
+    ('allocated', 'Automatisch verteilt','system:check'),
+    ('swapped',   'Getauscht',           'system:check'),
+    ('manual',    'Von Hand zugeteilt',  'system:check');
 
 INSERT INTO cleaning_cycles (cleaning_cycle_id, start_year, registration_opens_at,
                              registration_closes_at, created_by)
@@ -220,6 +230,16 @@ SELECT pg_temp.expect_reject(
     $q$DELETE FROM cleaning_assignments
         WHERE cleaning_assignment_id = '99999999-9999-9999-9999-999999999992'$q$);
 
+-- 01, Z7: „Eltern erscheinen an dem Tag nicht zum Putzdienst und zahlen dafür
+-- auch keine Strafe." Die Regel spannt zwei Tabellen und steht bewusst nicht als
+-- Constraint (siehe Kommentar an `no_show`); diese Probe hält fest, wo sie
+-- stattdessen greift — an der Auswertung. Wird die Auslassung je
+-- zurückgenommen, kippt sie und meldet es.
+SELECT pg_temp.expect_accept(
+    '01 — Nichterscheinen an einem freigekauften Termin (Auswertung)',
+    $q$UPDATE cleaning_assignments SET no_show = true
+        WHERE cleaning_assignment_id = '99999999-9999-9999-9999-999999999992'$q$);
+
 -- Jeder andere Termin bleibt streichbar; die Regel hängt am Freikauf und nicht
 -- an der Zuteilung.
 SELECT pg_temp.expect_accept(
@@ -270,6 +290,22 @@ SELECT pg_temp.expect_reject(
     '01 — Einzel-Freikauf auf Rechnung, den es hier nicht gibt',
     $q$INSERT INTO cleaning_slot_buyouts (cleaning_assignment_id, payment_mode, is_invoiced, created_by)
        VALUES ('99999999-9999-9999-9999-999999999991', 'invoiced', true, 'system:check')$q$);
+
+-- Das mitgeführte Merkmal gehört dem Zahlweg: Ohne den zusammengesetzten
+-- Fremdschlüssel hinge `ck_..._no_invoice` an einem Flag, das die Vorgangszeile
+-- selbst behauptet, und die Rechnung käme als „bezahlt" durch (rules.md
+-- Abschnitt 1, Ausnahme). Dieselbe Probe wie bei der mitgeführten Terminart.
+SELECT pg_temp.expect_reject(
+    '01 — Komplett-Freikauf, der seine Rechnung als bezahlt ausgibt',
+    $q$INSERT INTO cleaning_buyouts (cleaning_cycle_id, family_id, cleaning_slot_type_id,
+                                     bought_count, payment_mode, is_invoiced, created_by)
+       VALUES (1, '33333333-3333-3333-3333-333333333332', 1, 1, 'invoiced', false,
+               'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    '01 — Einzel-Freikauf, der seine Rechnung als bezahlt ausgibt',
+    $q$INSERT INTO cleaning_slot_buyouts (cleaning_assignment_id, payment_mode, is_invoiced, created_by)
+       VALUES ('99999999-9999-9999-9999-999999999991', 'invoiced', false, 'system:check')$q$);
 
 -- Die Q3-Gegenproben, die einen echten Anlass brauchen: der Putzdienst ist die
 -- erste Domäne, die einen mitbringt (grenzkarte.md, Q3).
@@ -588,6 +624,20 @@ BEGIN
     RAISE NOTICE 'ok: beide Erinnerungen haben ihre Marke am Termin';
 END $$;
 
+-- 01, Z2: „Mail an die Eltern, dass das Anmeldefenster offen ist." Ihre Marke
+-- macht den Lauf einmalig — „er sucht die Zyklen, die keine tragen" — und trägt
+-- bewusst kein CHECK, das sie nebenbei belegte; ohne diese Probe fiele ein
+-- Umbenennen beim Bau nicht auf.
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                    WHERE table_name = 'cleaning_cycles'
+                      AND column_name = 'registration_mail_sent_at') THEN
+        RAISE EXCEPTION 'Der Mail zum offenen Anmeldefenster fehlt ihre Marke';
+    END IF;
+    RAISE NOTICE 'ok: die Mail zum offenen Anmeldefenster hat ihre Marke';
+END $$;
+
 -- 01: Anmeldefenster und Freigabe.
 SELECT pg_temp.expect_reject(
     '01 — Anmeldefenster, das vor seinem Beginn schließt',
@@ -595,9 +645,17 @@ SELECT pg_temp.expect_reject(
        VALUES (2027, TIMESTAMPTZ '2027-09-20 08:00+02', TIMESTAMPTZ '2027-09-01 08:00+02',
                'system:check')$q$);
 
+-- Die Freigabe kann dem Fensterschluss nicht vorausgehen — und zwar ohne
+-- eigenen Constraint, sondern über die Zuteilung: `ck_cleaning_cycles_allocated`
+-- hält den Lauf hinter dem Schluss, `ck_cleaning_cycles_release` die Freigabe
+-- hinter dem Lauf. Die Probe setzt deshalb erst einen gültigen Lauf; ohne ihn
+-- wiese sie derselbe Zweig `allocated_at IS NULL` ab wie die Probe zwei weiter
+-- unten und belegte über das Anmeldefenster nichts.
 SELECT pg_temp.expect_reject(
     '01 — Zuteilung freigegeben, bevor das Anmeldefenster schließt',
-    $q$UPDATE cleaning_cycles SET allocation_released_at = TIMESTAMPTZ '2026-09-10 08:00+02'
+    $q$UPDATE cleaning_cycles SET allocated_at = TIMESTAMPTZ '2026-09-21 08:00+02'
+        WHERE cleaning_cycle_id = 1;
+       UPDATE cleaning_cycles SET allocation_released_at = TIMESTAMPTZ '2026-09-10 08:00+02'
         WHERE cleaning_cycle_id = 1$q$);
 
 SELECT pg_temp.expect_reject(
@@ -665,6 +723,15 @@ SELECT pg_temp.expect_reject(
     $q$INSERT INTO cleaning_family_quotas (cleaning_cycle_id, family_id,
                                            cleaning_slot_type_id, required_count, created_by)
        VALUES (1, '33333333-3333-3333-3333-333333333332', 1, 2, 'system:check')$q$);
+
+-- 01: „die Platzzahl … steht als Standard je Art einmal für das ganze Jahr" —
+-- und die Pflichtmenge daneben ebenso: je Zyklus und Art genau eine Zeile
+-- (`uq_cleaning_cycle_quotas`).
+SELECT pg_temp.expect_reject(
+    '01 — zweite Pflichtmenge und Platzzahl derselben Art im selben Putzdienstjahr',
+    $q$INSERT INTO cleaning_cycle_quotas (cleaning_cycle_id, cleaning_slot_type_id,
+                                          required_count, default_capacity, created_by)
+       VALUES (1, 1, 5, 8, 'system:check')$q$);
 
 SELECT pg_temp.expect_reject(
     '01 — negative Pflichtmenge',
@@ -747,6 +814,18 @@ SELECT pg_temp.expect_reject(
 SELECT pg_temp.expect_reject(
     'rules.md Abschnitt 3 — Werteliste mit leerem Namen (`cleaning_slot_types`)',
     $q$INSERT INTO cleaning_slot_types (code, name, created_by) VALUES ('empty_name_probe', '', 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    'rules.md Abschnitt 3 — Werteliste mit leerem Code (`cleaning_assignment_sources`)',
+    $q$INSERT INTO cleaning_assignment_sources (code, name, created_by) VALUES ('', 'Probe', 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    'rules.md Abschnitt 3 — Werteliste mit leerem Namen (`cleaning_assignment_sources`)',
+    $q$INSERT INTO cleaning_assignment_sources (code, name, created_by) VALUES ('empty_name_probe', '', 'system:check')$q$);
+
+SELECT pg_temp.expect_reject(
+    'rules.md Abschnitt 3 — dieselbe Herkunft zweimal in der Werteliste',
+    $q$INSERT INTO cleaning_assignment_sources (code, name, created_by) VALUES ('manual', 'Zweite Zeile', 'system:check')$q$);
 
 DO $$ BEGIN RAISE NOTICE 'putzdienst-schema-check: alle Gegenproben bestanden'; END $$;
 
