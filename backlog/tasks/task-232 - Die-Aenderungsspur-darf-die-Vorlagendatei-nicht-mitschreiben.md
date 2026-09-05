@@ -1,10 +1,10 @@
 ---
 id: TASK-232
 title: Die Aenderungsspur darf die Vorlagendatei nicht mitschreiben
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-04 00:20'
-updated_date: '2026-09-04 01:06'
+updated_date: '2026-09-05 01:12'
 labels:
   - schema
   - wb-backend
@@ -41,4 +41,8 @@ Gebaut als CHECK und nicht als Konvention: ck_change_log_template laesst fuer ta
 Der Kommentar an old_value/new_value sagt, warum und dass es die einzige solche Ausnahme ist.
 
 Was in wb-backend noch fehlt: Die Schreibschicht muss fuer diese eine Spalte die Pruefsumme statt des Werts einsetzen. Tut sie es nicht, laeuft sie jetzt in den CHECK statt still ein Megabyte je PATCH zu schreiben — der gewollte Fehlermodus.
+
+Der wb-backend-Rest hat jetzt einen Ort: TASK-228 Kriterium 5. Er gehoert dorthin und nicht hierher — geschrieben wird template_docx beim Anlegen und beim Aendern einer angekuendigten Fassung, also genau in dem Vorgang, den TASK-228 baut. Ein eigenes Ticket daneben haette dieselbe Codestelle zweimal beauftragt.
+
+Der Fehlermodus bleibt der gewollte: Setzt die Schreibschicht die Pruefsumme nicht ein, laeuft sie in ck_change_log_template statt still ein Megabyte je PATCH zu schreiben.
 <!-- SECTION:NOTES:END -->

@@ -4,7 +4,7 @@ title: 'Fassung anlegen — pruefen, vorschauen, einfrieren'
 status: To Do
 assignee: []
 created_date: '2026-09-04 00:19'
-updated_date: '2026-09-04 12:37'
+updated_date: '2026-09-05 01:12'
 labels:
   - wb-backend
 milestone: m-5
@@ -45,4 +45,5 @@ Dasselbe Muster wie eine Ebene tiefer: Der Vorgang ist beweglich, die Urkunde ei
 - [ ] #2 Geprueft wird dreifach: Feldliste gegen die Freigabe, Probelauf mit Beispieldaten, veraPDF
 - [ ] #3 Scheitert eine Pruefung, entsteht keine Fassung — mit benanntem Fehler, nicht mit einem leeren Feld
 - [ ] #4 Die Arbeitsfassung bleibt danach frei bearbeitbar, ohne dass ein Vertrag es merkt
+- [ ] #5 Die Aenderungsspur schreibt fuer template_docx die Pruefsumme statt der Bytes — auch beim Anlegen, wo sie die ganze Zeile haelt und ck_change_log_template an der leeren column_name vorbeigeht (TASK-232)
 <!-- AC:END -->

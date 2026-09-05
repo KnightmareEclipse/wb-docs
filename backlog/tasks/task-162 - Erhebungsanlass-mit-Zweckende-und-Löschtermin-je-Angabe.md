@@ -4,14 +4,14 @@ title: Erhebungsanlass mit Zweckende und Löschtermin je Angabe
 status: In Progress
 assignee: []
 created_date: '2026-09-01 17:19'
-updated_date: '2026-09-03 19:05'
+updated_date: '2026-09-05 01:12'
 labels:
   - schema
   - gesundheit
   - dsgvo
   - wartet
 dependencies:
-  - TASK-161
+  - TASK-169
 references:
   - schema/gesundheit-schema.sql
   - pruefberichte/fragen-datenschutz.txt
@@ -37,6 +37,7 @@ Setzt zweierlei voraus, das noch nicht steht: die Domäne der außerunterrichtli
 - [x] #4 Die Frist des Datenschutzbeauftragten ist eingetragen, nicht geschätzt
 - [x] #5 Der Adressat der Vorwarnung ist ein Wert am Anlass und keine Regel im Code — welche Stelle es je Anlass ist, steht in soll-prozesse/hebel.md und wird hier nicht wiederholt
 - [x] #6 Die Frist des Anlasses steht: vier Wochen nach der Veranstaltung; die zwei Ankündigungen davor folgen dem Hebel und werden hier nicht wiederholt
+- [ ] #7 Die Domaene der ausserunterrichtlichen Veranstaltungen legt die Anlass-Instanz an, an die eine Fahrt freigeben laesst (TASK-169)
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -51,4 +52,6 @@ die Fahrt nichts mehr, die Angabe steht.
 Offen bleibt der Anlassgeber: Die Domäne der außerunterrichtlichen Veranstaltungen
 legt die Instanz an, an die eine Fahrt freigeben lässt. Bis dahin gibt es die zwei
 dauerhaften Instanzen school und care.
+
+Alle sechs Kriterien waren ab, der Status stand trotzdem auf In Progress — das Board sagte damit nichts mehr darueber, woran es haengt. Der Anlassgeber steht jetzt als eigenes Kriterium da, und die Abhaengigkeit auf TASK-169 ist eingetragen: Bis der Ausflug entschieden ist (TASK-168), gibt es die zwei dauerhaften Instanzen school und care und sonst keine.
 <!-- SECTION:NOTES:END -->
