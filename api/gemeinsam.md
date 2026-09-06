@@ -43,6 +43,10 @@ entzieht, hat den Zugriff nicht enger gemacht, sondern nur unbeobachtbarer. — 
 Domäne freischalten; Preis: eine Rolle mehr an jeder Route, und die Aushilfe hängt an einer
 Rollenvergabe, die im Zweifel stehen bleibt.
 
+**Eine Ausnahme:** `rechnungsfreigabe-api.md` (Block 12) nimmt Admin über `_only()` in
+`app/routers/rechnungsfreigabe.py` ausdrücklich heraus — dort erbte er sonst die Prüfung fremder
+Belege statt seines eigenen.
+
 **Zweierlei bekommt er damit nicht**, weil beides nicht an der Rolle hängt: die engen Spalten
 (Art. 9, IBAN) liegen hinter eigenen DB-Rollen, und was einer Person zur Entscheidung zugewiesen ist
 — Freigabe, Gegenzeichnung, Straf-Aussetzung —, bleibt bei ihr: „wer entscheidet, trägt ein".
@@ -51,6 +55,18 @@ Rollenvergabe, die im Zweifel stehen bleibt.
 
 Sie hängt an der Person, nicht am Feld (`hebel.md`), und wirkt deshalb an **einer** Stelle: bei der
 Auflösung Token → handelnde Person → Familien. Keine Route filtert sie ein zweites Mal.
+
+## Lehrkraft-Sichtkreis, absichtlich weit
+
+`staff_sees_child` (`app/core/security.py`), der gemeinsame Hebel hinter `reach_child`, endet mit
+`TEACHER_ROLE in user.roles` — jede Lehrkraft erreicht jedes Kind, an jeder Route, die ihn ruft.
+Das ist die eine Ausnahme von `stammdaten-api.md`, „Auf Zukunftssicherheit" 4 („nie eine Aufzählung
+von Rollen"), und keine Entscheidung, sondern eine fehlende Voraussetzung: Die engere Regel —
+Klassenleitung, `class_teaching_assignments` oder die Wahlmodulgruppe — ist für Gesundheitsangaben
+bereits entschieden (`gesundheit-api.md`), doch beide Zuordnungstabellen tragen in `wb-backend` noch
+keinen Schreibpfad; eine Verengung des gemeinsamen Hebels ließe heute jede Fachlehrkraft ohne eigene
+Klassenleitung ins Leere laufen. — Alternative: Erst den Schreibpfad bauen und danach den Hebel
+verengen; Preis steht in `backlog/` (TASK-273), zusammen mit dem Schnitt der zwei Schritte.
 
 **gesperrt** sieht keinen Vorgang der Familie und handelt in keinem — für ihn ist die Familie
 leer, nicht verboten; **nur lesen** sieht jede Ansicht, ruft aber keine schreibende Route. —
