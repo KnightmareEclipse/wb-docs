@@ -16,6 +16,18 @@ ein Baumpaar mit eigenem Compose-Stack und eine Session darauf, Effort `xhigh`. 
 offenen Berichte aus `pruefberichte/`, nicht aus einer Liste — ein geschlossener Bericht ist eine
 gelöschte Datei und fällt damit von selbst heraus.
 
+**Zuletzt der Hebellauf, und er ist der Preis der Nebenläufigkeit.** Ein Domänenlauf darf
+`app/core/` und `app/db/` nicht anfassen, sonst bauen sechs Sessions denselben Hebel sechsmal
+verschieden. Ein Fund, der dort liegt, bleibt deshalb stehen, und der Lauf kürzt seinen Bericht auf
+diesen Rest — die Kopfzeile endet dann auf **„der offene Rest"**, und `spuren.sh` startet für einen
+so gekennzeichneten Bericht keine zweite Spur mehr. Der Hebellauf nimmt sie alle **auf einmal und
+im Hauptbaum**: Ein Lauf je Bericht wäre hier falsch, weil die Funde einander an derselben Funktion
+treffen und der zweite Lauf sähe, was der erste gebaut hat, nicht was der Bericht meint. Er ist
+damit der einzige neben dem ersten, der den gemeinsamen Hebel ändern darf. Sein Auftrag ist dieser
+Prompt, mit einer einzigen Abweichung: „Diese eine Domäne, und keine zweite" gilt für ihn nicht —
+an seine Stelle tritt „diese eine Funktion, und keine zweite". Was in einem fremden Repo liegt,
+gehört auch ihm nicht und bleibt ein Ticket.
+
 **Alles bis zum Trennstrich ist Bedienanleitung und erreicht keinen Lauf.** `spuren.sh` schneidet es
 ab und setzt `DOMÄNE` ein; was eine Session wissen muss, steht darunter.
 
@@ -36,6 +48,13 @@ Alles liest du zuerst und ich wiederhole es hier nicht.
 
 Wir schließen die Funde aus `wb-docs/pruefberichte/routen-DOMÄNE.md` in `wb-backend`. Der Bericht
 ist die Arbeitsliste, nicht die Anweisung. **Diese eine Domäne, und keine zweite.**
+
+**Der Hebellauf ist die eine Ausnahme davon**, und er erkennt sich daran, dass sein Auftrag
+`DOMÄNE` nicht gesetzt hat: Er nimmt jeden Bericht, dessen Kopfzeile auf „der offene Rest" endet,
+und schließt deren Funde zusammen in einem Lauf. An die Stelle der einen Domäne tritt für ihn
+**diese eine Funktion, und keine zweite** — er ändert am Hebel, was ein Fund benennt, und nichts
+daneben. Alles Weitere unten gilt für ihn unverändert, den letzten Absatz eingeschlossen: Ein
+Bericht, dessen Fund in einem fremden Repo liegt, wird ein Ticket und keine Reparatur.
 
 Die Datenbank bringst du selbst hoch, und **nur** sie: `podman-compose up -d db`. Läufst du in einer
 Spur, published `caddy` die Ports aus der `.env` und kollidiert mit dem Hauptstack; gebraucht wird er
@@ -105,7 +124,7 @@ nichts.
 | Der Router lässt eine fremde Zeile durch | `app/routers/DOMÄNE.py`, dazu der Test |
 | Der Test prüft etwas anderes als sein Name | den Rumpf, nicht den Namen — der Name ist die Zusage |
 | Der Plan weicht vom Block ab | `wb-docs/api/DOMÄNE-api.md`; der Block schlägt den Plan |
-| Der Hebel selbst trägt nicht | `app/core/`, `app/db/`, `wb-docs/api/gemeinsam.md` — nur im ersten Lauf |
+| Der Hebel selbst trägt nicht | `app/core/`, `app/db/`, `wb-docs/api/gemeinsam.md` — nur im ersten Lauf und im Hebellauf |
 
 Die Rangfolge bei Widerspruch steht in `CLAUDE.md`. Weicht der Router vom Plan ab und der Plan vom
 Block, wird beides in einem Zug richtig — sonst meldet der nächste Bau die zweite Hälfte erneut.

@@ -29,6 +29,15 @@ for bericht in "$docs"/pruefberichte/routen-*.md; do
     domaene=${domaene#routen-}
     spur="$root/spur-$domaene"
 
+    # Ein Bericht, der auf „der offene Rest" gekürzt ist, hat seinen Domänenlauf
+    # hinter sich; was darin steht, liegt am gemeinsamen Hebel und gehört dem
+    # Hebellauf im Hauptbaum (api-reparieren.md, Kopf). Eine zweite Spur darauf
+    # fände nichts, was sie anfassen dürfte, und schriebe trotzdem einen Commit.
+    if head -n 1 "$bericht" | grep -q 'der offene Rest$'; then
+        echo "$domaene: nur noch der offene Rest, gehört dem Hebellauf"
+        continue
+    fi
+
     if [ -d "$spur" ]; then
         echo "spur-$domaene steht schon, übersprungen"
         continue
