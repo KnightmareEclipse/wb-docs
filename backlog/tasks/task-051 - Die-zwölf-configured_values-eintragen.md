@@ -1,10 +1,10 @@
 ---
 id: TASK-051
 title: Die zwölf configured_values eintragen
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-08-27 11:37'
-updated_date: '2026-09-05 14:47'
+updated_date: '2026-09-06 21:40'
 labels:
   - wartet
   - geschaeftsfuehrung
@@ -32,13 +32,13 @@ Freikauf und Strafe im Putzdienst, Bearbeitungs- und Anmeldegebühr, Änderungsg
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Ohne Freikauf- und Strafbetrag bricht die Fenster-offen-Mail ab, bevor die erste Zeile rausgeht
-- [ ] #2 Ohne Freikauf- und Strafbetrag bricht die Fenster-offen-Mail ab, bevor die erste Zeile rausgeht
-- [ ] #3 Die sechs bestätigten Werte liegen mit valid_from 2026-09-01 im Seed
-- [ ] #4 Kein eigener Wert für den Jahresfreikauf: er ist das Rechenergebnis aus sechs Pflichtterminen (5+1) à 35 € = 210 € (E3 geklärt 03.09.2026)
-- [ ] #5 Die Anmeldegebühr ist 100 €, gültig ab 01.09.2026 für jeden neuen Vertrag (Geschäftsführung, 03.09.2026) — die 90 € aus dem Hebel sind ersetzt
-- [ ] #6 Die Bedingung der Änderungsgebühr steht in Block 09 und nicht im Wert: Sie fällt nur an, wenn keine Stundenplananpassung vorliegt und kein Zeitpunkt greift, zu dem eine Anpassung kostenfrei möglich wäre
-- [ ] #7 meal_single_amount_cents liegt mit 5,90 € im Seed — ohne ihn lässt sich kein Fall der Notfallbetreuung über Mittag abrechnen
+- [x] #1 Ohne Freikauf- und Strafbetrag bricht die Fenster-offen-Mail ab, bevor die erste Zeile rausgeht
+- [x] #2 Ohne Freikauf- und Strafbetrag bricht die Fenster-offen-Mail ab, bevor die erste Zeile rausgeht
+- [x] #3 Die sechs bestätigten Werte liegen mit valid_from 2026-09-01 im Seed
+- [x] #4 Kein eigener Wert für den Jahresfreikauf: er ist das Rechenergebnis aus sechs Pflichtterminen (5+1) à 35 € = 210 € (E3 geklärt 03.09.2026)
+- [x] #5 Die Anmeldegebühr ist 100 €, gültig ab 01.09.2026 für jeden neuen Vertrag (Geschäftsführung, 03.09.2026) — die 90 € aus dem Hebel sind ersetzt
+- [x] #6 Die Bedingung der Änderungsgebühr steht in Block 09 und nicht im Wert: Sie fällt nur an, wenn keine Stundenplananpassung vorliegt und kein Zeitpunkt greift, zu dem eine Anpassung kostenfrei möglich wäre
+- [x] #7 meal_single_amount_cents liegt mit 5,90 € im Seed — ohne ihn lässt sich kein Fall der Notfallbetreuung über Mittag abrechnen
 <!-- AC:END -->
 
 ## Implementation Notes

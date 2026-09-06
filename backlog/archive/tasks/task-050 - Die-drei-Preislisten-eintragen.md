@@ -42,6 +42,11 @@ Die Tabellen stehen, die Beträge liegen vor: Schulgeld je Schulart und Geschwis
 **Die Notfallbetreuung steht nicht hier**, obwohl sie in derselben Liste stand: Sie wird je Fall berechnet und passt nicht in `care_module_prices` (TASK-214).
 
 Die Zwischenstufen, die in der Liste fehlen — zwei bis vier Tage bei den Nachmittagen 2 und 3 —, sind vor dem Seed zu erfragen; die Tabelle verlangt je Modul und Tageszahl einen Betrag und rechnet keinen aus.
+
+**Ruht (06.09.2026).** Alle drei Listen dienen ruhenden Domänen: Schulgeld dem Schulvertrag,
+Hortbeitrag dem Hortvertrag, Mittagessen der Mensa. Stammdaten, Putzdienst und Voranmeldung
+nehmen ihre Beträge aus `configured_values` (TASK-051) und berühren keine dieser Tabellen.
+AC#2 wäre ohnehin blockiert — die Zwischenstufen der Nachmittage 2 und 3 fehlen noch.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
