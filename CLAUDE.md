@@ -1,5 +1,25 @@
 # Weltenbaum
 
+## Aktiver Umfang — gilt vor allem Weiteren in dieser Datei
+
+**Gearbeitet wird an genau drei Domänen: Stammdaten, Putzdienst, Voranmeldung.** In dieser
+Reihenfolge, Stand und Ticketliste in [`fokus.md`](fokus.md). Alles darunter beschreibt weiter das
+ganze System — es ist die Landkarte, nicht der Auftrag.
+
+- **Die zehn ruhenden Domänen werden nicht angefasst.** Ihre Schemata, Blöcke und API-Pläne liegen
+  im Repo und bleiben liegen; ihre Tickets stehen in `backlog/archive/tasks/` und kommen von dort
+  zurück, wenn ihre Domäne dran ist. Ein Fund in einer ruhenden Domäne wird genannt und nicht
+  repariert.
+- **Neues aus einem Schulgespräch wird eine Notiz, kein Ticket und kein Block.** Der Umweg über
+  Block → Schema → API-Plan → Backend beginnt erst, wenn die Domäne dran ist. Das war der
+  Mechanismus, der den Umfang aufgebläht hat.
+- **Das Schema der drei Domänen darf umgeworfen werden.** Solange nichts produktiv läuft, ist ein
+  Reimport billiger als eine vorsorgliche Struktur. Zwei Ausnahmen tragen das nicht: die externe
+  Referenz einer Zahlung und der Zeitstempel samt Textfassung einer Einwilligung — beide müssen
+  jeden Umbau unverändert überleben.
+- **Diese Datei und `fokus.md` verschwinden wieder**, sobald die drei Domänen produktiv laufen —
+  der Abschnitt hier und die Datei dort, nicht der Rest.
+
 Konzept- und Architektur-Doku für einen selbstverwalteten, DSGVO-konformen Datenbank-/API-VPS
 (Hetzner) für die Prozesse einer Schule ohne eigenes IT-Personal. Hier wird entschieden und
 dokumentiert; gebaut wird in `wb-vps` und `wb-backend`. Reine Doku, alleiniger Betreiber —
@@ -82,7 +102,7 @@ Drei Dinge sagt das Dateisystem nicht, deshalb stehen sie hier:
   umgekehrt. **Solange nichts produktiv läuft, entsteht dabei keine Migrationskette** — die
   Ursprungsrevision wird überschrieben und die Datenbank neu aufgesetzt. Eine Kette, die niemand je
   durchläuft, liest sich später wie Geschichte und ist keine.
-- **Drei Schemata ohne Tabellen sind ihr Ergebnis, kein Versäumnis:** M365-Kontenverwaltung,
+- **Schemata ohne Tabellen sind ihr Ergebnis, kein Versäumnis:** M365-Kontenverwaltung,
   Eltern-Selfservice, Klassenbildung. Ihr Prüfskript belegt genau das — dass nichts auf Verdacht
   entstanden ist.
 - **Jeder Prüflauf über `schema/` ist geschlossen**, kein Fund blieb offen — der Beleg ist die reparierte `.sql` samt grünem Prüfskript, nicht eine Zahl von Zyklen.
@@ -186,6 +206,15 @@ keine Formulierungen wie „früher", „vorher hatten wir", „wurde ersetzt du
 alte Stand ersetzt, nicht ergänzt. Kurz, klar, präzise, kein Blähtext. Ein abgeschlossener
 Prüfbericht wird gelöscht, nicht abgelegt: Der Beleg ist die reparierte `.sql` samt grünem
 Prüfskript, und die Git-Historie hält den Bericht.
+
+**Zähle nie, was im Dateisystem steht — nenne das Verzeichnis.** „Die dreizehn Fachdomänen", „die
+vierzehn Prüfskripte", „die elf Prozesse ohne Oberfläche": Jede solche Zahl bricht, sobald etwas
+dazukommt, und zwar an jeder Stelle, an der sie steht. Dasselbe gilt für die Aufzählung der
+Mitglieder einer Menge — **eine Menge wird durch ihr Kriterium definiert, nicht durch ihre
+Mitglieder**: „alles außer den dreien" überlebt eine Änderung, eine Namensliste nicht. Unberührt
+bleibt die fachliche Zahl — „in zwei Raten", „Frist 14 Tage", „15 Stunden bei einem Grundschüler" —
+und die datierte Messung, die sich selbst als Momentaufnahme ausweist. In einem **Ticket** darf
+gezählt werden: Es stirbt, wenn seine Sache erledigt ist, und nimmt seine Zahl mit.
 
 **`backlog/` ist die eine Ausnahme, und sie ist keine Aufweichung.** Ein Ticketsystem lebt davon,
 dass ein erledigter Punkt erledigt *bleibt* — der Status `Done` und die Ablage unter
