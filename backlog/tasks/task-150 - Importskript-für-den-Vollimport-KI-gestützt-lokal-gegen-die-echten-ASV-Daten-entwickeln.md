@@ -45,3 +45,41 @@ Die vollständige ASV-Struktur passt in kein Kontextfenster, auch in keins der g
 - [x] #4 Modellwahl fällt bei Umsetzungsbeginn, nicht in diesem Ticket
 - [ ] #5 Der echte Export liegt außerhalb jedes Verzeichnisses, in dem das Cloud-Modell arbeitet, und keine Zeile daraus gelangt über eine Fixture ins Repo
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+**Abbildung der Stammdaten-Domaene, gelesen am 06.09.2026** gegen
+`~/Documents/projectNightmare/ASV-BW/asv_struktur.sql` (reines DDL). Der Kompakt-Index war
+dafuer nicht noetig: `ASV_TO_HUB_MAPPING.md` nennt die Tabellen, und gebraucht werden neun.
+
+| Weltenbaum | ASV-BW |
+|---|---|
+| `persons` (Kind) | `svp_schueler_stamm`: familienname, vornamen, rufname, wl_geschlecht_id, wl_anrede_id |
+| `children` | dieselbe Zeile: geburtsdatum, geburtsort, wl_geburtsland_id, wl_verkehrssprache_id, wl_staatsangehoerigkeit_id, wl_weitere_staatsangeh_id, wl_religionszugehoerigkeit_id |
+| `children` (Einschreibung) | `svp_schueler_schuljahr`: schuljahr, klassenstufe, klassenbezeichnung, eintrittsdatum, austrittsdatum |
+| `persons` (Erwachsene) | `svp_person` bzw. `svp_kontakt` ueber `svp_schueler_schuljahr_kontakt` |
+| `family_guardians.guardian_relation_id` | `svp_schueler_schuljahr_kontakt.verknuepfungsart` |
+| `addresses` | `svp_anschrift`: strasse, nummer, postleitzahl, ortsbezeichnung, ortsteil, wl_staat_id |
+| `persons.email`, `phone_numbers` | `svp_kommunikation`: kommunikationsadresse, wl_kommunikationstyp_id, bemerkung |
+| Wertelisten | `svp_wl_geschlecht`, `_staatsangehoerigkeit`, `_verkehrssprache`, `_religionszugehoerigkeit` |
+
+**Sieben Befunde, die vor dem ersten Lauf entschieden sein muessen:**
+
+1. **ASV kennt keine Familie.** Weltenbaum haengt Putzdienst und Elternbonus an `families`, ASV
+   kennt nur Kind zu Kontakten je Schuljahr. Die Familie muss abgeleitet werden — Kandidat ist
+   `svp_schueler_stamm_geschwister`, hilfsweise die Deckungsgleichheit der Kontaktmenge. Das ist
+   die Kernentscheidung des Imports und gehoert zu TASK-017.
+2. **Kontakte haengen am Schuljahr, nicht am Kind.** Welches Schuljahr die Familie bildet, ist zu
+   setzen — Vorschlag: das juengste, in dem das Kind eingeschrieben war.
+3. **`svp_kontakt` trennt Vor- und Nachname nicht** (name1/name2/name3). `persons.last_name` ist
+   NOT NULL und getrennt gefuehrt. Ermessen, kein mechanischer Bug.
+4. **`rufname` ist in ASV NOT NULL**, in Weltenbaum nullable mit der Bedeutung "leer heisst, der
+   Vorname gilt". Beim Import wird `rufname = vornamen` zu NULL, sonst traegt jede Zeile einen
+   Rufnamen, der keiner ist.
+5. **`geburtsname` hat in Weltenbaum kein Ziel** — bewusst, oder eine fehlende Spalte?
+6. **`children.congregation` hat in ASV keine Quelle.** Die Kirchengemeinde kommt nicht aus dem
+   Import und bleibt beim Bestandskind leer (05).
+7. **Der Dump traegt mehrere Schemata** mit identischen Tabellen (`asv.`, `asvstat_<id>.`).
+   Welches der echte Export mitbringt, entscheidet sich am Export selbst.
+<!-- SECTION:NOTES:END -->
