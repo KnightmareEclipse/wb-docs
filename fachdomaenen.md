@@ -171,7 +171,7 @@ Explizit **nicht** in dieser Liste, jeweils mit Grund:
 - **Hort-Alltag** (Anwesenheit, gebuchte Betreuungszeiten je Tag, Mittagessen, Frühdienst) — der Hort führt dafür eigene, sehr umfangreiche Excel-Dateien; sich dort einzuarbeiten lohnt den Aufwand derzeit nicht. Betrifft ausdrücklich **nicht** das Ferienprogramm (Domäne 3, eigene Deadline) und nicht eine mögliche spätere Hortbuchung über dasselbe Portal wie Mensa.
 - **Leihgeräte** (iPad-Liste der Realschule) — extern begleitet, kein eigener Bedarf.
 
-**Entitäten und Zuständigkeiten je Domäne stehen in `grenzkarte.md`** — welche Entität es gibt, wem welche Tatsache gehört, und die fünf Querschnitts-Entitäten (Zustimmung, Dokument/Signatur, Zahlungsvorgang, Mitarbeiter/Bereichsstruktur, Nachzieh-Aufgabe), die in mehreren Domänen vorkommen und deshalb genau einmal gebaut werden. Diese Liste hier bleibt der Scope, die Grenzkarte trägt die Struktur.
+**Entitäten und Zuständigkeiten je Domäne stehen in `grenzkarte.md`** — welche Entität es gibt, wem welche Tatsache gehört, und die Querschnitts-Entitäten (Zustimmung, Dokument/Signatur, Zahlungsvorgang, Mitarbeiter/Bereichsstruktur, Nachzieh-Aufgabe), die in mehreren Domänen vorkommen und deshalb genau einmal gebaut werden. Diese Liste hier bleibt der Scope, die Grenzkarte trägt die Struktur.
 
 **Bekannte Unbekannte:** die Verwaltung führt weitere Excel-Listen, auf die der Betreiber keinen Zugriff hat und deren Bestand niemand vollständig kennt. Die Liste oben ist damit belastbar für alles, was heute über Formulare oder benannte Listen läuft — nicht für alles, was existiert.
 

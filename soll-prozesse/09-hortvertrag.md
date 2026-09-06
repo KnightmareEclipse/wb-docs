@@ -444,7 +444,7 @@ Abfrage: Dort wird gebucht.
 ## Was heute schiefgeht
 
 - Der Vertrag ist Papier und wird bei der Grundschulanmeldung **doppelt ausgefüllt**; seine
-  Gesundheitsabfrage ist eines der sechs Formulare, die denselben Bestand getrennt erheben.
+  Gesundheitsabfrage ist eines der Formulare, die denselben Bestand getrennt erheben.
 - Der Hort führt seine eigene Excel darüber, wer wann gebucht ist, außerhalb jedes Zugriffs —
   künftig steht das Gebuchte im System, und die Excel trägt nur noch den Alltag.
 - Anpassungen laufen per Zuruf, und was sie kosten, weiß nur, wer den Vertrag zur Hand hat.

@@ -165,7 +165,7 @@ konnte, und arbeitet dafür mechanisch:
 
 - **Der Ladelauf in der dokumentierten Reihenfolge**, und zusätzlich in umgekehrter: An `stammdaten`
   und `querschnitt` darf keine Domäne an einer anderen hängen.
-- **Alle vierzehn Prüfskripte gegen die vollständige Datenbank**, Rückgabewert je Datei. Ein rotes,
+- **Alle Prüfskripte gegen die vollständige Datenbank**, Rückgabewert je Datei. Ein rotes,
   das in seinem eigenen Lauf grün war, ist ein Fund über die Domänengrenze.
 - **Fehlerklasse 6** über alle Dateien: `grep` über die Spaltennamen, die in mehreren Tabellen
   vorkommen, und je Paar die Frage, ob es zwei Sachverhalte sind oder einer.

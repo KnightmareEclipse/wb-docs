@@ -70,7 +70,7 @@ Kontaktdaten aus [02](02-datenaenderung.md) und Schulgeld wie Vertragstext als
   zum ersten Mal gefüllt — die dortige Pflicht greift mit dem Schulvertrag, und hier ist der Punkt,
   an dem sie greift; ohne sie ist die Strecke nicht fertig.
 
-Die **Gesundheitsangaben** sind **ein Bestand je Kind**, den heute sechs Formulare getrennt erheben:
+Die **Gesundheitsangaben** sind **ein Bestand je Kind**, den heute mehrere Formulare getrennt erheben:
 freiwillig, mit einer vorgeschalteten Frage, ob überhaupt geantwortet wird — „will nicht
 beantworten" ist eine eingetragene Antwort und kein leeres Feld. Ein leeres gibt es trotzdem, aber
 nur an einer Stelle: bei den Kindern, die beim Vollimport schon eingeschrieben waren und deren

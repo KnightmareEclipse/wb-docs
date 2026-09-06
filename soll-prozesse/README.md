@@ -79,21 +79,21 @@ Reihenfolge nach dieser Liste — nicht nach Lust, sondern nach Termin. **Die Nu
 
 ## Was danach passiert
 
-**Fünf Dinge müssen vor dem Vollimport stehen** — sie sind über die Blöcke verstreut und deshalb hier gesammelt:
+**Diese Dinge müssen vor dem Vollimport stehen** — sie sind über die Blöcke verstreut und deshalb hier gesammelt:
 
-- die drei **Preislisten** — Schulgeld je Schulart und Geschwisterrang, Hortbeitrag je Modul und Tageszahl, Mittagessen je Zahl der Esstage ([`hebel.md`](hebel.md#geld-und-fristen-im-system-alles-andere-fest)); sie liegen inzwischen vor und müssen nur noch eingetragen werden — Geschäftsführung
+- die **Preislisten** — Schulgeld je Schulart und Geschwisterrang, Hortbeitrag je Modul und Tageszahl, Mittagessen je Zahl der Esstage ([`hebel.md`](hebel.md#geld-und-fristen-im-system-alles-andere-fest)); sie liegen inzwischen vor und müssen nur noch eingetragen werden — Geschäftsführung
 - der **Zweckbeschluss** für Konfession, Beruf und Staatsangehörigkeit der Eltern ([05](05-bewerbung.md)) — Schulleitung und Datenschutzbeauftragte. Die **Kirchengemeinde gehört ausdrücklich nicht mehr hierher**: Die Schule will sie weiter erheben, und ob sie bleibt, wird erst einige Monate nach dem Import entschieden.
 - die **Warteliste**, die das Sekretariat von Hand nachträgt, weil ihr heutiger Stand nicht belastbar ist ([07](07-aufnahmeentscheidung.md))
 - die **bestehenden Klassen**, angelegt mit ihrer rückgerechneten Kohorten-Kennung ([15](15-klassenbildung.md)): Eine Klasse, die im Importjahr in Stufe 3 steht, ist `GS` mit Startschuljahr zwei Jahre davor. Das ist ableitbar und keine Frage an die Schule, aber ein eigener Importschritt — ohne ihn hat kein Kind eine Klasse, und Klassenliste, Akte und M365-Gruppe hängen daran
 - die **Schuladressen** aus dem Tenant, je bestehendem Schüler und Mitarbeitendem ([13](13-m365-konten.md)): Ohne sie hat jede Klassenliste eine leere Spalte, und vor allem kommt kein Mitarbeitender herein — die Anmeldung über das Schulkonto liefe ins Leere. Aus M365 ableitbar und keine Frage an die Schule, aber ein eigener Importschritt — Admin
 
-**Dazu drei Vertragstexte, die geändert sein müssen, bevor der jeweilige Ablauf laufen kann** — sie stehen aus demselben Grund hier wie die Preislisten, nämlich verstreut über die Blöcke:
+**Dazu die Vertragstexte, die geändert sein müssen, bevor der jeweilige Ablauf laufen kann** — sie stehen aus demselben Grund hier wie die Preislisten, nämlich verstreut über die Blöcke:
 
 - der **Betreuungsvertrag** ([09](09-hortvertrag.md)): Ende zum Ende der Klasse 4 bzw. 5 ohne Kündigung, Schriftform im Portal, und die Zusage zur Gesundheitsangabe, die heute „ausschließlich den Betreuungskräften" verspricht und die volle Einsicht der Klassenlehrkraft ([15](15-klassenbildung.md)) ausschließen würde — Geschäftsführung und Hortleitung
 - die **Essensbedingungen** ([11](11-mensa.md)): Anmeldung und Kündigung im Portal statt mit Unterschrift, und die Lastschrift-Ermächtigung nicht mehr aus ihnen selbst — Geschäftsführung
 - die **Anlage zum Elternbonus** ([14](14-elternbonus.md)): Eintragung im Portal statt Zettel, Frist 31. Juli, und dass die Einsätze künftig im Portal ausgeschrieben und dort angemeldet werden — Geschäftsführung
 
-**Und eine Nacharbeit, die nach dem Import beginnt und dauern darf.** Der Vollimport bringt die eingeschriebenen Kinder mit, aber nicht die Bestände, die [08](08-schulvertrag.md) und [09](09-hortvertrag.md) sonst anlegen: Gesundheitsangaben, Fotoeinverständnis, Notfallnummer, SEPA-Mandat, Hortmodule. Die liegen auf Papier, in Jotform und in den sechs Formularen, die sich widersprechen — genau der Bestand, den [08](08-schulvertrag.md) künftig zu einem zusammenführt. **Das Sekretariat trägt sie aus den Akten nach**, Kind für Kind, mit dem Rückhalt der Geschäftsführung und ohne Frist. Den Eltern wird dafür nichts geschickt und niemand hinterhergelaufen; es darf dauern.
+**Und eine Nacharbeit, die nach dem Import beginnt und dauern darf.** Der Vollimport bringt die eingeschriebenen Kinder mit, aber nicht die Bestände, die [08](08-schulvertrag.md) und [09](09-hortvertrag.md) sonst anlegen: Gesundheitsangaben, Fotoeinverständnis, Notfallnummer, SEPA-Mandat, Hortmodule. Die liegen auf Papier, in Jotform und in den Formularen, die sich widersprechen — genau der Bestand, den [08](08-schulvertrag.md) künftig zu einem zusammenführt. **Das Sekretariat trägt sie aus den Akten nach**, Kind für Kind, mit dem Rückhalt der Geschäftsführung und ohne Frist. Den Eltern wird dafür nichts geschickt und niemand hinterhergelaufen; es darf dauern.
 
 Drei Festlegungen, damit die Zeit bis dahin definiert ist:
 

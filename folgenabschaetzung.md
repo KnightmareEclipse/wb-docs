@@ -56,7 +56,7 @@ Für die Bewertung tragen drei Eigenschaften, und nur sie:
 ## b) Notwendigkeit und Verhältnismäßigkeit (Art. 35 Abs. 7 lit. b)
 
 **Notwendig** ist der Bestand, weil die Alternative bereits läuft und nachweislich versagt: Die
-Angaben liegen heute auf sechs Formularen im Sekretariat (`prozesse.md`). Eine Lehrkraft auf einem
+Angaben liegen heute auf mehreren Formularen im Sekretariat (`prozesse.md`). Eine Lehrkraft auf einem
 Ausflug erreicht sie dort nicht, und die Küche kocht gegen eine Liste, die niemand nachzieht. Der
 Zweck ist nicht Verwaltung, sondern Handlungsfähigkeit im Alltag und im Notfall.
 

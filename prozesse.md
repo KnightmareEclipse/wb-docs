@@ -9,7 +9,7 @@ Abgrenzung zu den Nachbardateien, damit nichts zweimal dasteht:
 | **hier** | Ablauf heute, Beteiligte, Werkzeug, erhobene Felder, bekannte Bruchstellen |
 | `fachdomaenen.md` | Scope, Zielbild, Domänen-Liste samt Priorität, Jahreskalender der Verwaltung |
 | `grenzkarte.md` | Entitäten je Domäne, wem welche Tatsache gehört |
-| `schema/*.sql` | das Datenmodell — vierzehn Schemata mit je einem Prüfskript |
+| `schema/*.sql` | das Datenmodell — je Domäne ein Schema mit seinem Prüfskript |
 
 Zeitliche Einordnung steht im Jahreskalender in `fachdomaenen.md` Abschnitt 1; hier nur die prozesseigenen Termine, die dort nicht auflösbar sind.
 
@@ -256,7 +256,7 @@ Aktuelle Regel:
 
 `Einwilligung Mutter`, `Einwilligung Vater`, `Lebensmittelunverträglichkeit` + `Art`, `Allergien` + `Art`, `Chronisch krank` + `Art`, `Medikamente` + `Welche`, `Kind braucht Unterstützung` + `Welche`, `Attest für Medikamente`, `Erlaubnis für Unterstützung`, `Akuter Notfall`, `Notfallmedikamente`, `Beschreibung Notfallsituation`, `Attest zur Notfallmedikation`, `Erlaubnis zur Verabreichung im Notfall`, `Körperliche Einschränkung` + `Art`, `Diese Tätigkeiten dürfen nicht ausgeführt werden`, `Attest zur Einschränkung`, `Zecken entfernen`, `SignaturMutter`, `SignaturVater`
 
-Derselbe Satz wird zusätzlich auf allen vier Anmeldetag-Checklisten und im Hortvertrag erhoben — sechs Formulare, ein Datenbestand. Die Checklisten ergänzen Seh-/Hörschwäche und therapeutische Maßnahmen samt Behandlungsgrund und -zeitraum. Struktur und Zugriffsstufen: `grenzkarte.md`, „Gesundheitsmerkmal (9)".
+Derselbe Satz wird zusätzlich auf allen Anmeldetag-Checklisten und im Hortvertrag erhoben — dieselben Fragen, ein Datenbestand. Die Checklisten ergänzen Seh-/Hörschwäche und therapeutische Maßnahmen samt Behandlungsgrund und -zeitraum. Struktur und Zugriffsstufen: `grenzkarte.md`, „Gesundheitsmerkmal (9)".
 
 ### 7.3 Erhobene Felder — Fotoeinverständnis
 
