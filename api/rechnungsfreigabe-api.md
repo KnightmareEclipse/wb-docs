@@ -118,6 +118,15 @@ Zuständigkeit folgt im Block genau dieser Grenze.
 | `GET /expense-claims/{expense_claim_id}` — der einzelne Beleg: Angaben, Teile samt Entscheidung und Begründung, Anhänge, Fahrtangaben, Alter, **Dublettenhinweis** | [12](../soll-prozesse/12-rechnungsfreigabe.md) „Was dabei erhoben wird" | der Kreis oben | Der Hinweis wird hier **gerechnet, nicht gespeichert** (`ix_expense_claims_duplicate`): Empfänger und Betrag eines anderen Belegs innerhalb von 30 Tagen; bei einer Fahrt nach Strecke, die keinen Empfänger trägt, Datum und Strecke. Er nennt den anderen Beleg mit Einreicher und Datum, **sperrt nichts** und schweigt, wenn beide über dieselbe Buchungsvorlage laufen. Die Führungskraft sieht ihn beim Entscheiden, die Buchhaltung ein zweites Mal — **eine Auswertung an einer Stelle, zwei Leser**, keine zweite Regel | liest | `backend_expense_bank` |
 | `GET /expense-claims/travel-suggestions` — die eigenen letzten Strecken: Abfahrt, Ankunft, Kilometer | [12](../soll-prozesse/12-rechnungsfreigabe.md) Z1 | jede Mitarbeiterrolle | **nur die eigenen**: „eine gefahrene Strecke wird ihm aus seinen eigenen letzten vorgeschlagen". Wer fremde Strecken vorgeschlagen bekäme, erführe, wer wann wohin gefahren ist. Kein Bestand, [frisch erzeugt](../soll-prozesse/hebel.md#frisch-erzeugte-liste) aus `travel_details` über die eigenen Belege | liest | — |
 
+**`[A]` Abgelehnt zählt als derselbe Endzustand wie zurückgezogen, gebucht und storniert.** Keine
+der Routen unten — Entscheiden, Korrigieren, Weiterleiten, Aufteilen, Kontokorrektur, Buchen,
+Stornieren — fasst einen bereits abgelehnten Beleg noch an, auch nicht den offenen Teil eines
+aufgeteilten Belegs, dessen anderer Teil abgelehnt wurde: „lehnt einer ab, ist der ganze Beleg
+abgelehnt" (12, Ablauf #4) gilt so, wie es dort steht, für den ganzen Rest des Ablaufs. —
+Alternative: Ablehnung bliebe reversibel, eine Führungskraft könnte sie per Korrektur zurücknehmen;
+Preis: eine zweite Bedeutung von „abgelehnt" neben der des Blocks, und die Belegnummer eines später
+neu freigegebenen Beleges wäre nicht mehr die, die zu seiner Ablehnung gehörte.
+
 ## Die Entscheidung
 
 | Handlung | Herkunft | Wer darf | Worauf eingeschränkt | Schreibt/liest | Enge Rolle |
