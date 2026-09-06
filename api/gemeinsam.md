@@ -58,6 +58,10 @@ zugewiesen ist, und Admin ist keine davon. — Alternative: Admin erbt auch dort
 Preis: die Person, die das System betreibt, zeichnet jeden Vertrag gegen, und der Satz „wer
 entscheidet, trägt ein" wäre nur noch eine Bitte.
 
+> **Entschieden, nicht gebaut** (`backlog/` TASK-280): `app/core/security.py` legt `ADMIN_ROLE`
+> heute in jedem `require_role` und jedem `staff_roles` unbedingt dazu. Solange der Betreiber der
+> einzige Träger der Rolle ist, ist das kein offener Zugang, sondern eine unbelegte Zusage.
+
 ## Einsichtsstufe
 
 Sie hängt an der Person, nicht am Feld (`hebel.md`), und wirkt deshalb an **einer** Stelle: bei der
@@ -145,6 +149,9 @@ eine hinausgegangene Mail nimmt kein ROLLBACK zurück.
 **Der Preis dieser Wahl steht dazu:** Ein gescheiterter Versand fällt nicht mehr in der Anfrage auf,
 sondern im [Wochenlauf über unzustellbare Mails](../soll-prozesse/hebel.md#unzustellbare-mail).
 
+> **Entschieden, nicht gebaut** (`backlog/` TASK-280): Heute stehen beide Bauformen nebeneinander —
+> `send_tracked` schickt in der Anfrage, der Elternbonus dahinter.
+
 ## Lauf-Marke
 
 **Eine Lauf-Marke hängt am Vorgang, nicht allein an der Person** (06.09.2026). Sie beantwortet „ist
@@ -155,6 +162,10 @@ weitere dauerhaft — und zwar lautlos, denn eine fehlende Mail wirft keinen Feh
 
 Der Anker ist die Zeile, um die es geht: die Bewerbung, der Zyklus, der Termin. — Alternative: Marke
 je Person und Zweck; Preis: das zweite Kind bekommt nichts, und niemand erfährt es.
+
+> **Der Putzdienst hält das bereits**: seine Marken stehen an `cleaning_cycles` und `cleaning_slots`.
+> Offen ist allein die Anmeldung (`backlog/` TASK-277, TASK-278) — **vor dem Livegang der
+> Voranmeldung**, nicht vor dem des Putzdiensts.
 
 ## Sofortzahlung
 

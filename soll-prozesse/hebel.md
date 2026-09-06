@@ -164,7 +164,9 @@ Eine Buchung rechnet mit dem Betrag, der galt, als sie einging; ein Jahresschlus
 abgerechneten Schuljahr galt — nicht mit dem, der am Tag des Laufs gerade gilt. Sonst rechnet der
 Lauf am 1. August das am 31. Juli beendete Jahr zum neuen Satz ab, und zwar rückwirkend für alle.
 — Alternative: immer der heute gültige Wert; Preis: der Fehler tritt erst beim ersten Jahreswechsel
-auf, an dem sich ein Betrag geändert hat, und dann still.
+auf, an dem sich ein Betrag geändert hat, und dann still. **Entschieden, nicht gebaut** (`backlog/`
+TASK-204): Die Funktion nimmt heute immer den gerade gültigen Wert; fällig wird das zum ersten
+Jahresschluss, also frühestens am 01.08.2027.
 
 **Und seit dem 04.09.2026 gilt dasselbe für die Löschfristen** (Geschäftsführung): Sie stehen als Wert im System und nicht im Code, geändert werden sie von der Geschäftsführung. Das ist die Umkehrung dessen, was hier vorher stand — Fristen galten als feste Zahl, weil „je weniger jemand einstellen muss, desto weniger geht schief" ([anleitung.md](anleitung.md)). Der Satz gilt weiter für Vorlaufzeiten und Stichtage; für die Aufbewahrung gilt er nicht mehr, weil eine Frist, die eine Aufsichtsbehörde beanstandet, sonst einen Bau kostet statt einer Eingabe.
 
