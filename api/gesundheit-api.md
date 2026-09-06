@@ -13,8 +13,8 @@ Stelle referenzieren, ohne sie zu bauen — [`anmeldung-api.md`](anmeldung-api.m
 
 **Gegenprobe:** Die berührten Ablauftabellen tragen **3 Zeilen**, die im System handeln: 06 Z5
 (Masernnachweis regulärer Kinder), 08 Z2 (Gesundheitsangaben beantworten oder ablehnen), 09 Z3
-(externes Kind: beides zum ersten Mal). Alle drei haben hier eine Route. Es gibt **8 Routen**; **4**
-nennen eine dieser Zeilen, **4** einen Hebel oder Abschnitt der Karte (`grenzkarte.md` „Zugriff, je
+(externes Kind: beides zum ersten Mal). Alle drei haben hier eine Route. Es gibt **7 Routen**; **4**
+nennen eine dieser Zeilen, **3** einen Hebel oder Abschnitt der Karte (`grenzkarte.md` „Zugriff, je
 Angabe", [15](../soll-prozesse/15-klassenbildung.md) „Hier entsteht, von welchen Kindern jemand
 liest", das Gespräch mit der
 Geschäftsführung vom 01.09.2026 für die Notfalleinsicht). Keine Abweichung.
