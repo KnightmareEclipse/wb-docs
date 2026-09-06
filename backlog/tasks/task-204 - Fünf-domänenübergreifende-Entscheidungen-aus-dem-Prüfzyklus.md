@@ -4,7 +4,7 @@ title: Fünf domänenübergreifende Entscheidungen aus dem Prüfzyklus
 status: To Do
 assignee: []
 created_date: '2026-09-02 23:45'
-updated_date: '2026-09-06 17:43'
+updated_date: '2026-09-06 21:55'
 labels:
   - wb-docs
   - wb-backend
@@ -36,9 +36,31 @@ Fünf Funde der vier bisherigen Prüfläufe liegen am gemeinsamen Hebel, nicht i
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Entschieden und in gemeinsam.md nachgezogen: erbt Admin an einer Freigabe- oder Gegenzeichnungsroute, oder erbt er dort nicht
-- [ ] #2 Entschieden und in api/gemeinsam.md nachgezogen: welche der beiden Bauformen der Mailweg ist, und was der Satz von einer Transaktion samt Mails danach verspricht
-- [ ] #3 Entschieden: woran eine Lauf-Marke hängt, wenn eine Person zwei Vorgänge derselben Sorte trägt
+- [x] #1 Entschieden und in gemeinsam.md nachgezogen: erbt Admin an einer Freigabe- oder Gegenzeichnungsroute, oder erbt er dort nicht
+- [x] #2 Entschieden und in api/gemeinsam.md nachgezogen: welche der beiden Bauformen der Mailweg ist, und was der Satz von einer Transaktion samt Mails danach verspricht
+- [x] #3 Entschieden: woran eine Lauf-Marke hängt, wenn eine Person zwei Vorgänge derselben Sorte trägt
 - [x] #4 Entschieden: die Zahlungssitzung bleibt in der Anfragetransaktion und der Preis steht im Plan, oder sie wandert dahinter
-- [ ] #5 Entschieden: configured_value bekommt einen Stichtag, oder der Jahresschluss rechnet bewusst mit dem heutigen Wert
+- [x] #5 Entschieden: configured_value bekommt einen Stichtag, oder der Jahresschluss rechnet bewusst mit dem heutigen Wert
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Alle vier offenen Punkte sind am 06.09.2026 entschieden und in der Doku nachgezogen:
+
+1. **Admin erbt an einer Entscheidungsroute nicht.** Der Satz in api/gemeinsam.md ist eine
+   Sperre und keine Beschreibung; security.py darf ADMIN_ROLE dort nicht dazulegen.
+   Nachgezogen in api/gemeinsam.md, "Wer darf, und worauf eingeschraenkt".
+2. **Die Mail geht nach dem Commit hinaus**, als Aufgabe dahinter — die Bauform des
+   Elternbonus gilt fuer alle. Ein Plan, der "eine Transaktion samt Mails" verspricht,
+   meint die Transaktion des Vorgangs. Neuer Abschnitt "Mail und Transaktion" in
+   api/gemeinsam.md, samt dem Preis: ein gescheiterter Versand faellt erst im Wochenlauf auf.
+3. **Die Lauf-Marke haengt am Vorgang**, nicht allein an Person und Zweck. Neuer Abschnitt
+   "Lauf-Marke" in api/gemeinsam.md; TASK-277 und TASK-278 tragen die beiden Anker der
+   Anmeldung.
+4. **configured_value bekommt einen Stichtag** als Parameter mit Vorgabewert heute.
+   Nachgezogen in soll-prozesse/hebel.md, "Geld und Fristen im System".
+
+Zu bauen bleibt der wb-backend-Teil; er laeuft zusammen mit TASK-280, weil beide dieselben
+Dateien anfassen.
+<!-- SECTION:NOTES:END -->

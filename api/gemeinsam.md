@@ -51,6 +51,13 @@ Belege statt seines eigenen.
 (Art. 9, IBAN) liegen hinter eigenen DB-Rollen, und was einer Person zur Entscheidung zugewiesen ist
 — Freigabe, Gegenzeichnung, Straf-Aussetzung —, bleibt bei ihr: „wer entscheidet, trägt ein".
 
+**Dieser Satz ist eine Sperre und keine Beschreibung** (06.09.2026). Die Erbregel oben wirkt in
+`app/core/security.py`, und dort darf sie an einer Entscheidungsroute nicht greifen: Wer eine
+Freigabe, eine Gegenzeichnung oder eine Straf-Aussetzung ausspricht, tut das mit der Rolle, der sie
+zugewiesen ist, und Admin ist keine davon. — Alternative: Admin erbt auch dort und der Satz fällt;
+Preis: die Person, die das System betreibt, zeichnet jeden Vertrag gegen, und der Satz „wer
+entscheidet, trägt ein" wäre nur noch eine Bitte.
+
 ## Einsichtsstufe
 
 Sie hängt an der Person, nicht am Feld (`hebel.md`), und wirkt deshalb an **einer** Stelle: bei der
@@ -121,6 +128,33 @@ für den Plan, nicht erst für den Bau:
 - **Ein Vorgang ist eine Route.** Was ein Block als einen Schritt beschreibt, entsteht in einer
   Transaktion, auch wenn es fünf Tabellen berührt. Wer die Tabellen einzeln freilegt, verlagert den
   Ablauf ins Frontend, und dann gibt es ihn zweimal.
+
+## Mail und Transaktion
+
+**Die Mail geht nach dem Commit hinaus, nie darin** (06.09.2026). Der Vorgang wird zuerst
+festgeschrieben, der Versand hängt als Aufgabe dahinter — so baut es der Elternbonus, und so gilt es
+für alle. Ein Plan, der „eine Transaktion samt Mails" verspricht, meint damit die Transaktion des
+Vorgangs und nicht den Versand.
+
+Der Grund ist der Fehlerfall: Schreibt eine Route ihre `outbound_emails`-Zeile mitten in der
+Anfrage-Transaktion und schickt sofort, dann hat die Familie die Bestätigung gelesen, während der
+Vorgang zurückgerollt ist — für sie ist er passiert, im Bestand nicht. — Alternative: Versand in der
+Transaktion, dafür rollt ein Fehler beides zurück; Preis: das gilt nur für die Datenbankzeile, denn
+eine hinausgegangene Mail nimmt kein ROLLBACK zurück.
+
+**Der Preis dieser Wahl steht dazu:** Ein gescheiterter Versand fällt nicht mehr in der Anfrage auf,
+sondern im [Wochenlauf über unzustellbare Mails](../soll-prozesse/hebel.md#unzustellbare-mail).
+
+## Lauf-Marke
+
+**Eine Lauf-Marke hängt am Vorgang, nicht allein an der Person** (06.09.2026). Sie beantwortet „ist
+diese Mail für diesen Vorgang schon hinausgegangen?", und ohne den Vorgang beantwortet sie eine
+andere Frage: Zwei Kinder einer Familie teilen sich Person, Zweckbestimmung und Auslösezeitpunkt, ein
+ganzer Jahrgang teilt sich das Fristende aus einer Freigabe. Die erste Mail unterdrückt dann jede
+weitere dauerhaft — und zwar lautlos, denn eine fehlende Mail wirft keinen Fehler.
+
+Der Anker ist die Zeile, um die es geht: die Bewerbung, der Zyklus, der Termin. — Alternative: Marke
+je Person und Zweck; Preis: das zweite Kind bekommt nichts, und niemand erfährt es.
 
 ## Sofortzahlung
 
