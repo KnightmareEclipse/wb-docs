@@ -140,7 +140,13 @@ ist für alle vier derselbe und steht deshalb hier:
 
 1. **Der Elternteil ruft die Route seines Vorgangs**, nicht eine Zahlungsroute. Sie legt nichts an,
    sondern prüft und eröffnet die Zahlungssitzung; zurück kommt die Adresse, zu der die Oberfläche
-   weiterschickt.
+   weiterschickt. **Die Transaktion endet dabei vor dem Aufruf beim Zahlungsdienst, nicht nach ihm**
+   (`wb-backend/app/db/session.py`): Sie ist der letzte Schritt der Route, und weil in diesem Zweig
+   nichts geschrieben wird, gibt es nichts, was der Rückgabe der Verbindung im Weg stünde.
+   — Alternative: die Runde innerhalb der Anfrage-Transaktion lassen; Preis: Der Pool trägt fünf
+   Verbindungen plus zehn Overflow (`app/core/config.py`), die Runde darf zwanzig Sekunden dauern
+   (`app/services/payments.py`) — fünfzehn gleichzeitige Zahlvorgänge bei einem trödelnden
+   Zahlungsdienst legen für diese Zeit jede andere Anfrage still, auch die des Sekretariats.
 2. **Der Zahlungsdienst ruft die Bestätigungsroute** — `POST /payments/callback`, eine für alle vier
    Anlässe. Sie ist der einzige Ort, an dem `payments` und der bezahlte Vorgang entstehen, in
    **einer** Transaktion, Aktor `system:payments`.
