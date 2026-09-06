@@ -3,9 +3,10 @@ id: TASK-271
 title: >-
   prompts/api-pruefen.md: das TRUNCATE über sharepoint_libraries reißt
   Wertelisten mit
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-05 22:56'
+updated_date: '2026-09-06 02:03'
 labels:
   - wb-docs
   - pruefzyklus
@@ -24,7 +25,13 @@ TASK-203 hat sharepoint_libraries in die TRUNCATE-Zeile aufgenommen, um eine uq_
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Das TRUNCATE in prompts/api-pruefen.md nimmt sharepoint_libraries nicht mehr mit
-- [ ] #2 Reste von sharepoint_libraries werden einzeln DELETEt statt über CASCADE, ohne referenzierende Wertelisten zu reißen
-- [ ] #3 Ein wiederholter Prüflauf nach einer roten Messung bleibt an Wertelisten wie holiday_session_types und holiday_modules stabil
+- [x] #1 Das TRUNCATE in prompts/api-pruefen.md nimmt sharepoint_libraries nicht mehr mit
+- [x] #2 Reste von sharepoint_libraries werden einzeln DELETEt statt über CASCADE, ohne referenzierende Wertelisten zu reißen
+- [x] #3 Ein wiederholter Prüflauf nach einer roten Messung bleibt an Wertelisten wie holiday_session_types und holiday_modules stabil
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Bereits behoben, unabhängig von diesem Ticket bemerkt: prompts/api-pruefen.md nimmt sharepoint_libraries nicht mehr ins TRUNCATE, ein gezieltes DELETE räumt nur die Fixture-eigene Zeile (app_documents). contract_text_kinds und darüber holiday_session_types/holiday_modules bleiben damit stehen, weil kein CASCADE mehr bis zu ihnen reicht. Beim Reparaturlauf auth bemerkt (AUTH-R5), das dieselbe Zeile ein zweites Mal fand.
+<!-- SECTION:NOTES:END -->
