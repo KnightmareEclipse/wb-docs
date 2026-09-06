@@ -4,6 +4,7 @@ title: Fünf domänenübergreifende Entscheidungen aus dem Prüfzyklus
 status: To Do
 assignee: []
 created_date: '2026-09-02 23:45'
+updated_date: '2026-09-06 17:43'
 labels:
   - wb-docs
   - wb-backend
@@ -38,6 +39,6 @@ Fünf Funde der vier bisherigen Prüfläufe liegen am gemeinsamen Hebel, nicht i
 - [ ] #1 Entschieden und in gemeinsam.md nachgezogen: erbt Admin an einer Freigabe- oder Gegenzeichnungsroute, oder erbt er dort nicht
 - [ ] #2 Entschieden und in api/gemeinsam.md nachgezogen: welche der beiden Bauformen der Mailweg ist, und was der Satz von einer Transaktion samt Mails danach verspricht
 - [ ] #3 Entschieden: woran eine Lauf-Marke hängt, wenn eine Person zwei Vorgänge derselben Sorte trägt
-- [ ] #4 Entschieden: die Zahlungssitzung bleibt in der Anfragetransaktion und der Preis steht im Plan, oder sie wandert dahinter
+- [x] #4 Entschieden: die Zahlungssitzung bleibt in der Anfragetransaktion und der Preis steht im Plan, oder sie wandert dahinter
 - [ ] #5 Entschieden: configured_value bekommt einen Stichtag, oder der Jahresschluss rechnet bewusst mit dem heutigen Wert
 <!-- AC:END -->

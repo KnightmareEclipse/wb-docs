@@ -4,10 +4,12 @@ title: Die drei offenen Prüfberichte reparieren
 status: To Do
 assignee: []
 created_date: '2026-09-02 23:44'
+updated_date: '2026-09-06 17:43'
 labels:
   - wb-backend
   - pruefzyklus
-dependencies: []
+dependencies:
+  - TASK-280
 references:
   - prompts/api-reparieren.md
   - pruefberichte/routen-gesundheit.md
@@ -25,7 +27,7 @@ Drei Routen-Prüfläufe liegen als Bericht in pruefberichte/ und sind weder repa
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [ ] #1 routen-gesundheit.md ist geschlossen und gelöscht, Suite und schema-check.sh danach grün
-- [ ] #2 routen-elternbonus.md ist geschlossen und gelöscht, Suite und schema-check.sh danach grün
-- [ ] #3 routen-anmeldung.md ist geschlossen und gelöscht, Suite und schema-check.sh danach grün
-- [ ] #4 Kein Fund ist still liegengeblieben: was keine einzelne Domäne betrifft, steht in TASK-204
+- [x] #2 routen-elternbonus.md ist geschlossen und gelöscht, Suite und schema-check.sh danach grün
+- [x] #3 routen-anmeldung.md ist geschlossen und gelöscht, Suite und schema-check.sh danach grün
+- [x] #4 Kein Fund ist still liegengeblieben: was keine einzelne Domäne betrifft, steht in TASK-204
 <!-- AC:END -->

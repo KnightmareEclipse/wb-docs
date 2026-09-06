@@ -1,10 +1,10 @@
 ---
 id: TASK-202
 title: Die acht ungeprüften Domänen und der dreizehnte Lauf
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-02 23:44'
-updated_date: '2026-09-05 15:34'
+updated_date: '2026-09-06 17:43'
 labels:
   - wb-backend
   - pruefzyklus
@@ -23,7 +23,7 @@ Vier der zwölf Domänen sind durch prompts/api-pruefen.md gegangen: cleaning, g
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Acht Berichte liegen in pruefberichte/, einer je Domäne
-- [ ] #2 Der dreizehnte Lauf ist gelaufen, pruefberichte/routen.md liegt
-- [ ] #3 Die zwei Zahlen stehen darin: wie viele der 235 Routen einen Test haben und wie viele einen auf die fremde Id
+- [x] #1 Acht Berichte liegen in pruefberichte/, einer je Domäne
+- [x] #2 Der dreizehnte Lauf ist gelaufen, pruefberichte/routen.md liegt
+- [x] #3 Die zwei Zahlen stehen darin: wie viele der 235 Routen einen Test haben und wie viele einen auf die fremde Id
 <!-- AC:END -->
