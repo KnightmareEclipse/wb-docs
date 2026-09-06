@@ -77,7 +77,14 @@ ab, und die Anmeldeliste mit Namen läge sechs Rollen offen statt der einen, die
 
 | Handlung | Herkunft | Wer darf | Worauf eingeschränkt | Schreibt/liest | Enge Rolle |
 |---|---|---|---|---|---|
-| `POST /parent-work-entries` — eine geleistete Stunde eintragen: Datum, halbe Stunden, Tätigkeit, freiwillig der Einsatz, aus dem sie kommt | [14](../soll-prozesse/14-elternbonus.md) Z4 | Erziehungsberechtigte; `secretariat` (Umweg) | eigene Familie, nach [Einsichtsstufe](../soll-prozesse/hebel.md#einsichtsstufe) **nur „voll"** — der Eintrag mindert das Schulgeld der ganzen Familie. **Zählt sofort.** Mit Einsatz sind Datum und Tätigkeit vorausgefüllt: Fehlen sie im Rumpf, kommen sie vom Einsatz, kopiert und nicht verwiesen; der Einsatz muss die Familie ansprechen, eine Anmeldung ist **nicht** Voraussetzung („auch wer sich nie angemeldet hat, trägt seine Stunde ein"). Ohne Einsatz ist der häufigere Weg. Eltern nur bis zum 31. Juli des Schuljahrs, dem das Datum gehört; Sekretariat setzt **jedes Datum**, solange die Jahresliste noch nicht übergeben ist | schreibt, `guardian:`/`entra:` | — |
+| `POST /parent-work-entries` — eine geleistete Stunde eintragen: Datum, halbe Stunden, Tätigkeit, freiwillig der Einsatz, aus dem sie kommt | [14](../soll-prozesse/14-elternbonus.md) Z4 | Erziehungsberechtigte; `secretariat` (Umweg) | eigene Familie, nach [Einsichtsstufe](../soll-prozesse/hebel.md#einsichtsstufe) **nur „voll"** — der Eintrag mindert das Schulgeld der ganzen Familie. **Zählt sofort.** Mit Einsatz sind Datum und Tätigkeit vorausgefüllt: Fehlen sie im Rumpf, kommen sie vom Einsatz, kopiert und nicht verwiesen; der Einsatz muss die Familie ansprechen, eine Anmeldung ist **nicht** Voraussetzung („auch wer sich nie angemeldet hat, trägt seine Stunde ein"). Ohne Einsatz ist der häufigere Weg. Eltern nur bis zum 31. Juli des Schuljahrs, dem das Datum gehört, und **nur bis zum Austritt des letzten Kindes**, wo der früher liegt — „der Stand friert ein, der Betrag steht sofort fest" (14, „Fristen und Termine"); Sekretariat setzt **jedes Datum**, solange die Jahresliste noch nicht übergeben ist | schreibt, `guardian:`/`entra:` | — |
+
+`[A]` Die Austrittsfrist trägt die Route und nicht erst die Jahresrechnung: Ist das letzte Kind
+abgegangen, nimmt `POST /parent-work-entries` von den Eltern keine Stunde mehr an. — Alternative:
+der Block bekommt eine Zeile, dass der Deckel aus den gezählten Monaten die Frist ersetzt und bis
+zum 31. Juli weiter eingetragen wird; Preis: Der Betrag der Abgangsliste
+([03](../soll-prozesse/03-irregulaerer-abgang.md)) steht dann nicht „sofort" fest, und die
+Buchhaltung sieht an ihrem Optigem-Punkt eine Zahl, die sich bis Juli noch ändert.
 
 ## Die Ansichten
 
