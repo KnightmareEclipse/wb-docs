@@ -1261,6 +1261,14 @@ SELECT pg_temp.expect_reject(
     'rules.md Abschnitt 3 — Werteliste ohne Code mit leerem Namen (`previous_schools`)',
     $q$INSERT INTO previous_schools (name) VALUES ('')$q$);
 
+-- Dieselbe Regel an den vier Pflichtangaben einer Anschrift: `NOT NULL` allein
+-- lässt den Leerstring durch, und den liefert eine leere CSV-Zelle beim
+-- Vollimport.
+SELECT pg_temp.expect_reject(
+    'Anschrift ohne Hausnummer',
+    $q$UPDATE addresses SET house_number = ''
+        WHERE address_id = '11111111-1111-1111-1111-111111111111'$q$);
+
 DO $$ BEGIN RAISE NOTICE 'stammdaten-schema-check: alle Gegenproben bestanden'; END $$;
 
 ROLLBACK;

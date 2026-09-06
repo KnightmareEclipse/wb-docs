@@ -335,6 +335,10 @@ CREATE TABLE addresses (
     CONSTRAINT pk_addresses         PRIMARY KEY (address_id),
     CONSTRAINT fk_addresses_country FOREIGN KEY (country_id) REFERENCES countries (country_id),
     CONSTRAINT ck_addresses_street      CHECK (street <> ''),
+    -- Wie die drei Nachbarn: `NOT NULL` allein hält den Leerstring nicht ab, und
+    -- genau den liefert eine leere CSV-Zelle beim Vollimport. Eine Anschrift
+    -- ohne Hausnummer trägt kein Kind nach Hause.
+    CONSTRAINT ck_addresses_house_number CHECK (house_number <> ''),
     CONSTRAINT ck_addresses_postal_code CHECK (postal_code <> ''),
     CONSTRAINT ck_addresses_city        CHECK (city <> ''),
     CONSTRAINT ck_addresses_district    CHECK (district <> ''),
