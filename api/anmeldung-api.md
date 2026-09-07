@@ -385,9 +385,8 @@ Drei Durchgänge, jeder mechanisch.
 4. **Die Warteliste hat keine Mechanik, die veralten könnte.** Priorität, Nachrücken und „wer ist der
    Nächste" sind Menschenentscheidungen; das System sortiert und rechnet nichts. Ein späterer
    Automatismus wäre ein neuer Block und keine Änderung an diesen Routen.
-5. **Ein verschwindendes Feld bricht keine Oberfläche.** Fällt der Zweckbeschluss für Konfession,
-   Beruf und Staatsangehörigkeit negativ aus (`[?]` in 05), zeigt die Durchsicht vier Felder
-   weniger; die Routen bleiben, wie sie sind.
+5. **Ein verschwindendes Feld bricht keine Oberfläche.** Zeigte die Durchsicht eines weniger,
+   blieben die Routen, wie sie sind.
 6. **Die drei Termine der Anpassung sind Text und keine Rechnung.** Erhöhung, Verringerung und
    September stehen im Vertragstext, die Route prüft sie nicht — ändert der Träger sie, ändert sich
    der Text und keine Bedingung.

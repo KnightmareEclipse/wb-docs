@@ -65,27 +65,27 @@ nächste Frage geht, bekommt deshalb eine Antwort auf ein Argument, das nicht me
 
 ### 1. Zweck der vier Voranmeldefelder — Schulleitung
 
-> „Konfession, Beruf und Staatsangehörigkeit der Eltern und die Kirchengemeinde des Kindes stehen
-> auf der Voranmeldung. Der Datenschutzbeauftragte sagt: kein Erlaubnistatbestand, also nur
-> freiwillig und sichtbar freiwillig. Welchen Zweck hat jedes einzelne Feld — und soll es bleiben?"
+> „Konfession, Beruf und Staatsangehörigkeit der Eltern und die Kirchengemeinde des Kindes bleiben
+> auf der Voranmeldung, das ist entschieden. Offen ist das Wozu: Welchen Zweck erfüllt jedes
+> einzelne dieser vier Felder — was tut die Schule mit der Angabe?"
 
-**Brauchbar ist die Antwort, wenn** je Feld ein benannter Zweck dasteht oder ein klares Nein. Die
-datenschutzrechtliche Hälfte ist erledigt und steht in `schema/stammdaten-schema.sql`; offen ist
-allein die fachliche, und sie gehört der Schulleitung.
+**Brauchbar ist die Antwort, wenn** je Feld ein Satz dasteht, der als Zweck im
+[Verarbeitungsverzeichnis](verarbeitungsverzeichnis.md) tragen kann. Die datenschutzrechtliche
+Hälfte ist erledigt (02.09.2026, `schema/stammdaten-schema.sql`), die Frage „soll es bleiben" auch
+(07.09.2026, alle vier bleiben). Findet sich für eines der vier kein Zweck, ist das die Antwort, die
+den Beschluss für dieses Feld wieder aufmacht — geraten wird keiner.
 
-**Daran hängt:** Vor dem Vollimport ist ein Nein ein `DROP COLUMN`. Danach ist es eine Migration auf
-echten und teils besonders geschützten Personendaten. **Deshalb vor dem Vollimport, nicht danach.**
-
-**Die Kirchengemeinde gehört ausdrücklich nicht in diese Frist** — sie wird weiter erhoben, und ob
-sie bleibt, wird erst einige Monate nach dem Import entschieden. Sie steht hier nur, damit klar ist,
-dass sie bewusst draußen ist.
+**Daran hängt:** Diese vier sind die einzige Zeile des Verarbeitungsverzeichnisses ohne
+Rechtsgrundlage. Für die Spalten selbst folgt nichts mehr daraus, und an keinem Termin hängt es —
+weder am Vollimport noch an der Voranmeldestrecke.
 
 **An dieser Frage hängt zusätzlich die Werteliste `denominations`** — sie steht als einzige der
 Wertelisten leer und bekommt keinen Anfangsbestand, solange der Zweck des Feldes nicht beschlossen
-ist. Bleibt das Feld, ist die zweite Frage, welche Konfessionen darin auswählbar sein sollen; das
-beantwortet dann das Sekretariat, nicht dieses Gespräch. Fällt das Feld, fällt die Liste mit ihm.
+ist. Steht er, ist die zweite Frage, welche Konfessionen darin auswählbar sein sollen; das
+beantwortet dann das Sekretariat, nicht dieses Gespräch.
 
-*Steht in* `schema/stammdaten-schema.sql` · `soll-prozesse/05-bewerbung.md:19` · `backlog/`
+*Steht in* `schema/stammdaten-schema.sql` · `soll-prozesse/05-bewerbung.md` ·
+`verarbeitungsverzeichnis.md` · `backlog/`
 
 ### 2. Wie lange ein ausgeschiedener Mitarbeitender stehen bleibt
 

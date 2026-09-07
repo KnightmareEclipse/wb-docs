@@ -85,17 +85,17 @@ Je Freischaltung die Mailadresse, das Ziel und wer sie wann erteilt hat — sie 
 Ausnahme von einer harten Sperre und trägt deshalb einen Namen
 ([Änderungsspur](hebel.md#änderungsspur)); sichtbar für Sekretariat und Schulleitung.
 
-> [!note]- Warum die Kirchengemeinde vorerst bleibt
-> Die **Kirchengemeinde will die Schule weiter erheben** — sie wird gebaut und befüllt wie jedes
-> andere Feld dieser Liste; ob sie später wegfällt, wird in einigen Monaten entschieden und damit
-> **nach** dem Vollimport, nicht davor. Ein benannter Verarbeitungszweck steht für sie weiterhin
-> aus, und das ist der Punkt, über den dann entschieden wird.
+Für Konfession, Beruf und Staatsangehörigkeit der Eltern und die Kirchengemeinde des Kindes steht
+seit dem 02.09.2026 fest, dass es keinen Erlaubnistatbestand gibt: Die Felder bleiben nur
+**freiwillig**, und die Freiwilligkeit muss beim Ausfüllen ersichtlich sein — nicht im
+Kleingedruckten.
 
-Für Konfession, Beruf und Staatsangehörigkeit der Eltern steht seit dem 02.09.2026 fest, dass es
-keinen Erlaubnistatbestand gibt: Die Felder bleiben nur **freiwillig**, und die Freiwilligkeit muss
-beim Ausfüllen ersichtlich sein — nicht im Kleingedruckten. `[?]` Welchen Zweck jedes Feld hat und
-ob es bleibt, entscheidet die Schulleitung; fällig vor dem Vollimport. Der Beschluss zur
-Kirchengemeinde kommt später und hält bis dahin nichts auf.
+**Dass alle vier erhoben bleiben, ist seit dem 07.09.2026 entschieden** (Gespräch aller
+Beteiligten). Sie werden gebaut und befüllt wie jedes andere Feld dieser Liste, keines wird je
+Pflichtfeld, und ein `DROP COLUMN` steht nicht mehr an — die Frist „vor dem Vollimport", die daran
+hing, ist damit erledigt. `[?]` Offen ist allein der **benannte Verarbeitungszweck je Feld**: Ohne
+ihn steht im [Verarbeitungsverzeichnis](../verarbeitungsverzeichnis.md) für diese vier kein Zweck.
+Das entscheidet die Schulleitung, und es hält nichts auf.
 
 ## Entscheidungen
 

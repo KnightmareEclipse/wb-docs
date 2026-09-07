@@ -38,7 +38,7 @@ in `schema/` liegt.
 | Ferienanmeldung | Buchung und Abrechnung des Ferienprogramms, auch für schulfremde Kinder | `[A]` Art. 6 Abs. 1 lit. b |
 | Mensa | Essensanmeldung und ihre Abrechnung | `[A]` Art. 6 Abs. 1 lit. b |
 | Gesundheitsdaten | Merkmale, die unterrichtende Personen kennen müssen, samt Masernnachweis | `[A]` Art. 9 Abs. 2 lit. a (Einwilligung) für die Merkmale; für den Masernnachweis Art. 9 Abs. 2 lit. i i. V. m. § 20 IfSG |
-| Konfession, Staatsangehörigkeit, Beruf, Kirchengemeinde | Erhebung im Voranmeldebogen | **offen** — der Zweckbeschluss steht aus (TASK-038); ohne ihn trägt kein Feld eine Rechtsgrundlage |
+| Konfession, Staatsangehörigkeit, Beruf, Kirchengemeinde | Erhebung im Voranmeldebogen | **offen** — dass alle vier erhoben bleiben, ist am 07.09.2026 entschieden, der Zweck je Feld nicht (TASK-038); ohne ihn trägt kein Feld eine Rechtsgrundlage |
 | Rechnungsfreigabe, Elternbonus | interne Freigabe und Verrechnung von Auslagen und Elternmitarbeit | `[A]` Art. 6 Abs. 1 lit. b gegenüber Mitarbeitenden, lit. f gegenüber Eltern |
 | Klassenbildung, Klassenorganisation, M365 | Zuordnung zu Klassen und Konten | `[A]` Art. 6 Abs. 1 lit. b |
 | Newsletter und Schulinformation je Thema | Versand an Personen, die sich dafür eingetragen haben oder ihn nicht abgewählt haben — Ehemalige, Förderkreis, Interessenten, dazu die laufenden Familien; der Bestand ist eine Zeile je Person und Thema in `consents`, die Sorte eine Zeile in `mail_categories` (`schema/querschnitt-schema.sql`) | `[A]` Art. 6 Abs. 1 lit. a — Einwilligung, jederzeit widerrufbar; der Widerruf löscht die Zeile nicht, er setzt einen Zeitpunkt |

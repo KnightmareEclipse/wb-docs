@@ -567,14 +567,12 @@ CREATE TABLE children (
     -- Freiwillig und deshalb getrennt von der ersten (05).
     second_nationality_country_id integer,
     denomination_id            integer,
-    -- Freiwillig (05), und sie bleibt: „Die Kirchengemeinde will die Schule
-    -- weiter erheben — sie wird gebaut und befüllt wie jedes andere Feld dieser
-    -- Liste; ob sie später wegfällt, wird in einigen Monaten entschieden und
-    -- damit nach dem Vollimport, nicht davor" (05). Ein benannter
-    -- Verarbeitungszweck steht für sie weiterhin aus — Block 07 nennt sie mit
-    -- keinem Wort, und grenzkarte.md führt sie unter den weißen Flecken —, und
-    -- genau darüber wird dann entschieden. Bis dahin ist das kein offener
-    -- Punkt, der etwas aufhält.
+    -- Freiwillig (05), und sie bleibt: Dass die Schule sie weiter erhebt, ist
+    -- seit dem 07.09.2026 entschieden, wie für die drei Felder an `guardians`
+    -- — sie wird gebaut und befüllt wie jedes andere Feld dieser Liste. Ein
+    -- benannter Verarbeitungszweck steht für sie weiterhin aus (Block 07 nennt
+    -- sie mit keinem Wort); das ist der offene Rest oben unter „Offene Fragen
+    -- an die Schule" und hält nichts auf.
     congregation               text,
     -- Entsteht mit der Freigabe des Schulvertrags aus dem Ziel der Bewerbung
     -- (08) und wirkt zum Eintrittsdatum; ein Bewerberkind hat sie noch nicht.
@@ -1319,18 +1317,14 @@ CREATE TABLE login_sessions (
 -- der Spalte, sondern eine des Formulars, und sie muss dort sichtbar sein, nicht
 -- im Kleingedruckten. Ohne Erlaubnistatbestand trägt allein die Einwilligung;
 -- eine nicht beantwortete Frage bleibt deshalb leer und wird nicht nachgefasst.
--- [?] Offen ist nur noch der fachliche Teil: Welchen Zweck hat jedes einzelne
---     Feld, und soll es überhaupt bleiben? Das entscheidet die Schulleitung
---     (so vermerkt am 02.09.2026), nicht der Datenschutzbeauftragte.
---     NICHT mehr dazu gehört die Frist der Kirchengemeinde: Sie wird weiter
---     erhoben, und über sie wird erst einige Monate NACH dem Vollimport
---     entschieden (05). Sie steht deshalb nicht mehr unter dem, was vor dem
---     Import fällig ist, und ist kein Kandidat für ein DROP COLUMN davor.
---     Was daran hängt: Solange kein Kind im Bestand steht, ist ein gestrichenes
---     Feld eine gelöschte Spalte. Nach dem Vollimport ist es eine Migration auf
---     echten Daten, und bei Konfession und Staatsangehörigkeit auf besonders
---     geschützten. Die Entscheidung gehört deshalb vor den Import, nicht
---     danach. — Schulleitung und Datenschutzbeauftragte
+-- Dass alle vier erhoben bleiben, ist seit dem 07.09.2026 entschieden (Gespräch
+-- aller Beteiligten, 05). Damit ist keine der vier Spalten ein Kandidat für ein
+-- DROP COLUMN, und die Frist „vor dem Vollimport", die allein daran hing, ist
+-- erledigt.
+-- [?] Offen ist nur noch der benannte Verarbeitungszweck je Feld — ohne ihn
+--     trägt das Verarbeitungsverzeichnis für diese vier keinen. Das entscheidet
+--     die Schulleitung, nicht der Datenschutzbeauftragte, und es hält nichts
+--     auf: Für die Spalten selbst folgt daraus nichts mehr. — Schulleitung
 -- Für Vertrags- und Zahlungsdaten stehen die Fristen seit dem 02.09.2026:
 -- **Schulvertrag fünf Jahre nach dem Austritt, SEPA-Mandat zwei Jahre nach dem
 -- Austritt** — getrennt, weil das Mandat nur die Ermächtigung ist und der

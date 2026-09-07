@@ -314,11 +314,8 @@ Kein Eingriff, das Schema führt `wb-backend`:
    zweiter Vorgang" (02 Z1), und ein Notfallkontakt ohne Nummer trüge keinen Sachverhalt. Der Fall,
    der wirklich zerfällt, ist die Mailadresse — und sie ist **heute schon zwei**, weil ein Tippfehler
    den einzigen Kanal der Familie kostet.
-7. **Ein verschwindendes Feld bricht keine Oberfläche**, es zeigt eines weniger. Der absehbare Fall
-   ist benannt: Fällt der Zweckbeschluss für Konfession, Beruf, Staatsangehörigkeit und
-   Kirchengemeinde negativ aus (`[?]` in 05), verschwinden vier Felder aus `GET /children/…`,
-   `GET /families/…`, `PATCH /children/…` und `PATCH /persons/{id}/guardian` — und mit ihnen die enge
-   Rolle an zwei Routen. Eine Versionierung entsteht dafür nicht.
+7. **Ein verschwindendes Feld bricht keine Oberfläche**, es zeigt eines weniger. Eine Versionierung
+   entsteht dafür nicht.
 
 ## Festlegungen
 

@@ -17,7 +17,7 @@ ordinal: 30000
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-Sie hängt nicht am Inhalt, sondern am Zweckbeschluss des Feldes selbst. Fällt das Feld, fällt die Liste mit ihm — ein Anfangsbestand wäre vorher eine Entscheidung, die niemand getroffen hat.
+Sie hängt nicht am Inhalt, sondern am Zweckbeschluss des Feldes selbst. Dass das Feld bleibt, ist entschieden (07.09.2026, TASK-038); der Zweck, aus dem es gefüllt wird, nicht — und ein Anfangsbestand wäre vorher eine Entscheidung, die niemand getroffen hat.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
