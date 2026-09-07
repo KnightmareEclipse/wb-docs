@@ -6,6 +6,14 @@
 Reihenfolge, Stand und Ticketliste in [`fokus.md`](fokus.md). Alles darunter beschreibt weiter das
 ganze System — es ist die Landkarte, nicht der Auftrag.
 
+**Gebaut wird in `wb-mvp`, nicht mehr in `wb-backend`.** Dort stehen die drei Domänen samt
+Querschnitt und beiden Oberflächen in einem Repo; `wb-backend`, `wb-elternportal` und `wb-intern`
+liegen still, ihr vollständiger Stand im Tag `stand-vor-mvp`. **Diese Doku wird von dort gelesen und
+nicht fortgeschrieben** — sie ist die Grundlage, auf der die Prozesse später neu angesetzt werden,
+und die Abkürzungen des MVP gehören nicht hinein. Damit gilt für `wb-mvp` die Regel unter „Stand"
+nicht, nach der eine Strukturänderung hier nachgezogen wird; was dort anders ist als der Entwurf,
+steht dort.
+
 - **Die zehn ruhenden Domänen werden nicht angefasst.** Ihre Schemata, Blöcke und API-Pläne liegen
   im Repo und bleiben liegen; ihre Tickets stehen in `backlog/archive/tasks/` und kommen von dort
   zurück, wenn ihre Domäne dran ist. Ein Fund in einer ruhenden Domäne wird genannt und nicht
@@ -17,6 +25,12 @@ ganze System — es ist die Landkarte, nicht der Auftrag.
   Reimport billiger als eine vorsorgliche Struktur. Zwei Ausnahmen tragen das nicht: die externe
   Referenz einer Zahlung und der Zeitstempel samt Textfassung einer Einwilligung — beide müssen
   jeden Umbau unverändert überleben.
+- **Der Import bringt, was der Export hergibt — und der Maßstab ist der Putzdienst.** Er braucht
+  Familie, Kind, Klasse und einen Kanal; läuft er damit, ist der Datenstand gut genug. Was ASV
+  nicht trägt, bleibt leer und wird nicht beschafft, und eine Lücke, die eine Rückfrage an die
+  Schule wäre, wird gerechnet oder gemeldet statt gefragt — die Schule beantwortet je Vorgang eine
+  Frage, nicht drei. Nachgetragen wird von Hand, wenn der Bestand steht; der Reimport oben trägt
+  auch das.
 - **Diese Datei und `fokus.md` verschwinden wieder**, sobald die drei Domänen produktiv laufen —
   der Abschnitt hier und die Datei dort, nicht der Rest.
 

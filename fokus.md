@@ -12,6 +12,11 @@ stünde, wäre am nächsten Tag falsch.
 
 Reihenfolge: 1 und 2 zusammen, 3 danach. Alles andere ruht.
 
+**Gebaut wird in `wb-mvp`** — die drei Domänen samt Querschnitt und beiden Oberflächen in einem
+Repo, auf 90 Tabellen statt 148 reduziert. `wb-backend`, `wb-elternportal` und `wb-intern` liegen
+still; ihr vollständiger Stand steht im Tag `stand-vor-mvp`. Die Fristen, an denen dort gemessen
+wird, stehen in `wb-mvp/backlog/`.
+
 ## Was ruht
 
 **Alles außer den dreien oben.** Was es gibt, sagt `schema/`; was davon ruht, ist die Differenz —
